@@ -43,7 +43,7 @@ const Navbar = () => {
     setActiveTab(page);
   };
   return (
-     <AppBar position="fixed"   
+     <AppBar position="fixed"  
      sx={{
         backgroundColor: "#FFFFFF",
         borderBottom: "0.5px solid #DEDFE1",
@@ -54,7 +54,7 @@ const Navbar = () => {
         
       }}>
       <Container maxWidth="xl">
-        <Toolbar disableGutters>
+        <Toolbar disableGutters sx={{width:"93%", margin:"auto"}}>
 
       
           <Typography

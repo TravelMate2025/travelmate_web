@@ -1,5 +1,4 @@
-
-import React, { useRef } from "react";
+import { useRef } from "react";
 import Lagos from "../../assets/lagos.svg"
 import KeyboardArrowLeftOutlinedIcon from "@mui/icons-material/KeyboardArrowLeftOutlined";
 import KeyboardArrowRightOutlinedIcon from "@mui/icons-material/KeyboardArrowRightOutlined";

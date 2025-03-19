@@ -1,5 +1,16 @@
+
+// import DeparturePage from "./pages/departureFlight/DeparturePage";
+
+
+// function App() {
+//   return (
+//     <Routes>
+//       <Route path="/" element={<Home />} />
+      {/* <Route path="/departure-flight" element={<DeparturePage departureInfo={[]} />} /> */}
+
+
 import { Routes, Route } from "react-router-dom";
-import './App.css'
+import './App.css'    
 import CreateAccount from "./pages/CreateAccount";
 import VerifyPage from "./pages/VerifyPage";
 import Home from "./pages/Home";
@@ -11,6 +22,8 @@ import StaysSearchResults from "./pages/StaysSearchResults";
 // import DeparturePage from "./pages/departureFlight/DeparturePage";
 import DeparturePage from "./pages/departureFlight/DeparturePage";
 import Home2 from "./pages/2Home";
+import ReturnPage from "./pages/returnFlight/ReturnPage";
+import FlightInfoPage from "./pages/flightInfo-review/FlightInfoPage";
 
 
 
@@ -18,8 +31,6 @@ function App() {
   return (
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/departure-flight" element={<DeparturePage departureInfo={[]} />} />
-      
         <Route path="/home" element={<Home2 />} />
         <Route path="/login" element={<Login />} />
         <Route path="/create-account" element={<CreateAccount />} />
@@ -28,6 +39,9 @@ function App() {
         <Route path="/reset-email-link" element={<EmailResetLink />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/stays-search-result" element={<StaysSearchResults />} />
+        <Route path="/departure-flight" element={<DeparturePage departureInfo={[]} />} />
+        <Route path="/return-flight" element={<ReturnPage departureInfo={[]} />} />
+        <Route path="/flightInfo-review" element={<FlightInfoPage />} />
       </Routes>
 
   );

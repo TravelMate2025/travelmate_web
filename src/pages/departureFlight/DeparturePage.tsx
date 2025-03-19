@@ -1,11 +1,8 @@
-
-// import React from 'react'
 import Navbar from '../homePage/Navbar'
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
-// import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -50,10 +47,6 @@ interface DateRangeType {
   endDate: Date;
   key: string;
 }
-
-
-// const ITEMS_PER_PAGE = 4;
-
 
 interface Departure {
   id: number;
@@ -155,7 +148,6 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
         setOpenTo(false);
     }
     };
-  
     
     const handleCloseFrom = () => {
       setOpenFrom(false);
@@ -351,16 +343,9 @@ const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
 
 const ITEMS_PER_PAGE = 4;
 
-const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
+const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
 };
-
-// const filteredItems = useMemo(() => {
-//     const startIndex = (page - 1) * ITEMS_PER_PAGE;
-//     const endIndex = startIndex + ITEMS_PER_PAGE;
-//     return departureInfo.slice(startIndex, endIndex);
-// }, [departureInfo, page]);
-
 
 const airlinesList = ["Aero", "Arik Air", "Value Jet", "Air Peace", "United Nigeria"];
 const [selected, setSelected] = useState<{ [key: string]: boolean }>(
@@ -383,7 +368,6 @@ const handleSelectedChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = event.target;
     
     if (name === "all") {
-    // Select all or deselect all
     setSelected(() => {
         const newState: { [key: string]: boolean } = { all: checked }; // Explicit type
         airlinesList.forEach((airline) => {
@@ -419,7 +403,7 @@ const applyFilters = () => {
     });
 
     setFilteredItems(filtered);
-    closeDialog(); // Close modal after applying
+    closeDialog();
 };
 
 const paginatedItems = useMemo(() => {
@@ -1315,11 +1299,13 @@ const paginatedItems = useMemo(() => {
                 </div>
             </div>
             </DialogContent>
-             <div className="absolute bottom-0 border-t border-[grey] left-0 right-0 bg-white p-4 rounded-b-[10px]">
+            <Link to="/return-flight">
+            <div className="absolute bottom-0 border-t border-[grey] left-0 right-0 bg-white p-4 rounded-b-[10px]">
             <button onClick={applyFilters} className="w-full h-[52px] rounded-[6px] bg-[#023E8A] text-white cursor-pointer">
                 Select
             </button>
         </div>
+        </Link>
             </Dialog>
         </div>
     </div>
