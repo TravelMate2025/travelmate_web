@@ -4,7 +4,7 @@ import { MdOutlineEmail } from "react-icons/md";
 
 export default function DownloadApp() {
   return (
-    <section className="bg-white border border-gray-400 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center w-[90%] mx-auto my-10 shadow-md shadow-gray-600/50">
+    <section className="bg-white border border-gray-400 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center w-[1270px] mx-auto my-10 shadow-md shadow-gray-600/50">
       {/* Left Side - Text and Email Box */}
       <div className="w-full md:w-1/2 text-center md:text-left">
         <h2 className="text-2xl font-bold text-gray-900">Get the TravelMate App Now!</h2>
