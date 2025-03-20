@@ -871,7 +871,9 @@ const paginatedItems = useMemo(() => {
         <div className='flex gap-1 text-[15px] mb-4'>
             <p>Home</p>
             <KeyboardArrowRightOutlinedIcon />
-            <p className='text-[#023E8A]'>Departure</p>
+            <p >Departure</p>
+            <KeyboardArrowRightOutlinedIcon />
+            <p className='text-[#023E8A]'>Return Flight</p>
         </div>
     </div>
     

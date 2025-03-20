@@ -385,7 +385,7 @@ const handleSubmit = () => {
 
                         <div className="flex justify-between">
                             <div>
-                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Departure Flight</p>
+                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Taxes & Fees</p>
                             <p className="text-[14px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
                             </div>
                             <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
@@ -394,7 +394,7 @@ const handleSubmit = () => {
 
                         <div className="flex justify-between">
                             <div>
-                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Departure Flight</p>
+                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Return Flight</p>
                             <p className="text-[14px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
                             </div>
                             <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
@@ -402,7 +402,7 @@ const handleSubmit = () => {
 
                             <div className="flex justify-between">
                             <div>
-                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Departure Flight</p>
+                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Taxes & Fees</p>
                             <p className="text-[14px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
                             </div>
                             <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
@@ -413,7 +413,7 @@ const handleSubmit = () => {
                         <Divider sx={{ marginTop: "12px", marginBottom: "12px" }} />
                         <div className="flex justify-between">
                             <p>Total</p>
-                            <p className='text-[#023E8A] font-medium'>₦100,000</p>
+                            <p className='text-[#023E8A] font-medium'>₦160,000</p>
                         </div>
                         </div>
                     </div>

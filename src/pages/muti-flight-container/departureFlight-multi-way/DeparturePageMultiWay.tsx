@@ -1299,7 +1299,7 @@ const paginatedItems = useMemo(() => {
                 </div>
             </div>
             </DialogContent>
-            <Link to="/flightInfo-review-one-way">
+            <Link to="/second-departure-flight">
             <div className="absolute bottom-0 border-t border-[grey] left-0 right-0 bg-white p-4 rounded-b-[10px]">
             <button onClick={applyFilters} className="w-full h-[52px] rounded-[6px] bg-[#023E8A] text-white cursor-pointer">
                 Select

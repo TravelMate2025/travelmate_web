@@ -119,7 +119,7 @@ const handleSubmit = () => {
                 <div className='w-full mt-[100px] mb-[24px] border-1 border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] '>
 
                     <div className='items-center p-2'>
-                        <p className='text-[18px] text-[#181818] font-inter font-normal'>Round Trip</p>
+                        <p className='text-[18px] text-[#181818] font-inter font-normal'>One Way</p>
                         <p className='text-[15px] text-[#4E4F52] '>1 Passenger, 1 Ticket</p>
                     </div>
 
@@ -168,46 +168,6 @@ const handleSubmit = () => {
                         </div>
                     </div>
 
-                     <div className='mt-[20px]'>
-                         <p className="text-[20px] font-inter font-medium text-[#181818]">Return Flight</p>
-                         <div className='border border-[#CDCED1] rounded-[10px] w-[43.6vw] p-[20px] mt-[20px]'>
-                            <div>
-                                <div className="flex flex-col gap-2">
-                                            <div className='flex gap-[4px] justify-between'>
-                                               <div className=''>
-                                                <p className="text-[#181818] text-[16px] font-medium ">Abuja To Lagos</p>
-                                                </div>
-                                                <div>
-                                                <p className="text-[#023E8A] text-[14px] font-medium ">Change Flight</p>
-                                                </div>
-                                            </div>
-
-                                                <div className='flex gap-4'>
-                                                <img src={planelogo} alt="" className='w-[19px]' />
-                                                <p className="text-[#67696D] text-[18px] font-normal ">Air Piece Limited</p>
-                                                </div>
-
-                                            <p className='text-[#67696D] font-medium text-[16px]'><FlightClassOutlinedIcon /> Economy </p>
-                                            <p className='text-[#67696D] font-medium text-[16px]'><CalendarMonthOutlinedIcon />Feb 19</p>
-                                            <p className="text-[#67696D] text-[16px] font-medium">2:00pm - 4:00pm (2hr Non Stop)</p>
-                                            <p className="text-[#67696D] text-[16px] font-medium"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
-                                            <p className="text-[#67696D] text-[16px] font-medium"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
-                                            <p className="text-[#67696D] text-[16px] font-medium"><CloseOutlinedIcon /> Non Refundable</p>
-                                            <Divider />
-                                            <div className='flex justify-between'>
-                                                <div>
-                                                    <p className='mt-3 text-[#181818]'>Price</p>
-                                                </div>
-                                                <div>
-                                                    <p className='text-[#023E8A] text-[16px] font-medium'>₦50,000</p>
-                                                    <p className='text-[#67696D] text-[12px] font-medium'>Includes taxes&Fees</p>
-                                                </div>
-                                            </div>
-                                            
-                                </div>
-                                </div>
-                            </div>
-                    </div>
 
                      <div className='mt-[20px]'>
                          <p className="text-[20px] font-inter font-medium text-[#181818]">Passenger Information</p>
@@ -385,26 +345,10 @@ const handleSubmit = () => {
                             <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
                         </div>
 
-                        <div className="flex justify-between">
-                            <div>
-                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Departure Flight</p>
-                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
-                            </div>
-                            <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
-                        </div>
-
-
-                        <div className="flex justify-between">
-                            <div>
-                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Departure Flight</p>
-                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
-                            </div>
-                            <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
-                        </div>
 
                             <div className="flex justify-between">
                             <div>
-                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Departure Flight</p>
+                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Taxes & Fees</p>
                             <p className="text-[14px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
                             </div>
                             <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
@@ -415,7 +359,7 @@ const handleSubmit = () => {
                         <Divider sx={{ marginTop: "12px", marginBottom: "12px" }} />
                         <div className="flex justify-between">
                             <p>Total</p>
-                            <p className='text-[#023E8A] font-medium'>₦100,000</p>
+                            <p className='text-[#023E8A] font-medium'>₦80,000</p>
                         </div>
                         </div>
                     </div>
