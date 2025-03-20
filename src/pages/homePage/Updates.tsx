@@ -7,11 +7,10 @@ import BeachSide from "../../assets/beachside.svg";
 
 const Updates = () => {
   return (
-    <div className="bg-[#CCD8E833] w-full h-auto pb-10 mb-24">
+    <div className="bg-[#CCD8E833] w-full h-[100%] pb-20 mb-24">
       <div className="w-[90%] mx-auto">
         <div className="flex flex-col-reverse md:flex-row justify-between items-center gap-6">
 
-          {/* Left Section - Text & Input */}
           <div className="pt-16 md:pt-28 text-center md:text-left w-full md:w-1/2">
             <p className="text-2xl font-semibold font-inter text-[#181818] mt-3">
               Get Updates & Exclusive Offers
@@ -20,7 +19,7 @@ const Updates = () => {
               Subscribe to our newsletter and never miss out on great deals.
             </p>
 
-            {/* Input & Button */}
+        
             <div className="flex flex-col sm:flex-row gap-4">
               <Box sx={{ width: "100%" }}>
                 <TextField
@@ -50,8 +49,7 @@ const Updates = () => {
             </div>
           </div>
 
-          {/* Right Section - Image */}
-          <div className="w-full mt-6 mt:0 md:w-1/2 flex justify-center md:justify-end">
+          <div className="w-full mt-[75px] mt:0 md:w-1/2 flex justify-center md:justify-end">
             <img src={BeachSide} alt="Beach Side" className="w-full h-auto md:max-w-[400px]" />
           </div>
 
