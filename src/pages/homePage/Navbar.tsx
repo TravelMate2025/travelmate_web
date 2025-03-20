@@ -1,4 +1,4 @@
-import  React, {useState} from 'react';
+import  React, {useEffect, useState} from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -15,13 +15,18 @@ import Travelmate from "../../assets/Travelmate_logo.svg";
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 const pages = ['Home', 'Stays', 'Flights', 'Cars'];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
-// import { Link } from "react-router-dom";
-
+import { Link } from 'react-router-dom';
 
 
 const Navbar = () => {
- const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    setIsAuthenticated(!!token);
+  }, []);
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -136,8 +141,15 @@ const Navbar = () => {
             ))}
           </Box>
           <Box sx={{ flexGrow: 0 }}>
-
-               <Tooltip title="Open settings">
+          {!isAuthenticated ? (
+              <div className="hidden md:flex">
+                <Link to="/create-account" className="px-4 py-2 bg-[#023E8A] text-white rounded-lg hover:bg-[#012A5D] transition">
+                  Create an Account or Login
+                </Link>
+              </div>
+            ) : (
+                <>
+                <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                 <div className='bg-[#CCD8E81A] w-[40px] h-[40px]  rounded-full border border-[#023E8A] text-center mr-[40px]'>
                   <NotificationsNoneOutlinedIcon/>
@@ -156,6 +168,9 @@ const Navbar = () => {
 
              
             </Tooltip>
+            </>
+
+            )}
             <Menu
               sx={{ mt: '45px' }}
               id="menu-appbar"
@@ -179,6 +194,8 @@ const Navbar = () => {
               ))}
             </Menu>
           </Box>
+       
+               
         </Toolbar>
       </Container>
     </AppBar>

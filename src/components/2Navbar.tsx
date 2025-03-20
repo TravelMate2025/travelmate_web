@@ -22,7 +22,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Right Side: Account/Login Button */}
+      {/* Account/Login Button */}
       <div className="hidden md:flex">
         <Link to="/create-account" className="px-4 py-2 bg-[#023E8A] text-white rounded-lg hover:bg-[#012A5D] transition">
           Create an Account or Login
