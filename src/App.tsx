@@ -18,6 +18,9 @@ import DeparturePageOneWay from "./pages/one-way-container/departureFlight-One-w
 import FlightInfoPageOneWay from "./pages/one-way-container/flightInfo-review-one-way/FlightInfoPageOneWay"
 import FlightConfirmPageOneWay from "./pages/one-way-container/flightConfirmation-one-way/FlightConfirmPageOneWay"
 import DeparturePageMultiWay from "./pages/muti-flight-container/departureFlight-multi-way/DeparturePageMultiWay"
+import SecondDepartureFlightPage from "./pages/muti-flight-container/secondDepartureFlight/SecondDepartureFlightPage"
+import FlightInfoPageMultiWay from "./pages/muti-flight-container/flightInfo-review-multiway/FlightInfoPageMultiWay"
+import FlightConfirmPageMultiWay from "./pages/muti-flight-container/flightConfirmationMultiWay/FlightConfirmPageMultiWay"
 import ProfileInfo from "./pages/ProfileInfo";
 import Profile from "./pages/Profile";
 
@@ -50,10 +53,9 @@ function App() {
        {/* multi-way-trip-section */}
 
         <Route path="/departure-flight-multi-way" element={<DeparturePageMultiWay departureInfo={[]} />} />
-
-
-
-
+        <Route path="/second-departure-flight" element={<SecondDepartureFlightPage departureInfo={[]} />} />
+        <Route path="/flightInfo-review-multi-way" element={<FlightInfoPageMultiWay />} />
+        <Route path="/flight-confirm-multi-way" element={<FlightConfirmPageMultiWay />} />
 
 
       </Routes>
