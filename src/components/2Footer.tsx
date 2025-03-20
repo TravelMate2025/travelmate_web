@@ -43,7 +43,7 @@ export default function Footer() {
       </div>
 
       {/* Divider Line */}
-      <hr className="border-t border-white opacity-50 my-6" />
+      <hr className="border-t-2 border-white my-6" />
 
       {/* Copyright Section */}
       <div className="text-center text-sm">

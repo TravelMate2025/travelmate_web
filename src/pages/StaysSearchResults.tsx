@@ -96,7 +96,7 @@ export default function StaysSearchResults() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-[180px] h-[42px] bg-[#023E8A] text-white rounded-lg hover:bg-[#0450A2]"
+              className="w-[180px] h-[42px] ml-25 bg-[#023E8A] text-white rounded-lg hover:bg-[#0450A2]"
             >
               Update
             </button>

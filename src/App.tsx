@@ -21,8 +21,8 @@ import DeparturePageMultiWay from "./pages/muti-flight-container/departureFlight
 import SecondDepartureFlightPage from "./pages/muti-flight-container/secondDepartureFlight/SecondDepartureFlightPage"
 import FlightInfoPageMultiWay from "./pages/muti-flight-container/flightInfo-review-multiway/FlightInfoPageMultiWay"
 import FlightConfirmPageMultiWay from "./pages/muti-flight-container/flightConfirmationMultiWay/FlightConfirmPageMultiWay"
-
-
+import ProfileInfo from "./pages/ProfileInfo";
+import Profile from "./pages/Profile";
 
 
 function App() {
@@ -30,6 +30,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home2 />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile-info" element={<ProfileInfo />} />
         <Route path="/login" element={<Login />} />
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/verify-page" element={<VerifyPage />} />
