@@ -1,23 +1,24 @@
 
 
 import { useState,useEffect } from 'react';
-import Navbar from '../homePage/Navbar'
+import Navbar from '../../homePage/Navbar'
 import LuggageOutlinedIcon from '@mui/icons-material/LuggageOutlined';
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import AirlineSeatReclineExtraOutlinedIcon from '@mui/icons-material/AirlineSeatReclineExtraOutlined';
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import FlightClassOutlinedIcon from "@mui/icons-material/FlightClassOutlined";
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
-import planelogo from "../../assets/airlogo.svg";
+import planelogo from "../../../assets/airlogo.svg";
 import { Divider, InputAdornment, TextField, FormControlLabel, Checkbox } from '@mui/material';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
 import Switch from '@mui/material/Switch';
-import Footer from '../homePage/Footer';
+import Footer from '../../homePage/Footer';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
-import master from "../../assets/master.svg";
-import visa from "../../assets/visa.svg"
+import master from "../../../assets/master.svg";
+import visa from "../../../assets/visa.svg"
+import { Link } from 'react-router-dom';
 
 
 const FlightInfoPage = () => {
@@ -128,7 +129,7 @@ const handleSubmit = () => {
                     <div>
                     <div>
                          <p className="text-[20px] font-inter font-medium text-[#181818]">Departure Flight</p>
-                         <div className='border border-[#CDCED1] rounded-[10px] w-[628px] p-[20px] mt-[20px]'>
+                         <div className='border border-[#CDCED1] rounded-[10px] w-[43.6vw] p-[20px] mt-[20px]'>
                             <div>
                                 <div className="flex flex-col gap-2">
                                             <div className='flex gap-[4px] justify-between'>
@@ -169,7 +170,7 @@ const handleSubmit = () => {
 
                      <div className='mt-[20px]'>
                          <p className="text-[20px] font-inter font-medium text-[#181818]">Return Flight</p>
-                         <div className='border border-[#CDCED1] rounded-[10px] w-[628px] p-[20px] mt-[20px]'>
+                         <div className='border border-[#CDCED1] rounded-[10px] w-[43.6vw] p-[20px] mt-[20px]'>
                             <div>
                                 <div className="flex flex-col gap-2">
                                             <div className='flex gap-[4px] justify-between'>
@@ -210,7 +211,7 @@ const handleSubmit = () => {
 
                      <div className='mt-[20px]'>
                          <p className="text-[20px] font-inter font-medium text-[#181818]">Passenger Information</p>
-                         <div className='border border-[#CDCED1] rounded-[10px] w-[628px] p-[20px] mt-[20px]'>
+                         <div className='border border-[#CDCED1] rounded-[10px] w-[43.6vw] p-[20px] mt-[20px]'>
                             <div className='w-full flex pl-3 mt-[2px] mb-[28px] border-1 border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] '>
                             <div><ErrorOutlineIcon className='mt-4 text-[#023E8A]' /></div>
                             <div className='items-center p-2'>
@@ -374,7 +375,7 @@ const handleSubmit = () => {
 
                     <div className="ml-[40px]">
                     <p className="text-[20px] font-inter font-medium text-[#181818]">Price Summary</p>
-                    <div className="border border-[#CDCED1] rounded-[10px] w-[628px] p-[20px] mt-[20px]">
+                    <div className="border border-[#CDCED1] rounded-[10px] w-[43.6vw] p-[20px] mt-[20px]">
                         <div className="flex flex-col gap-1">
                         <div className="flex justify-between">
                             <div>
@@ -421,7 +422,7 @@ const handleSubmit = () => {
 
                     <div className="mt-[20px]">
                         <p className="text-[20px] font-inter font-medium text-[#181818]">Payment Method</p>
-                        <div className="border border-[#CDCED1] rounded-[10px] w-[628px] p-[20px] mt-[20px]">
+                        <div className="border border-[#CDCED1] rounded-[10px] w-[43.6vw] p-[20px] mt-[20px]">
                         <div className='flex justify-between mb-[25px]'>
                             <div>
                                 <CreditCardIcon /> <span>Card</span>
@@ -539,10 +540,11 @@ const handleSubmit = () => {
                         }
                         />
                     </div>
-
+                    
+                    <Link to="/flight-confirm-one-way">
                     <div className="mt-[32px]">
                         <button
-                        className={`w-full text-white h-[56px] rounded-[6px] ${
+                        className={`w-full text-white h-[56px] rounded-[6px] cursor-pointer ${
                             isFormValid ? "bg-[#023E8A]" : "bg-gray-400 cursor-not-allowed"
                         }`}
                         disabled={!isFormValid}
@@ -551,6 +553,7 @@ const handleSubmit = () => {
                         Make Payment
                         </button>
                     </div>
+                    </Link>
                     </div>
                     </div>
                         

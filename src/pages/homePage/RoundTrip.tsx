@@ -183,6 +183,37 @@ const handleSelectDate = () => {
       });
     };
 
+      const handleSearchOneTrip = () => {
+        console.log("Navigating with:", { selectedFrom, selectedTo, selectedDate, passengerText, selectedClass });
+      navigate("/departure-flight-one-way", {
+        state: {
+          from: selectedFrom,
+          to: selectedTo,
+          departureDate: selectedDate,
+          passengers: passengerText,
+          flightClass: selectedClass
+        },
+      });
+    };
+
+      const handleSearchMultiTrip = () => {
+        console.log("Navigating with:", { selectedFrom, selectedTo, selectedDate, passengerText, selectedClass });
+      navigate("/departure-flight-multi-way", {
+        state: {
+          from: selectedFrom,
+          to: selectedTo,
+          departureDate: selectedDate,
+          passengers: passengerText,
+          flightClass: selectedClass
+        },
+      });
+    };
+
+    const [flights, setFlights] = useState<number[]>([1, 2]); // Default flights
+
+  const handleAddFlight = () => {
+    setFlights((prev) => [...prev, prev.length + 1]); // Add a new flight dynamically
+  };
 
 
   return (
@@ -201,7 +232,9 @@ const handleSelectDate = () => {
         <FormControlLabel value="one-way" control={<Radio />} label="One Way" />
         <FormControlLabel value="multi-city" control={<Radio />} label="Multi City" />
       </RadioGroup>
-     {["round-trip", "one-way", "multi-city"].includes(selectedValue) && (
+
+
+     {selectedValue === "round-trip" &&(
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2}}>
         
         <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -647,6 +680,909 @@ const handleSelectDate = () => {
           </div>
       </Box>
       )}
+
+
+       {selectedValue === "one-way" &&(
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2}}>
+        
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <label htmlFor="from" className="mb-1">From</label>
+          <TextField
+            id="from"
+            variant="outlined"
+            size="small"
+            placeholder="Search Destination"
+           
+            value={selectedFrom}
+             onClick={handleFromClick}
+            // onClick={() => handleFromOptionClick(location)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LocationOnIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              width: "200px",
+             
+              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
+            }}
+          />
+
+          <Popper id="from-popper" open={openFrom} anchorEl={FromClick} placement="bottom-start">
+          <ClickAwayListener onClickAway={handleCloseFrom}>
+            <Paper
+              elevation={3}
+              sx={{
+                width: "317px",
+                borderRadius: "6px",
+                backgroundColor: "white",
+                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                paddingBottom:"25px",
+              }}
+            >
+              <Typography variant="subtitle1" className="font-inter text-[#343537] text-lg pl-[24px] pt-[24px] pr-[24px]">
+                Recent Searches
+              </Typography>
+
+                {locations.length === 0 ? (
+                  <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
+                    No recent searches
+                  </Typography>
+                ) : (
+                locations.map((location, index) => (
+                  <React.Fragment key={location}>
+                    <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
+                      <div className="flex gap-[8px]" onClick={() => handleFromOptionClick(location)}>
+                        <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
+                          <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
+                        </div>
+                        <p>{location}</p>
+                      </div>
+
+                  
+                      <CloseOutlinedIcon
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveOption(location);
+                        }}
+                        className="cursor-pointer"
+                        sx={{ color: "gray" }}
+                      />
+                    </div>
+
+                    {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
+                  </React.Fragment>
+                ))
+              )}
+
+            </Paper>
+          </ClickAwayListener>
+        </Popper>
+        </Box>
+
+        
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <label htmlFor="to" className="mb-1">To</label>
+          <TextField
+            id="to"
+            variant="outlined"
+            size="small"
+            value={selectedTo}
+             onClick={handleToClick}
+            //  onClick={() => handleToOptionClick(location)}
+            placeholder="Search Destination"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LocationOnIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+               width: "200px",
+             
+              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
+            }}
+          />
+
+      <Popper id="from-popper" open={openTo} anchorEl={ToClick} placement="bottom-start">
+      <ClickAwayListener onClickAway={handleCloseTo}>
+        <Paper
+          elevation={3}
+          sx={{
+            width: "317px",
+            borderRadius: "6px",
+            backgroundColor: "white",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+            paddingBottom:"25px",
+          }}
+        >
+          <Typography variant="subtitle1" className="font-inter text-[#343537] text-lg pl-[24px] pt-[24px] pr-[24px]">
+            Recent Searches
+          </Typography>
+
+            {locations.length === 0 ? (
+              <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
+                No recent searches
+              </Typography>
+            ) : (
+            locations.map((location, index) => (
+              <React.Fragment key={location}>
+                <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
+                  <div className="flex gap-[8px]"  onClick={() => handleToOptionClick(location)}>
+                    <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
+                      <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
+                    </div>
+                    <p>{location}</p>
+                  </div>
+
+              
+                  <CloseOutlinedIcon
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveOption(location);
+                    }}
+                    className="cursor-pointer"
+                    sx={{ color: "gray" }}
+                  />
+                </div>
+
+                {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
+              </React.Fragment>
+            ))
+          )}
+
+        </Paper>
+      </ClickAwayListener>
+      </Popper>
+        </Box>
+
+     
+
+     
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <label htmlFor="departure-date" className="mb-1">Date</label>
+              <TextField
+                id="departure-date"
+                variant="outlined"
+                size="small"
+                placeholder="Select Date"
+                value={selectedDate} 
+                onClick={handleClick} 
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CalendarMonthOutlinedIcon />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  width: "200px",
+                  "& .MuiInputBase-root": { height: "44px", borderRadius:"8px" },
+                  "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
+                }}
+              />
+
+
+
+              <Popper id={id} open={open} anchorEl={anchorEl} placement="bottom-start">
+                <ClickAwayListener onClickAway={handleClose}>
+                  <Paper
+                    elevation={3}
+                    sx={{
+                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                      // width: "867px", // Ensures full width
+                      // height: "555px", // Ensures full height
+                      overflow: "hidden", // Prevents content overflow
+                      display: "flex",
+                      justifyContent: "center", // Centers content
+                      alignItems: "center",
+                      paddingBottom:"20px",
+                    }}
+                  >
+                    <div style={{ width: "100%", height: "100%" }}>
+                      <DateRange
+                        editableDateInputs={true}
+                          onChange={(item: RangeKeyDict) => {
+                          setDateRange([
+                              {
+                              startDate: item.selection.startDate ?? new Date(),
+                              endDate: item.selection.endDate ?? new Date(),
+                              key: item.selection.key ?? "selection", 
+                              },
+                          ]);
+                          }}
+
+                        moveRangeOnFirstSelection={false}
+                        ranges={dateRange}
+                        rangeColors={["#FF6F1E"]}
+                        months={2} // Show 2 calendars side by side
+                        direction="horizontal" // Arrange them in a row
+                        showDateDisplay={false} // Optional: Hide input fields
+                        className="w-full h-full" // Tailwind (if used)
+                      />
+
+                    <div className="w-[96%] m-auto">
+                        <button
+                            className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
+                            style={{
+                              backgroundColor: "#023E8A",
+
+                              color: "white",
+                              marginTop: 2,
+                              // "&:hover": { backgroundColor: "#012A5A" },
+                            }}
+                            onClick={handleSelectDate}
+                          >
+                            Select Date
+                          </button>
+                    </div>
+                    </div>
+
+              
+
+                  </Paper>
+                </ClickAwayListener>
+              </Popper>
+
+            </Box>
+
+        
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <label htmlFor="passengers" className="mb-1">Passengers</label>
+          <TextField
+            id="passengers"
+            variant="outlined"
+            size="small"
+            placeholder="1 Passenger"
+             value={passengerText}
+            onClick={handlePassenger}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonOutlineOutlinedIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              width: "200px",
+             
+              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
+            }}
+          />
+        
+
+
+        <Popper
+            open={Boolean(passengerAnchor)}
+            anchorEl={passengerAnchor}
+            placement="bottom-start"
+            modifiers={[
+              {
+                name: "preventOverflow",
+                options: {
+                  boundary: "window",
+                },
+              },
+            ]}
+          >
+            <ClickAwayListener onClickAway={() => setPassengerAnchor(null)}>
+              <Paper
+                elevation={3}
+                sx={{
+                  width: "376px",
+                  borderRadius: "6px",
+                  backgroundColor: "white",
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                  padding: "16px",
+                }}
+              >
+
+                <div>
+    
+                  <div className="flex justify-between mb-3">
+                    <div>
+                      <p className="text-[16px] text-[#181818] font-inter font-semibold">Adults</p>
+                      <p className="text-[#818489] text-[14px] font-inter font-normal">Ages 16 and Above</p>
+                    </div>
+                    <div>
+                      <div className="w-[95px] h-[30px] mt-1.5 rounded-[4px] border border-[#023E8A] flex justify-between gap-2 items-center px-2">
+                        <RemoveOutlinedIcon
+                          className="text-[#ACAEB3] cursor-pointer"
+                          onClick={() => handleDecrement("adults")}
+                        />
+                        <div>{counts.adults}</div>
+                        <AddOutlinedIcon
+                          className="cursor-pointer"
+                          onClick={() => handleIncrement("adults")}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <Divider sx={{ marginBottom: "8px" }} />
+
+                  <div className="flex justify-between mb-3">
+                    <div>
+                      <p className="text-[16px] text-[#181818] font-inter font-semibold">Children</p>
+                      <p className="text-[#818489] text-[14px] font-inter font-normal">Ages 3 - 15</p>
+                    </div>
+                    <div>
+                      <div className="w-[95px] h-[30px] mt-1.5 rounded-[4px] border border-[#023E8A] flex justify-between gap-2 items-center px-2">
+                        <RemoveOutlinedIcon
+                          className="text-[#ACAEB3] cursor-pointer"
+                          onClick={() => handleDecrement("children")}
+                        />
+                        <div>{counts.children}</div>
+                        <AddOutlinedIcon
+                          className="cursor-pointer"
+                          onClick={() => handleIncrement("children")}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <Divider sx={{ marginBottom: "8px" }} />
+
+                  <div className="flex justify-between mb-3">
+                    <div>
+                      <p className="text-[16px] text-[#181818] font-inter font-semibold">Infant</p>
+                      <p className="text-[#818489] text-[14px] font-inter font-normal">Ages 0 and 2</p>
+                    </div>
+                    <div>
+                      <div className="w-[95px] h-[30px] mt-1.5 rounded-[4px] border border-[#023E8A] flex justify-between gap-2 items-center px-2">
+                        <RemoveOutlinedIcon
+                          className="text-[#ACAEB3] cursor-pointer"
+                          onClick={() => handleDecrement("infants")}
+                        />
+                        <div>{counts.infants}</div>
+                        <AddOutlinedIcon
+                          className="cursor-pointer"
+                          onClick={() => handleIncrement("infants")}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <button  onClick={handleDone} className="bg-[#023E8A] w-full h-[52px] text-white rounded-[6px] mt-[40px] font-infer text-[16px] cursor-pointer">Done</button>
+                </div>
+
+              </Paper>
+            </ClickAwayListener>
+          </Popper>
+
+
+        </Box>
+
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+         <label htmlFor="class" className="mb-1">Class</label>
+          <TextField
+            id="class"
+            variant="outlined"
+            size="small"
+            placeholder="Economy"
+            value={selectedClass}
+            inputRef={anchorRef}
+            onClick={() => setFlightClass(true)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <FlightClassOutlinedIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+                width: "200px",
+             
+              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
+            }}
+          />
+
+      <Popper open={flightClass} anchorEl={anchorRef.current} placement="bottom-start">
+        <ClickAwayListener onClickAway={() => setFlightClass(false)}>
+          <Paper
+            elevation={3}
+            sx={{
+              width: "317px",
+              position:"relative",
+              left:"-43px",
+              top:"6px",
+              height:"100%",
+              borderRadius: "6px",
+              backgroundColor: "white",
+              boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+            
+            }}
+          >
+
+             <div className="w-full pt-4 pb-4">
+              <RadioGroup
+                aria-labelledby="flight-class-group"
+                name="flight-class"
+                value={selectedClass}
+                
+                onChange={(e) => {
+                  setSelectedClass(e.target.value);
+                  setFlightClass(false); 
+                }}
+              >
+                <FormControlLabel value="Economy" control={<Radio />} label="Economy" className="pl-10" />
+                <Divider sx={{ marginTop: "16px", marginBottom: "16px" }} />
+
+                <FormControlLabel value="Business" control={<Radio />} label="Business" className="pl-10" />
+                <Divider sx={{ marginTop: "16px", marginBottom: "16px" }} />
+
+                <FormControlLabel value="First Class" control={<Radio />} label="First Class" className="pl-10" />
+              </RadioGroup>
+            </div>
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
+       </Box>
+
+
+          <div onClick={handleSearchOneTrip}  className="bg-[#023E8A] h-[52px] w-[138px] text-center text-white font-inter text-base rounded-[8px] pt-[14px] mt-[18px] cursor-pointer">
+            <button>Search</button>
+          </div>
+      </Box>
+      )}
+
+
+      {selectedValue === "multi-city" &&(
+      <>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop:"-10px" }}>
+
+
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <label htmlFor="passengers" className="mb-1">Passengers</label>
+            <TextField
+              id="passengers"
+              variant="outlined"
+              size="small"
+              placeholder="1 Passenger"
+              value={passengerText}
+              onClick={handlePassenger}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonOutlineOutlinedIcon />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                width: "42vw",
+
+                "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
+              }} />
+
+
+
+            <Popper
+              open={Boolean(passengerAnchor)}
+              anchorEl={passengerAnchor}
+              placement="bottom-start"
+              modifiers={[
+                {
+                  name: "preventOverflow",
+                  options: {
+                    boundary: "window",
+                  },
+                },
+              ]}
+            >
+              <ClickAwayListener onClickAway={() => setPassengerAnchor(null)}>
+                <Paper
+                  elevation={3}
+                  sx={{
+                    width: "376px",
+                    borderRadius: "6px",
+                    backgroundColor: "white",
+                    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                    padding: "16px",
+                  }}
+                >
+
+                  <div>
+
+                    <div className="flex justify-between mb-3">
+                      <div>
+                        <p className="text-[16px] text-[#181818] font-inter font-semibold">Adults</p>
+                        <p className="text-[#818489] text-[14px] font-inter font-normal">Ages 16 and Above</p>
+                      </div>
+                      <div>
+                        <div className="w-[95px] h-[30px] mt-1.5 rounded-[4px] border border-[#023E8A] flex justify-between gap-2 items-center px-2">
+                          <RemoveOutlinedIcon
+                            className="text-[#ACAEB3] cursor-pointer"
+                            onClick={() => handleDecrement("adults")} />
+                          <div>{counts.adults}</div>
+                          <AddOutlinedIcon
+                            className="cursor-pointer"
+                            onClick={() => handleIncrement("adults")} />
+                        </div>
+                      </div>
+                    </div>
+                    <Divider sx={{ marginBottom: "8px" }} />
+
+                    <div className="flex justify-between mb-3">
+                      <div>
+                        <p className="text-[16px] text-[#181818] font-inter font-semibold">Children</p>
+                        <p className="text-[#818489] text-[14px] font-inter font-normal">Ages 3 - 15</p>
+                      </div>
+                      <div>
+                        <div className="w-[95px] h-[30px] mt-1.5 rounded-[4px] border border-[#023E8A] flex justify-between gap-2 items-center px-2">
+                          <RemoveOutlinedIcon
+                            className="text-[#ACAEB3] cursor-pointer"
+                            onClick={() => handleDecrement("children")} />
+                          <div>{counts.children}</div>
+                          <AddOutlinedIcon
+                            className="cursor-pointer"
+                            onClick={() => handleIncrement("children")} />
+                        </div>
+                      </div>
+                    </div>
+                    <Divider sx={{ marginBottom: "8px" }} />
+
+                    <div className="flex justify-between mb-3">
+                      <div>
+                        <p className="text-[16px] text-[#181818] font-inter font-semibold">Infant</p>
+                        <p className="text-[#818489] text-[14px] font-inter font-normal">Ages 0 and 2</p>
+                      </div>
+                      <div>
+                        <div className="w-[95px] h-[30px] mt-1.5 rounded-[4px] border border-[#023E8A] flex justify-between gap-2 items-center px-2">
+                          <RemoveOutlinedIcon
+                            className="text-[#ACAEB3] cursor-pointer"
+                            onClick={() => handleDecrement("infants")} />
+                          <div>{counts.infants}</div>
+                          <AddOutlinedIcon
+                            className="cursor-pointer"
+                            onClick={() => handleIncrement("infants")} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <button onClick={handleDone} className="bg-[#023E8A] w-full h-[52px] text-white rounded-[6px] mt-[40px] font-infer text-[16px] cursor-pointer">Done</button>
+                  </div>
+
+                </Paper>
+              </ClickAwayListener>
+            </Popper>
+
+
+          </Box>
+
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <label htmlFor="class" className="mb-1">Class</label>
+            <TextField
+              id="class"
+              variant="outlined"
+              size="small"
+              placeholder="Economy"
+              value={selectedClass}
+              inputRef={anchorRef}
+              onClick={() => setFlightClass(true)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <FlightClassOutlinedIcon />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                width: "42vw",
+
+                "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
+              }} />
+
+            <Popper open={flightClass} anchorEl={anchorRef.current} placement="bottom-start">
+              <ClickAwayListener onClickAway={() => setFlightClass(false)}>
+                <Paper
+                  elevation={3}
+                  sx={{
+                    width: "317px",
+                    position: "relative",
+                    left: "-43px",
+                    top: "6px",
+                    height: "100%",
+                    borderRadius: "6px",
+                    backgroundColor: "white",
+                    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                  }}
+                >
+
+                  <div className="w-full pt-4 pb-4">
+                    <RadioGroup
+                      aria-labelledby="flight-class-group"
+                      name="flight-class"
+                      value={selectedClass}
+
+                      onChange={(e) => {
+                        setSelectedClass(e.target.value);
+                        setFlightClass(false);
+                      } }
+                    >
+                      <FormControlLabel value="Economy" control={<Radio />} label="Economy" className="pl-10" />
+                      <Divider sx={{ marginTop: "16px", marginBottom: "16px" }} />
+
+                      <FormControlLabel value="Business" control={<Radio />} label="Business" className="pl-10" />
+                      <Divider sx={{ marginTop: "16px", marginBottom: "16px" }} />
+
+                      <FormControlLabel value="First Class" control={<Radio />} label="First Class" className="pl-10" />
+                    </RadioGroup>
+                  </div>
+                </Paper>
+              </ClickAwayListener>
+            </Popper>
+          </Box>
+
+      </Box>
+
+      <div className="mt-[16px]">
+
+       {flights.map((flightNumber) => (
+
+        <div key={flightNumber}>
+        <label htmlFor={`from-${flightNumber}`} className=" text-[#67696D]">Flight {flightNumber}</label>
+
+        
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, marginBottom:"16px" }}>
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <label htmlFor={`from-${flightNumber}`} className="mb-1">From</label>
+              <TextField
+                 id={`from-${flightNumber}`}
+                variant="outlined"
+                size="small"
+                placeholder="Search Destination"
+
+                value={selectedFrom}
+                onClick={handleFromClick}
+                // onClick={() => handleFromOptionClick(location)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationOnIcon />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  width: "27.4vw",
+
+                  "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
+                }} />
+
+              <Popper id="from-popper" open={openFrom} anchorEl={FromClick} placement="bottom-start">
+                <ClickAwayListener onClickAway={handleCloseFrom}>
+                  <Paper
+                    elevation={3}
+                    sx={{
+                      width: "317px",
+                      borderRadius: "6px",
+                      backgroundColor: "white",
+                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                      paddingBottom: "25px",
+                    }}
+                  >
+                    <Typography variant="subtitle1" className="font-inter text-[#343537] text-lg pl-[24px] pt-[24px] pr-[24px]">
+                      Recent Searches
+                    </Typography>
+
+                    {locations.length === 0 ? (
+                      <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
+                        No recent searches
+                      </Typography>
+                    ) : (
+                      locations.map((location, index) => (
+                        <React.Fragment key={location}>
+                          <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
+                            <div className="flex gap-[8px]" onClick={() => handleFromOptionClick(location)}>
+                              <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
+                                <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
+                              </div>
+                              <p>{location}</p>
+                            </div>
+
+
+                            <CloseOutlinedIcon
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveOption(location);
+                              } }
+                              className="cursor-pointer"
+                              sx={{ color: "gray" }} />
+                          </div>
+
+                          {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
+                        </React.Fragment>
+                      ))
+                    )}
+
+                  </Paper>
+                </ClickAwayListener>
+              </Popper>
+            </Box>
+
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <label htmlFor={`to-${flightNumber}`} className="mb-1">To</label>
+              <TextField
+                id={`to-${flightNumber}`}
+                variant="outlined"
+                size="small"
+                value={selectedTo}
+                onClick={handleToClick}
+                //  onClick={() => handleToOptionClick(location)}
+                placeholder="Search Destination"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationOnIcon />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  width: "27.4vw",
+
+                  "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
+                }} />
+
+              <Popper id="from-popper" open={openTo} anchorEl={ToClick} placement="bottom-start">
+                <ClickAwayListener onClickAway={handleCloseTo}>
+                  <Paper
+                    elevation={3}
+                    sx={{
+                      width: "317px",
+                      borderRadius: "6px",
+                      backgroundColor: "white",
+                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                      paddingBottom: "25px",
+                    }}
+                  >
+                    <Typography variant="subtitle1" className="font-inter text-[#343537] text-lg pl-[24px] pt-[24px] pr-[24px]">
+                      Recent Searches
+                    </Typography>
+
+                    {locations.length === 0 ? (
+                      <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
+                        No recent searches
+                      </Typography>
+                    ) : (
+                      locations.map((location, index) => (
+                        <React.Fragment key={location}>
+                          <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
+                            <div className="flex gap-[8px]" onClick={() => handleToOptionClick(location)}>
+                              <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
+                                <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
+                              </div>
+                              <p>{location}</p>
+                            </div>
+
+
+                            <CloseOutlinedIcon
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveOption(location);
+                              } }
+                              className="cursor-pointer"
+                              sx={{ color: "gray" }} />
+                          </div>
+
+                          {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
+                        </React.Fragment>
+                      ))
+                    )}
+
+                  </Paper>
+                </ClickAwayListener>
+              </Popper>
+            </Box>
+
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <label htmlFor={`departure-date-${flightNumber}`} className="mb-1">Date</label>
+              <TextField
+                 id={`departure-date-${flightNumber}`}
+                variant="outlined"
+                size="small"
+                placeholder="Select Date"
+                value={selectedDate}
+                onClick={handleClick}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CalendarMonthOutlinedIcon />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  width: "27.4vw",
+                  "& .MuiInputBase-root": { height: "44px", borderRadius: "8px" },
+                  "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
+                }} />
+
+
+
+              <Popper id={id} open={open} anchorEl={anchorEl} placement="bottom-start">
+                <ClickAwayListener onClickAway={handleClose}>
+                  <Paper
+                    elevation={3}
+                    sx={{
+                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                      // width: "867px", // Ensures full width
+                      // height: "555px", // Ensures full height
+                      overflow: "hidden", // Prevents content overflow
+                      display: "flex",
+                      justifyContent: "center", // Centers content
+                      alignItems: "center",
+                      paddingBottom: "20px",
+                    }}
+                  >
+                    <div style={{ width: "100%", height: "100%" }}>
+                      <DateRange
+                        editableDateInputs={true}
+                        onChange={(item: RangeKeyDict) => {
+                          setDateRange([
+                            {
+                              startDate: item.selection.startDate ?? new Date(),
+                              endDate: item.selection.endDate ?? new Date(),
+                              key: item.selection.key ?? "selection",
+                            },
+                          ]);
+                        } }
+
+                        moveRangeOnFirstSelection={false}
+                        ranges={dateRange}
+                        rangeColors={["#FF6F1E"]}
+                        months={2} // Show 2 calendars side by side
+                        direction="horizontal" // Arrange them in a row
+                        showDateDisplay={false} // Optional: Hide input fields
+                        className="w-full h-full" // Tailwind (if used)
+                      />
+
+                      <div className="w-[96%] m-auto">
+                        <button
+                          className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
+                          style={{
+                            backgroundColor: "#023E8A",
+
+                            color: "white",
+                            marginTop: 2,
+                            // "&:hover": { backgroundColor: "#012A5A" },
+                          }}
+                          onClick={handleSelectDate}
+                        >
+                          Select Date
+                        </button>
+                      </div>
+                    </div>
+
+
+
+                  </Paper>
+                </ClickAwayListener>
+              </Popper>
+
+            </Box>
+        </Box>
+          </div>
+        ))}
+        </div>
+
+          <div className="flex justify-between mt-[18px]  " >
+              <div className="flex mt-[28px] text-[#023E8A] cursor-pointer" onClick={handleAddFlight}>
+                <AddOutlinedIcon />
+                <p>Add Flight</p>
+              </div>
+
+             <div onClick={handleSearchMultiTrip} className="bg-[#023E8A] h-[52px] w-[138px] text-center text-white font-inter text-base rounded-[8px] pt-[14px] cursor-pointer">
+              <button>Search</button>
+            </div>
+          </div>
+          
+          </>
+      )}
+
+
     </FormControl>
   );
 };

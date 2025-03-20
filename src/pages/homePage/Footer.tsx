@@ -7,7 +7,7 @@ const Footer = () => {
             <div className='w-[90%] m-auto'>
                 <div className='pt-14'>
                     <div >
-                        <ul className='flex flex-wrap gap-3 justify-between text-white font-inter font-normal  mb-18'>
+                        <ul className='flex justify-between text-white font-inter font-normal  mb-18'>
                             <div>
                                  <li>Our Products</li>
                                   <div className='mt-16 font-light'>

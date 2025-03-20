@@ -1,4 +1,4 @@
-import Navbar from '../homePage/Navbar'
+import Navbar from '../../homePage/Navbar'
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
@@ -25,19 +25,19 @@ import RemoveOutlinedIcon from '@mui/icons-material/RemoveOutlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { Link } from "react-router-dom";
 import KeyboardArrowRightOutlinedIcon from "@mui/icons-material/KeyboardArrowRightOutlined";
-import TravelmateApp from '../homePage/TravelmateApp';
-import Footer from '../homePage/Footer';
-import airlogo from "../../assets/airlogo.svg"
+import TravelmateApp from '../../homePage/TravelmateApp';
+import Footer from '../../homePage/Footer';
+import airlogo from "../../../assets/airlogo.svg"
 import CircleIcon from '@mui/icons-material/Circle';
-import Line from "../../assets/Line.svg"
+import Line from "../../../assets/Line.svg"
 import { Stack, Pagination, Dialog, DialogContent } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import TuneIcon from '@mui/icons-material/Tune';
 import SortIcon from '@mui/icons-material/Sort';
-import line2 from "../../assets/line2.svg";
+import line2 from "../../../assets/line2.svg";
 import FormGroup from '@mui/material/FormGroup';
 import Checkbox from '@mui/material/Checkbox';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LuggageOutlinedIcon from '@mui/icons-material/LuggageOutlined';
 import AirlineSeatReclineExtraOutlinedIcon from '@mui/icons-material/AirlineSeatReclineExtraOutlined';
@@ -71,9 +71,10 @@ interface DepartureListProps {
   departureInfo: Departure[];
 }
 
-const DeparturePage: React.FC<DepartureListProps> = () => {
 
-      const [selectedValue] = useState<string>("round-trip");
+const ReturnPage: React.FC<DepartureListProps> = () => {
+
+          const [selectedValue] = useState<string>("round-trip");
       const [dateRange, setDateRange] = useState<DateRangeType[]>([
         {
           startDate: new Date(),
@@ -368,6 +369,7 @@ const handleSelectedChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = event.target;
     
     if (name === "all") {
+    // Select all or deselect all
     setSelected(() => {
         const newState: { [key: string]: boolean } = { all: checked }; // Explicit type
         airlinesList.forEach((airline) => {
@@ -413,8 +415,10 @@ const paginatedItems = useMemo(() => {
 }, [filteredItems, page]);
 
 
+
+
   return (
-    <div className='w-full  bg-[#CCD8E833] mt-[73px] '>
+     <div className='w-full  bg-[#CCD8E833] mt-[73px] '>
     <div><Navbar/></div>
     <div>
         <div className='flex justify-center pt-5 pb-6 mb-[18px] '>
@@ -607,11 +611,9 @@ const paginatedItems = useMemo(() => {
           elevation={3}
           sx={{
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-            // width: "867px", // Ensures full width
-            // height: "555px", // Ensures full height
-            overflow: "hidden", // Prevents content overflow
+            overflow: "hidden",
             display: "flex",
-            justifyContent: "center", // Centers content
+            justifyContent: "center",
             alignItems: "center",
             paddingBottom:"20px",
           }}
@@ -619,10 +621,6 @@ const paginatedItems = useMemo(() => {
           <div style={{ width: "100%", height: "100%" }}>
             <DateRange
               editableDateInputs={true}
-            //   onChange={(item: RangeKeyDict) => {
-            //     setDateRange([item.selection]);
-            //     // handleClose();
-            //   }}
 
             onChange={(item: RangeKeyDict) => {
                 setDateRange([
@@ -637,10 +635,10 @@ const paginatedItems = useMemo(() => {
               moveRangeOnFirstSelection={false}
               ranges={dateRange}
               rangeColors={["#FF6F1E"]}
-              months={2} // Show 2 calendars side by side
-              direction="horizontal" // Arrange them in a row
-              showDateDisplay={false} // Optional: Hide input fields
-              className="w-full h-full" // Tailwind (if used)
+              months={2}
+              direction="horizontal"
+              showDateDisplay={false}
+              className="w-full h-full"
             />
 
           <div className="w-[96%] m-auto">
@@ -651,7 +649,6 @@ const paginatedItems = useMemo(() => {
 
                     color: "white",
                     marginTop: 2,
-                    // "&:hover": { backgroundColor: "#012A5A" },
                   }}
                   onClick={handleSelectDate}
                 >
@@ -659,9 +656,6 @@ const paginatedItems = useMemo(() => {
                 </button>
           </div>
           </div>
-
-    
-
         </Paper>
       </ClickAwayListener>
     </Popper>
@@ -886,7 +880,7 @@ const paginatedItems = useMemo(() => {
 <div className=''>
     <div className='mt-[53px] mb-[26px]'>
         <div className='w-[90%] m-auto flex justify-between'>
-            <p className='text-[28px] font-inter font-semibold'>Departure Flight</p>
+            <p className='text-[28px] font-inter font-semibold'>Return Flight</p>
              <div>
             <div className=''>
             <Box sx={{display:"flex", gap:"15px"}}>
@@ -1217,7 +1211,7 @@ const paginatedItems = useMemo(() => {
          <div className="absolute z-40 top-0 left-0 right-0 bg-white border-b border-gray-300 rounded-t-[10px] pl-6 pr-4 pb-3 pt-4">
             <div className="flex items-center justify-center relative">
                
-                <p className="text-[20px] font-inter font-medium ">Departure Flight</p>
+                <p className="text-[20px] font-inter font-medium ">Return Flight</p>
           
              
                <IconButton 
@@ -1225,7 +1219,7 @@ const paginatedItems = useMemo(() => {
                 sx={{position:"absolute",  right:"0px", top:"-5px"}}
             >
                 <CloseOutlinedIcon className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
-            </IconButton>
+             </IconButton>
               
             </div>
         </div>
@@ -1244,7 +1238,7 @@ const paginatedItems = useMemo(() => {
                       <div>
                         <div className="w-full border-1 border-[#DEDFE1] bd-white rounded-[6px] p-[12px]">
                              <div>
-                            <p className="text-[19px]  font-normal text-[#67696D] ">Departure Flight</p>
+                            <p className="text-[19px]  font-normal text-[#67696D] ">Return Flight</p>
                             <p className="text-[#181818] text-[16px] font-semibold">₦50,000 </p>
                             <p className="text-[#4E4F52] text-[16px] font-normal">Per Passenger</p>
                             <p  className="text-[#181818] text-[16px] font-medium"><ErrorOutlineIcon />Price Includes tax & Fees</p>
@@ -1299,13 +1293,13 @@ const paginatedItems = useMemo(() => {
                 </div>
             </div>
             </DialogContent>
-            <Link to="/return-flight">
-            <div className="absolute bottom-0 border-t border-[grey] left-0 right-0 bg-white p-4 rounded-b-[10px]">
+        <Link to="/flightInfo-review">
+             <div className="absolute bottom-0 border-t border-[grey] left-0 right-0 bg-white p-4 rounded-b-[10px]">
             <button onClick={applyFilters} className="w-full h-[52px] rounded-[6px] bg-[#023E8A] text-white cursor-pointer">
                 Select
             </button>
-        </div>
-        </Link>
+          </div>
+          </Link>
             </Dialog>
         </div>
     </div>
@@ -1319,8 +1313,7 @@ const paginatedItems = useMemo(() => {
      <Footer />
 
      </div>
-
   )
 }
 
-export default DeparturePage
+export default ReturnPage
