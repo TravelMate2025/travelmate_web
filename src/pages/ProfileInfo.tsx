@@ -2,12 +2,12 @@ import { useState } from "react";
 import Breadcrumbs from "../components/Breadcrumbs";
 import UserOptionsStacked from "../components/UserOptionsStacked";
 import BasicInfo from "../components/BasicInfo";
-import Footer from "../pages/homePage/Footer"
 import EditBasicInfoModal from "../components/modals/EditBasicInfoModal";
 import EditContactInfoModal from "../components/modals/EditContactInfoModal";
 import DeleteAccountModal from "../components/modals/DeleteAccountModal";
 import Navbar from "./homePage/Navbar";
 import TravelmateApp from "./homePage/TravelmateApp";
+import Footer from "../components/2Footer";
 
 export default function ProfileInfo() {
     const [showBasicInfoModal, setShowBasicInfoModal] = useState(false);

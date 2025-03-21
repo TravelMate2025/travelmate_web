@@ -2,8 +2,8 @@ import Navbar from "../components/2Navbar";
 import Breadcrumbs from "../components/Breadcrumbs"
 import UserData from "../components/UserData";
 import UserOptions from "../components/UserOptions";
-import DownloadApp from "../components/2DownloadApp";
 import Footer from "../components/2Footer";
+import TravelmateApp from "./homePage/TravelmateApp";
 
 export default function Profile() {
   const breadcrumbs = [
@@ -22,7 +22,7 @@ export default function Profile() {
       </div>
       <UserOptions />
       <div className="m-10"></div>
-      <DownloadApp />
+      <TravelmateApp />
       <div className="m-10"></div>
       <Footer />
     </div>
