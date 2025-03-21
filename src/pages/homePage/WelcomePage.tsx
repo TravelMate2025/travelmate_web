@@ -8,6 +8,7 @@ import plane from "../../assets/plane.svg";
 import car from "../../assets/car.svg";
 import stay from "../../assets/stay.svg";
 import RoundTrip from "./RoundTrip";
+import SearchFilter from '../../components/SearchFilter';
 
 
 
@@ -18,10 +19,15 @@ const WelcomePage = () => {
         setValue(newValue);
     };
 
+    const handleSearchSubmit = (destination: string, roomGuest: string, date: string) => {
+        console.log("Search Submitted:", { destination, roomGuest, date });
+        // Implement search logic here
+    };
+
     return (
         <div>
             <div className='w-[90%] m-auto  '>
-                <div className='mt-[100px] border border-[#CDCED1] h-[100%] rounded-[4px]'>
+                <div className='mt-[100px] border border-[#CDCED1] h-[100%] rounded-[12px]'>
                     <Box sx={{ width: '100%', typography: 'body1' }}>
                         <TabContext value={value}>
                             <Box sx={{ display: 'flex', justifyContent: 'center', borderBottom: '1px solid #CDCED1' }}>
@@ -63,7 +69,9 @@ const WelcomePage = () => {
                                     />
                                 </TabList>
                             </Box>
-                            <TabPanel value="1">Stays</TabPanel>
+                            <TabPanel value="1">
+                                <SearchFilter onSubmit={handleSearchSubmit} />
+                            </TabPanel>
                             <TabPanel value="2"><RoundTrip /></TabPanel>
                             <TabPanel value="3">Cars</TabPanel>
                         </TabContext>

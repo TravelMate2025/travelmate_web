@@ -39,7 +39,8 @@ const options = [
 
 export default function UserOptionsStacked() {
   return (
-    <div className="max-w-[411px] space-y-4 border-2 border-gray-300 rounded-lg">
+    <div className="w-full max-w-[411px] space-y-4 border-2 border-gray-300 rounded-lg">
+
       {options.map((item, index) => (
         <Link
         to={item.link}

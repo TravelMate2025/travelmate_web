@@ -4,12 +4,15 @@ import Spinner from "../components/Spinner";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import { MdLockOutline } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
 export default function CreatePassword() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showSpinner, setShowSpinner] = useState(false);
+  const navigate = useNavigate();
 
   const requirements = [
     { label: "At Least 8 Characters", check: password.length >= 8 },
@@ -24,17 +27,39 @@ export default function CreatePassword() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!allValid) return;
-
+  
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
       setSuccess(true);
+  
+      // Show success message
+      setTimeout(() => {
+        setShowSpinner(true);
+  
+        setTimeout(() => {
+          setShowSpinner(false);
+          navigate("/login");
+        }, 4000);
+      }, 2000);
     }, 2000);
   };
+  
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col relative">
       <AuthNavbar />
+
+      {/* Overlay Spinner */}
+      {showSpinner && (
+        <>
+          <div className="fixed inset-0 bg-[#CCD8E8] opacity-40 z-40"></div>
+
+          <div className="fixed inset-0 flex justify-center items-center z-50">
+            <Spinner size="50px" color="white" />
+          </div>
+        </>
+      )}
 
       <div className="flex-1 flex flex-col items-center justify-center bg-white px-6">
         {/* Header */}
@@ -59,8 +84,8 @@ export default function CreatePassword() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => {
-                    if (e.target.value.length <= 20) setPassword(e.target.value);
-                  }}
+                  if (e.target.value.length <= 20) setPassword(e.target.value);
+                }}
                 className="w-full border border-gray-300 rounded-lg pl-10 pr-12 py-2 focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter Password"
               />
@@ -109,7 +134,7 @@ export default function CreatePassword() {
 
         {/* Success Message */}
         {success && (
-          <div className="w-full max-w-[660px] mt-4 flex items-center gap-2 border border-green-500 bg-blue-50 px-4 py-2 rounded-lg text-green-700">
+          <div className="w-full max-w-[670px] mt-4 flex items-center gap-2 border border-green-500 bg-blue-50 px-4 py-2 rounded-lg text-green-700">
             <span className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-white">
               <FaCheck size={14} />
             </span>

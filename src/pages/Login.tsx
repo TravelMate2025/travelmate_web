@@ -2,15 +2,26 @@ import { useState } from "react";
 import { MdLockOutline, MdOutlineEmail } from "react-icons/md";
 import { RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import AuthNav from "../components/AuthNavbar";
+import { useNavigate } from "react-router-dom";
+import { FaSpinner } from "react-icons/fa";
+import Spinner from "../components/Spinner";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
+  const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     console.log("Logging in with:", { email, password });
+    
+    setTimeout(() => {
+        setIsLoading(false);
+        navigate("/");
+      }, 2000);
   };
   
 
@@ -35,7 +46,7 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => {
-                    if (e.target.value.length <= 20) setEmail(e.target.value);
+                    if (e.target.value.length <= 45) setEmail(e.target.value);
                   }}
                 className="w-full border rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-blue-500"
                 placeholder="name@gmail.com"
@@ -75,13 +86,21 @@ export default function Login() {
               </a>
             </div>
 
+
             {/* Submit Button */}
             <button
-              type="submit"
-              className="bg-[#0450A2] text-white font-semibold py-2 rounded-lg w-full hover:bg-[#023E8A] transition"
+            type="submit"
+            className="bg-[#0450A2] text-white font-semibold py-2 rounded-lg w-full hover:bg-[#023E8A] transition flex items-center justify-center"
+            disabled={isLoading}
             >
-              Log In
+            <span className={`${isLoading ? "mr-2" : ""}`}>Log In</span> {/* Log In text */}
+            {isLoading && (
+                <span className="ml-2">
+                <Spinner size="25px" />
+                </span>
+            )}
             </button>
+
           </form>
 
           {/* Terms and Privacy */}

@@ -2,10 +2,12 @@ import { useState } from "react";
 import { FaGoogle, FaApple, FaFacebook } from "react-icons/fa";
 import AuthNavbar from "../components/AuthNavbar";
 import Spinner from "../components/Spinner"; 
+import { useNavigate } from "react-router-dom";
 
 export default function CreateAccount() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,7 +16,8 @@ export default function CreateAccount() {
     setTimeout(() => {
       console.log("Submitted Email:", email);
       setIsLoading(false);
-    }, 2000);
+      navigate("/verify-page");
+    }, 3000);
   };
 
   return (
@@ -36,7 +39,9 @@ export default function CreateAccount() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value.length <= 45) setEmail(e.target.value);
+              }}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
               placeholder="Name@email.com"
               required
@@ -83,10 +88,8 @@ export default function CreateAccount() {
       {/* Spinner Overlay */}
       {isLoading && (
         <>
-          {/* Transparent Background */}
           <div className="fixed inset-0 bg-[#CCD8E8] opacity-50 z-40"></div>
 
-          {/* Spinner */}
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <Spinner size="50px" />
           </div>

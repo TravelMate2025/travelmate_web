@@ -21,11 +21,18 @@ import { Link } from 'react-router-dom';
 const Navbar = () => {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [fromLogin, setFromLogin] = useState(false);
+
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    setIsAuthenticated(!!token);
+    // const token = localStorage.getItem("authToken");
+    // setIsAuthenticated(!!token);
+  
+    const previousPage = document.referrer;
+    if (previousPage.includes("/login")) {
+      setFromLogin(true);
+    }
   }, []);
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -141,13 +148,21 @@ const Navbar = () => {
             ))}
           </Box>
           <Box sx={{ flexGrow: 0 }}>
-          {!isAuthenticated ? (
+          {/* {!isAuthenticated ? (
               <div className="hidden md:flex">
                 <Link to="/create-account" className="px-4 py-2 bg-[#023E8A] text-white rounded-lg hover:bg-[#012A5D] transition">
                   Create an Account or Login
                 </Link>
               </div>
-            ) : (
+            ) : ( */}
+
+            {!fromLogin ? (
+                <div className="hidden md:flex">
+                  <Link to="/create-account" className="px-4 py-2 bg-[#023E8A] text-white rounded-lg hover:bg-[#012A5D] transition">
+                    Create an Account or Login
+                  </Link>
+                </div>
+              ) : (
                 <>
                 <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
