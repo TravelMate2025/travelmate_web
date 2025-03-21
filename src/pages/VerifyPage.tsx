@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import AuthNavbar from "../components/AuthNavbar";
 import Spinner from "../components/Spinner";
-import { IoWarningOutline } from "react-icons/io5";
 import { MdErrorOutline } from "react-icons/md";
 
 export default function VerifyEmail() {

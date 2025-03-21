@@ -3,7 +3,6 @@ import { MdLockOutline, MdOutlineEmail } from "react-icons/md";
 import { RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import AuthNav from "../components/AuthNavbar";
 import { useNavigate } from "react-router-dom";
-import { FaSpinner } from "react-icons/fa";
 import Spinner from "../components/Spinner";
 
 export default function Login() {
