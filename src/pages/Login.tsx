@@ -32,7 +32,7 @@ export default function Login() {
       {/* Centered Content */}
       <div className="flex flex-col items-center flex-1 px-4">
         <div className="text-center w-full max-w-[660px] mt-10">
-          <h2 className="text-4xl font-bold text-gray-800 mb-6">Enter Your Password</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-6">Enter Your Password</h2>
 
           <form onSubmit={handleLogin} className="text-left">
             {/* Email Input */}
