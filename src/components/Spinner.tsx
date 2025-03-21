@@ -1,4 +1,4 @@
-import spinner from "../src/assets/Spinner.svg";
+import spinner from "../src/assets/spinner.svg";
 
 interface SpinnerProps {
   size?: string;
