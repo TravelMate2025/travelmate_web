@@ -1,4 +1,6 @@
-import spinner from "../src/assets/spinner.svg";
+// import spinner from "../src/assets/spinner.svg";
+import SpinnerIcon from "../../assets/spinner.svg?url";
+
 
 interface SpinnerProps {
   size?: string;
@@ -9,7 +11,7 @@ interface SpinnerProps {
 export default function Spinner({ size = "40px", color = "#2563EB", borderWidth = "8px" }: SpinnerProps) {
   return (
     <img 
-      src={spinner} 
+      src={SpinnerIcon} 
       alt="Loading..."
       style={{
         width: size,
