@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
@@ -21,9 +21,11 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
-import { Divider } from "@mui/material";
+import { Divider, IconButton } from "@mui/material";
 import RemoveOutlinedIcon from '@mui/icons-material/RemoveOutlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+// import CalendarMonthOutlined from "@mui/icons-material/CalendarMonthOutlined";
+// import LocationOn from "@mui/icons-material/LocationOn";
 // import { Link } from "react-router-dom";
 
 interface DateRangeType {
@@ -40,8 +42,22 @@ interface PassengerCounts {
   infants: number;
 }
 
+type Flight = {
+  id: number;
+  from: string;
+  to: string;
+  date: string;
+};
+
+type FlightField = keyof Omit<Flight, "id">; 
+
+
 const RoundTrip: React.FC = () => {
-  const [selectedValue, setSelectedValue] = useState<string>("round-trip");
+   const [selectedValue, setSelectedValue] = useState<string>(() => {
+    return localStorage.getItem("tripType") || "round-trip";
+  });
+
+
   const [dateRange, setDateRange] = useState<DateRangeType[]>([
     {
       startDate: new Date(),
@@ -51,10 +67,18 @@ const RoundTrip: React.FC = () => {
   ]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedValue(event.target.value);
+   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.value;
+    setSelectedValue(newValue);
+    localStorage.setItem("tripType", newValue);
   };
 
+    useEffect(() => {
+    const savedValue = localStorage.getItem("tripType");
+    if (savedValue) {
+      setSelectedValue(savedValue);
+    }
+  }, []);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
@@ -196,24 +220,59 @@ const handleSelectDate = () => {
       });
     };
 
-      const handleSearchMultiTrip = () => {
-        console.log("Navigating with:", { selectedFrom, selectedTo, selectedDate, passengerText, selectedClass });
-      navigate("/departure-flight-multi-way", {
-        state: {
-          from: selectedFrom,
-          to: selectedTo,
-          departureDate: selectedDate,
-          passengers: passengerText,
-          flightClass: selectedClass
-        },
-      });
-    };
+  //     const handleSearchMultiTrip = () => {
+  //       console.log("Navigating with:", { selectedFrom, selectedTo, selectedDate, passengerText, selectedClass });
+  //     navigate("/departure-flight-multi-way", {
+  //       state: {
+  //         from: selectedFrom,
+  //         to: selectedTo,
+  //         departureDate: selectedDate,
+  //         passengers: passengerText,
+  //         flightClass: selectedClass
+  //       },
+  //     });
+  //   };
 
-    const [flights, setFlights] = useState<number[]>([1, 2]); // Default flights
+    const [flights, setFlights] = useState<Flight[]>([
+    { id: 1, from: "", to: "", date: "" },
+    { id: 2, from: "", to: "", date: "" }
+  ]);
 
-  const handleAddFlight = () => {
-    setFlights((prev) => [...prev, prev.length + 1]); // Add a new flight dynamically
+
+  const handleInputChange = (id: number, field: FlightField, value: string) => {
+    setFlights((prevFlights) =>
+      prevFlights.map((flight) =>
+        flight.id === id ? { ...flight, [field]: value } : flight
+      )
+    );
   };
+
+
+  const addFlight = () => {
+    setFlights([...flights, { id: flights.length + 1, from: "", to: "", date: "" }]);
+  };
+
+  const removeFlight = (id: number) => {
+    setFlights(flights.filter((flight) => flight.id !== id));
+  };
+
+const handleSearchMultiTrip = () => {
+  console.log("Navigating with:", {
+    flights, // Pass the flights array
+    passengerText,
+    selectedClass
+  });
+
+  navigate("/departure-flight-multi-way", {
+    state: {
+      flights, // Send all flight details
+      passengers: passengerText,
+      flightClass: selectedClass
+    },
+  });
+};
+
+
 
 
   return (
@@ -1321,23 +1380,26 @@ const handleSelectDate = () => {
       </Box>
 
       <div className="mt-[16px]">
+       
+       
+       
+       
+       {flights.map((flight, index) => (
 
-       {flights.map((flightNumber) => (
-
-        <div key={flightNumber}>
-        <label htmlFor={`from-${flightNumber}`} className=" text-[#67696D]">Flight {flightNumber}</label>
+        <div key={flight.id}>
+        <label htmlFor={`from-${index + 1}`} className=" text-[#67696D]">Flight {index + 1}</label>
 
         
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, marginBottom:"16px" }}>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <label htmlFor={`from-${flightNumber}`} className="mb-1">From</label>
+              <label htmlFor={`from-${index + 1}`} className="mb-1">From</label>
               <TextField
-                 id={`from-${flightNumber}`}
+                 id={`from-${index + 1}`}
                 variant="outlined"
                 size="small"
                 placeholder="Search Destination"
-
-                value={selectedFrom}
+                value={flight.from}
+                onChange={(e) => handleInputChange(flight.id, "from", e.target.value)}
                 onClick={handleFromClick}
                 // onClick={() => handleFromOptionClick(location)}
                 InputProps={{
@@ -1348,7 +1410,8 @@ const handleSelectDate = () => {
                   ),
                 }}
                 sx={{
-                  width: "27.4vw",
+                  width: index < 2 ? "26.9vw" : "24.5vw",
+
 
                   "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
                 }} />
@@ -1405,12 +1468,14 @@ const handleSelectDate = () => {
             </Box>
 
             <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <label htmlFor={`to-${flightNumber}`} className="mb-1">To</label>
+              <label htmlFor={`to-${index + 1}`} className="mb-1">To</label>
               <TextField
-                id={`to-${flightNumber}`}
+                id={`to-${index + 1}`}
                 variant="outlined"
                 size="small"
-                value={selectedTo}
+                value={flight.to}
+              onChange={(e) => handleInputChange(flight.id, "to", e.target.value)}
+
                 onClick={handleToClick}
                 //  onClick={() => handleToOptionClick(location)}
                 placeholder="Search Destination"
@@ -1422,7 +1487,8 @@ const handleSelectDate = () => {
                   ),
                 }}
                 sx={{
-                  width: "27.4vw",
+                  width: index < 2 ? "26.9vw" : "24.5vw",
+
 
                   "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
                 }} />
@@ -1479,13 +1545,14 @@ const handleSelectDate = () => {
             </Box>
 
             <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <label htmlFor={`departure-date-${flightNumber}`} className="mb-1">Date</label>
+              <label htmlFor={`departure-date-${index + 1}`} className="mb-1">Date</label>
               <TextField
-                 id={`departure-date-${flightNumber}`}
+                id={`departure-date-${index + 1}`}
                 variant="outlined"
                 size="small"
                 placeholder="Select Date"
-                value={selectedDate}
+                value={flight.date}
+                onChange={(e) => handleInputChange(flight.id, "date", e.target.value)}
                 onClick={handleClick}
                 InputProps={{
                   startAdornment: (
@@ -1495,7 +1562,8 @@ const handleSelectDate = () => {
                   ),
                 }}
                 sx={{
-                  width: "27.4vw",
+                width: index < 2 ? "26.9vw" : "24.5vw",
+
                   "& .MuiInputBase-root": { height: "44px", borderRadius: "8px" },
                   "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
                 }} />
@@ -1563,13 +1631,22 @@ const handleSelectDate = () => {
               </Popper>
 
             </Box>
+
+                <div>
+                  {index > 1 && (
+                  <IconButton onClick={() => removeFlight(flight.id)} sx={{display: "flex", color:"#023E8A", marginTop:"20px", fontSize:"14px"}}>
+                    <CloseOutlinedIcon />
+                    <p>Remove</p>
+                  </IconButton>
+                )}
+                </div>
         </Box>
           </div>
         ))}
         </div>
 
           <div className="flex justify-between mt-[18px]  " >
-              <div className="flex mt-[28px] text-[#023E8A] cursor-pointer" onClick={handleAddFlight}>
+              <div className="flex mt-[28px] text-[#023E8A] cursor-pointer" onClick={addFlight}>
                 <AddOutlinedIcon />
                 <p>Add Flight</p>
               </div>
@@ -1578,6 +1655,7 @@ const handleSelectDate = () => {
               <button>Search</button>
             </div>
           </div>
+
           
           </>
       )}

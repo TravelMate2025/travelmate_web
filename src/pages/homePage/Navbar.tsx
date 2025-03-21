@@ -110,7 +110,7 @@ const Navbar = () => {
             </Menu>
           </Box>
 
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }} >
+          {/* <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }} >
             {pages.map((page) => (
               <Button
                 key={page}
@@ -139,7 +139,35 @@ const Navbar = () => {
                 {page}
               </Button>
             ))}
-          </Box>
+          </Box> */}
+
+            <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }} >
+  {pages.map((page) => (
+    <Link key={page} to={page === "Home" ? "/" : `/${page.toLowerCase()}`} style={{ textDecoration: "none" }}>
+      <Button
+        onClick={() => {
+          handleCloseNavMenu();
+          handleTabClick(page);
+        }}
+        sx={{ 
+          my: 2, mr: 2, 
+          color: activeTab === page ? "#023E8A" : "#000000",  
+          display: 'block', textTransform:'capitalize',
+          backgroundColor: "transparent",
+          "&:hover": { backgroundColor: "transparent" },
+          "&:focus": { backgroundColor: "transparent" },
+          "&:active": { backgroundColor: "transparent" },
+        }}
+        className='font-bold font-inter text-xl'
+      >
+        {page}
+      </Button>
+    </Link>
+  ))}
+</Box>
+
+
+
           <Box sx={{ flexGrow: 0 }}>
           {!isAuthenticated ? (
               <div className="hidden md:flex">
