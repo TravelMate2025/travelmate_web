@@ -8,38 +8,39 @@ const options = [
     icon: <FaRegUser size={24} />,
     title: "Profile",
     description: "Update your personal details",
-    link: "/account/profile",
+    link: "/profile-info",
   },
   {
     icon: <MdCreditCard size={24} />,
     title: "Payment Method",
     description: "Manage your payment methods",
-    link: "/account/payments",
+    link: "#/account/payments",
   },
 
   {
     icon: <FaRegBell size={24} />,
     title: "Notifications",
     description: "Manage alerts and reminders",
-    link: "/account/notifications",
+    link: "#/account/notifications",
   },
   {
     icon: <FaRegStar size={24} />,
     title: "Reviews",
     description: "View and manage reviews",
-    link: "/account/security",
+    link: "#/account/security",
   },
   {
     icon: <PiSignOutFill size={24} />,
     title: "Log Out",
-    link: "/logout",
+    link: "#/logout",
   },
 ];
 
 
 export default function UserOptionsStacked() {
   return (
-    <div className="max-w-[411px] space-y-4 border-2 border-gray-300 rounded-lg">
+    <div className="w-full max-w-[411px] space-y-4 border-2 border-gray-300 rounded-lg md:w-[411px]">
+
       {options.map((item, index) => (
         <Link
         to={item.link}

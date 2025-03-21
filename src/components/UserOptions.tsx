@@ -14,38 +14,39 @@ const options = [
     icon: <MdCreditCard size={24} />,
     title: "Payment Method",
     description: "Manage your payment methods",
-    link: "/account/payments",
+    link: "#/account/payments",
   },
 
   {
     icon: <FaRegBell size={24} />,
     title: "Notifications",
     description: "Manage alerts and reminders",
-    link: "/account/notifications",
+    link: "#/account/notifications",
   },
   {
     icon: <FaRegStar size={24} />,
     title: "Reviews",
     description: "View and manage reviews",
-    link: "/account/security",
+    link: "#/account/security",
   },
   {
     icon: <PiSignOutFill size={24} />,
     title: "Log Out",
     description: "Sign out from your account",
-    link: "/logout",
+    link: "#/logout",
   },
 ];
 
 export default function UserOptions() {
   return (
-    <div className="grid grid-cols-3 gap-6 max-w-[1280px] mx-auto mt-6">
-      {options.map((item, index) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-[1280px] mx-auto mt-6 px-4">
+    {options.map((item, index) => (
         <Link
-          to={item.link}
-          key={index}
-          className="flex items-center justify-between w-[408px] h-[86px] border border-gray-300 px-6 rounded-lg shadow-sm hover:bg-gray-100"
+        to={item.link}
+        key={index}
+        className="flex items-center justify-between w-full sm:w-[408px] h-[86px] border border-gray-300 px-6 rounded-lg shadow-sm hover:bg-gray-100"
         >
+
           <div className="flex items-center gap-4">
             <div className="">{item.icon}</div>
             <div>

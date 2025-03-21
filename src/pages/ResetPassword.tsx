@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { MdOutlineEmail } from "react-icons/md";
 import AuthNav from "../components/AuthNavbar";
-import Spinner from "../components/Spinner"; // Ensure you have this Spinner component
+import Spinner from "../components/Spinner";
+import { useNavigate } from "react-router-dom";
 
 export default function ResetPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleResetLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +21,7 @@ export default function ResetPassword() {
       console.error("Error sending reset link:", error);
     } finally {
       setLoading(false);
+      navigate("/reset-email-link");
     }
   };
 
@@ -44,7 +47,9 @@ export default function ResetPassword() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  if (e.target.value.length <= 45) setEmail(e.target.value);
+                }}
                 className="w-full border rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-blue-500"
                 placeholder="name@gmail.com"
                 required

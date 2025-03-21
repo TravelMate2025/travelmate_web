@@ -4,7 +4,7 @@ import { MdOutlineEmail } from "react-icons/md";
 
 export default function DownloadApp() {
   return (
-    <section className="bg-white border border-gray-400 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center w-[1270px] mx-auto my-10 shadow-md shadow-gray-600/50">
+    <section className="bg-white border border-gray-400 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center max-w-[1270px] w-full mx-auto my-10 shadow-md shadow-gray-600/50">
       {/* Left Side - Text and Email Box */}
       <div className="w-full md:w-1/2 text-center md:text-left">
         <h2 className="text-2xl font-bold text-gray-900">Get the TravelMate App Now!</h2>
@@ -16,7 +16,7 @@ export default function DownloadApp() {
         </p>
 
         {/* Email Input and Button */}
-        <div className="mt-6 flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
+        <div className="mt-6 flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3 w-full">
           <div className="relative w-full sm:w-3/5">
             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-xl">
               <MdOutlineEmail />
@@ -36,8 +36,8 @@ export default function DownloadApp() {
       {/* Right Side - App Store Buttons and QR Code */}
       <div className="w-full md:w-1/2 flex flex-col-reverse md:flex-row items-center justify-center md:justify-end space-y-6 md:space-y-0 md:space-x-6 mt-8 md:mt-0">
         {/* App Store Buttons */}
-        <div className="space-y-5">
-          <button className="flex items-center w-50 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition">
+        <div className="space-y-3 sm:space-y-5 w-full sm:w-auto">
+          <button className="flex items-center w-full sm:w-56 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition">
             <span className="mr-2 text-xl">
               <FaGooglePlay />
             </span>
@@ -46,7 +46,7 @@ export default function DownloadApp() {
               <p className="text-lg font-semibold">Google Play</p>
             </div>
           </button>
-          <button className="flex items-center w-50 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition">
+          <button className="flex items-center w-full sm:w-56 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition">
             <span className="mr-2 text-xl">
               <FaApple />
             </span>

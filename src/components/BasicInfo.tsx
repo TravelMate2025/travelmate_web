@@ -13,7 +13,8 @@ interface BasicInfoProps {
 
 export default function BasicInfo({ title, fields, onEdit }: BasicInfoProps) {
   return (
-    <div className="w-[845px] h-[290px] border-2 border-gray-300 p-6 rounded-lg shadow-md">
+    <div className="w-full md:w-[845px] h-auto md:h-[290px] border-2 border-gray-300 p-6 rounded-lg shadow-md">
+
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">{title}</h2>

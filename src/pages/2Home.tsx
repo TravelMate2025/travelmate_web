@@ -3,7 +3,7 @@ import { AiOutlineCar } from "react-icons/ai";
 import { GiCommercialAirplane, GiFamilyHouse } from "react-icons/gi";
 import Navbar from "../components/2Navbar";
 import Footer from "../components/2Footer";
-import PopularDestinations from "../components/2PopularDestinations";
+// import PopularDestinations from "../components/2PopularDestinations";
 import DownloadApp from "../components/2DownloadApp";
 import NewsletterSubscription from "../components/2SubscribeNewsletter";
 
@@ -103,7 +103,7 @@ export default function Home2() {
         </form>
       </section>
 
-      <PopularDestinations />
+      {/* <PopularDestinations /> */}
       <DownloadApp />
       <NewsletterSubscription />
       <Footer />
