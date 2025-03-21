@@ -95,7 +95,7 @@ export default function Login() {
             <span className={`${isLoading ? "mr-2" : ""}`}>Log In</span> {/* Log In text */}
             {isLoading && (
                 <span className="ml-2">
-                <Spinner size="25px" />
+                <Spinner size="20px" />
                 </span>
             )}
             </button>

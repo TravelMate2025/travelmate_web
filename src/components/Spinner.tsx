@@ -1,25 +1,20 @@
-// import spinner from "../src/assets/spinner.svg";
-import SpinnerIcon from "../../assets/spinner.svg?url";
-
+import CircularProgress from '@mui/material/CircularProgress';
 
 interface SpinnerProps {
-  size?: string;
-  color?: string;
-  borderWidth?: string;
+  size?: number | string;
+  borderWidth?: number;
 }
 
-export default function Spinner({ size = "40px", color = "#2563EB", borderWidth = "8px" }: SpinnerProps) {
+function Spinner({ size = 40, borderWidth = 4 }: SpinnerProps) {
+  const numericSize = typeof size === 'string' ? parseInt(size, 10) : size;
+
   return (
-    <img 
-      src={SpinnerIcon} 
-      alt="Loading..."
-      style={{
-        width: size,
-        height: size,
-        color: color, // Inherited by SVG
-        "--stroke-width": borderWidth, // Custom stroke width
-      } as React.CSSProperties}
-      className="animate-spin"
+    <CircularProgress
+      size={numericSize}
+      thickness={borderWidth}
+      sx={{ color: 'white' }}
     />
   );
 }
+
+export default Spinner;

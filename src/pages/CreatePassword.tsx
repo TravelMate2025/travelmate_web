@@ -56,7 +56,7 @@ export default function CreatePassword() {
           <div className="fixed inset-0 bg-[#CCD8E8] opacity-40 z-40"></div>
 
           <div className="fixed inset-0 flex justify-center items-center z-50">
-            <Spinner size="50px" color="white" />
+            <Spinner size="50px"/>
           </div>
         </>
       )}

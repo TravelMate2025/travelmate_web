@@ -90,9 +90,24 @@ export default function CreateAccount() {
         <>
           <div className="fixed inset-0 bg-[#CCD8E8] opacity-50 z-40"></div>
 
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <Spinner size="50px" />
-          </div>
+          <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 50,
+      }}
+    >
+      <span className="h-[24px] w-[24px]">
+      <Spinner  />
+      </span>
+    </div>
+    
         </>
       )}
     </div>
