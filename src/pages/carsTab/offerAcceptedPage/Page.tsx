@@ -126,7 +126,7 @@ const Page = () => {
 
                     <div className='border-1 border-[#CDCED1] w-full p-[24px] rounded-[12px]'>
                         <p>Children Seat</p>
-                        
+                        <p>Extra ₦10,000</p>
                     </div>
                 </div>
             </div>
