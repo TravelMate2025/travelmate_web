@@ -57,8 +57,8 @@ const DisplayCars = () => {
             const [ToClick, setToClick] = useState<HTMLElement | null>(null);
     
             
-                const [selectedFrom, setSelectedFrom] = useState("");
-                const [selectedTo, setSelectedTo] = useState("");
+                const [, setSelectedFrom] = useState("");
+                const [, setSelectedTo] = useState("");
                 const [openFrom, setOpenFrom] = useState(false);
                 const [openTo, setOpenTo] = useState(false);
                     
