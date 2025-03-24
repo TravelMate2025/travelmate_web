@@ -233,10 +233,11 @@ const handleSelectDate = () => {
   //     });
   //   };
 
-    const [flights, setFlights] = useState<Flight[]>([
-    { id: 1, from: "", to: "", date: "" },
-    { id: 2, from: "", to: "", date: "" }
-  ]);
+const [flights, setFlights] = useState<Flight[]>([
+  { id: 1, from: "", to: "", date: ""},
+  // { id: 2, from: "", to: "", date: "" }
+]);
+
 
 
   const handleInputChange = (id: number, field: FlightField, value: string) => {
@@ -271,6 +272,48 @@ const handleSearchMultiTrip = () => {
     },
   });
 };
+
+// const handleDepartureSelectionFrom = (id: number, location: string) => {
+//   setFlights((prevFlights) =>
+//     prevFlights.map((flight) =>
+//       flight.id === id ? { ...flight, from: location } : flight
+//     )
+//   );
+//   handleCloseFrom(); // Close the popper after selection
+// };
+
+
+// const handleDestinationSelectionTo = (id: number, location: string) => {
+//   setFlights((prevFlights) =>
+//     prevFlights.map((flight) =>
+//       flight.id === id ? { ...flight, to: location } : flight
+//     )
+//   );
+//   handleCloseTo(); // Close the popper after selection
+// };
+
+const handleDepartureSelectionFrom = (id: number, location: string) => {
+  console.log("Updating from:", { id, location }); // Debugging log
+
+  setFlights((prevFlights) =>
+    prevFlights.map((flight) =>
+      flight.id === id ? { ...flight, from: location } : flight
+    )
+  );
+  handleCloseFrom();
+};
+
+const handleDestinationSelectionTo = (id: number, location: string) => {
+  console.log("Updating to:", { id, location }); // Debugging log
+
+  setFlights((prevFlights) =>
+    prevFlights.map((flight) =>
+      flight.id === id ? { ...flight, to: location } : flight
+    )
+  );
+  handleCloseTo();
+};
+
 
 
 
@@ -1440,7 +1483,7 @@ const handleSearchMultiTrip = () => {
                       locations.map((location, index) => (
                         <React.Fragment key={location}>
                           <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
-                            <div className="flex gap-[8px]" onClick={() => handleFromOptionClick(location)}>
+                            <div className="flex gap-[8px]" onClick={() => handleDepartureSelectionFrom(flight.id, location)}>
                               <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
                                 <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
                               </div>
@@ -1517,7 +1560,7 @@ const handleSearchMultiTrip = () => {
                       locations.map((location, index) => (
                         <React.Fragment key={location}>
                           <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
-                            <div className="flex gap-[8px]" onClick={() => handleToOptionClick(location)}>
+                            <div className="flex gap-[8px]" onClick={() => handleDestinationSelectionTo(flight.id, location)}>
                               <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
                                 <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
                               </div>

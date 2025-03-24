@@ -23,6 +23,8 @@ import FlightInfoPageMultiWay from "./pages/muti-flight-container/flightInfo-rev
 import FlightConfirmPageMultiWay from "./pages/muti-flight-container/flightConfirmationMultiWay/FlightConfirmPageMultiWay"
 import ProfileInfo from "./pages/ProfileInfo";
 import Profile from "./pages/Profile";
+import DisplayCars from "./pages/carsTab/displayAllCars/DisplayCars";
+import Page from "./pages/carsTab/offerAcceptedPage/Page";
 
 
 function App() {
@@ -60,6 +62,13 @@ function App() {
         <Route path="/second-departure-flight" element={<SecondDepartureFlightPage departureInfo={[]} />} />
         <Route path="/flightInfo-review-multi-way" element={<FlightInfoPageMultiWay />} />
         <Route path="/flight-confirm-multi-way" element={<FlightConfirmPageMultiWay />} />
+
+
+         {/* Cars-Section */}
+
+        <Route path="/display-cars" element={<DisplayCars />} />
+        <Route path="/offer-accepted-page" element={<Page />} />
+
 
 
       </Routes>

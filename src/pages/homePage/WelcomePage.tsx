@@ -10,6 +10,7 @@ import car from "../../assets/car.svg";
 import stay from "../../assets/stay.svg";
 import RoundTrip from "./RoundTrip";
 import SearchFilter from '../../components/SearchFilter';
+import Page from '../carsTab/carsFirstScreen/Page';
 
 const WelcomePage = () => {
     const [value, setValue] = React.useState<string>(() => {
@@ -70,7 +71,7 @@ const WelcomePage = () => {
                                 <SearchFilter onSubmit={handleSearchSubmit} />
                             </TabPanel>
                             <TabPanel value="2"><RoundTrip /></TabPanel>
-                            <TabPanel value="3">Cars</TabPanel>
+                            <TabPanel value="3"><Page /></TabPanel>
                         </TabContext>
                     </Box>
                 </div>

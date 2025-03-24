@@ -1,3 +1,4 @@
+
 import Navbar from '../../homePage/Navbar'
 import React, { useState, useRef, useMemo } from "react";
 import Radio from "@mui/material/Radio";
@@ -1228,9 +1229,7 @@ const handleApplyFilters = () => {
 
     <div>
         <div className='mt-[24px] w-[90%] m-auto cursor-pointer'>
-     
-
-     {paginatedItems.length > 0 ? (
+        {paginatedItems.length > 0 ? (
         paginatedItems.map((depart) => (
         <div key={depart.id} className="group" onClick={() => handleOpen(depart)}>
             <div className='w-full font-inter border mb-4 border-[#809EC4] h-[170px] rounded-[7px] pt-[16px] pd-[16px] pl-[16px] pr-[16px] 
