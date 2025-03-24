@@ -13,7 +13,7 @@ export default function Modal({ isOpen, onClose, title, children, onSave, saveTe
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-opacity-60  flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-opacity-60  flex items-center justify-center z-[1100]">
 
     <div className="bg-white w-[500px] rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
 

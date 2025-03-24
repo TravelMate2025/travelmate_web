@@ -11,7 +11,7 @@ interface BreadcrumbsProps {
 
 export default function Breadcrumbs({ items }: BreadcrumbsProps) {
   return (
-    <div className="mt-4 ml-5 sm:ml-15 text-sm text-gray-600 max-w-[1280px] text-left">
+    <div className="mt-4 ml-5 sm:ml-10 text-sm text-gray-600 max-w-[1280px] text-left">
       {items.map((crumb, index) => (
         <span key={index}>
           {index > 0 && " > "}
