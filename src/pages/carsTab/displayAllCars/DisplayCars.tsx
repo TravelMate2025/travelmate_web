@@ -23,10 +23,6 @@ interface DateRangeType {
 }
 
 const DisplayCars = () => {
-        // const [selectedValue, setSelectedValue] = useState<string>(() => {
-        //     return localStorage.getItem("tripType") || "round-trip";
-        //   });
-    
           const [dateRange, setDateRange] = useState<DateRangeType[]>([
             {
               startDate: new Date(),
@@ -35,14 +31,7 @@ const DisplayCars = () => {
             },
           ]);
           const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-        
-        
-        //     useEffect(() => {
-        //     const savedValue = localStorage.getItem("tripType");
-        //     if (savedValue) {
-        //       setSelectedValue(savedValue);
-        //     }
-        //   }, []);
+
         
           const handleClick = (event: React.MouseEvent<HTMLElement>) => {
             setAnchorEl(anchorEl ? null : event.currentTarget);
@@ -114,16 +103,6 @@ const DisplayCars = () => {
         //   handleClose(); 
         // };
 
-            // const [times, setTimes] = useState({
-            //         pickUpTime: "",
-            //         dropOffTime: "",
-            //     });
-        
-                // const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
-                //     setTimes({ ...times, [event.target.name]: event.target.value });
-                // };
-        
-
         const location = useLocation();
         const { from, to, departureDate, timePeriod, times: stateTimes } = location.state || {};
 
@@ -169,7 +148,6 @@ const DisplayCars = () => {
                     "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
                     }}
                 />
-        
                 <Popper id="from-popper" open={openFrom} anchorEl={FromClick} placement="bottom-start">
                 <ClickAwayListener onClickAway={handleCloseFrom}>
                     <Paper
