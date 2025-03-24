@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { FaMapMarkerAlt, FaUser, FaCalendarAlt } from "react-icons/fa";
 import Navbar from "../components/2Navbar";
+import Breadcrumbs from "../components/Breadcrumbs";
+import StayList from "../components/stayList";
 
 export default function StaysSearchResults() {
   // State for search filters
@@ -12,7 +14,7 @@ export default function StaysSearchResults() {
   const breadcrumbs = [
     { name: "Home", link: "/" },
     { name: "Ikeja", link: "/locations/ikeja" },
-    { name: "Search Results", link: "/search-results" },
+    { name: "Search Results" },
   ];
 
   // Handle form submission
@@ -104,17 +106,11 @@ export default function StaysSearchResults() {
         </div>
       </div>
 
-      {/* Breadcrumb Navigation */}
-      <div className="mt-4 text-sm text-gray-600 max-w-[1280px] ml-10 text-left">
-        {breadcrumbs.map((crumb, index) => (
-          <span key={index}>
-            {index > 0 && " > "}
-            <a href={crumb.link} className="text-[#023E8A] hover:underline">
-              {crumb.name}
-            </a>
-          </span>
-        ))}
-      </div>
+      <Breadcrumbs items={breadcrumbs} />
+      <div className="min-h-screen">
+      <h1 className="text-3xl font-bold text-center border-b border-t border-gray-300 mt-3 py-6">Discover Stays</h1>
+      <StayList />
+    </div>
     </div>
   );
 }

@@ -39,7 +39,7 @@ const options = [
 
 export default function UserOptions() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-[1280px] mx-auto mt-6 px-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-[1280px] mx-auto mt-6 px-4">
     {options.map((item, index) => (
         <Link
         to={item.link}
