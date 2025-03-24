@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { Box, TextField, InputAdornment, Popper, ClickAwayListener, Paper, Typography, Divider, MenuItem, Select } from '@mui/material';
 import { DateRange, RangeKeyDict } from 'react-date-range';
 import "react-date-range/dist/styles.css";
@@ -119,13 +119,22 @@ const DisplayCars = () => {
             //         dropOffTime: "",
             //     });
         
-            //     const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
-            //         setTimes({ ...times, [event.target.name]: event.target.value });
-            //     };
+                // const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
+                //     setTimes({ ...times, [event.target.name]: event.target.value });
+                // };
         
 
         const location = useLocation();
-        const { from, to, departureDate, timePeriod, times } = location.state || {};
+        const { from, to, departureDate, timePeriod, times: stateTimes } = location.state || {};
+
+        const [times, setTimes] = useState({
+            pickUpTime: stateTimes?.pickUpTime || "",
+            dropOffTime: stateTimes?.dropOffTime || "",
+        });
+
+        const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setTimes((prevTimes) => ({ ...prevTimes, [event.target.name]: event.target.value }));
+};
         
   return (
     <div  className='bg-[#F5F5F5] w-full h-full'>
@@ -391,7 +400,7 @@ const DisplayCars = () => {
                     variant="outlined"
                     size="small"
                     value={times.pickUpTime}
-                    // onChange={handleTimeChange}
+                    onChange={handleTimeChange}
                     placeholder="00 : 00"
                     className="md:w-[27.7vw] lg:w-[27.7vw] w-full"
                     sx={{
