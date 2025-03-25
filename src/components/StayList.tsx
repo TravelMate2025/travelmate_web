@@ -5,7 +5,7 @@ import StayImage from "../assets/images/StayImage.png";
 
 
 // Sample Data
-const stays = Array.from({ length: 20 }, (_, i) => ({
+const stays = Array.from({ length: 100 }, (_, i) => ({
   id: i + 1,
   image: StayImage,
   name: "Maison Fahrenheit Hotel",
@@ -37,38 +37,73 @@ const StayList: React.FC = () => {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center items-center mt-8 space-x-2">
+      <div className="flex justify-center items-center mt-26 space-x-2">
         {/* Left Arrow */}
         <button
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          className="p-2 border rounded text-gray-600 disabled:opacity-50"
+          className="p-2 border border-gray-500 shadow-md shadow-gray-400 rounded text-black disabled:opacity-50"
           disabled={currentPage === 1}
         >
           <FaChevronLeft />
         </button>
 
         {/* Page Numbers */}
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <button
-            key={page}
-            onClick={() => setCurrentPage(page)}
-            className={`px-3 py-1 border rounded ${
-              currentPage === page ? "bg-blue-500 text-white" : "text-gray-700"
-            }`}
-          >
-            {page}
-          </button>
-        ))}
+        {(() => {
+          const pageNumbers = [];
+          const maxVisiblePages = 8;
+          const middlePagesCount = maxVisiblePages - 4;
+
+          if (totalPages <= maxVisiblePages) {
+            pageNumbers.push(...Array.from({ length: totalPages }, (_, i) => i + 1));
+          } else {
+            pageNumbers.push(1, 2);
+
+            let startPage = Math.max(3, currentPage - Math.floor(middlePagesCount / 2));
+            let endPage = Math.min(totalPages - 1, currentPage + Math.floor(middlePagesCount / 2));
+
+            if (startPage > 3) {
+              pageNumbers.push("...");
+            }
+
+            const visiblePages = Math.min(middlePagesCount, totalPages - 4);
+            for (let i = 0; i < visiblePages; i++) {
+              if (startPage + i < endPage) {
+                pageNumbers.push(startPage + i);
+              }
+            }
+
+            if (endPage < totalPages - 1) {
+              pageNumbers.push("...");
+            }
+
+            pageNumbers.push(totalPages);
+          }
+
+          return pageNumbers.map((page, index) => (
+            <button
+              key={index}
+              onClick={() => typeof page === "number" && setCurrentPage(page)}
+              className={`px-3 py-1 shadow-md shadow-gray-400 rounded ${
+                currentPage === page ? "bg-blue-500 text-white" : "text-black"
+              } ${page === "..." ? "cursor-default opacity-50" : ""}`}
+              disabled={page === "..."}
+            >
+              {page}
+            </button>
+          ));
+        })()}
 
         {/* Right Arrow */}
         <button
           onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-          className="p-2 border rounded text-gray-600 disabled:opacity-50"
+          className="p-2 border border-gray-500 shadow-md shadow-gray-400 rounded text-black disabled:opacity-50"
           disabled={currentPage === totalPages}
         >
           <FaChevronRight />
         </button>
       </div>
+
+
     </div>
   );
 };
