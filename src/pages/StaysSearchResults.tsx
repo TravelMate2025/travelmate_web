@@ -1,120 +1,85 @@
 import { useState } from "react";
-import { FaMapMarkerAlt, FaUser, FaCalendarAlt } from "react-icons/fa";
+import { FaSortAmountDown } from "react-icons/fa";
+import { HiAdjustmentsHorizontal } from "react-icons/hi2";
 import Navbar from "../components/2Navbar";
+import Breadcrumbs from "../components/Breadcrumbs";
+import StayList from "../components/StayList";
+import TravelmateApp from "./homePage/TravelmateApp";
+import Footer from "../components/2Footer";
+import SortModal from "../components/modals/SortModal";
+import FilterModal from "../components/modals/FilterModal";
+import UpdateSearchFilter from "../components/UpdateSearchFilter";
 
 export default function StaysSearchResults() {
-  // State for search filters
-  const [destination, setDestination] = useState("");
-  const [roomGuest, setRoomGuest] = useState("");
-  const [date, setDate] = useState("");
+  // State for modals
+  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
+  const [selectedSort, setSelectedSort] = useState("Recommended");
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   // Breadcrumb Navigation
   const breadcrumbs = [
     { name: "Home", link: "/" },
     { name: "Ikeja", link: "/locations/ikeja" },
-    { name: "Search Results", link: "/search-results" },
+    { name: "Search Results" },
   ];
-
-  // Handle form submission
-  const handleSubmit = (e: { preventDefault: () => void; }) => {
-    e.preventDefault(); // Prevent page reload
-    console.log({ destination, roomGuest, date });
-    // You can add a function to fetch results from an API
-  };
 
   return (
     <div className="h-screen flex flex-col">
       {/* Navbar */}
       <Navbar />
+      <UpdateSearchFilter />
 
-      {/* Search Filter Section */}
-      <div className="bg-gray-100 py-6 px-6 shadow-md">
-        <div className="max-w-[1280px] mx-auto">
-          <form 
-            onSubmit={handleSubmit} 
-            className="flex items-end gap-4"
-          >
-            {/* Destination */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                Destination
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                    <FaMapMarkerAlt />
-                </span>
-                <input
-                  type="text"
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                  placeholder="Enter destination"
-                  className="w-[312px] h-[44px] border px-10 rounded-lg text-gray-700"
-                  required
-                />
-              </div>
-            </div>
+      <Breadcrumbs items={breadcrumbs} />
 
-            {/* Room & Guest */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                Room & Guest
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                    <FaUser />
-                </span>
-                <input
-                  type="text"
-                  value={roomGuest}
-                  onChange={(e) => setRoomGuest(e.target.value)}
-                  placeholder="Number of rooms & guests"
-                  className="w-[312px] h-[44px] border px-10 rounded-lg text-gray-700"
-                  required
-                />
-              </div>
-            </div>
+      {/* Results and Sorting Section */}
+      <div className="min-h-screen px-6">
+        <div className="flex justify-between items-center border-b border-t border-gray-300 p-4">
+          <span className="text-black font-bold text-lg">80 Results</span>
 
-            {/* Date */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                Date
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                    <FaCalendarAlt />
-                </span>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-[312px] h-[44px] border px-10 rounded-lg text-gray-700"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Submit Button */}
+          <div className="flex gap-4">
             <button
-              type="submit"
-              className="w-[180px] h-[42px] ml-25 bg-[#023E8A] text-white rounded-lg hover:bg-[#0450A2]"
+              className="w-[96px] h-[44px] flex items-center justify-center gap-2 border border-gray-300 rounded-lg shadow-sm"
+              onClick={() => setIsFilterModalOpen(true)}
             >
-              Update
+              <HiAdjustmentsHorizontal />
+              <span>Filter</span>
             </button>
-          </form>
+
+            {/* Filter Modal */}
+            <FilterModal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} />
+
+            {/* Sort By Button */}
+            <button
+              className="w-[275px] h-[44px] flex items-center justify-between px-4 border border-gray-300 rounded-lg shadow-sm"
+              onClick={() => setIsSortModalOpen(true)}
+            >
+              <div className="flex items-center gap-2">
+                <FaSortAmountDown />
+                <span>Sort By: {selectedSort}</span>
+              </div>
+              <span>▼</span>
+            </button>
+
+          </div>
         </div>
+
+        {/* Stay List */}
+        <StayList />
+
+        <div className="py-10 bg-gray-100">
+          <TravelmateApp />
+        </div>
+        <Footer />
       </div>
 
-      {/* Breadcrumb Navigation */}
-      <div className="mt-4 text-sm text-gray-600 max-w-[1280px] ml-10 text-left">
-        {breadcrumbs.map((crumb, index) => (
-          <span key={index}>
-            {index > 0 && " > "}
-            <a href={crumb.link} className="text-[#023E8A] hover:underline">
-              {crumb.name}
-            </a>
-          </span>
-        ))}
-      </div>
+      {/* Sort Modal */}
+      {isSortModalOpen && (
+        <SortModal
+          selectedSort={selectedSort}
+          onClose={() => setIsSortModalOpen(false)}
+          onSelect={(option) => setSelectedSort(option)}
+        />
+      )}
     </div>
   );
 }
