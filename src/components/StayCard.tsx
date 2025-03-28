@@ -1,6 +1,7 @@
 import React from "react";
 import { FaStar, FaMapMarkerAlt, FaCheckCircle, FaRegHeart } from "react-icons/fa";
 
+
 interface StayCardProps {
   image: string;
   name: string;
@@ -32,7 +33,7 @@ const StayCard: React.FC<StayCardProps> = ({
           className="w-[378px] h-[224px] rounded-lg object-cover"
         />
         {/* Heart Icon Container */}
-        <div className="absolute top-3 right-3 bg-white border-2 border-blue-900 rounded-md p-2 cursor-pointer">
+        <div className="absolute top-3 right-3 bg-white rounded-md p-2 cursor-pointer">
           <FaRegHeart className="text-blue-900 text-2xl" />
         </div>
       </div>

@@ -35,9 +35,11 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ onSubmit }) => {
               <input
                 type="text"
                 value={destination}
-                onChange={(e) => setDestination(e.target.value)}
+                onChange={(e) => {
+                  if (e.target.value.length <= 45) setDestination(e.target.value);
+                }}
                 placeholder="Enter destination"
-                className="w-full md:w-72 h-[44px] border px-10 rounded-lg text-gray-700"
+                className="w-full md:w-72 h-[44px] border px-10 rounded-lg text-gray-700 focus:outline-blue-600"
                 required
               />
             </div>
@@ -53,9 +55,11 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ onSubmit }) => {
               <input
                 type="text"
                 value={roomGuest}
-                onChange={(e) => setRoomGuest(e.target.value)}
+                onChange={(e) => {
+                  if (e.target.value.length <= 45) setRoomGuest(e.target.value);
+                }}
                 placeholder="Number of rooms & guests"
-                className="w-full md:w-72 h-[44px] border px-10 rounded-lg text-gray-700"
+                className="w-full md:w-72 h-[44px] border px-10 rounded-lg text-gray-700 focus:outline-blue-600"
                 required
               />
             </div>

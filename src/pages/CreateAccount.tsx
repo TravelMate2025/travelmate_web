@@ -90,7 +90,7 @@ export default function CreateAccount() {
         <>
           <div className="fixed inset-0 bg-[#CCD8E8] opacity-50 z-40"></div>
 
-          <div
+    <div
       style={{
         position: 'fixed',
         top: 0,

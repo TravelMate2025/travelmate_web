@@ -15,7 +15,7 @@ export default function Modal({ isOpen, onClose, title, children, onSave, saveTe
   return (
     <div className="fixed inset-0 bg-opacity-60  flex items-center justify-center z-[1100]">
 
-    <div className="bg-white w-[500px] rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
+    <div className="bg-white w-[500px] rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
 
         {/* Modal Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-300">
