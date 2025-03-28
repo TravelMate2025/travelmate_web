@@ -1,364 +1,284 @@
 
+
+
+
 import React, { useState, useMemo, JSX } from "react";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
-import TuneIcon from '@mui/icons-material/Tune';
-import SortIcon from '@mui/icons-material/Sort';
+// import TuneIcon from '@mui/icons-material/Tune';
+// import SortIcon from '@mui/icons-material/Sort';
 import Breadcrumb from '../../BreadCrumb'
-import { Box, Checkbox, Dialog, DialogContent, Divider, FormControlLabel, FormGroup, IconButton, InputAdornment, MenuItem, Select, SelectChangeEvent, Slider, TextField } from '@mui/material'
+import Rating from "@mui/material/Rating";
+import {
+  Dialog,
+  DialogContent,
+  //  Box, Checkbox, 
+   Divider,
+   IconButton,
+   TextField, 
+  //  FormControlLabel, FormGroup, 
+  //  InputAdornment, MenuItem, Select, SelectChangeEvent, Slider, 
+ 
+  } 
+   from '@mui/material'
 import Card from '@mui/material/Card';
-import CardMedia from '@mui/material/CardMedia';
+// import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
-import CardActions from '@mui/material/CardActions';
-import carImage from "../../../assets/carImage.png"
-import carLogo from "../../../assets/carLogo.png"
+// import CardActions from '@mui/material/CardActions';
+import carImage from "../../../assets/carImage.svg"
+// import carLogo from "../../../assets/carLogo.png"
 import AirlineSeatReclineNormalIcon from '@mui/icons-material/AirlineSeatReclineNormal';
-import AcUnitIcon from '@mui/icons-material/AcUnit';
+// import AcUnitIcon from '@mui/icons-material/AcUnit';
 import SpeedIcon from '@mui/icons-material/Speed';
 import CircleIcon from '@mui/icons-material/Circle';
 import CheckIcon from '@mui/icons-material/Check';
 import { Stack, Pagination } from '@mui/material';
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import circle from "../../../assets/circle.svg"
+import LuggageOutlinedIcon from '@mui/icons-material/LuggageOutlined';
+// import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { useNavigate } from "react-router-dom";
 import offerNot from "../../../assets/offerNot.svg"
 
 
-interface CarList {
+interface Car {
     id: number,
-    carDescription:string
     image: string,
-    carName: string,
-    carLogo: string,
     seatLeft: JSX.Element,
     fuelIcon: JSX.Element,
     speed: JSX.Element,
-    mileage: string,
     spaceleft: string,
-    fuel: string,
     full: string,
-    pickUp: string,
-    dropOff:string,
     refundable: string,
     noShows: string,
     perDay: string,
     price: string,
     button: string,
+
+
+    
+
 }
 
 interface CarListProps {
-  departureInfo: CarList[];
+  departureInfo: Car[];
 }
-
 
 const CarList: React.FC<CarListProps> = () => {  
     
     const navigate = useNavigate()
-    const carList = useMemo(() => [
+
+    
+        const cars: Car[] = useMemo(() => [
             {
               id: 1,
               image: carImage,
-              carName: "SUV",
-              type:"Automatic",
-              carDescription: "Avis Nigeria",
-              carLogo: carLogo,
               seatLeft: <AirlineSeatReclineNormalIcon />,
-              fuelIcon : <AcUnitIcon />,
+              fuelIcon : <LuggageOutlinedIcon />,
               speed:<SpeedIcon />,
-              mileage:"Unlimited Mileage",
-              spaceleft: "3 Left",
-              fuel: "Fuel",
-              full: "Full to full",
-              pickUp: "Pick Up Location:MMIA Airport Car Rental, Ikeja",
-              dropOff:"Drop-Off Location: Eko Hotel Car Rental, Victoria Island",
-              refundable: "Fully Refundable before Feb 10",
-              noShows:"No shows will not receive a refund",
-              perDay:"Per Day",
+              spaceleft: "3 Seats",
+              full: "4 Bags",
+              refundable: "Full refund if cancelled 24 hours before pick up",
+              noShows:"Cancellation allowed 24 hours before pick up",
+              perDay:"Price",
               price: "₦14,000",
-              button:"Name your price",
+              button:"Select Car",
             },
             {
               id: 2,
               image: carImage,
-              carDescription: "Bolt Drive",
-              type:"Manual",
-              carName: "Economy",
-              carLogo: carLogo,
               seatLeft: <AirlineSeatReclineNormalIcon />,
-              fuelIcon : <AcUnitIcon />,
+              fuelIcon : <LuggageOutlinedIcon />,
               speed:<SpeedIcon />,
-              mileage:"Unlimited Mileage",
-              spaceleft: "3 Left",
-              fuel: "Fuel",
-              full: "Full to full",
-              pickUp: "Pick Up Location:MMIA Airport Car Rental, Ikeja",
-              dropOff:"Drop-Off Location: Eko Hotel Car Rental, Victoria Island",
-              refundable: "Fully Refundable before Feb 10",
-              noShows:"No shows will not receive a refund",
-              perDay:"Per Day",
-              price: "₦10,000",
-              button:"Name your price",
+              spaceleft: "3 Seats",
+              full: "4 Bags",
+              refundable: "Full refund if cancelled 24 hours before pick up",
+              noShows:"Cancellation allowed 24 hours before pick up",
+              perDay:"Price",
+              price: "₦14,000",
+              button:"Select Car",
             },
             {
               id: 3,
               image: carImage,
-              carDescription: "Hertz Nigeria",
-              carName: "Compact",
-              type:"Automatic",
-              carLogo: carLogo,
               seatLeft: <AirlineSeatReclineNormalIcon />,
-              fuelIcon : <AcUnitIcon />,
+              fuelIcon : <LuggageOutlinedIcon />,
               speed:<SpeedIcon />,
-              mileage:"Unlimited Mileage",
-              spaceleft: "3 Left",
-              fuel: "Fuel",
-              full: "Full to full",
-              pickUp: "Pick Up Location:MMIA Airport Car Rental, Ikeja",
-              dropOff:"Drop-Off Location: Eko Hotel Car Rental, Victoria Island",
-              refundable: "Fully Refundable before Feb 10",
-              noShows:"No shows will not receive a refund",
-              perDay:"Per Day",
-              price: "₦19,000",
-              button:"Name your price",
+              spaceleft: "3 Seats",
+              full: "4 Bags",
+              refundable: "Full refund if cancelled 24 hours before pick up",
+              noShows:"Cancellation allowed 24 hours before pick up",
+              perDay:"Price",
+              price: "₦14,000",
+              button:"Select Car",
             },
             {
               id: 4,
-                image: carImage,
-              carName: "Standard",
-              type:"Manual",
-              carLogo: carLogo,
-              carDescription: "Uber Rentals",
+              image: carImage,
               seatLeft: <AirlineSeatReclineNormalIcon />,
-              fuelIcon : <AcUnitIcon />,
+              fuelIcon : <LuggageOutlinedIcon />,
               speed:<SpeedIcon />,
-              mileage:"Unlimited Mileage",
-              spaceleft: "3 Left",
-              fuel: "Fuel",
-              full: "Full to full",
-              pickUp: "Pick Up Location:MMIA Airport Car Rental, Ikeja",
-              dropOff:"Drop-Off Location: Eko Hotel Car Rental, Victoria Island",
-              refundable: "Fully Refundable before Feb 10",
-              noShows:"No shows will not receive a refund",
-              perDay:"Per Day",
-              price: "₦120,000",
-              button:"Name your price",
+              spaceleft: "3 Seats",
+              full: "4 Bags",
+              refundable: "Full refund if cancelled 24 hours before pick up",
+              noShows:"Cancellation allowed 24 hours before pick up",
+              perDay:"Price",
+              price: "₦14,000",
+              button:"Select Car",
+              
             },
             {
               id: 5,
                image: carImage,
-              carName: "Midsize",
-              carLogo: carLogo,
-              type:"Automatic",
-              carDescription: "Avis Nigeria",
-              seatLeft: <AirlineSeatReclineNormalIcon />,
-              fuelIcon : <AcUnitIcon />,
+               seatLeft: <AirlineSeatReclineNormalIcon />,
+              fuelIcon : <LuggageOutlinedIcon />,
               speed:<SpeedIcon />,
-              mileage:"Unlimited Mileage",
-              spaceleft: "3 Left",
-              fuel: "Fuel",
-              full: "Full to full",
-              pickUp: "Pick Up Location:MMIA Airport Car Rental, Ikeja",
-              dropOff:"Drop-Off Location: Eko Hotel Car Rental, Victoria Island",
-              refundable: "Fully Refundable before Feb 10",
-              noShows:"No shows will not receive a refund",
-              perDay:"Per Day",
-              price: "₦150,000",
-              button:"Name your price",
+              spaceleft: "3 Seats",
+              full: "4 Bags",
+              refundable: "Full refund if cancelled 24 hours before pick up",
+              noShows:"Cancellation allowed 24 hours before pick up",
+              perDay:"Price",
+              price: "₦14,000",
+              button:"Select Car",
             },
               {
               id: 6,
                image: carImage,
-              carName: "Full Size",
-              type:"Manual",
-              carDescription: "Hertz Nigeria",
-              carLogo: carLogo,
-              seatLeft: <AirlineSeatReclineNormalIcon />,
-              fuelIcon : <AcUnitIcon />,
+                seatLeft: <AirlineSeatReclineNormalIcon />,
+              fuelIcon : <LuggageOutlinedIcon />,
               speed:<SpeedIcon />,
-              mileage:"Unlimited Mileage",
-              spaceleft: "3 Left",
-              fuel: "Fuel",
-              full: "Full to full",
-              pickUp: "Pick Up Location:MMIA Airport Car Rental, Ikeja",
-              dropOff:"Drop-Off Location: Eko Hotel Car Rental, Victoria Island",
-              refundable: "Fully Refundable before Feb 10",
-              noShows:"No shows will not receive a refund",
-              perDay:"Per Day",
-              price: "₦90,000",
-              button:"Name your price",
+              spaceleft: "3 Seats",
+              full: "4 Bags",
+              refundable: "Full refund if cancelled 24 hours before pick up",
+              noShows:"Cancellation allowed 24 hours before pick up",
+              perDay:"Price",
+              price: "₦14,000",
+              button:"Select Car",
             },
               {
               id: 7,
                image: carImage,
-              carName: "Premium",
-              type:"Automatic",
-              carLogo: carLogo,
-              carDescription: "Bolt Drive",
               seatLeft: <AirlineSeatReclineNormalIcon />,
-              fuelIcon : <AcUnitIcon />,
+              fuelIcon : <LuggageOutlinedIcon />,
               speed:<SpeedIcon />,
-              mileage:"Unlimited Mileage",
-              spaceleft: "3 Left",
-              fuel: "Fuel",
-              full: "Full to full",
-              pickUp: "Pick Up Location:MMIA Airport Car Rental, Ikeja",
-              dropOff:"Drop-Off Location: Eko Hotel Car Rental, Victoria Island",
-              refundable: "Fully Refundable before Feb 10",
-              noShows:"No shows will not receive a refund",
-              perDay:"Per Day",
-              price: "₦40,000",
-              button:"Name your price",
+              spaceleft: "3 Seats",
+              full: "4 Bags",
+              refundable: "Full refund if cancelled 24 hours before pick up",
+              noShows:"Cancellation allowed 24 hours before pick up",
+              perDay:"Price",
+              price: "₦14,000",
+              button:"Select Car",
             },
 
               {
               id: 8,
                image: carImage,
-              carName: "SUV",
-              type:"Manual",
-              carLogo: carLogo,
               seatLeft: <AirlineSeatReclineNormalIcon />,
-              fuelIcon : <AcUnitIcon />,
+              fuelIcon : <LuggageOutlinedIcon />,
               speed:<SpeedIcon />,
-              mileage:"Unlimited Mileage",
-              spaceleft: "3 Left",
-              carDescription: "Uber Rentals",
-              fuel: "Fuel",
-              full: "Full to full",
-              pickUp: "Pick Up Location:MMIA Airport Car Rental, Ikeja",
-              dropOff:"Drop-Off Location: Eko Hotel Car Rental, Victoria Island",
-              refundable: "Fully Refundable before Feb 10",
-              noShows:"No shows will not receive a refund",
-              perDay:"Per Day",
-              price: "₦60,000",
-              button:"Name your price",
+              spaceleft: "3 Seats",
+              full: "4 Bags",
+              refundable: "Full refund if cancelled 24 hours before pick up",
+              noShows:"Cancellation allowed 24 hours before pick up",
+              perDay:"Price",
+              price: "₦14,000",
+              button:"Select Car",
             },
 
               {
               id: 9,
                image: carImage,
-              carName: "Compact",
-              type:"Automatic",
-              carLogo: carLogo,
-              carDescription: "Avis Nigeria",
               seatLeft: <AirlineSeatReclineNormalIcon />,
-              fuelIcon : <AcUnitIcon />,
+              fuelIcon : <LuggageOutlinedIcon />,
               speed:<SpeedIcon />,
-              mileage:"Unlimited Mileage",
-              spaceleft: "3 Left",
-              fuel: "Fuel",
-              full: "Full to full",
-              pickUp: "Pick Up Location:MMIA Airport Car Rental, Ikeja",
-              dropOff:"Drop-Off Location: Eko Hotel Car Rental, Victoria Island",
-              refundable: "Fully Refundable before Feb 10",
-              noShows:"No shows will not receive a refund",
-              perDay:"Per Day",
-              price: "₦80,000",
-              button:"Name your price",
+              spaceleft: "3 Seats",
+              full: "4 Bags",
+              refundable: "Full refund if cancelled 24 hours before pick up",
+              noShows:"Cancellation allowed 24 hours before pick up",
+              perDay:"Price",
+              price: "₦14,000",
+              button:"Select Car",
             },
 
               {
               id: 10,
                image: carImage,
-               carDescription: "Bolt Drive",
-               type:"Manual",
-              carName: "Midsize",
-              carLogo: carLogo,
-              seatLeft: <AirlineSeatReclineNormalIcon />,
-              fuelIcon : <AcUnitIcon />,
+               seatLeft: <AirlineSeatReclineNormalIcon />,
+              fuelIcon : <LuggageOutlinedIcon />,
               speed:<SpeedIcon />,
-              mileage:"Unlimited Mileage",
-              spaceleft: "3 Left",
-              fuel: "Fuel",
-              full: "Full to full",
-              pickUp: "Pick Up Location:MMIA Airport Car Rental, Ikeja",
-              dropOff:"Drop-Off Location: Eko Hotel Car Rental, Victoria Island",
-              refundable: "Fully Refundable before Feb 10",
-              noShows:"No shows will not receive a refund",
-              perDay:"Per Day",
-              price: "₦100,000",
-              button:"Name your price",
+              spaceleft: "3 Seats",
+              full: "4 Bags",
+              refundable: "Full refund if cancelled 24 hours before pick up",
+              noShows:"Cancellation allowed 24 hours before pick up",
+              perDay:"Price",
+              price: "₦14,000",
+              button:"Select Car",
             },
 
               {
               id: 11,
                image: carImage,
-              carName: "Premium",
-              carLogo: carLogo,
-              type:"Automatic",
-              seatLeft: <AirlineSeatReclineNormalIcon />,
-              fuelIcon : <AcUnitIcon />,
+                seatLeft: <AirlineSeatReclineNormalIcon />,
+              fuelIcon : <LuggageOutlinedIcon />,
               speed:<SpeedIcon />,
-              carDescription: "Hertz Nigeria",
-              mileage:"Unlimited Mileage",
-              spaceleft: "3 Left",
-              fuel: "Fuel",
-              full: "Full to full",
-              pickUp: "Pick Up Location:MMIA Airport Car Rental, Ikeja",
-              dropOff:"Drop-Off Location: Eko Hotel Car Rental, Victoria Island",
-              refundable: "Fully Refundable before Feb 10",
-              noShows:"No shows will not receive a refund",
-              perDay:"Per Day",
-              price: "₦20,000",
-              button:"Name your price",
+              spaceleft: "3 Seats",
+              full: "4 Bags",
+              refundable: "Full refund if cancelled 24 hours before pick up",
+              noShows:"Cancellation allowed 24 hours before pick up",
+              perDay:"Price",
+              price: "₦14,000",
+              button:"Select Car",
             },
 
             {
               id: 12,
-               image: carImage,
-               carDescription: "Uber Rentals",
-              carName: "Economy",
-              carLogo: carLogo,
-              type:"Manual",
+              image: carImage,
               seatLeft: <AirlineSeatReclineNormalIcon />,
-              fuelIcon : <AcUnitIcon />,
+              fuelIcon : <LuggageOutlinedIcon />,
               speed:<SpeedIcon />,
-              mileage:"Unlimited Mileage",
-              spaceleft: "3 Left",
-              fuel: "Fuel",
-              full: "Full to full",
-              pickUp: "Pick Up Location:MMIA Airport Car Rental, Ikeja",
-              dropOff:"Drop-Off Location: Eko Hotel Car Rental, Victoria Island",
-              refundable: "Fully Refundable before Feb 10",
-              noShows:"No shows will not receive a refund",
-              perDay:"Per Day",
-              price: "₦30,000",
-              button:"Name your price",
+              spaceleft: "3 Seats",
+              full: "4 Bags",
+              refundable: "Full refund if cancelled 24 hours before pick up",
+              noShows:"Cancellation allowed 24 hours before pick up",
+              perDay:"Price",
+              price: "₦14,000",
+              button:"Select Car",
             },
-          ], []);
+        ], []);
     
     
      const [page, setPage] = useState<number>(1); 
       const [openClick, setOpenClick] = useState<boolean>(false);
-    const [selectedCarId, setSelectedCarId] = useState<number | null>(null);
+    // const [selectedCarId, setSelectedCarId] = useState<number | null>(null);
     
     
     
-    const handleOpen = (car: CarList) => {
+    const handleOpen = () => {
       
-      setSelectedCarId(car.id);
+      // setSelectedCarId(car.id);
       setOpenClick(true);
     };
     
     
       const handleCloseClick = () => {
       setOpenClick(false);
-      setSelectedCarId(null);
+      // setSelectedCarId(null);
     };
     
-    const selectedCar = carList.find((d) => d.id === selectedCarId);
+    // const selectedCar = cars.find((d) => d.id === selectedCarId);
     
     
-     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    //  const [isDialogOpen, setIsDialogOpen] = useState(false);
     
-      const openDialog = () => {
-        setIsDialogOpen(true);
-      };
+    //   const openDialog = () => {
+    //     setIsDialogOpen(true);
+    //   };
     
-      const closeDialog = () => {
-        setIsDialogOpen(false);
-      };
+      // const closeDialog = () => {
+      //   setIsDialogOpen(false);
+      // };
     
     // const [activeButton, setActiveButton] = useState<number | null>(null);
     //  const handleButtonClick = (buttonIndex: number) => {
@@ -372,60 +292,60 @@ const CarList: React.FC<CarListProps> = () => {
 
 
     
-    const airlinesList = ["Economy", "Compact", "Standard", "Midsize", "Full Size", "SUV", "Premium"];
-    const roadCarList = ["Avis Nigeria", "Bolt Drive", "Hertz Nigeria", "Uber Rentals"];
+    // const airlinesList = ["Economy", "Compact", "Standard", "Midsize", "Full Size", "SUV", "Premium"];
+    // const roadCarList = ["Avis Nigeria", "Bolt Drive", "Hertz Nigeria", "Uber Rentals"];
 
     
-      const [value, setValue] = React.useState<number[]>([2000, 10000000]);
-      const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
+    //   const [value, setValue] = React.useState<number[]>([2000, 10000000]);
+    //   const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
     
     
-    const [tempSelectedAirlines, setTempSelectedAirlines] = useState<string[]>([]);
-    const [tempSelectedCar, setTempSelectedCars] = useState<string[]>([])
-    const [tempValue, setTempValue] = useState<number[]>([2000, 10000000]);
-    const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
-    const [selectedCarRent, setSelectedCarRent] = useState<string[]>([]);
-    const [selectedSpecs, setSelectedSpecs] = useState<string[]>([]);
-    const [tempSelectedSpecs, setTempSelectedSpecs] = useState<string[]>([]);
+    // const [tempSelectedAirlines, setTempSelectedAirlines] = useState<string[]>([]);
+    // const [tempSelectedCar, setTempSelectedCars] = useState<string[]>([])
+    // const [tempValue, setTempValue] = useState<number[]>([2000, 10000000]);
+    // const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
+    // const [selectedCarRent, setSelectedCarRent] = useState<string[]>([]);
+    // const [selectedSpecs, setSelectedSpecs] = useState<string[]>([]);
+    // const [tempSelectedSpecs, setTempSelectedSpecs] = useState<string[]>([]);
 
     
-    const applyFilters = useMemo(() => {
-      return carList.filter((item) => {
-        const price = parseInt(item.price.replace(/[^0-9]/g, ""), 10);
-        const matchesPrice = price >= value[0] && price <= value[1];
-       const carMatch = selectedCarRent.length === 0 || selectedCarRent.includes(item.carDescription);
-       const airlineMatch = selectedAirlines.length === 0 || selectedAirlines.includes(item.carName);
-    const specMatch = selectedSpecs.length === 0 || selectedSpecs.includes(item.type);
+    // const applyFilters = useMemo(() => {
+    //   return carList.filter((item) => {
+    //     const price = parseInt(item.price.replace(/[^0-9]/g, ""), 10);
+    //     const matchesPrice = price >= value[0] && price <= value[1];
+    //    const carMatch = selectedCarRent.length === 0 || selectedCarRent.includes(item.carDescription);
+    //    const airlineMatch = selectedAirlines.length === 0 || selectedAirlines.includes(item.carName);
+    // const specMatch = selectedSpecs.length === 0 || selectedSpecs.includes(item.type);
 
-        return matchesPrice && carMatch && airlineMatch && specMatch;
-      });
-    }, [carList, selectedAirlines, selectedCarRent, selectedSpecs, value]);
+    //     return matchesPrice && carMatch && airlineMatch && specMatch;
+    //   });
+    // }, [carList, selectedAirlines, selectedCarRent, selectedSpecs, value]);
     
     
     
-     const handleMinPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const rawValue = event.target.value.replace(/,/g, ""); 
-        const min = Number(rawValue);
-        if (!isNaN(min)) {
-            setValue([min, Math.max(min, value[1])]);
-        }
-    };
+    //  const handleMinPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //     const rawValue = event.target.value.replace(/,/g, ""); 
+    //     const min = Number(rawValue);
+    //     if (!isNaN(min)) {
+    //         setValue([min, Math.max(min, value[1])]);
+    //     }
+    // };
     
-    const handleMaxPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const rawValue = event.target.value.replace(/,/g, ""); 
-        const max = Number(rawValue);
-        if (!isNaN(max)) {
-            setValue([value[0], Math.max(value[0], max)]);
-        }
-    };
+    // const handleMaxPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //     const rawValue = event.target.value.replace(/,/g, ""); 
+    //     const max = Number(rawValue);
+    //     if (!isNaN(max)) {
+    //         setValue([value[0], Math.max(value[0], max)]);
+    //     }
+    // };
     
     
-    const [selectedSort, setSelectedSort] = useState("");
+    // const [selectedSort, setSelectedSort] = useState("");
     
-    const handleSortedChange = (event: SelectChangeEvent<string>) => {
-      setSelectedSort(event.target.value);
-      setPage(1);
-    };
+    // const handleSortedChange = (event: SelectChangeEvent<string>) => {
+    //   setSelectedSort(event.target.value);
+    //   setPage(1);
+    // };
     
     
         const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
@@ -433,102 +353,112 @@ const CarList: React.FC<CarListProps> = () => {
         };
 
     
-    const handleTempSelectedChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, checked } = event.target;
+    // const handleTempSelectedChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //   const { name, checked } = event.target;
     
-      if (name === "all") {
+    //   if (name === "all") {
      
-        setTempSelectedAirlines(checked ? airlinesList : []);
-      } else {
+    //     setTempSelectedAirlines(checked ? airlinesList : []);
+    //   } else {
        
-        setTempSelectedAirlines((prev) =>
-          checked ? [...prev, name] : prev.filter((airline) => airline !== name)
-        );
-      }
-    };
+    //     setTempSelectedAirlines((prev) =>
+    //       checked ? [...prev, name] : prev.filter((airline) => airline !== name)
+    //     );
+    //   }
+    // };
 
-     const handleTempSelectedCar = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, checked } = event.target;
+//      const handleTempSelectedCar = (event: React.ChangeEvent<HTMLInputElement>) => {
+//       const { name, checked } = event.target;
     
-      if (name === "carRent") {
+//       if (name === "carRent") {
      
-        setTempSelectedCars(checked ? roadCarList : []);
-      } else {
+//         setTempSelectedCars(checked ? roadCarList : []);
+//       } else {
        
-        setTempSelectedCars((prev) =>
-          checked ? [...prev, name] : prev.filter((carLine) => carLine !== name)
-        );
-      }
-    };
+//         setTempSelectedCars((prev) =>
+//           checked ? [...prev, name] : prev.filter((carLine) => carLine !== name)
+//         );
+//       }
+//     };
     
-    const handleTempSliderChange = (_event: Event, newValue: number | number[]) => {
-      setTempValue(newValue as number[]);
-    };
+//     const handleTempSliderChange = (_event: Event, newValue: number | number[]) => {
+//       setTempValue(newValue as number[]);
+//     };
 
-const handleTempSelectedSpec = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = event.target;
-    setTempSelectedSpecs((prevSpecs) =>
-        checked ? [...prevSpecs, name] : prevSpecs.filter((spec) => spec !== name)
-    );
-};
+// const handleTempSelectedSpec = (event: React.ChangeEvent<HTMLInputElement>) => {
+//     const { name, checked } = event.target;
+//     setTempSelectedSpecs((prevSpecs) =>
+//         checked ? [...prevSpecs, name] : prevSpecs.filter((spec) => spec !== name)
+//     );
+// };
 
     
     
       
-        const sortedDepartures = useMemo(() => {
-            const sortedArray = [...applyFilters];
+        // const sortedDepartures = useMemo(() => {
+        //     const sortedArray = [...applyFilters];
     
-            switch (selectedSort) {
-                case "price_low":
-                    sortedArray.sort((a, b) => 
-                        parseInt(a.price.replace(/[^0-9]/g, ""), 10) - 
-                        parseInt(b.price.replace(/[^0-9]/g, ""), 10)
-                    );
-                    break;
-                case "price_high":
-                    sortedArray.sort((a, b) => 
-                        parseInt(b.price.replace(/[^0-9]/g, ""), 10) - 
-                        parseInt(a.price.replace(/[^0-9]/g, ""), 10)
-                    );
-                    break;
-                default:
-                break;
-            }
+        //     switch (selectedSort) {
+        //         case "price_low":
+        //             sortedArray.sort((a, b) => 
+        //                 parseInt(a.price.replace(/[^0-9]/g, ""), 10) - 
+        //                 parseInt(b.price.replace(/[^0-9]/g, ""), 10)
+        //             );
+        //             break;
+        //         case "price_high":
+        //             sortedArray.sort((a, b) => 
+        //                 parseInt(b.price.replace(/[^0-9]/g, ""), 10) - 
+        //                 parseInt(a.price.replace(/[^0-9]/g, ""), 10)
+        //             );
+        //             break;
+        //         default:
+        //         break;
+        //     }
     
-            return sortedArray;
-        }, [selectedSort, applyFilters]);
-    
-    
-      const paginatedItems = useMemo(() => {
-        const startIndex = (page - 1) * ITEMS_PER_PAGE;
-        return sortedDepartures.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    }, [page, sortedDepartures]);
+        //     return sortedArray;
+        // }, [selectedSort, applyFilters]);
     
     
-    
-    const handleApplyFilters = () => {
-      setSelectedCarRent(tempSelectedCar);
-      setSelectedAirlines(tempSelectedAirlines);
-       setSelectedSpecs(tempSelectedSpecs);
-      setValue(tempValue);
-      setPage(1);
-      closeDialog();
-    };
+   const paginatedItems = useMemo(() => {
+    return cars.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+}, [cars, page]);
 
-    const [price, setPrice] = useState(""); // Track entered price
-const [openNoModal, setOpenNoModal] = useState(false);
+    
+    // const handleApplyFilters = () => {
+    //   setSelectedCarRent(tempSelectedCar);
+    //   setSelectedAirlines(tempSelectedAirlines);
+    //    setSelectedSpecs(tempSelectedSpecs);
+    //   setValue(tempValue);
+    //   setPage(1);
+    //   closeDialog();
+    // };
 
-// const handlePriceChange = () => {
-//   setPrice(event.target.value);
-// };
+    const [miniprice, setMiniPrice] = useState("");
+  const [openNoModal, setOpenNoModal] = useState(false);
+
 
 const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value.replace(/,/g, ""); // Remove existing commas
+    const value = event.target.value.replace(/,/g, "");
     if (!isNaN(Number(value)) && value !== "") {
         const formattedValue = new Intl.NumberFormat().format(Number(value));
-        setPrice(formattedValue);
+        setMiniPrice(formattedValue);
     } else {
-        setPrice("");
+        setMiniPrice("");
+    }
+};
+
+
+    const [maxprice, setMaxPrice] = useState("");
+ 
+
+
+const handleMaxPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value.replace(/,/g, "");
+    if (!isNaN(Number(value)) && value !== "") {
+        const formattedValue = new Intl.NumberFormat().format(Number(value));
+        setMaxPrice(formattedValue);
+    } else {
+        setMaxPrice("");
     }
 };
 
@@ -542,19 +472,24 @@ const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 // };
 
 const handleSubmitOffer = () => {
-  const numericPrice = parseInt(price.replace(/,/g, ""), 10); // Remove commas before parsing
+  const numericMinPrice = parseInt(miniprice.replace(/,/g, ""), 10) || 0;
+  const numericMaxPrice = parseInt(maxprice.replace(/,/g, ""), 10) || 0;
 
-  if (numericPrice < 10000) {
-    setOpenNoModal(true);
+  if (numericMinPrice < 6000 || numericMaxPrice < 6000) {
+    setOpenNoModal(true); // Show modal if either price is below 6000
   } else {
-    navigate("/offer-accepted-page");
+    navigate("/offer-accepted-page"); // Navigate if both are 6000 or above
   }
 };
+
+
 
 
 const handleCloseNoModal = () => {
   setOpenNoModal(false);
 };
+
+ const value = 4.5;
 
   return (
     <div>
@@ -567,11 +502,11 @@ const handleCloseNoModal = () => {
     <Divider />
 
     <div className='w-[90%] m-auto '>
-        <div className="flex justify-between mt-[50px] mb-[25px]">
+        <div className="flex justify-between mt-[40px] mb-[25px]">
         <div>
         <p>80 Results</p>
         </div>
-         <div className=''>
+         {/* <div className=''>
                 <Box sx={{display:"flex", gap:"15px"}}>
                       <TextField
                         id="filter-input"
@@ -827,7 +762,7 @@ const handleCloseNoModal = () => {
         
                         
                     </Box>
-        </div>
+        </div> */}
         </div>
     </div>
 
@@ -837,93 +772,96 @@ const handleCloseNoModal = () => {
 <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 ">
 
     
-    {paginatedItems.length > 0 ? (
-    paginatedItems.map((car) => (
-    <Card key={car.id} className="p-[10px] w-[100%] cursor-pointer" >
-        <div className="flex flex-col sm:flex-row gap-[10px]">
-        <div className="sm:w-[50%] w-full sm:h-[305px] h-[100%] bg-[#F5F5F5] rounded-[12px]">
-        <CardMedia
-            component="img"
-            // height="140"
-            image={car.image}
-            alt={car.carName} 
-            />
-            
-        </div>
-        <div className="w-[100%]">
-
-            <div className="flex justify-between">
-            <Typography gutterBottom variant="h6" component="div">
-                {car.carName} 
-            </Typography>
-
-                <div>
-                    <img src={car.carLogo} alt="" className="w-[50px] h-[20px]"  />
-                </div>
-        </div>
-
-        <div>
-            <div className="flex justify-between">
-                <p className="mb-[2px]">{car.carDescription}</p>
-                <p className="mb-[2px]">{car.type}</p>
+          {paginatedItems.length > 0 ? (
+            paginatedItems.map((car) => (
+            <Card key={car.id} className="p-[20px] w-[100%] cursor-pointer" >
+        {/* <div className="flex flex-col sm:flex-row gap-[10px]"> */}
+        <div className="flex justify-between gap-[8px] ">
+          <div className="flex gap-[8px] ">
+          <img src={circle} alt="" />
+          <div >
+            <div className="flex gap-[2px]">
+            <p className="mt-[10px] text-[#181818] text-[16px]">Elvis</p>
+              <Stack direction="row" sx={{marginTop:"10px"}}>
+              <Rating
+                value={1} 
+                max={1} 
+                readOnly
+              />
+              <Typography variant="body1">{value}</Typography>
+            </Stack>
+          </div >
+             <div className="mt-[8px]">
+              <p className="text-[#67696D] text-[16px] ">Red Toyota Corolla</p>
             </div>
-           
 
-            <div className="flex gap-[3px] mb-[2px]"> 
+          </div>
+             
+          </div>
+
+          
+
+        <div className="w-[76px] h-[76px]">
+            <img src={car.image} alt="" />
+        </div>
+
+        </div>
+             <div className="flex gap-[3px] mb-[10px] mt-[10px]"> 
             <p>{car.seatLeft} {car.spaceleft}</p>
             <CircleIcon  sx={{width:"4px", height:"4px", marginTop:"10px" ,marginLeft:"2px"}}/>
-            <div>{car.fuelIcon} {car.fuel}: {car.full}</div>
-            <CircleIcon  sx={{width:"4px", height:"4px", marginTop:"10px" ,marginLeft:"2px"}}/>
-            </div>
+            <div>{car.fuelIcon} {car.full}</div>
+          </div>
 
-            <div>
-                <div className="mb-[2px]">{car.speed} {car.mileage}</div>
-                <div className="mb-[2px]">
-                    <p className="mb-[2px]">{car.pickUp}</p>
-                    <p className="mb-[2px]">{car.dropOff}</p>
+
+              <div>
+
+                  <div className="flex gap-[2px]  mb-[10px]">
+                    <div className='border-[#2D9C5E] h-[20px]  w-[20px] border-2  rounded-full flex justify-center'>
+                        <CheckIcon sx={{width:"15px", position:"relative", top:"-3px", color:"#2D9C5E"}} />
+                    </div>
+                    <p className="text-[#2D9C5E]">{car.noShows}</p>
                 </div>
-                <div className="flex gap-[2px] mb-[3px]">
+
+                 <div className="flex gap-[2px]">
                     <div className='border-[#2D9C5E] h-[20px]  w-[20px] border-2  rounded-full flex justify-center'>
                         <CheckIcon sx={{width:"15px", position:"relative", top:"-3px", color:"#2D9C5E"}} />
                     </div>
                     <p className="text-[#2D9C5E]">{car.refundable}</p>
                 </div>
 
-                <div className="flex gap-[2px] mb-[3px]">
-                    <div className='border-[#2D9C5E] h-[20px]  w-[20px] border-2  rounded-full flex justify-center'>
-                        <CheckIcon sx={{width:"15px", position:"relative", top:"-3px", color:"#2D9C5E"}} />
-                    </div>
-                    <p className="text-[#2D9C5E]">{car.noShows}</p>
-                </div>
+                
             </div>
-        <div className="flex justify-between mt-[14px]">
+        <div className="flex justify-between mt-[12px]">
             <div>
                 <p>{car.perDay}</p>
                 <p>{car.price}</p>
-            </div>  
+            </div> 
+           
 
-            <CardActions onClick={() => handleOpen(car)} className="bg-[#023E8A] text-white rounded-[8px] w-[133px] h-[42px] text-[14px] cursor-pointer">
-            <button className=" cursor-pointer" >
+             <div
+             onClick={handleOpen} 
+             className="bg-[#023E8A] text-white text-center pt-[10px] rounded-[8px] w-[93px] h-[42px] text-[14px] cursor-pointer">
+            <button className=" cursor-pointer  align-middle" >
                 {car.button}
             </button>
-            </CardActions>
-        </div>
-        </div>
-        </div>
-        </div>
-    </Card>
-        ))
-    ) : (
-                <div className="flex items-center justify-center h-64">
-                    <p className="text-gray-500 font-bold text-lg">Not Available</p>
-                </div>
-     )}
+            </div>
+            </div> 
+          </Card>
+          ))
 
-    </div> 
+          
+        ) : (
+
+              <div className="flex items-center justify-center h-64">
+            <p className="text-gray-500 font-bold text-lg">Not Available</p>
+        </div>
+          )}
+
+   
 
       <Stack spacing={2} className='mt-20 pb-[80px]'>
         <Pagination 
-        count={Math.ceil(applyFilters.length / ITEMS_PER_PAGE)} 
+        count={Math.ceil(ITEMS_PER_PAGE)} 
         shape='rounded' 
         page={page} 
         onChange={handleChange}
@@ -939,7 +877,7 @@ const handleCloseNoModal = () => {
                     },
                     "& .MuiPaper-root": {
                         width: "693px",
-                        height: "500px",
+                        height: "451px",
                         borderRadius: "10px",
                         display: "flex",
                         flexDirection: "column",
@@ -962,7 +900,7 @@ const handleCloseNoModal = () => {
              <div className="absolute z-40 top-0 left-0 right-0 bg-white border-b border-gray-300 rounded-t-[10px] pl-6 pr-4 pb-3 pt-4">
                 <div className="flex items-center justify-center relative">
                    
-                    <p className="text-[20px] font-inter font-medium ">Name Your Price</p>
+                    <p className="text-[20px] font-inter font-medium ">Price Range</p>
               
                  
                    <IconButton 
@@ -978,16 +916,14 @@ const handleCloseNoModal = () => {
                 <div className="mt-[75px] ">
 
                     <div>
-                        <p className="text-[#181818] text-[20px] font-semibold font-inter">{selectedCar?.carName}</p>
-                        <p className="text-[#67696D] text-[18px] font-inter font-normal">{selectedCar?.carDescription}</p>
 
-                        <p className="mt-[24px] text-[#181818] font-medium text-[16px] font-inter">Your Offer ({selectedCar?.perDay})</p>
-                    <TextField
+                    <p className="mt-[24px] text-[#181818] font-medium text-[16px] font-inter">Minimum Price</p>
+                      <TextField
                         id="carOffer"
                         variant="outlined"
                         type="text"
                         size="small"
-                        placeholder="Enter your price"value={price}
+                        placeholder="Enter your price"value={miniprice}
                         onChange={handlePriceChange} 
                         sx={{
                             width: "100%",
@@ -1004,19 +940,30 @@ const handleCloseNoModal = () => {
                         }}
                         />
 
+                            <p className=" text-[#181818] font-medium text-[16px] font-inter">Maximum Price</p>
+                            <TextField
+                                id="carOffer"
+                                variant="outlined"
+                                type="text"
+                                size="small"
+                                placeholder="Enter your price"value={maxprice}
+                                onChange={handleMaxPriceChange} 
+                                sx={{
+                                    width: "100%",
+                                    marginTop: "10px",
+                                    marginBottom: "24px",
+                                    "& .MuiInputBase-root": {
+                                    height: "44px",
+                                    borderRadius: "8px",
+                                    },
+                                    "& .MuiInputBase-input::placeholder": {
+                                    fontSize: "14px",
+                                    
+                                    },
+                                }}
+                                />
 
-                    </div>
 
-                    <div className='w-full border-1  border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] mb-[16px] '>
-                    <div className="w-[95%] m-auto flex ">
-                       <div style={{paddingTop:"18px", color:"#023E8A"}}><ErrorOutlineIcon  /></div> 
-
-                        <div className='items-center p-2'>
-                            <p className=" text-[#181818] font-medium text-[18px] font-inter">Price Per Day: ₦10,000</p>
-                            <p className='text-[18px] text-[#67696D] font-normal font-inter '>Higher offer have better chances of acceptance</p>
-    
-                        </div>
-                        </div>
                     </div>
 
                 </div>
@@ -1029,37 +976,38 @@ const handleCloseNoModal = () => {
                     "& .MuiPaper-root": {  // Targets the modal's white background
                         borderRadius: "12px",
                         width: "364px",  // Ensures the width remains as expected
-                        height: "307px",
+                        height: "355px",
                     }
                 }}
             >
                 <div style={{ textAlign: "center", fontSize: "24px", fontWeight: "bold", height:"100%" }}>
                     <div className="w-[80%] m-auto">
-                        <div className="flex justify-center mt-[40px]">
-                            <img src={offerNot} alt="" />
-                            <IconButton 
+                        <div className="flex justify-center mt-[30px]">
+                          <IconButton 
                               sx={{position:"absolute",  right:"0px", top:"-5px"}}
                           >
                               <CloseOutlinedIcon  onClick={handleCloseNoModal}  className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
                           </IconButton>
+                            <img src={offerNot} alt="" />
+                            
                         </div>
-                        <p className="text-[#181818] font-medium text-[24px] font-inter mt-[24px]">
-                            Offer Not Accepted
+                        <p className="text-[#181818] font-medium text-[24px] font-inter mt-[20px] text-center">
+                            No Cars Available in Your Price Range
                         </p>
-                        <p className="text-[#67696D] font-normal text-[16px] mt-[16px]">
-                            Your offer is too low. Try increasing your offer for a better chance of acceptance.
+                        <p className="text-[#67696D] font-normal text-[16px] mt-[16px] mb-[25px] text-center">
+                            Please increase your minimum price or adjust your maximum price to see available options.
                         </p>
                     </div>
                 </div>
-            </Dialog>
+                </Dialog>
 
                 
                 <div className="absolute bottom-0 border-t border-[grey] left-0 right-0 bg-white p-4 rounded-b-[10px]">
                 <button onClick={handleSubmitOffer} 
 
-                     disabled={!price.trim()}
-                    className={`w-full h-[52px] rounded-[6px] bg-[#023E8A] text-white cursor-pointer ${
-                        price.trim() ? "bg-[#023E8A]" : "bg-gray-400 cursor-not-allowed"
+                    disabled={!miniprice.trim() || !maxprice.trim()}
+                    className={`w-full h-[52px] rounded-[6px] text-white cursor-pointer ${
+                      miniprice.trim() && maxprice.trim() ? "bg-[#023E8A]" : "bg-[#023E8A] cursor-not-allowed opacity-50"
                     }`}>
                     Submit Offer
                 </button>
@@ -1068,6 +1016,7 @@ const handleCloseNoModal = () => {
         </Dialog>
     </div>
     </div>
+     </div> 
   )
 }
 

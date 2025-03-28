@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { IoChevronBack } from "react-icons/io5"; // Changed from IoClose to IoChevronBack
+import { IoChevronBack } from "react-icons/io5";
 import Logo from "/src/assets/Logo.svg";
 
 export default function AuthNavbar() {
@@ -15,7 +15,7 @@ export default function AuthNavbar() {
       </button>
 
       <img src={Logo} alt="Travel Mate Logo" className="h-20" />
-      <div className="w-8"></div> {/* Placeholder to balance layout */}
+      <div className="w-8"></div>
     </nav>
   );
 }

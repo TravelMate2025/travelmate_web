@@ -1,4 +1,5 @@
 
+
 import { Routes, Route } from "react-router-dom";
 import './App.css'    
 import CreateAccount from "./pages/CreateAccount";
@@ -24,9 +25,15 @@ import FlightConfirmPageMultiWay from "./pages/muti-flight-container/flightConfi
 import ProfileInfo from "./pages/ProfileInfo";
 import Profile from "./pages/Profile";
 
+
 import DisplayCars from "./pages/carsTab/displayAllCars/DisplayCars";
 import Page from "./pages/carsTab/offerAcceptedPage/Page";
 import StaysDetail from "./pages/StaysDetail";
+
+
+import CarPaidForPage from "./pages/carsTab/carPaidFor/CarPaidForPage";
+import Page from "./pages/carsTab/carsFirstScreen/Page";
+import DisplayCars from "./pages/carsTab/displayAllCars/DisplayCars";
 
 
 
@@ -46,11 +53,14 @@ function App() {
         <Route path="/stays-search-result" element={<StaysSearchResults />} />
 
 
+
         {/* round-trip-section */}
 
 
 
         <Route path="/stays-detail" element={<StaysDetail />} /> 
+
+
         <Route path="/departure-flight" element={<DeparturePage departureInfo={[]} />} />
         <Route path="/return-flight" element={<ReturnPage departureInfo={[]} />} />
         <Route path="/flightInfo-review" element={<FlightInfoPage />} />
@@ -74,7 +84,10 @@ function App() {
 
         <Route path="/display-cars" element={<DisplayCars />} />
         <Route path="/offer-accepted-page" element={<Page />} />
+        <Route path="/car-confirmation" element={<Page />} />
 
+        <Route path="/car-payment-successful" element={<CarPaidForPage />} />
+        
 
 
       </Routes>

@@ -1,3 +1,7 @@
+
+
+
+
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Radio from "@mui/material/Radio";
@@ -24,9 +28,7 @@ import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import { Divider, IconButton } from "@mui/material";
 import RemoveOutlinedIcon from '@mui/icons-material/RemoveOutlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
-// import CalendarMonthOutlined from "@mui/icons-material/CalendarMonthOutlined";
-// import LocationOn from "@mui/icons-material/LocationOn";
-// import { Link } from "react-router-dom";
+// import { useMediaQuery } from "react-responsive";
 
 interface DateRangeType {
   startDate: Date;
@@ -53,6 +55,9 @@ type FlightField = keyof Omit<Flight, "id">;
 
 
 const RoundTrip: React.FC = () => {
+//  const isMobile = useMediaQuery({ maxWidth: 768 });
+
+
    const [selectedValue, setSelectedValue] = useState<string>(() => {
     return localStorage.getItem("tripType") || "round-trip";
   });
