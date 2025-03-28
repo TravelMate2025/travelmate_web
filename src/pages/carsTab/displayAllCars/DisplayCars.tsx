@@ -1,10 +1,11 @@
 
-import React, { ChangeEvent, useState } from "react";
-import { Box, TextField, InputAdornment, Popper, ClickAwayListener, Paper, Typography, Divider, MenuItem, Select } from '@mui/material';
+
+import React, { ChangeEvent, useEffect, useState } from "react";
+import { Box, TextField, InputAdornment, Popper, ClickAwayListener, Paper, Typography, Divider, MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import { DateRange, RangeKeyDict } from 'react-date-range';
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
-import { addDays } from "date-fns";
+import { addDays, format } from "date-fns";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
@@ -23,7 +24,7 @@ interface DateRangeType {
 }
 
 const DisplayCars = () => {
-          const [dateRange, setDateRange] = useState<DateRangeType[]>([
+        const [dateRange, setDateRange] = useState<DateRangeType[]>([
             {
               startDate: new Date(),
               endDate: addDays(new Date(), 7),
@@ -45,9 +46,7 @@ const DisplayCars = () => {
             const [FromClick, setFromClick] = useState<HTMLElement | null>(null);
             const [ToClick, setToClick] = useState<HTMLElement | null>(null);
     
-            
-                const [, setSelectedFrom] = useState("");
-                const [, setSelectedTo] = useState("");
+        
                 const [openFrom, setOpenFrom] = useState(false);
                 const [openTo, setOpenTo] = useState(false);
                     
@@ -68,12 +67,12 @@ const DisplayCars = () => {
         
         
               const handleFromOptionClick = (option: string) => {
-                setSelectedFrom(option);
+                setFrom(option);
                 setOpenFrom(false); 
               };
         
               const handleToOptionClick = (option: string) => {
-                setSelectedTo(option);
+                setTo(option);;
                 setOpenTo(false); 
               };
         
@@ -91,28 +90,69 @@ const DisplayCars = () => {
         const handleRemoveOption = (locationToRemove: string) => {
           setLocations(locations.filter(location => location !== locationToRemove));
         };
-        
-        //   const [selectedDate, setSelectedDate] = useState<string>("");
-        
-        // const handleSelectDate = () => {
-        //   const formattedDate = selectedValue === "one-way"
-        //     ? format(dateRange[0].startDate, "dd MMM yyyy")
-        //     : `${format(dateRange[0].startDate, "dd MMM yyyy")} - ${format(dateRange[0].endDate, "dd MMM yyyy")}`;
-        
-        //   setSelectedDate(formattedDate);
-        //   handleClose(); 
-        // };
 
-        const location = useLocation();
-        const { from, to, departureDate, timePeriod, times: stateTimes } = location.state || {};
 
-        const [times, setTimes] = useState({
-            pickUpTime: stateTimes?.pickUpTime || "",
-            dropOffTime: stateTimes?.dropOffTime || "",
-        });
 
-        const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setTimes((prevTimes) => ({ ...prevTimes, [event.target.name]: event.target.value }));
+const location = useLocation();
+const state = location.state || {};
+const { 
+    from: stateFrom, 
+    to: stateTo, 
+    departureDate: stateDepartureDate, 
+    times: stateTimes = {} 
+} = state;
+
+const [from, setFrom] = useState(stateFrom || "");
+const [to, setTo] = useState(stateTo || "");
+const [departureDate, setDepartureDate] = useState(stateDepartureDate || "");
+
+
+const handleSelectDate = () => {
+  if (!dateRange || !dateRange[0]) return; 
+
+  const formattedDate =
+    dateRange[0].startDate === dateRange[0].endDate
+      ? format(dateRange[0].startDate, "dd MMM yyyy")
+      : `${format(dateRange[0].startDate, "dd MMM yyyy")} - ${format(dateRange[0].endDate, "dd MMM yyyy")}`;
+
+  setDepartureDate(formattedDate); 
+  handleClose();
+};
+
+
+const [times, setTimes] = useState({
+    pickUpTime: stateTimes?.pickUpTime || "",
+    dropOffTime: stateTimes?.dropOffTime || "",
+});
+
+const [timePeriod, setTimePeriod] = useState(state?.timePeriod || "AM");
+const [timePeriodPM, setTimePeriodPM] = useState(state?.timePeriodPM || "PM");
+
+
+const handleTimePeriodChange = (event: SelectChangeEvent<string>) => {
+    setTimePeriod(event.target.value);
+};
+
+const handleTimePeriodChangePM = (event: SelectChangeEvent<string>) => {
+    setTimePeriodPM(event.target.value);
+};
+
+useEffect(() => {
+    setFrom(stateFrom || "");
+    setTo(stateTo || "");
+    setDepartureDate(stateDepartureDate || "");
+    setTimes({
+        pickUpTime: stateTimes?.pickUpTime || "",
+        dropOffTime: stateTimes?.dropOffTime || "",
+    });
+}, [location.state, stateDepartureDate, stateFrom, stateTimes?.dropOffTime, stateTimes?.pickUpTime, stateTo]);
+
+
+const handleFromChange = (e: ChangeEvent<HTMLInputElement>) => setFrom(e.target.value);
+const handleToChange = (e: ChangeEvent<HTMLInputElement>) => setTo(e.target.value);
+
+const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setTimes((prevTimes) => ({ ...prevTimes, [event.target.name]: event.target.value }));
 };
         
   return (
@@ -134,7 +174,7 @@ const DisplayCars = () => {
                     size="small"
                     placeholder="Search Destination"
                     value={from}
-                    onChange={(e) => setSelectedFrom(e.target.value)}
+                    onChange={handleFromChange}
                     onClick={handleFromClick}
                     InputProps={{
                     startAdornment: (
@@ -209,7 +249,7 @@ const DisplayCars = () => {
                     size="small"
                     //  onClick={}
                     value={to}
-                    onChange={(e) => setSelectedTo(e.target.value)}
+                    onChange={handleToChange}
                     onClick={handleToClick}
                     placeholder="Search Destination"
                     InputProps={{
@@ -287,7 +327,7 @@ const DisplayCars = () => {
                         size="small"
                         placeholder="Select Date"
                         value={departureDate} 
-                        onClick={handleClick} 
+                        onClick={handleClick}
                         InputProps={{
                         startAdornment: (
                             <InputAdornment position="start">
@@ -311,11 +351,9 @@ const DisplayCars = () => {
                             elevation={3}
                             sx={{
                             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                            // width: "867px", // Ensures full width
-                            // height: "555px", // Ensures full height
-                            overflow: "hidden", // Prevents content overflow
+                            overflow: "hidden",
                             display: "flex",
-                            justifyContent: "center", // Centers content
+                            justifyContent: "center",
                             alignItems: "center",
                             paddingBottom:"20px",
                             }}
@@ -336,10 +374,10 @@ const DisplayCars = () => {
                                 moveRangeOnFirstSelection={false}
                                 ranges={dateRange}
                                 rangeColors={["#FF6F1E"]}
-                                months={2} // Show 2 calendars side by side
-                                direction="horizontal" // Arrange them in a row
-                                showDateDisplay={false} // Optional: Hide input fields
-                                className="w-full h-full" // Tailwind (if used)
+                                months={2} 
+                                direction="horizontal" 
+                                showDateDisplay={false} 
+                                className="w-full h-full"
                             />
         
                             <div className="w-[96%] m-auto">
@@ -350,16 +388,13 @@ const DisplayCars = () => {
         
                                     color: "white",
                                     marginTop: 2,
-                                    // "&:hover": { backgroundColor: "#012A5A" },
                                     }}
-                                    // onClick={handleSelectDate}
+                                    onClick={handleSelectDate}
                                 >
                                     Select Date
                                 </button>
                             </div>
                             </div>
-        
-                    
         
                         </Paper>
                         </ClickAwayListener>
@@ -391,7 +426,7 @@ const DisplayCars = () => {
                 <Select
                 labelId="time-period-label"
                 value={timePeriod}
-                // onChange={handleChange}
+                onChange={handleTimePeriodChange}
                 displayEmpty
                 className="md:w-[6vw] lg:w-[6vw] w-full md:mt-[28px] lg:mt-[28px] mt-[7px]"
                 sx={{
@@ -411,9 +446,7 @@ const DisplayCars = () => {
                 }}
 
                 >
-                <MenuItem value="" disabled sx={{color:"grey"}}>
-                    AM
-                </MenuItem>
+              
                 <MenuItem value="AM">AM</MenuItem>
                 <MenuItem value="PM">PM</MenuItem>
                 </Select>
@@ -427,7 +460,7 @@ const DisplayCars = () => {
                     variant="outlined"
                     size="small"
                     value={times.dropOffTime}
-                    // onChange={handleTimeChange}
+                    onChange={handleTimeChange}
                     placeholder="00 : 00"
                     className="md:w-[27.7vw] lg:w-[27.7vw] w-full"
                     sx={{
@@ -439,8 +472,8 @@ const DisplayCars = () => {
 
             <Select
                 labelId="time-period-label"
-                value={timePeriod}
-                // onChange={handleChange}
+                value={timePeriodPM}
+                onChange={handleTimePeriodChangePM}
                 displayEmpty
                 className="md:w-[6vw] lg:w-[6vw] w-full md:mt-[28px] lg:mt-[28px] mt-[7px]"
 
@@ -461,9 +494,6 @@ const DisplayCars = () => {
                 }}
 
                 >
-                <MenuItem value="" disabled sx={{color:"grey"}}>
-                    PM
-                </MenuItem>
                 <MenuItem value="AM">PM</MenuItem>
                 <MenuItem value="PM">AM</MenuItem>
                 </Select>

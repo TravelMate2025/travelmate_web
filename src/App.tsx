@@ -1,4 +1,5 @@
 
+
 import { Routes, Route } from "react-router-dom";
 import './App.css'    
 import CreateAccount from "./pages/CreateAccount";
@@ -25,6 +26,7 @@ import ProfileInfo from "./pages/ProfileInfo";
 import Profile from "./pages/Profile";
 import DisplayCars from "./pages/carsTab/displayAllCars/DisplayCars";
 import Page from "./pages/carsTab/offerAcceptedPage/Page";
+import CarPaidForPage from "./pages/carsTab/carPaidFor/CarPaidForPage";
 
 
 function App() {
@@ -68,7 +70,10 @@ function App() {
 
         <Route path="/display-cars" element={<DisplayCars />} />
         <Route path="/offer-accepted-page" element={<Page />} />
+        <Route path="/car-confirmation" element={<Page />} />
 
+        <Route path="/car-payment-successful" element={<CarPaidForPage />} />
+        
 
 
       </Routes>
