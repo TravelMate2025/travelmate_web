@@ -1,5 +1,5 @@
 import Navbar from '../../homePage/Navbar'
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -20,11 +20,10 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
-import { Divider, IconButton, MenuItem, Select } from "@mui/material";
+import { Divider, IconButton, MenuItem, Select, Slider } from "@mui/material";
 import RemoveOutlinedIcon from '@mui/icons-material/RemoveOutlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { Link } from "react-router-dom";
-import KeyboardArrowRightOutlinedIcon from "@mui/icons-material/KeyboardArrowRightOutlined";
 import TravelmateApp from '../../homePage/TravelmateApp';
 import Footer from '../../homePage/Footer';
 import airlogo from "../../../assets/airlogo.svg"
@@ -34,13 +33,14 @@ import { Stack, Pagination, Dialog, DialogContent } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import TuneIcon from '@mui/icons-material/Tune';
 import SortIcon from '@mui/icons-material/Sort';
-import line2 from "../../../assets/line2.svg";
 import FormGroup from '@mui/material/FormGroup';
 import Checkbox from '@mui/material/Checkbox';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LuggageOutlinedIcon from '@mui/icons-material/LuggageOutlined';
 import AirlineSeatReclineExtraOutlinedIcon from '@mui/icons-material/AirlineSeatReclineExtraOutlined';
+import { SelectChangeEvent } from "@mui/material";
+import Breadcrumb from '../../BreadCrumb';
 
 interface DateRangeType {
   startDate: Date;
@@ -56,7 +56,7 @@ interface Departure {
   class: string;
   timefrom: string;
   placefrom: string;
-  timelong: string;
+  duration: string;
   non: string;
   flightcode: string;
   timeto: string;
@@ -114,12 +114,6 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
     const [flightClasses, setFlightClasses] = useState(false);
     const anchorRef = useRef(null);
 
-    useEffect(() => {
-        if (initialFlight) {
-        setSelectedClass(initialFlight);
-        }
-    }, [initialFlight]);
-    
 
     const [openFrom, setOpenFrom] = useState(false);
     const [FromClick, setFromClick] = useState<HTMLElement | null>(null);
@@ -197,127 +191,124 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
         };
 
 
-        const departureInfo = [
-            {
-                id: 1,
-                image: airlogo,
-                planeName: "Air Peace",
-                spaceleft: "3 Left",
-                class: "Economy",
-                timefrom: "2:00pm",
-                timeto: "4:00pm",
-                timelong:"2hrs",
-                non:"Non Stop",
-                placefrom:"Lagos (LOS)",
-                placeto:"Abuja (ABV)",
-                refundable:"Non Refundable",
-                flightcode:"W3-720",
-                price:"₦50,000 /",
-                passenger:"Passenger",
-                tax:"Includes taxes & Fees",
-                line: Line
-
-            },
-
-            {
-                id: 2,
-                image: airlogo,
-                planeName: "Arik Air",
-                spaceleft: "3 Left",
-                class: "Economy",
-                timefrom: "2:00pm",
-                timeto: "4:00pm",
-                timelong:"2hrs",
-                non:"1 Stop",
-                placefrom:"Lagos (LOS)",
-                placeto:"Abuja (ABV)",
-                refundable:"Non Refundable",
-                flightcode:"W3-720",
-                price:"₦700,000 /",
-                passenger:"Passenger",
-                tax:"Includes taxes & Fees",
-                line: Line
-
-            },
-
-            {
-                id: 3,
-                image: airlogo,
-                planeName: "Value Jet",
-                spaceleft: "3 Left",
-                class: "Economy",
-                timefrom: "2:00pm",
-                timeto: "4:00pm",
-                timelong:"2hrs",
-                non:"1+ Stop",
-                placefrom:"Lagos (LOS)",
-                placeto:"Abuja (ABV)",
-                refundable:"Non Refundable",
-                flightcode:"W3-720",
-                price:"₦500,000 /",
-                passenger:"Passenger",
-                tax:"Includes taxes & Fees",
-                line: Line
-
-            },
-
-            {
-                id: 4,
-                image: airlogo,
-                planeName: "United Nigeria",
-                spaceleft: "3 Left",
-                class: "Economy",
-                timefrom: "2:00pm",
-                timeto: "4:00pm",
-                timelong:"2hrs",
-                non:"1 Stop",
-                placefrom:"Lagos (LOS)",
-                placeto:"Abuja (ABV)",
-                refundable:"Non Refundable",
-                flightcode:"W3-720",
-                price:"₦1,000,000 /",
-                passenger:"Passenger",
-                tax:"Includes taxes & Fees",
-                line: Line
-
-            },
-
-            {
-                id: 5,
-                image: airlogo,
-                planeName: "Aero",
-                spaceleft: "3 Left",
-                class: "Economy",
-                timefrom: "2:00pm",
-                timeto: "4:00pm",
-                timelong:"2hrs",
-                non:"Non Stop",
-                placefrom:"Lagos (LOS)",
-                placeto:"Abuja (ABV)",
-                refundable:"Refundable",
-                flightcode:"W3-720",
-                price:"₦50,000 /",
-                passenger:"Passenger",
-                tax:"Includes taxes & Fees",
-                line: Line
-
-            }
-        ]
+      const departureInfo = useMemo(() => [
+        {
+          id: 1,
+          image: airlogo,
+          planeName: "Air Peace",
+          spaceleft: "3 Left",
+          class: "Economy",
+          timefrom: "2:00pm",
+          timeto: "4:00pm",
+          duration: "2hrs",
+          non: "Non Stop",
+          placefrom: "Lagos (LOS)",
+          placeto: "Abuja (ABV)",
+          refundable: "Non-Refundable",
+          flightcode: "W3-720",
+          price: "₦50,000 /",
+          passenger: "Passenger",
+          tax: "Includes taxes & Fees",
+          line: Line,
+        },
+        {
+          id: 2,
+          image: airlogo,
+          planeName: "Arik Air",
+          spaceleft: "3 Left",
+          class: "Economy",
+          timefrom: "2:00pm",
+          timeto: "4:00pm",
+          duration: "7hrs",
+          non: "1 Stop",
+          placefrom: "Lagos (LOS)",
+          placeto: "Abuja (ABV)",
+          refundable: "Non-Refundable",
+          flightcode: "W3-720",
+          price: "₦700,000 /",
+          passenger: "Passenger",
+          tax: "Includes taxes & Fees",
+          line: Line,
+        },
+        {
+          id: 3,
+          image: airlogo,
+          planeName: "Value Jet",
+          spaceleft: "3 Left",
+          class: "Economy",
+          timefrom: "2:00pm",
+          timeto: "4:00pm",
+          duration: "10hrs",
+          non: "1+ Stop",
+          placefrom: "Lagos (LOS)",
+          placeto: "Abuja (ABV)",
+          refundable: "Non-Refundable",
+          flightcode: "W3-720",
+          price: "₦500,000 /",
+          passenger: "Passenger",
+          tax: "Includes taxes & Fees",
+          line: Line,
+        },
+        {
+          id: 4,
+          image: airlogo,
+          planeName: "United Nigeria",
+          spaceleft: "3 Left",
+          class: "Economy",
+          timefrom: "2:00pm",
+          timeto: "4:00pm",
+          duration: "20hrs",
+          non: "1 Stop",
+          placefrom: "Lagos (LOS)",
+          placeto: "Abuja (ABV)",
+          refundable: "Non-Refundable",
+          flightcode: "W3-720",
+          price: "₦1,000,000 /",
+          passenger: "Passenger",
+          tax: "Includes taxes & Fees",
+          line: Line,
+        },
+        {
+          id: 5,
+          image: airlogo,
+          planeName: "Aero",
+          spaceleft: "3 Left",
+          class: "Economy",
+          timefrom: "2:00pm",
+          timeto: "4:00pm",
+          duration: "24hrs",
+          non: "Non Stop",
+          placefrom: "Lagos (LOS)",
+          placeto: "Abuja (ABV)",
+          refundable: "Refundable",
+          flightcode: "W3-720",
+          price: "₦50,000 /",
+          passenger: "Passenger",
+          tax: "Includes taxes & Fees",
+          line: Line,
+        },
+      ], []);
 
 
  const [page, setPage] = useState<number>(1);
-  const [selectedDeparture, setSelectedDeparture] = useState<Departure | null>(null);
   const [openClick, setOpenClick] = useState<boolean>(false);
+const [selectedDepartureId, setSelectedDepartureId] = useState<number | null>(null);
 
-  const handleOpen = (depart: Departure) => {
-    setSelectedDeparture(depart);
-    setOpenClick(true);
-  };
+
+
+const handleOpen = (depart: Departure) => {
+  
+  setSelectedDepartureId(depart.id);
+  setOpenClick(true);
+};
+
 
   const handleCloseClick = () => {
-    setOpenClick(false);
-    setSelectedDeparture(null);
-  };
+  setOpenClick(false);
+  setSelectedDepartureId(null);
+};
+
+const selectedDeparture = departureInfo.find((d) => d.id === selectedDepartureId);
 
 
  const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -335,82 +326,146 @@ const [activeButton, setActiveButton] = useState<number | null>(null);
     setActiveButton(buttonIndex);
 };
 
-const [minPrice, setMinPrice] = useState("");
-const [maxPrice, setMaxPrice] = useState("");
+
+
+const ITEMS_PER_PAGE = 4;
+
 const [stops, setStops] = useState<string | null>(null);
 const [refundPolicy, setRefundPolicy] = useState<string | null>(null);
 const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
 
-const ITEMS_PER_PAGE = 4;
-
-const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value);
-};
-
 const airlinesList = ["Aero", "Arik Air", "Value Jet", "Air Peace", "United Nigeria"];
-const [selected, setSelected] = useState<{ [key: string]: boolean }>(
-  airlinesList.reduce((acc, airline) => ({ ...acc, [airline]: false }), { all: false })
-);
+
+  const [value, setValue] = React.useState<number[]>([2000, 10000000]);
+  const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
 
 
-const handleMinPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => 
-    setMinPrice(event.target.value);
+const [tempStops, setTempStops] = useState<string | null>(null);
+const [tempRefundPolicy, setTempRefundPolicy] = useState<string | null>(null);
+const [tempSelectedAirlines, setTempSelectedAirlines] = useState<string[]>([]);
+const [tempValue, setTempValue] = useState<number[]>([2000, 10000000]);
 
-const handleMaxPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => 
-    setMaxPrice(event.target.value);
+const applyFilters = useMemo(() => {
+  return departureInfo.filter((item) => {
+    const price = parseInt(item.price.replace(/[^0-9]/g, ""), 10);
+    const matchesPrice = price >= value[0] && price <= value[1];
+    const stopMatch = !stops || item.non === stops;
+    const refundMatch = !refundPolicy || item.refundable === refundPolicy;
+    const airlineMatch = selectedAirlines.length === 0 || selectedAirlines.includes(item.planeName);
 
-const handleStopsChange = (stop: string) => setStops(stop);
+    return matchesPrice && stopMatch && refundMatch && airlineMatch;
+  });
+}, [departureInfo, stops, refundPolicy, selectedAirlines, value]);
 
-const handleRefundPolicyChange = (event: React.ChangeEvent<HTMLInputElement>) => 
-    setRefundPolicy(event.target.checked ? event.target.name : null);
 
-const handleSelectedChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = event.target;
-    
-    if (name === "all") {
-    setSelected(() => {
-        const newState: { [key: string]: boolean } = { all: checked }; // Explicit type
-        airlinesList.forEach((airline) => {
-            newState[airline] = checked;
-        });
-        return newState;
-    });
 
-    setSelectedAirlines(checked ? airlinesList : []);
-} else {
-    setSelected((prev) => ({
-        ...prev,
-        all: false,
-        [name]: checked,
-    }));
+ const handleMinPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = event.target.value.replace(/,/g, ""); 
+    const min = Number(rawValue);
+    if (!isNaN(min)) {
+        setValue([min, Math.max(min, value[1])]);
+    }
+};
 
-    setSelectedAirlines((prev) =>
-        checked ? [...prev, name] : prev.filter((airline) => airline !== name)
+const handleMaxPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = event.target.value.replace(/,/g, ""); 
+    const max = Number(rawValue);
+    if (!isNaN(max)) {
+        setValue([value[0], Math.max(value[0], max)]);
+    }
+};
+
+
+const [selectedSort, setSelectedSort] = useState("");
+
+const handleSortedChange = (event: SelectChangeEvent<string>) => {
+  setSelectedSort(event.target.value);
+  setPage(1);
+};
+
+
+    const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+        setPage(value);
+    };
+
+const handleTempStopsChange = (stop: string) => setTempStops(stop);
+const handleTempRefundPolicyChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+  setTempRefundPolicy(event.target.checked ? event.target.name : null);
+
+const handleTempSelectedChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, checked } = event.target;
+
+  if (name === "all") {
+ 
+    setTempSelectedAirlines(checked ? airlinesList : []);
+  } else {
+   
+    setTempSelectedAirlines((prev) =>
+      checked ? [...prev, name] : prev.filter((airline) => airline !== name)
     );
-}
-
-};
-const [filteredItems, setFilteredItems] = useState(departureInfo);
-
-const applyFilters = () => {
-    const filtered = departureInfo.filter((item) => {
-        const priceInRange = (!minPrice || item.price >= minPrice) && (!maxPrice || item.price <= maxPrice);
-        const stopMatch = !stops || item.non === stops;
-        const refundMatch = !refundPolicy || item.refundable === refundPolicy;
-        const airlineMatch = selectedAirlines.length === 0 || selectedAirlines.includes(item.planeName);
-
-        return priceInRange && stopMatch && refundMatch && airlineMatch;
-    });
-
-    setFilteredItems(filtered);
-    closeDialog();
+  }
 };
 
-const paginatedItems = useMemo(() => {
+const handleTempSliderChange = (_event: Event, newValue: number | number[]) => {
+  setTempValue(newValue as number[]);
+};
+
+
+  
+    const sortedDepartures = useMemo(() => {
+        const sortedArray = [...applyFilters];
+
+        switch (selectedSort) {
+            case "price_low":
+                sortedArray.sort((a, b) => 
+                    parseInt(a.price.replace(/[^0-9]/g, ""), 10) - 
+                    parseInt(b.price.replace(/[^0-9]/g, ""), 10)
+                );
+                break;
+            case "price_high":
+                sortedArray.sort((a, b) => 
+                    parseInt(b.price.replace(/[^0-9]/g, ""), 10) - 
+                    parseInt(a.price.replace(/[^0-9]/g, ""), 10)
+                );
+                break;
+            case "shortest_duration":
+                sortedArray.sort((a, b) => 
+                    parseInt(a.duration.replace(/[^0-9]/g, ""), 10) - 
+                    parseInt(b.duration.replace(/[^0-9]/g, ""), 10)
+                );
+                break;
+            case "longest_duration":
+                sortedArray.sort((a, b) => 
+                    parseInt(b.duration.replace(/[^0-9]/g, ""), 10) - 
+                    parseInt(a.duration.replace(/[^0-9]/g, ""), 10)
+                );
+                break;
+            default:
+                break;
+        }
+
+        return sortedArray;
+    }, [selectedSort, applyFilters]);
+
+
+  const paginatedItems = useMemo(() => {
     const startIndex = (page - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredItems.slice(startIndex, endIndex);
-}, [filteredItems, page]);
+    return sortedDepartures.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+}, [page, sortedDepartures]);
+
+
+
+const handleApplyFilters = () => {
+  setStops(tempStops);
+  setRefundPolicy(tempRefundPolicy);
+  setSelectedAirlines(tempSelectedAirlines);
+  setValue(tempValue);
+  
+  setPage(1);
+  closeDialog();
+};
+
+
 
 
   return (
@@ -420,10 +475,11 @@ const paginatedItems = useMemo(() => {
         <div className='flex justify-center pt-5 pb-6 mb-[18px] '>
 
         <div className='w-[90%] m-auto'>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2}}>
+        <div className="flex justify-between">
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: "15px"}}>
         
         <Box sx={{ display: "flex", flexDirection: "column" }}>
-          <label htmlFor="from" className="mb-1 text-[14px]">From</label>
+          <label htmlFor="from" className="text-[14px]"  style={{marginBottom:"10px"}}>From</label>
           <TextField
             id="from"
             variant="outlined"
@@ -499,7 +555,7 @@ const paginatedItems = useMemo(() => {
 
         
         <Box sx={{ display: "flex", flexDirection: "column" }}>
-          <label htmlFor="to" className="mb-1">To</label>
+          <label htmlFor="to" className="text-[14px]" style={{marginBottom:"10px"}}>To</label>
           <TextField
             id="to"
             variant="outlined"
@@ -577,7 +633,7 @@ const paginatedItems = useMemo(() => {
 
 
         <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <label htmlFor="departure-date" className="mb-1 text-[14px]">Date</label>
+              <label htmlFor="departure-date" className="text-[14px]" style={{marginBottom:"10px"}}>Date</label>
               <TextField
                 id="departure-date"
                 variant="outlined"
@@ -670,7 +726,7 @@ const paginatedItems = useMemo(() => {
 
         
         <Box sx={{ display: "flex", flexDirection: "column" }}>
-          <label htmlFor="passengers" className="mb-1 text-[14px]">Passengers</label>
+          <label htmlFor="passengers" className="text-[14px]" style={{marginBottom:"10px"}}>Passengers</label>
           <TextField
             id="passengers"
             variant="outlined"
@@ -796,7 +852,7 @@ const paginatedItems = useMemo(() => {
         </Box>
 
         <Box sx={{ display: "flex", flexDirection: "column" }}>
-         <label htmlFor="class" className="mb-1 text-[14px]">Class</label>
+         <label htmlFor="class" className=" text-[14px]" style={{marginBottom:"10px"}}>Class</label>
           <TextField
             id="class"
             variant="outlined"
@@ -861,12 +917,15 @@ const paginatedItems = useMemo(() => {
       </Popper>
        </Box>
 
+        </Box>
+
         <Link to="">
           <div className="bg-[#023E8A] h-[45px] w-[130px] text-center text-white font-inter text-base rounded-[8px] pt-[10px] mt-[18px]">
             <button>Update</button>
           </div>
         </Link>
-      </Box>
+        </div>
+     
       </div>
         </div>
     </div>
@@ -875,16 +934,15 @@ const paginatedItems = useMemo(() => {
     <div className='bg-white w-full h-full pt-[20px] pb-[50px] mb-[100px]'>
     <div className='w-[90%] m-auto'>
         <div className='flex gap-1 text-[15px] mb-4'>
-            <p>Home</p>
-            <KeyboardArrowRightOutlinedIcon />
-            <p className='text-[#023E8A]'>Departure</p>
+                  <Breadcrumb  />
         </div>
+      
     </div>
     
     <Divider  />
 
 <div className=''>
-    <div className='mt-[53px] mb-[26px]'>
+    <div className='mt-[26px] mb-[26px]'>
         <div className='w-[90%] m-auto flex justify-between'>
             <p className='text-[28px] font-inter font-semibold'>Departure Flight</p>
              <div>
@@ -905,7 +963,6 @@ const paginatedItems = useMemo(() => {
                     </InputAdornment>
                     ),
                     readOnly: true, 
-                    // sx: { pointerEvents: "none" }, 
                 }}
                 sx={{
                     width: "100px",
@@ -919,11 +976,11 @@ const paginatedItems = useMemo(() => {
                 />
 
 
-                <Dialog
-        open={isDialogOpen}
-        onClose={closeDialog}
-        fullWidth
-        sx={{
+          <Dialog
+              open={isDialogOpen}
+              onClose={closeDialog}
+              fullWidth
+              sx={{
             "& .MuiBackdrop-root": {
                 backgroundColor: "rgba(0, 0, 0, 0.3)",
             },
@@ -952,9 +1009,17 @@ const paginatedItems = useMemo(() => {
             <div className="overflow-y-hidden px-2 mt-12">
                 <div className="mb-[20px] mt-[24px]">
                     <p className="text-[18px] font-inter font-medium">Price Range</p>
-                    <div className="mt-[20px] mb-[20px]">
-                        <img src={line2} alt="" />
-                    </div>
+                       <Slider
+                        getAriaLabel={() => "Price range"}
+                        // value={value}
+                        // onChange={handleSliderChange}
+                        value={tempValue}
+                        onChange={handleTempSliderChange}
+                        min={0}
+                        max={1000000}
+                        step={1000}
+                        sx={{width:"95%", margin:"auto", marginLeft:"10px"}}
+                      />
                 </div>
 
                 <Box className="flex justify-between gap-[16px]">
@@ -962,10 +1027,13 @@ const paginatedItems = useMemo(() => {
                         <label htmlFor="from" className="mb-1 text-[16px]">Minimum</label>
                         <TextField
                             id="from"
-                            type="number"
+                            type="text"
                             variant="outlined"
                             size="small"
+                            InputProps={{ readOnly: true }} 
+                            value={formatNumber(tempValue[0])}
                             placeholder="₦0"
+                            aria-readonly
                             onChange={handleMinPriceChange}
                             sx={{
                                 width: "100%",
@@ -977,10 +1045,13 @@ const paginatedItems = useMemo(() => {
                         <label htmlFor="to" className="mb-1 text-[16px]">Maximum</label>
                         <TextField
                             id="to"
-                            type="number"
+                            type="text"
                             variant="outlined"
+                            InputProps={{ readOnly: true }} 
                             size="small"
-                            placeholder="₦1,000,000"
+                            aria-readonly
+                            placeholder="₦10,000,000"
+                            value={formatNumber(tempValue[1])}
                             onChange={handleMaxPriceChange}
                             sx={{
                                 width: "100%",
@@ -1001,7 +1072,8 @@ const paginatedItems = useMemo(() => {
                             }`}
                             onClick={() => {
                                 handleButtonClick(index);
-                                handleStopsChange(label);
+                                handleTempStopsChange(label)
+                                // handleStopsChange(label);
                             }}
                         >
                             {label}
@@ -1013,8 +1085,8 @@ const paginatedItems = useMemo(() => {
                     <div className="mb-[14px] mt-[14px]">
                         <p className="text-[18px] font-inter font-medium">Refund Policy</p>
                         <FormGroup>
-                            <FormControlLabel control={<Checkbox onChange={handleRefundPolicyChange} name="Refundable" />} label="Refundable" />
-                            <FormControlLabel control={<Checkbox onChange={handleRefundPolicyChange} name="Non Refundable" />} label="Non Refundable" />
+                            <FormControlLabel control={<Checkbox   checked={tempRefundPolicy === "Refundable"} onChange={handleTempRefundPolicyChange} name="Refundable" />} label="Refundable" />
+                            <FormControlLabel control={<Checkbox    checked={tempRefundPolicy === "Non-Refundable"} onChange={handleTempRefundPolicyChange} name="Non-Refundable" />} label="Non Refundable" />
                         </FormGroup>
                     </div>
                     <Divider />
@@ -1023,39 +1095,49 @@ const paginatedItems = useMemo(() => {
                         <p className="text-[18px] font-inter font-medium">Airlines</p>
                         <FormGroup>
                             <FormControlLabel
-                                control={<Checkbox checked={selected.all} onChange={handleSelectedChange} name="all" />}
+                                control={
+                                  <Checkbox
+                                    checked={tempSelectedAirlines.length === airlinesList.length} // Check if all airlines are selected
+                                    indeterminate={tempSelectedAirlines.length > 0 && tempSelectedAirlines.length < airlinesList.length} // Show partial selection
+                                    onChange={handleTempSelectedChange}
+                                    name="all"
+                                  />
+                                }
                                 label="Select All carriers"
-                            />
+                              />
                             {["Aero", "Arik Air", "Value Jet", "Air Peace", "United Nigeria"].map((airline) => (
-                                <FormControlLabel
-                                    key={airline}
-                                    control={<Checkbox checked={selected[airline]} onChange={handleSelectedChange} name={airline} />}
-                                    label={airline}
-                                />
+                              <FormControlLabel
+                                key={airline}
+                                control={
+                                  <Checkbox
+                                    checked={tempSelectedAirlines.includes(airline)}
+                                    onChange={handleTempSelectedChange}
+                                    name={airline}
+                                  />
+                                }
+                                label={airline}
+                              />
                             ))}
                         </FormGroup>
                     </div>
                 </div>
         </DialogContent>
-
                 <div className="absolute bottom-0 border-t border-[grey] left-0 right-0 bg-white p-4 rounded-b-[10px]">
-                <button onClick={applyFilters} className="w-full h-[52px] rounded-[6px] bg-[#023E8A] text-white cursor-pointer">
+                <button onClick={handleApplyFilters} className="w-full h-[52px] rounded-[6px] bg-[#023E8A] text-white cursor-pointer">
                     Apply
                 </button>
             </div>
     
                 </Dialog>
 
-
                     
                 <Select
-                        id="from"
+                        id="sort"
                         variant="outlined"
                         size="small"
-                        displayEmpty
-                        value={from}
-                        onChange={(event) => setFrom(event.target.value)}
-                        renderValue={(selected) => (selected ? selected : "Sort by: Recommended")}
+                          value={selectedSort}
+                          onChange={handleSortedChange}
+                          displayEmpty
                         startAdornment={
                             <InputAdornment position="start">
                             <SortIcon />
@@ -1079,7 +1161,7 @@ const paginatedItems = useMemo(() => {
                             },
                         }}
                         sx={{
-                            width: "225px",
+                            width: "255px",
                             "& .MuiInputBase-root": {
                             height: "44px",
                             borderRadius: "8px",
@@ -1087,7 +1169,7 @@ const paginatedItems = useMemo(() => {
                             },
                         }}
                         >
-
+                        <MenuItem value="" disabled>Sort by : Recommended</MenuItem>
                         <MenuItem value="recommended">Recommended</MenuItem>
                         <MenuItem value="price_low">Price: Low to High</MenuItem>
                         <MenuItem value="price_high">Price: High to Low</MenuItem>
@@ -1109,7 +1191,7 @@ const paginatedItems = useMemo(() => {
 </div>
 
     <div>
-        <div className='mt-[24px] w-[90%] m-auto cursor-pointer'>
+  <div className='mt-[24px] w-[90%] m-auto cursor-pointer'>
      
 
     {paginatedItems.length > 0 ? (
@@ -1141,7 +1223,7 @@ const paginatedItems = useMemo(() => {
 
                     <div>
                         <div className='flex gap-[2px] justify-center'>
-                            <p>{depart.timelong}</p>
+                            <p>{depart.duration}</p>
                             <CircleIcon className=' text-[#4E4F52]' sx={{ width: "4px", height: "4px" }} />
                             <p>{depart.non}</p>
                         </div>
@@ -1178,7 +1260,7 @@ const paginatedItems = useMemo(() => {
 
         <Stack spacing={2} className='mt-50'>
             <Pagination 
-                count={Math.ceil(filteredItems.length / ITEMS_PER_PAGE)} 
+                count={Math.ceil(applyFilters.length / ITEMS_PER_PAGE)} 
                 shape='rounded' 
                 page={page} 
                 onChange={handleChange}
@@ -1263,7 +1345,7 @@ const paginatedItems = useMemo(() => {
                                 </div>
                                 <p className='text-[#4E4F52] font-normal text-[16px]'><FlightClassOutlinedIcon />{selectedDeparture?.class}</p>
                                 <p className='text-[#4E4F52] font-normal text-[16px]'><CalendarMonthOutlinedIcon />Feb 19</p>
-                                <p className="text-[#4E4F52] text-[16px] font-normal"><AccessTimeIcon />{selectedDeparture?.timefrom} - {selectedDeparture?.timeto} ({selectedDeparture?.timelong} {selectedDeparture?.non})</p>
+                                <p className="text-[#4E4F52] text-[16px] font-normal"><AccessTimeIcon />{selectedDeparture?.timefrom} - {selectedDeparture?.timeto} ({selectedDeparture?.duration} {selectedDeparture?.non})</p>
                                 <p className="text-[#4E4F52] text-[16px] font-medium"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
                                 <p className="text-[#4E4F52] text-[16px] font-medium"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
                                 <p className="text-[#4E4F52] text-[16px] font-medium"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
@@ -1301,7 +1383,7 @@ const paginatedItems = useMemo(() => {
             </DialogContent>
             <Link to="/return-flight">
             <div className="absolute bottom-0 border-t border-[grey] left-0 right-0 bg-white p-4 rounded-b-[10px]">
-            <button onClick={applyFilters} className="w-full h-[52px] rounded-[6px] bg-[#023E8A] text-white cursor-pointer">
+            <button onClick={handleApplyFilters} className="w-full h-[52px] rounded-[6px] bg-[#023E8A] text-white cursor-pointer">
                 Select
             </button>
         </div>
