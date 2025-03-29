@@ -24,6 +24,8 @@ import FlightConfirmPageMultiWay from "./pages/muti-flight-container/flightConfi
 import ProfileInfo from "./pages/ProfileInfo";
 import Profile from "./pages/Profile";
 import StaysDetail from "./pages/StaysDetail";
+import BookingConfirmationPage from "./pages/BookingConfirmationPage";
+import BookingProgress from "./pages/BookingProgress";
 
 
 function App() {
@@ -40,7 +42,9 @@ function App() {
         <Route path="/reset-email-link" element={<EmailResetLink />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/stays-search-result" element={<StaysSearchResults />} />
-        <Route path="/stays-detail" element={<StaysDetail />} />
+        <Route path="/booking-progress" element={<BookingProgress />} />
+        <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+        <Route path="/stays-detail" element={<StaysDetail hotel={{ images: [],shareLink: "" }} />} />    
         <Route path="/departure-flight" element={<DeparturePage departureInfo={[]} />} />
         <Route path="/return-flight" element={<ReturnPage departureInfo={[]} />} />
         <Route path="/flightInfo-review" element={<FlightInfoPage />} />

@@ -10,12 +10,22 @@ import TravelmateApp from "./homePage/TravelmateApp";
 import Footer from "../components/2Footer";
 import Reviews from "../components/Reviews";
 import ReviewsModal from "../components/modals/ReviewModal";
+import AllPhotosModal from "../components/modals/AllPhotosModal";
+import ShareModal from "../components/modals/ShareModal";
 
 
+interface StaysDetailProps {
+    hotel: {
+      images: string[];
+      shareLink: string;
+    };
+  }
 
-const StaysDetail: React.FC = () => {
+const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
     const [activeTab, setActiveTab] = useState("Overview");
     const [openModal, setOpenModal] = useState(false);
+    const [showPhotosModal, setShowPhotosModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
 
 
     const sections = [
@@ -27,13 +37,14 @@ const StaysDetail: React.FC = () => {
         { name: "Refund and cancellations" },
         { name: "Policies" },
     ];
-
+    
     const roomImages = [
         "src/assets/images/StayImage.png",
         "src/assets/images/StayImage2.png",
         "src/assets/images/StayImage.png",
         "src/assets/images/StayImage.png",
         "src/assets/images/StayImage2.png",
+        "src/assets/images/StayImageCopy.png",
     ];
 
 
@@ -74,7 +85,9 @@ const StaysDetail: React.FC = () => {
             <div className="mt-4 px-6 relative">
                 {/* Share & Favorite Buttons */}
                 <div className="flex justify-end gap-4 mb-1 px-10">
-                <button className="flex items-center gap-2 px-4 py-2 cursor-pointer border rounded-lg shadow-sm text-gray-700 hover:bg-gray-100">
+                <button className="flex items-center gap-2 px-4 py-2 cursor-pointer border rounded-lg shadow-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => setShowShareModal(true)}
+                >
                     <FaShareAlt /> Share
                 </button>
                 <button className="flex items-center gap-2 px-4 py-2 cursor-pointer border rounded-lg shadow-sm text-gray-700 hover:bg-gray-100">
@@ -92,7 +105,9 @@ const StaysDetail: React.FC = () => {
                         className="w-full h-[445px] object-cover rounded-lg"
                         />
                         {/* Show All Photos Button */}
-                        <button className="absolute bottom-4 left-4 flex items-center gap-2 bg-white cursor-pointer px-4 py-2 rounded-lg shadow-md">
+                        <button className="absolute bottom-4 left-4 flex items-center gap-2 bg-white cursor-pointer px-4 py-2 rounded-lg shadow-md"
+                        onClick={() => setShowPhotosModal(true)}
+                        >
                         <FaImages className="text-gray-600" />
                         Show all {roomImages.length} photos
                         </button>
@@ -109,7 +124,8 @@ const StaysDetail: React.FC = () => {
                         ))}
                     </div>
                 </div>
-
+                {showPhotosModal && <AllPhotosModal onClose={() => setShowPhotosModal(false)} images={roomImages} />}
+                {showShareModal && <ShareModal onClose={() => setShowShareModal(false)} shareLink={hotel.shareLink} />}
             </div>
 
 
