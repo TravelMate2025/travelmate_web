@@ -24,10 +24,12 @@ import FlightInfoPageMultiWay from "./pages/muti-flight-container/flightInfo-rev
 import FlightConfirmPageMultiWay from "./pages/muti-flight-container/flightConfirmationMultiWay/FlightConfirmPageMultiWay"
 import ProfileInfo from "./pages/ProfileInfo";
 import Profile from "./pages/Profile";
+import Page from "./pages/carsTab/carsFirstScreen/Page";
 import DisplayCars from "./pages/carsTab/displayAllCars/DisplayCars";
-import Page from "./pages/carsTab/offerAcceptedPage/Page";
+import Pages from "./pages/carsTab/offerAcceptedPage/Page";
 import CarPaidForPage from "./pages/carsTab/carPaidFor/CarPaidForPage";
 import StaysDetail from "./pages/StaysDetail";
+
 
 
 function App() {
@@ -47,8 +49,9 @@ function App() {
 
         {/* round-trip-section */}
 
+        <Route path="/stays-detail" element={<StaysDetail />} /> 
 
-        <Route path="/stays-detail" element={<StaysDetail />} />
+
         <Route path="/departure-flight" element={<DeparturePage departureInfo={[]} />} />
         <Route path="/return-flight" element={<ReturnPage departureInfo={[]} />} />
         <Route path="/flightInfo-review" element={<FlightInfoPage />} />
@@ -71,7 +74,7 @@ function App() {
          {/* Cars-Section */}
 
         <Route path="/display-cars" element={<DisplayCars />} />
-        <Route path="/offer-accepted-page" element={<Page />} />
+        <Route path="/offer-accepted-page" element={<Pages />} />
         <Route path="/car-confirmation" element={<Page />} />
 
         <Route path="/car-payment-successful" element={<CarPaidForPage />} />
