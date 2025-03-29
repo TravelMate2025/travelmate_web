@@ -13,8 +13,7 @@ import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import { useMediaQuery } from "react-responsive";
-
-
+import offerNot from "../../../assets/offerNot.svg"
 
 
 import { SelectChangeEvent } from "@mui/material";
@@ -26,7 +25,7 @@ interface DateRangeType {
 }
 
 import { TransitionProps } from "@mui/material/transitions";
-import { m } from "framer-motion";
+// import { m } from "framer-motion";
 
 const Transition = forwardRef<unknown, TransitionProps & { children: ReactElement }>(
   function Transition(props, ref) {
@@ -39,7 +38,7 @@ const Page = () => {
     const isMobile = useMediaQuery({ maxWidth: 768 });
   
 
-      const [selectedValue, setSelectedValue] = useState<string>(() => {
+      const [, setSelectedValue] = useState<string>(() => {
         return localStorage.getItem("tripType") || "round-trip";
       });
 
@@ -134,7 +133,7 @@ const Page = () => {
 
     const formatDate = (date: Date) => format(date, "dd MMM yyyy");
 
-const [opens, setOpens] = useState(false);
+const [, setOpens] = useState(false);
 
 const handleSelectDate = () => {
   if (dateRange[0].startDate) {
@@ -181,7 +180,6 @@ const handleSelectDate = () => {
 
             
         const [miniprice, setMiniPrice] = useState("");
-      const [openNoModal, setOpenNoModal] = useState(false);
     
     
     const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -209,22 +207,37 @@ const handleSelectDate = () => {
         }
     };
 
-    const handleSubmitOffer = () => {
+
+
+     const [openNoModal, setOpenNoModal] = useState(false);
+ const handleCloseNoModal = () => {
+  setOpenNoModal(false);
+};
+
+
+const [priceRange, setPriceRange] = useState("");
+
+const handleSubmitOffer = () => {
   const numericMinPrice = parseInt(miniprice.replace(/,/g, ""), 10) || 0;
   const numericMaxPrice = parseInt(maxprice.replace(/,/g, ""), 10) || 0;
 
   if (numericMinPrice < 6000 || numericMaxPrice < 6000) {
-    setOpenNoModal(true); // Show modal if either price is below 6000
+     setOpenNoModal(true);
   } else {
-    // navigate("/offer-accepted-page");
-    
+    const formattedPriceRange = `${new Intl.NumberFormat().format(numericMinPrice)} - ${new Intl.NumberFormat().format(numericMaxPrice)}`;
+    setPriceRange(formattedPriceRange);
+    handleCloseClick();
   }
 };
 
 
+
+
+
           const handleSearch = () => {
+             const priceRange = `${miniprice} - ${maxprice}`;
             navigate("/display-cars", {
-            state: { from: selectedFrom, to: selectedTo, departureDate: selectedDate, timePeriod, times , miniprice, maxprice },
+            state: { from: selectedFrom, to: selectedTo, departureDate: selectedDate, timePeriod, times, priceRange },
             });
         };
 
@@ -255,6 +268,8 @@ const [showLocationsOff, setShowLocationsOff] = useState(false);
 const handleTextFieldClickOff = () => {
   setShowLocationsOff(true);
 };
+
+
 
 
   return (
@@ -794,7 +809,8 @@ const handleTextFieldClickOff = () => {
                     variant="outlined"
                     size="small"
                     placeholder="Enter Minimum - Maximum Price"
-                    // value={selectedDate} 
+                    value={priceRange}
+                    // onClick={() => setOpenNoModal(true)} 
                     onClick={handleOpen}  
                     
                     className="md:w-[23vw] lg:w-[23vw] w-full"
@@ -898,6 +914,68 @@ const handleTextFieldClickOff = () => {
       />
     </div>
 
+                     <Dialog
+                      open={openNoModal}
+                    onClose={handleCloseNoModal}
+                TransitionComponent={Transition}
+                keepMounted
+                sx={{
+                  "& .MuiBackdrop-root": {
+                    backgroundColor: "rgba(0, 0, 0, 0.3)",
+                  },
+                  "& .MuiPaper-root": {
+                    backgroundColor: "white",
+                    borderRadius: "20px 20px 0 0",
+                    display: "flex",
+                    flexDirection: "column",
+                    animation: "slideUp 0.3s ease-out forwards",
+                    width:"100%",
+                    height:"50%",
+                    position:"fixed",
+                    bottom:"0px",
+                    marginBottom:"0px",
+                    paddingBottom:"0px"
+
+                  },
+                  "@keyframes slideUp": {
+                    from: { transform: "translateY(100%)" },
+                    to: { transform: "translateY(0)" },
+                  },
+                }}
+                >
+                  <DialogContent
+                    sx={{
+                      overflowY: "auto",
+                      // maxHeight: "80vh",
+                      // paddingBottom: "5px",
+                      width: "100%",
+                      "&::-webkit-scrollbar": { display: "none" },
+                      scrollbarWidth: "none",
+                    }}
+                  >
+                    <div style={{ textAlign: "center", fontSize: "24px", fontWeight: "bold", height:"100%" }}>
+                        <div className="w-[100%]">
+                          <div className="flex justify-end">
+                           <IconButton>
+                              <CloseOutlinedIcon  onClick={handleCloseNoModal}  className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
+                            </IconButton>
+                            </div>
+                            <div className="flex justify-center mt-[30px]">
+                             
+                                <img src={offerNot} alt="" />
+                                
+                            </div>
+                            <p className="text-[#181818] font-medium text-[20px] font-inter mt-[20px] text-center">
+                                No Cars Available in Your Price Range
+                            </p>
+                            <p className="text-[#67696D] font-normal text-[16px] mt-[16px] mb-[25px] text-center">
+                                Please increase your minimum price or adjust your maximum price to see available options.
+                            </p>
+                        </div>
+                    </div>
+                  </DialogContent>
+                  </Dialog>
+
 <div className="mt-18">
     <button
       onClick={handleSubmitOffer}
@@ -909,8 +987,8 @@ const handleTextFieldClickOff = () => {
       Submit Offer
     </button>
     </div>
-  </DialogContent>
-</Dialog>
+                  </DialogContent>
+                  </Dialog>
 
     
         </Box>
