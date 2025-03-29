@@ -11,11 +11,14 @@ import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import { useLocation } from "react-router-dom";
-
+import ModeEditOutlinedIcon from '@mui/icons-material/ModeEditOutlined';
 import Navbar from '../../homePage/Navbar'
 import CarList from "./CarList";
 import TravelmateApp from "../../homePage/TravelmateApp";
 import Footer from "../../../components/2Footer";
+import { useMediaQuery } from "react-responsive";
+import { Link } from "react-router-dom";
+import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutlined';
 
 interface DateRangeType {
   startDate: Date;
@@ -24,7 +27,8 @@ interface DateRangeType {
 }
 
 const DisplayCars = () => {
-        const [dateRange, setDateRange] = useState<DateRangeType[]>([
+     const isMobile = useMediaQuery({ maxWidth: 768 });
+     const [dateRange, setDateRange] = useState<DateRangeType[]>([
             {
               startDate: new Date(),
               endDate: addDays(new Date(), 7),
@@ -99,11 +103,13 @@ const {
     from: stateFrom, 
     to: stateTo, 
     departureDate: stateDepartureDate, 
-    times: stateTimes = {} 
+    times: stateTimes = {},
+    priceRange,
 } = state;
 
 const [from, setFrom] = useState(stateFrom || "");
 const [to, setTo] = useState(stateTo || "");
+// const [price, setPrice] = useState(priceRange || "");
 const [departureDate, setDepartureDate] = useState(stateDepartureDate || "");
 
 
@@ -118,6 +124,9 @@ const handleSelectDate = () => {
   setDepartureDate(formattedDate); 
   handleClose();
 };
+
+// const handlePriceChange = (e: ChangeEvent<HTMLInputElement>) => setPrice(e.target.value);
+
 
 
 const [times, setTimes] = useState({
@@ -156,8 +165,56 @@ const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
 };
         
   return (
+
+    <div>
+    <div><Navbar /></div>
+    {isMobile ? (
+    <div>
+        <div>
+          <div className="mb-6 ">
+            <Link to="/" >
+                <div style={{ position: "absolute", left: "28px", top: "76px" }} className="w-[40px] h-[40px] p-[8px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] ">
+                <ArrowBackIosNewOutlinedIcon className="font-bold " />
+                </div>
+            </Link>
+                <p className="text-center font-medium text-[20px]  mt-[80px]">Choose Your Car</p>
+            </div>
+
+                <div className='mb-[32px] mt-[25px] w-[90%] m-auto'>
+            
+                <div className='border-1  border-[#023E8A] w-full bg-[#CCD8E81A] pt-[16px] pb-[16px] pr-[12px] pl-[12px] rounded-[8px]'>
+            
+                <div className='flex gap-2 justify-between'>
+                
+                <div className='text-[#181818]'>
+                    <p>{from} to {to}</p>
+                     <p>{departureDate}, {times.pickUpTime} {timePeriod}</p>
+                     <p>{priceRange}</p>
+                </div>
+
+                <div>
+                    <div><ModeEditOutlinedIcon className=' text-[#023E8A]' /></div>
+                </div>
+                
+                </div>
+            
+            </div>
+            </div>
+        </div>
+
+         <div>
+            <CarList departureInfo={[]} />
+        </div>
+
+
+        <Footer />
+    </div>
+
+    ) : (
+
+
     <div  className='bg-[#F5F5F5] w-full h-full'>
-        <div><Navbar /></div>
+       
     
         <div className="pt-30 w-[90%] m-auto mb-10">
             
@@ -521,6 +578,8 @@ const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
             <Footer />
          </div>
 
+    </div>
+    )}
     </div>
   )
 }

@@ -22,6 +22,7 @@ import {
  
   } 
    from '@mui/material'
+   import { useMediaQuery } from "react-responsive";
 import Card from '@mui/material/Card';
 // import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
@@ -67,7 +68,7 @@ interface CarListProps {
 }
 
 const CarList: React.FC<CarListProps> = () => {  
-    
+         const isMobile = useMediaQuery({ maxWidth: 768 });
     const navigate = useNavigate()
 
     
@@ -251,187 +252,31 @@ const CarList: React.FC<CarListProps> = () => {
     
      const [page, setPage] = useState<number>(1); 
       const [openClick, setOpenClick] = useState<boolean>(false);
-    // const [selectedCarId, setSelectedCarId] = useState<number | null>(null);
     
     
     
     const handleOpen = () => {
-      
-      // setSelectedCarId(car.id);
+  
       setOpenClick(true);
     };
     
     
       const handleCloseClick = () => {
       setOpenClick(false);
-      // setSelectedCarId(null);
     };
     
-    // const selectedCar = cars.find((d) => d.id === selectedCarId);
-    
-    
-    //  const [isDialogOpen, setIsDialogOpen] = useState(false);
-    
-    //   const openDialog = () => {
-    //     setIsDialogOpen(true);
-    //   };
-    
-      // const closeDialog = () => {
-      //   setIsDialogOpen(false);
-      // };
-    
-    // const [activeButton, setActiveButton] = useState<number | null>(null);
-    //  const handleButtonClick = (buttonIndex: number) => {
-    //     setActiveButton(buttonIndex);
-    // };
-    
-    
-    
     const ITEMS_PER_PAGE = 8; 
-    
-
-
-    
-    // const airlinesList = ["Economy", "Compact", "Standard", "Midsize", "Full Size", "SUV", "Premium"];
-    // const roadCarList = ["Avis Nigeria", "Bolt Drive", "Hertz Nigeria", "Uber Rentals"];
-
-    
-    //   const [value, setValue] = React.useState<number[]>([2000, 10000000]);
-    //   const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
-    
-    
-    // const [tempSelectedAirlines, setTempSelectedAirlines] = useState<string[]>([]);
-    // const [tempSelectedCar, setTempSelectedCars] = useState<string[]>([])
-    // const [tempValue, setTempValue] = useState<number[]>([2000, 10000000]);
-    // const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
-    // const [selectedCarRent, setSelectedCarRent] = useState<string[]>([]);
-    // const [selectedSpecs, setSelectedSpecs] = useState<string[]>([]);
-    // const [tempSelectedSpecs, setTempSelectedSpecs] = useState<string[]>([]);
-
-    
-    // const applyFilters = useMemo(() => {
-    //   return carList.filter((item) => {
-    //     const price = parseInt(item.price.replace(/[^0-9]/g, ""), 10);
-    //     const matchesPrice = price >= value[0] && price <= value[1];
-    //    const carMatch = selectedCarRent.length === 0 || selectedCarRent.includes(item.carDescription);
-    //    const airlineMatch = selectedAirlines.length === 0 || selectedAirlines.includes(item.carName);
-    // const specMatch = selectedSpecs.length === 0 || selectedSpecs.includes(item.type);
-
-    //     return matchesPrice && carMatch && airlineMatch && specMatch;
-    //   });
-    // }, [carList, selectedAirlines, selectedCarRent, selectedSpecs, value]);
-    
-    
-    
-    //  const handleMinPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     const rawValue = event.target.value.replace(/,/g, ""); 
-    //     const min = Number(rawValue);
-    //     if (!isNaN(min)) {
-    //         setValue([min, Math.max(min, value[1])]);
-    //     }
-    // };
-    
-    // const handleMaxPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     const rawValue = event.target.value.replace(/,/g, ""); 
-    //     const max = Number(rawValue);
-    //     if (!isNaN(max)) {
-    //         setValue([value[0], Math.max(value[0], max)]);
-    //     }
-    // };
-    
-    
-    // const [selectedSort, setSelectedSort] = useState("");
-    
-    // const handleSortedChange = (event: SelectChangeEvent<string>) => {
-    //   setSelectedSort(event.target.value);
-    //   setPage(1);
-    // };
-    
     
         const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
             setPage(value);
         };
 
     
-    // const handleTempSelectedChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //   const { name, checked } = event.target;
-    
-    //   if (name === "all") {
-     
-    //     setTempSelectedAirlines(checked ? airlinesList : []);
-    //   } else {
-       
-    //     setTempSelectedAirlines((prev) =>
-    //       checked ? [...prev, name] : prev.filter((airline) => airline !== name)
-    //     );
-    //   }
-    // };
-
-//      const handleTempSelectedCar = (event: React.ChangeEvent<HTMLInputElement>) => {
-//       const { name, checked } = event.target;
-    
-//       if (name === "carRent") {
-     
-//         setTempSelectedCars(checked ? roadCarList : []);
-//       } else {
-       
-//         setTempSelectedCars((prev) =>
-//           checked ? [...prev, name] : prev.filter((carLine) => carLine !== name)
-//         );
-//       }
-//     };
-    
-//     const handleTempSliderChange = (_event: Event, newValue: number | number[]) => {
-//       setTempValue(newValue as number[]);
-//     };
-
-// const handleTempSelectedSpec = (event: React.ChangeEvent<HTMLInputElement>) => {
-//     const { name, checked } = event.target;
-//     setTempSelectedSpecs((prevSpecs) =>
-//         checked ? [...prevSpecs, name] : prevSpecs.filter((spec) => spec !== name)
-//     );
-// };
-
-    
-    
-      
-        // const sortedDepartures = useMemo(() => {
-        //     const sortedArray = [...applyFilters];
-    
-        //     switch (selectedSort) {
-        //         case "price_low":
-        //             sortedArray.sort((a, b) => 
-        //                 parseInt(a.price.replace(/[^0-9]/g, ""), 10) - 
-        //                 parseInt(b.price.replace(/[^0-9]/g, ""), 10)
-        //             );
-        //             break;
-        //         case "price_high":
-        //             sortedArray.sort((a, b) => 
-        //                 parseInt(b.price.replace(/[^0-9]/g, ""), 10) - 
-        //                 parseInt(a.price.replace(/[^0-9]/g, ""), 10)
-        //             );
-        //             break;
-        //         default:
-        //         break;
-        //     }
-    
-        //     return sortedArray;
-        // }, [selectedSort, applyFilters]);
-    
-    
    const paginatedItems = useMemo(() => {
     return cars.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 }, [cars, page]);
 
-    
-    // const handleApplyFilters = () => {
-    //   setSelectedCarRent(tempSelectedCar);
-    //   setSelectedAirlines(tempSelectedAirlines);
-    //    setSelectedSpecs(tempSelectedSpecs);
-    //   setValue(tempValue);
-    //   setPage(1);
-    //   closeDialog();
-    // };
+
 
     const [miniprice, setMiniPrice] = useState("");
   const [openNoModal, setOpenNoModal] = useState(false);
@@ -462,15 +307,6 @@ const handleMaxPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     }
 };
 
-
-// const handleSubmitOffer = () => {
-//   if (parseInt(price) < 10000) {
-//     setOpenNoModal(true);
-//   } else {
-//     navigate("/offer-accepted-page");
-//   }
-// };
-
 const handleSubmitOffer = () => {
   const numericMinPrice = parseInt(miniprice.replace(/,/g, ""), 10) || 0;
   const numericMaxPrice = parseInt(maxprice.replace(/,/g, ""), 10) || 0;
@@ -480,6 +316,12 @@ const handleSubmitOffer = () => {
   } else {
     navigate("/offer-accepted-page"); // Navigate if both are 6000 or above
   }
+};
+
+const handleSubmitMobileOffer = () => {
+  
+    navigate("/offer-accepted-page");
+  
 };
 
 
@@ -493,6 +335,130 @@ const handleCloseNoModal = () => {
 
   return (
     <div>
+       {isMobile ? (
+
+        <div>
+           <div className='w-[90%] m-auto '>
+        <div className="flex justify-between mt-[40px] mb-[25px]">
+        <div>
+        <p>80 Results</p>
+        </div>
+       
+        </div>
+    </div>
+
+    <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 ">
+
+    
+          {paginatedItems.length > 0 ? (
+            paginatedItems.map((car) => (
+            <Card key={car.id} className="p-[20px] w-[100%] cursor-pointer" >
+        {/* <div className="flex flex-col sm:flex-row gap-[10px]"> */}
+        <div className="flex justify-between gap-[8px] ">
+          <div className="flex gap-[8px] ">
+          <img src={circle} alt="" className="w-[60px] h-[60px]" />
+          <div >
+            <div className="flex gap-[2px]">
+            <p className="mt-[5px] text-[#181818] text-[16px]">Elvis</p>
+              <Stack direction="row" sx={{marginTop:"5px"}}>
+              <Rating
+                value={1} 
+                max={1} 
+                readOnly
+              />
+              <Typography variant="body1" className="text-[14px]">{value}</Typography>
+            </Stack>
+          </div >
+             <div className="mt-[4px]">
+              <p className="text-[#67696D] text-[14px] ">Red Toyota Corolla</p>
+            </div>
+
+          </div>
+             
+          </div>
+
+          
+
+        <div className="w-[60px] h-[60px]">
+            <img src={car.image} alt="" />
+        </div>
+
+        </div>
+             <div className="flex gap-[3px] mb-[10px] mt-[10px]"> 
+            <p className="text-[14px]">{car.seatLeft} {car.spaceleft}</p>
+            <CircleIcon  sx={{width:"4px", height:"4px", marginTop:"10px" ,marginLeft:"2px", fontSize:"14px"}}/>
+            <div className="text-[14px]">{car.fuelIcon} {car.full}</div>
+          </div>
+
+
+              <div>
+
+                  <div className="flex gap-[2px]  mb-[10px]">
+                    <div className='border-[#2D9C5E] h-[20px]  w-[20px] border-2  rounded-full flex justify-center'>
+                        <CheckIcon sx={{width:"15px", position:"relative", top:"-3px", color:"#2D9C5E"}} />
+                    </div>
+                    <p className="text-[#2D9C5E] text-[14px]">{car.noShows}</p>
+                </div>
+
+                 <div className="flex gap-[2px]">
+                    <div className='border-[#2D9C5E] h-[20px]  w-[20px] border-2  rounded-full flex justify-center'>
+                        <CheckIcon sx={{width:"15px", position:"relative", top:"-3px", color:"#2D9C5E"}} />
+                    </div>
+                    <p className="text-[#2D9C5E] text-[14px]">{car.refundable}</p>
+                </div>
+
+                
+            </div>
+        <div className="flex justify-between mt-[12px]">
+            <div>
+                <p className="text-[13px]">{car.perDay}</p>
+                <p className="text-[14px]">{car.price}</p>
+            </div> 
+           
+
+             <div
+             onClick={handleSubmitMobileOffer}
+             className="bg-[#023E8A] text-white text-center pt-[10px] rounded-[8px] w-[93px] h-[42px] text-[14px] cursor-pointer">
+            <button className=" cursor-pointer  align-middle" >
+                {car.button}
+            </button>
+            </div>
+            </div> 
+          </Card>
+          ))
+
+          
+        ) : (
+
+              <div className="flex items-center justify-center h-64">
+            <p className="text-gray-500 font-bold text-lg">Not Available</p>
+        </div>
+          )}
+
+   
+
+      <Stack spacing={2} className='mt-20 pb-[80px]'>
+        <Pagination 
+        count={Math.ceil(ITEMS_PER_PAGE)} 
+        shape='rounded' 
+        page={page} 
+        onChange={handleChange}
+        sx={{ display: 'flex', justifyContent: 'center', alignItems:"center", textAlign:"center",  }}
+
+        />
+    </Stack>
+
+    </div>
+        </div>
+
+
+
+
+            ) : (
+
+              // web view
+
+
     <div className='bg-white w-full h-full'>
     <div className='w-[90%] m-auto '>
         <div className='pt-[18.5px] mb-[18.5px]'>
@@ -506,270 +472,14 @@ const handleCloseNoModal = () => {
         <div>
         <p>80 Results</p>
         </div>
-         {/* <div className=''>
-                <Box sx={{display:"flex", gap:"15px"}}>
-                      <TextField
-                        id="filter-input"
-                        variant="outlined"
-                        size="small"
-                        placeholder="Filter"
-                        aria-readonly="true"
-                        onClick={openDialog}
-                        InputProps={{
-                            startAdornment: (
-                            <InputAdornment position="start">
-                                <TuneIcon />
-                            </InputAdornment>
-                            ),
-                            readOnly: true, 
-                        }}
-                        sx={{
-                            width: "100px",
-                            "& .MuiInputBase-root": {
-                            height: "44px",
-                            borderRadius: "8px",
-                            borderColor: "#DEDFE1",
-                            cursor: "pointer",
-                            },
-                        }}
-                        />
-        
-        
-                <Dialog
-                      open={isDialogOpen}
-                      onClose={closeDialog}
-                      fullWidth
-                      sx={{
-                    "& .MuiBackdrop-root": {
-                        backgroundColor: "rgba(0, 0, 0, 0.3)",
-                    },
-                    "& .MuiPaper-root": {
-                        width: "390px",
-                        height: "880px",
-                        borderRadius: "10px",
-                        display: "flex",
-                        flexDirection: "column",
-                    },
-                }}
-            >
-                <DialogContent sx={{ flex: 1, overflowY: "auto", paddingBottom: "5px" }}>
-        
-                    <div className="absolute z-40 top-0 left-0 right-0 bg-white border-b border-gray-300 rounded-t-[10px] pl-6 pr-4 pb-3 pt-4">
-                        <div className="flex items-center justify-between">
-                            <p className="text-[14px] font-semibold font-inter text-[#023E8A]">Clear All</p>
-                            <p className="text-[20px] font-inter font-medium">Filter By</p>
-                            <IconButton onClick={closeDialog}>
-                                <CloseOutlinedIcon className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
-                            </IconButton>
-                        </div>
-                    </div>
-        
-                
-                    <div className="overflow-y-hidden px-2 mt-12">
-                        <div className="mb-[20px] mt-[24px]">
-                            <p className="text-[18px] font-inter font-medium">Price Range</p>
-                               <Slider
-                                getAriaLabel={() => "Price range"}
-                                // value={value}
-                                // onChange={handleSliderChange}
-                                value={tempValue}
-                                onChange={handleTempSliderChange}
-                                min={0}
-                                max={1000000}
-                                step={1000}
-                                sx={{width:"95%", margin:"auto", marginLeft:"10px"}}
-                              />
-                        </div>
-        
-                        <Box className="flex justify-between gap-[16px]">
-                            <div className="flex flex-col">
-                                <label htmlFor="from" className="mb-1 text-[16px]">Minimum</label>
-                                <TextField
-                                    id="from"
-                                    type="text"
-                                    variant="outlined"
-                                    size="small"
-                                    InputProps={{ readOnly: true }} 
-                                    value={formatNumber(tempValue[0])}
-                                    placeholder="₦0"
-                                    aria-readonly
-                                    onChange={handleMinPriceChange}
-                                    sx={{
-                                        width: "100%",
-                                        "& .MuiInputBase-root": { height: "44px", borderRadius: "8px" },
-                                    }}
-                                />
-                            </div>
-                            <div className="flex flex-col">
-                                <label htmlFor="to" className="mb-1 text-[16px]">Maximum</label>
-                                <TextField
-                                    id="to"
-                                    type="text"
-                                    variant="outlined"
-                                    InputProps={{ readOnly: true }} 
-                                    size="small"
-                                    aria-readonly
-                                    placeholder="₦10,000,000"
-                                    value={formatNumber(tempValue[1])}
-                                    onChange={handleMaxPriceChange}
-                                    sx={{
-                                        width: "100%",
-                                        "& .MuiInputBase-root": { height: "44px", borderRadius: "8px" },
-                                    }}
-                                />
-                            </div>
-                        </Box>
-    
-                        <Divider sx={{  marginTop: "14px"  }} />
-        
-                            <div className="mb-[14px] mt-[14px]">
-                                <p className="text-[18px] font-inter font-medium">Car Rental Company</p>
-                              <FormGroup>
-                                    {["Avis Nigeria", "Bolt Drive", "Hertz Nigeria", "Uber Rentals"].map((carLine) => (
-                                      <FormControlLabel
-                                        key={carLine}
-                                        control={
-                                          <Checkbox
-                                            checked={tempSelectedCar.includes(carLine)}
-                                            onChange={handleTempSelectedCar}
-                                            name={carLine}
-                                          />
-                                        }
-                                        label={carLine}
-                                      />
-                                    ))}
-                                </FormGroup>
-                            </div>
-                            <Divider />
-        
-                            <div className=" mt-[20px]">
-                                <p className="text-[18px] font-inter font-medium">Car Category</p>
-                                <FormGroup>
-                                    {["Economy", "Compact", "Standard", "Midsize", "Full Size", "SUV", "Premium"].map((airline) => (
-                                      <FormControlLabel
-                                        key={airline}
-                                        control={
-                                          <Checkbox
-                                            checked={tempSelectedAirlines.includes(airline)}
-                                            onChange={handleTempSelectedChange}
-                                            name={airline}
-                                          />
-                                        }
-                                        label={airline}
-                                      />
-                                    ))}
-                                </FormGroup>
-                            </div>
-
-                                 <Divider />
-        
-                            <div className="mt-[20px]">
-                                <p className="text-[18px] font-inter font-medium">Specifications</p>
-                                <FormGroup>
-                                    {["Manual", "Automatic"].map((spec) => (
-                                      <FormControlLabel
-                                        key={spec}
-                                        control={
-                                          <Checkbox
-                                            checked={tempSelectedSpecs.includes(spec)}
-                                            onChange={handleTempSelectedSpec}
-                                            name={spec}
-                                          />
-                                        }
-                                        label={spec}
-                                      />
-                                    ))}
-                                </FormGroup>
-                            </div>
-
-                              <Divider />
-
-
-                                 <div className="mb-[100px] mt-[20px]">
-                                <p className="text-[18px] font-inter font-medium">Number of Passengers</p>
-                                <FormGroup>
-                                    {["2-5 Passengers", "6 or more Passengers "].map((pass) => (
-                                      <FormControlLabel
-                                        key={pass}
-                                        control={
-                                          <Checkbox
-                                            // checked={tempSelectedPasss.includes(Pass)}
-                                            // onChange={handleTempSelectedPass}
-                                            name={pass}
-                                          />
-                                        }
-                                        label={pass}
-                                      />
-                                    ))}
-                                </FormGroup>
-                            </div>
-                        </div>
-                </DialogContent>
-                        <div className="absolute bottom-0 border-t border-[grey] left-0 right-0 bg-white p-4 rounded-b-[10px]">
-                        <button 
-                        onClick={handleApplyFilters} 
-                        className="w-full h-[52px] rounded-[6px] bg-[#023E8A] text-white cursor-pointer">
-                            Apply
-                        </button>
-                    </div>
-            
-                        </Dialog>
-        
-                            
-                        <Select
-                                id="sort"
-                                variant="outlined"
-                                size="small"
-                                  value={selectedSort}
-                                  onChange={handleSortedChange}
-                                  displayEmpty
-                                startAdornment={
-                                    <InputAdornment position="start">
-                                    <SortIcon />
-                                    </InputAdornment>
-                                }
-                                MenuProps={{
-                                    PaperProps: {
-                                    sx: {
-                                        width: "300px",
-                                        maxHeight: "335px",
-                                        "& .MuiMenuItem-root": {
-                                        paddingY: "10px", 
-                                        margin: 0, 
-                                        backgroundColor: "transparent !important",
-                                        "&:hover": {
-                                            backgroundColor: "#023E8A !important",
-                                            color: "white",
-                                        },
-                                        },
-                                    },
-                                    },
-                                }}
-                                sx={{
-                                    width: "255px",
-                                    "& .MuiInputBase-root": {
-                                    height: "44px",
-                                    borderRadius: "8px",
-                                    borderColor: "#DEDFE1",
-                                    },
-                                }}
-                                >
-                                <MenuItem value="" disabled>Sort by : Recommended</MenuItem>
-                                <MenuItem value="recommended">Recommended</MenuItem>
-                                <MenuItem value="price_low">Price: Low to High</MenuItem>
-                                <MenuItem value="price_high">Price: High to Low</MenuItem>
-                        </Select>
-        
-                        
-                    </Box>
-        </div> */}
+       
         </div>
     </div>
 
 
     <Divider sx={{marginBottom:"24px"}} />
 
-<div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 ">
+    <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 ">
 
     
           {paginatedItems.length > 0 ? (
@@ -1016,6 +726,7 @@ const handleCloseNoModal = () => {
         </Dialog>
     </div>
     </div>
+     )}
      </div> 
   )
 }
