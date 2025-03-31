@@ -319,9 +319,7 @@ const handleSubmitOffer = () => {
 };
 
 const handleSubmitMobileOffer = () => {
-  
     navigate("/offer-accepted-page");
-  
 };
 
 
@@ -448,6 +446,150 @@ const handleCloseNoModal = () => {
         />
     </Stack>
 
+       <Dialog open={openClick} onClose={handleCloseClick} 
+                     sx={{
+                    "& .MuiBackdrop-root": {
+                        backgroundColor: "rgba(0, 0, 0, 0.3)",
+                    },
+                    "& .MuiPaper-root": {
+                        width: "693px",
+                        height: "451px",
+                        borderRadius: "10px",
+                        display: "flex",
+                        flexDirection: "column",
+                        
+                    },
+                }}
+                    >
+                    <DialogContent
+                    sx={{
+                    flex: 1,
+                    overflowY: "auto",
+                    paddingBottom: "5px",
+                    "&::-webkit-scrollbar": {
+                    display: "none",
+                    },
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                }}>
+    
+             <div className="absolute z-40 top-0 left-0 right-0 bg-white border-b border-gray-300 rounded-t-[10px] pl-6 pr-4 pb-3 pt-4">
+                <div className="flex items-center justify-center relative">
+                   
+                    <p className="text-[20px] font-inter font-medium ">Price Range</p>
+              
+                 
+                   <IconButton 
+                    
+                    sx={{position:"absolute",  right:"0px", top:"-5px"}}
+                >
+                    <CloseOutlinedIcon  onClick={handleCloseClick}  className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
+                </IconButton>
+                  
+                </div>
+            </div>
+                
+                <div className="mt-[75px] ">
+
+                    <div>
+
+                    <p className="mt-[24px] text-[#181818] font-medium text-[16px] font-inter">Minimum Price</p>
+                      <TextField
+                        id="carOffer"
+                        variant="outlined"
+                        type="text"
+                        size="small"
+                        placeholder="Enter your price"value={miniprice}
+                        onChange={handlePriceChange} 
+                        sx={{
+                            width: "100%",
+                            marginTop: "10px",
+                            marginBottom: "24px",
+                            "& .MuiInputBase-root": {
+                            height: "44px",
+                            borderRadius: "8px",
+                            },
+                            "& .MuiInputBase-input::placeholder": {
+                            fontSize: "14px",
+                            
+                            },
+                        }}
+                        />
+
+                            <p className=" text-[#181818] font-medium text-[16px] font-inter">Maximum Price</p>
+                            <TextField
+                                id="carOffer"
+                                variant="outlined"
+                                type="text"
+                                size="small"
+                                placeholder="Enter your price"value={maxprice}
+                                onChange={handleMaxPriceChange} 
+                                sx={{
+                                    width: "100%",
+                                    marginTop: "10px",
+                                    marginBottom: "24px",
+                                    "& .MuiInputBase-root": {
+                                    height: "44px",
+                                    borderRadius: "8px",
+                                    },
+                                    "& .MuiInputBase-input::placeholder": {
+                                    fontSize: "14px",
+                                    
+                                    },
+                                }}
+                                />
+
+
+                    </div>
+
+                </div>
+                </DialogContent>
+
+                <Dialog 
+                open={openNoModal}
+                onClose={handleCloseNoModal}
+                sx={{
+                    "& .MuiPaper-root": {  // Targets the modal's white background
+                        borderRadius: "12px",
+                        width: "364px",  // Ensures the width remains as expected
+                        height: "355px",
+                    }
+                }}
+            >
+                <div style={{ textAlign: "center", fontSize: "24px", fontWeight: "bold", height:"100%" }}>
+                    <div className="w-[80%] m-auto">
+                        <div className="flex justify-center mt-[30px]">
+                          <IconButton 
+                              sx={{position:"absolute",  right:"0px", top:"-5px"}}
+                          >
+                              <CloseOutlinedIcon  onClick={handleCloseNoModal}  className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
+                          </IconButton>
+                            <img src={offerNot} alt="" />
+                            
+                        </div>
+                        <p className="text-[#181818] font-medium text-[24px] font-inter mt-[20px] text-center">
+                            No Cars Available in Your Price Range
+                        </p>
+                        <p className="text-[#67696D] font-normal text-[16px] mt-[16px] mb-[25px] text-center">
+                            Please increase your minimum price or adjust your maximum price to see available options.
+                        </p>
+                    </div>
+                </div>
+                </Dialog>
+
+                
+                <div className="absolute bottom-0 border-t border-[grey] left-0 right-0 bg-white p-4 rounded-b-[10px]">
+                <button  
+
+                    disabled={!miniprice.trim() || !maxprice.trim()}
+                    className={`w-full h-[52px] rounded-[6px] text-white cursor-pointer ${
+                      miniprice.trim() && maxprice.trim() ? "bg-[#023E8A]" : "bg-[#023E8A] cursor-not-allowed opacity-50"
+                    }`}>
+                    Submit Offer
+                </button>
+              </div>
+           
+        </Dialog> 
     </div>
         </div>
 

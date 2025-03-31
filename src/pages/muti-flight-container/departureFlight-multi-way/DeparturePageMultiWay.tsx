@@ -15,7 +15,7 @@ import ClickAwayListener from "@mui/material/ClickAwayListener";
 import { DateRange, RangeKeyDict } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
-import { addDays, format } from "date-fns";
+import { addDays } from "date-fns";
 import FlightClassOutlinedIcon from "@mui/icons-material/FlightClassOutlined";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
@@ -72,20 +72,16 @@ interface DepartureListProps {
 }
 
 
-type Flight = {
+interface Flight {
   id: number;
   from: string;
   to: string;
   date: string;
-};
-
-type FlightField = keyof Omit<Flight, "id">; // "from" | "to" | "date"
-
-
+}
 
 const DeparturePage: React.FC<DepartureListProps> = () => {
 
-      const [selectedValue] = useState<string>("round-trip");
+      // const [selectedValue] = useState<string>("round-trip");
       const [dateRange, setDateRange] = useState<DateRangeType[]>([
         {
           startDate: new Date(),
@@ -95,9 +91,9 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
       ]);
       const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     
-      const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(anchorEl ? null : event.currentTarget);
-      };
+      // const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+      //   setAnchorEl(anchorEl ? null : event.currentTarget);
+      // };
     
     const [passengerAnchor, setPassengerAnchor] = useState<null | HTMLElement>(null);
     
@@ -107,20 +103,15 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
     
     
     
-     const handleClose = () => {
-        setAnchorEl(null);
-      };
+    //  const handleClose = () => {
+    //     setAnchorEl(null);
+    //   };
 
 
     const location = useLocation();
 
-    console.log("Location state:", location.state);
-
-
-    const { from: initialFrom, to: initialTo, departureDate: initialDepart,  passengers: initialPassenger, flightClass: initialFlight } = location.state || {};
-    const [from, setFrom] = useState(initialFrom || "");
-     const [to, setTo] = useState<string>(initialTo || "");
-    const [departureDate, setDepartureDate] = useState(initialDepart || "");
+    const {passengers: initialPassenger, flightClass: initialFlight } = location.state || {};
+    
     const [passengers, setPassengers] = useState(initialPassenger || "");
      const [selectedClass, setSelectedClass] = useState(initialFlight || "");
     const [flightClasses, setFlightClasses] = useState(false);
@@ -131,31 +122,35 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
 
     const [openFrom, setOpenFrom] = useState(false);
     const [FromClick, setFromClick] = useState<HTMLElement | null>(null);
+     const [FromId, setFromId] = useState<number | null>(null);
          const [openTo, setOpenTo] = useState(false);
          const [ToClick, setToClick] = useState<HTMLElement | null>(null);
-      
-          const handleToClick = (event: React.MouseEvent<HTMLElement>) => {
+        const [ToId, setToId] = useState<number | null>(null);
+
+          const handleToClick = (event: React.MouseEvent<HTMLElement>, id: number) => {
             setOpenTo((prev) => !prev);
             setToClick(event.currentTarget);
+            setToId(id);
           };
         const handleCloseTo = () => {
          setOpenTo(false);
         };
 
-    const handleFromClick = (event: React.MouseEvent<HTMLElement>) => {
+    const handleFromClick = (event: React.MouseEvent<HTMLElement>, id: number) => {
       setOpenFrom((prev) => !prev);
       setFromClick(event.currentTarget);
+        setFromId(id);
     };
 
-    const handleOptionClick = (selectedLocation: string, isFrom: boolean) => {
-    if (isFrom) {
-        setFrom(selectedLocation);
-        setOpenFrom(false);
-    } else {
-        setTo(selectedLocation);
-        setOpenTo(false);
-    }
-    };
+    // const handleOptionClick = (selectedLocation: string, isFrom: boolean) => {
+    // if (isFrom) {
+    //     setFrom(selectedLocation);
+    //     setOpenFrom(false);
+    // } else {
+    //     setTo(selectedLocation);
+    //     setOpenTo(false);
+    // }
+    // };
     
     const handleCloseFrom = () => {
       setOpenFrom(false);
@@ -171,15 +166,15 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
       setLocations(locations.filter(location => location !== locationToRemove));
     };
     
-    const handleSelectDate = () => {
-  const formattedDate =
-    selectedValue === "one-way"
-      ? format(dateRange[0].startDate, "dd MMM yyyy")
-      : `${format(dateRange[0].startDate, "dd MMM yyyy")} - ${format(dateRange[0].endDate, "dd MMM yyyy")}`;
+  //   const handleSelectDate = () => {
+  // const formattedDate =
+  //   selectedValue === "one-way"
+  //     ? format(dateRange[0].startDate, "dd MMM yyyy")
+  //     : `${format(dateRange[0].startDate, "dd MMM yyyy")} - ${format(dateRange[0].endDate, "dd MMM yyyy")}`;
 
-        setDepartureDate(formattedDate);
-        handleClose();
-        };
+  //       setDepartureDate(formattedDate);
+  //       handleClose();
+  //       };
 
     
     const [counts, setCounts] = useState({ adults: 1, children: 0, infants: 0 });
@@ -340,6 +335,7 @@ const [activeButton, setActiveButton] = useState<number | null>(null);
 };
 
 
+
 const ITEMS_PER_PAGE = 4;
 
 const [stops, setStops] = useState<string | null>(null);
@@ -477,27 +473,103 @@ const handleApplyFilters = () => {
   closeDialog();
 };
 
-  const [flights, setFlights] = useState<Flight[]>([
-    { id: 1, from: "", to: "", date: "" },
-    { id: 2, from: "", to: "", date: "" }
-  ]);
+  // const [flights, setFlights] = useState<Flight[]>([
+  //   { id: 1, from: "", to: "", date: "" },
+  //   { id: 2, from: "", to: "", date: "" }
+  // ]);
 
 
-    const handleInputChange = (id: number, field: FlightField, value: string) => {
-    setFlights((prevFlights) =>
-      prevFlights.map((flight) =>
-        flight.id === id ? { ...flight, [field]: value } : flight
-      )
-    );
-  };
 
-   const addFlight = () => {
-    setFlights([...flights, { id: flights.length + 1, from: "", to: "", date: "" }]);
+
+  //   const handleInputChange = (id: number, field: FlightField, value: string) => {
+  //   setFlights((prevFlights) =>
+  //     prevFlights.map((flight) =>
+  //       flight.id === id ? { ...flight, [field]: value } : flight
+  //     )
+  //   );
+  // };
+
+  //  const addFlight = () => {
+  //   setFlights([...flights, { id: flights.length + 1, from: "", to: "", date: "" }]);
+  // };
+
+  // const removeFlight = (id: number) => {
+  //   setFlights(flights.filter((flight) => flight.id !== id));
+  // };
+
+  //  const location = useLocation();
+  const receivedFlights = location.state?.flights as Flight[] | undefined;
+  const [flights, setFlights] = useState<Flight[]>(receivedFlights || []);
+
+  // const handleInputChange = (id: number, field: 'from' | 'to' | 'date', value: string) => {
+  //   setFlights(flights.map((flight) =>
+  //     flight.id === id ? { ...flight, [field]: value } : flight
+  //   ));
+  // };
+
+  const handleInputChange = (id: number, field: string, value: string) => {
+  setFlights(
+    flights.map((flight) =>
+      flight.id === id ? { ...flight, [field]: value } : flight
+    )
+  );
+};
+    const addFlight = () => {
+    setFlights([...flights, { id: flights.length + 1, from: '', to: '', date: '' }]);
   };
 
   const removeFlight = (id: number) => {
     setFlights(flights.filter((flight) => flight.id !== id));
   };
+
+ const handleDepartureSelectionFrom = (id: number, location: string) => {
+    setFlights(
+      flights.map((flight) =>
+        flight.id === id ? { ...flight, from: location } : flight
+      )
+    );
+    handleCloseFrom();
+  };
+
+  const handleDestinationSelectionTo = (id: number, location: string) => {
+    setFlights(
+      flights.map((flight) =>
+        flight.id === id ? { ...flight, to: location } : flight
+      )
+    );
+    handleCloseTo();
+  };
+
+   const [dateId, setDateId] = useState<number | null>(null);
+
+  const [opened, setOpened] = useState(false);
+  
+       const handleClickDate = (event: React.MouseEvent<HTMLElement>, id: number) => {
+      setAnchorEl(event.currentTarget);
+      setOpened((prevOpen) => !prevOpen);
+      setDateId(id);
+    };
+  
+    const handleCloseDate = () => {
+      setOpened(false);
+    };
+  
+  
+      const handleSelectDateFunc = () => {
+      if (dateRange[0].startDate && dateRange[0].endDate && dateId) {
+        const startDateStr = dateRange[0].startDate.toLocaleDateString();
+        const endDateStr = dateRange[0].endDate.toLocaleDateString();
+        const dateString = `${startDateStr} - ${endDateStr}`;
+        setFlights(flights.map((flight) =>
+          flight.id === dateId ? { ...flight, date: dateString } : flight
+        ));
+      }
+      setOpened(false);
+    };
+  
+
+
+
 
 
   return (
@@ -710,10 +782,10 @@ const handleApplyFilters = () => {
                     variant="outlined"
                     size="small"
                     placeholder="Search Destination"
-                    value={from}
+                    value={flight.from}
                     onChange={(e) => handleInputChange(flight.id, "from", e.target.value)}
-                    onClick={handleFromClick}
-                    // onClick={() => handleFromOptionClick(location)}
+                    
+                    onClick={(e) => handleFromClick(e, flight.id)}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -727,54 +799,54 @@ const handleApplyFilters = () => {
                       "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
                     }} />
 
-                  <Popper id="from-popper" open={openFrom} anchorEl={FromClick} placement="bottom-start">
-                    <ClickAwayListener onClickAway={handleCloseFrom}>
-                      <Paper
-                        elevation={3}
-                        sx={{
-                          width: "317px",
-                          borderRadius: "6px",
-                          backgroundColor: "white",
-                          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                          paddingBottom: "25px",
-                        }}
-                      >
-                        <Typography variant="subtitle1" className="font-inter text-[#343537] text-lg pl-[24px] pt-[24px] pr-[24px]">
-                          Recent Searches
-                        </Typography>
-
-                        {locations.length === 0 ? (
-                          <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
-                            No recent searches
-                          </Typography>
-                        ) : (
-                          locations.map((location, index) => (
-                            <React.Fragment key={location}>
-                              <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
-                                <div className="flex gap-[8px]" onClick={() => handleOptionClick(location, true)}>
-                                  <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
-                                    <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
-                                  </div>
-                                  <p>{location}</p>
-                                </div>
-
-
-                                <CloseOutlinedIcon
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRemoveOption(location);
-                                  } }
-                                  className="cursor-pointer"
-                                  sx={{ color: "gray" }} />
-                              </div>
-
-                              {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
-                            </React.Fragment>
-                          ))
-                        )}
-
-                      </Paper>
-                    </ClickAwayListener>
+                  <Popper id="from-popper" open={openFrom && FromId === flight.id} anchorEl={FromClick} placement="bottom-start">
+                                  <ClickAwayListener onClickAway={handleCloseFrom}>
+                                    <Paper
+                                      elevation={3}
+                                      sx={{
+                                        width: "317px",
+                                        borderRadius: "6px",
+                                        backgroundColor: "white",
+                                        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                                        paddingBottom: "25px",
+                                      }}
+                                    >
+                                      <Typography variant="subtitle1" className="font-inter text-[#343537] text-lg pl-[24px] pt-[24px] pr-[24px]">
+                                        Recent Searches
+                                      </Typography>
+                  
+                                      {locations.length === 0 ? (
+                                        <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
+                                          No recent searches
+                                        </Typography>
+                                      ) : (
+                                        locations.map((location, index) => (
+                                          <React.Fragment key={location}>
+                                            <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
+                                              <div className="flex gap-[8px]" onClick={() => handleDepartureSelectionFrom(flight.id, location)}>
+                                                <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
+                                                  <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
+                                                </div>
+                                                <p>{location}</p>
+                                              </div>
+                  
+                  
+                                              <CloseOutlinedIcon
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleRemoveOption(location);
+                                                } }
+                                                className="cursor-pointer"
+                                                sx={{ color: "gray" }} />
+                                            </div>
+                  
+                                            {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
+                                          </React.Fragment>
+                                        ))
+                                      )}
+                  
+                                    </Paper>
+                                  </ClickAwayListener>
                   </Popper>
                 </Box>
 
@@ -784,11 +856,9 @@ const handleApplyFilters = () => {
                     id={`to-${index + 1}`}
                     variant="outlined"
                     size="small"
-                    value={to}
-                    onClick={handleToClick}
+                    value={flight.to}
+                    onClick={(e) => handleToClick(e, flight.id)}
                     onChange={(e) => handleInputChange(flight.id, "to", e.target.value)}
-
-                    //  onClick={() => handleToOptionClick(location)}
                     placeholder="Search Destination"
                     InputProps={{
                       startAdornment: (
@@ -803,54 +873,54 @@ const handleApplyFilters = () => {
                       "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
                     }} />
 
-                  <Popper id="from-popper" open={openTo} anchorEl={ToClick} placement="bottom-start">
-                    <ClickAwayListener onClickAway={handleCloseTo}>
-                      <Paper
-                        elevation={3}
-                        sx={{
-                          width: "317px",
-                          borderRadius: "6px",
-                          backgroundColor: "white",
-                          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                          paddingBottom: "25px",
-                        }}
-                      >
-                        <Typography variant="subtitle1" className="font-inter text-[#343537] text-lg pl-[24px] pt-[24px] pr-[24px]">
-                          Recent Searches
-                        </Typography>
-
-                        {locations.length === 0 ? (
-                          <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
-                            No recent searches
-                          </Typography>
-                        ) : (
-                          locations.map((location, index) => (
-                            <React.Fragment key={location}>
-                              <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
-                                <div className="flex gap-[8px]" onClick={() => handleOptionClick(location, false)}>
-                                  <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
-                                    <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
-                                  </div>
-                                  <p>{location}</p>
-                                </div>
-
-
-                                <CloseOutlinedIcon
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRemoveOption(location);
-                                  } }
-                                  className="cursor-pointer"
-                                  sx={{ color: "gray" }} />
-                              </div>
-
-                              {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
-                            </React.Fragment>
-                          ))
-                        )}
-
-                      </Paper>
-                    </ClickAwayListener>
+                  <Popper id="from-popper"  open={openTo && ToId === flight.id} anchorEl={ToClick} placement="bottom-start">
+                                 <ClickAwayListener onClickAway={handleCloseTo}>
+                                   <Paper
+                                     elevation={3}
+                                     sx={{
+                                       width: "317px",
+                                       borderRadius: "6px",
+                                       backgroundColor: "white",
+                                       boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                                       paddingBottom: "25px",
+                                     }}
+                                   >
+                                     <Typography variant="subtitle1" className="font-inter text-[#343537] text-lg pl-[24px] pt-[24px] pr-[24px]">
+                                       Recent Searches
+                                     </Typography>
+                 
+                                     {locations.length === 0 ? (
+                                       <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
+                                         No recent searches
+                                       </Typography>
+                                     ) : (
+                                       locations.map((location, index) => (
+                                         <React.Fragment key={location}>
+                                           <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
+                                             <div className="flex gap-[8px]" onClick={() => handleDestinationSelectionTo(flight.id, location)}>
+                                               <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
+                                                 <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
+                                               </div>
+                                               <p>{location}</p>
+                                             </div>
+                 
+                 
+                                             <CloseOutlinedIcon
+                                               onClick={(e) => {
+                                                 e.stopPropagation();
+                                                 handleRemoveOption(location);
+                                               } }
+                                               className="cursor-pointer"
+                                               sx={{ color: "gray" }} />
+                                           </div>
+                 
+                                           {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
+                                         </React.Fragment>
+                                       ))
+                                     )}
+                 
+                                   </Paper>
+                                 </ClickAwayListener>
                   </Popper>
                 </Box>
 
@@ -861,8 +931,8 @@ const handleApplyFilters = () => {
                     variant="outlined"
                     size="small"
                     placeholder="Select Date"
-                    value={departureDate} 
-                    onClick={handleClick}
+                    value={flight.date} 
+                    onClick={(e) => handleClickDate(e, flight.id)}
                     onChange={(e) => handleInputChange(flight.id, "date", e.target.value)}
                     InputProps={{
                       startAdornment: (
@@ -878,64 +948,56 @@ const handleApplyFilters = () => {
                     }} />
 
 
-
-                  <Popper id={id} open={open} anchorEl={anchorEl} placement="bottom-start">
-                    <ClickAwayListener onClickAway={handleClose}>
-                      <Paper
-                        elevation={3}
-                        sx={{
-                          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                          overflow: "hidden",
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          paddingBottom: "20px",
-                        }}
-                      >
-                        <div style={{ width: "100%", height: "100%" }}>
-                          <DateRange
-                            editableDateInputs={true}
-                            onChange={(item: RangeKeyDict) => {
-                              setDateRange([
-                                {
-                                  startDate: item.selection.startDate ?? new Date(),
-                                  endDate: item.selection.endDate ?? new Date(),
-                                  key: item.selection.key ?? "selection",
-                                },
-                              ]);
-                            } }
-
-                            moveRangeOnFirstSelection={false}
-                            ranges={dateRange}
-                            rangeColors={["#FF6F1E"]}
-                            months={2}
-                            direction="horizontal"
-                            showDateDisplay={false} 
-                            className="w-full h-full"
-                          />
-
-                          <div className="w-[96%] m-auto">
-                            <button
-                              className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
-                              style={{
-                                backgroundColor: "#023E8A",
-
-                                color: "white",
-                                marginTop: 2,
-                                // "&:hover": { backgroundColor: "#012A5A" },
-                              }}
-                              onClick={handleSelectDate}
-                            >
-                              Select Date
-                            </button>
-                          </div>
-                        </div>
-
-
-
-                      </Paper>
-                    </ClickAwayListener>
-                  </Popper>
+                    <Popper id={id} open={opened && dateId === flight.id} anchorEl={anchorEl} placement="bottom-start">
+    <ClickAwayListener onClickAway={handleCloseDate}>
+      <Paper
+        elevation={3}
+        sx={{
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+          overflow: "hidden",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          paddingBottom: "20px",
+        }}
+      >
+        <div style={{ width: "100%", height: "100%" }}>
+          <DateRange
+            editableDateInputs={true}
+            onChange={(item: RangeKeyDict) => {
+              setDateRange([
+                {
+                  startDate: item.selection.startDate ?? new Date(),
+                  endDate: item.selection.endDate ?? new Date(),
+                  key: item.selection.key ?? "selection",
+                },
+              ]);
+            }}
+            moveRangeOnFirstSelection={false}
+            ranges={dateRange}
+            rangeColors={["#FF6F1E"]}
+            months={2}
+            direction="horizontal"
+            showDateDisplay={false}
+            className="w-full h-full"
+          />
+          <div className="w-[96%] m-auto">
+            <button
+              className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
+              style={{
+                backgroundColor: "#023E8A",
+                color: "white",
+                marginTop: 2,
+              }}
+              onClick={handleSelectDateFunc}
+            >
+              Select Date
+            </button>
+          </div>
+        </div>
+      </Paper>
+    </ClickAwayListener>
+                    </Popper>
 
                 </Box>
                
@@ -948,7 +1010,7 @@ const handleApplyFilters = () => {
                 )}
                 </div>
            
-        </Box>
+          </Box>
           </div>
         ))}
 

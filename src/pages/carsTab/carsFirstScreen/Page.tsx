@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect, ChangeEvent, forwardRef , Ref, ReactElement } from "react";
 import { Box, TextField, InputAdornment, Popper, ClickAwayListener, Paper, Typography, Divider, MenuItem, Select, Dialog, DialogContent, IconButton, Slide } from '@mui/material';
 import { DateRange, RangeKeyDict } from 'react-date-range';
@@ -25,7 +26,7 @@ interface DateRangeType {
 }
 
 import { TransitionProps } from "@mui/material/transitions";
-// import { m } from "framer-motion";
+
 
 const Transition = forwardRef<unknown, TransitionProps & { children: ReactElement }>(
   function Transition(props, ref) {
@@ -252,7 +253,6 @@ const handleSubmitOffer = () => {
             
       const handleCloseClick = () => {
       setOpenClick(false);
-      // setSelectedCarId(null);
     };
 
 
@@ -281,7 +281,7 @@ const handleTextFieldClickOff = () => {
 
         <div>
         <div className="flex flex-col md:flex-row md:justify-between md:flex-wrap lg:flex-wrap lg:flex-row lg:justify-between gap-[24px]">
-            
+               
             <Box sx={{ display: "flex", flexDirection: "column" }}>
               <label htmlFor="from" className="mb-1">Pick Up</label>
               <TextField
@@ -341,7 +341,7 @@ const handleTextFieldClickOff = () => {
                   <DialogContent
                     sx={{
                       overflowY: "auto",
-                      width: "100%",
+                          width: "100%",
                       height:"100%",
                       "&::-webkit-scrollbar": { display: "none" },
                       scrollbarWidth: "none",
@@ -569,7 +569,7 @@ const handleTextFieldClickOff = () => {
     
     
             </DialogContent>
-              </Dialog>
+               </Dialog>
     
             </Box>
     
@@ -600,7 +600,7 @@ const handleTextFieldClickOff = () => {
                   />
     
 
-                <Dialog
+              <Dialog
                 open={open}
                 TransitionComponent={Transition}
                 keepMounted
@@ -698,10 +698,10 @@ const handleTextFieldClickOff = () => {
                         </div>
     
                     </DialogContent>
-                    </Dialog>
+                </Dialog>
     
-                </Box>
-                </div>
+            </Box>
+        </div>
 
         <div  className="flex flex-col md:flex-row md:justify-between md:flex-wrap lg:flex-wrap lg:flex-row lg:justify-between gap-[24px] mt-[24px]">
         <div className="flex w-full gap-2">
@@ -821,7 +821,7 @@ const handleTextFieldClickOff = () => {
                     }}
                   />
     
-                  <Dialog
+              <Dialog
                 open={openClick}
                 onClose={handleCloseClick}
                 TransitionComponent={Transition}
