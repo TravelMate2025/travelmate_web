@@ -1,3 +1,4 @@
+
 import { useState,useEffect } from 'react';
 import Navbar from '../../homePage/Navbar'
 import LuggageOutlinedIcon from '@mui/icons-material/LuggageOutlined';
@@ -156,7 +157,7 @@ const handleSubmit = () => {
 
          {isMobile ? (
 <div>
-     {activeStep === 0 && 
+         {activeStep === 0 && 
         <div>
 
         <div className="mb-6 ">
@@ -828,13 +829,13 @@ const handleSubmit = () => {
                                                     </div> */}
                     
                 </div>
-                }
-            </div>
+        }
+</div>
 
 
                 // web view
 
-               ) : (
+        ) : (
 
         <div className='mb-[92px]'>
             <div className=" w-[90%] m-auto ">
@@ -1292,9 +1293,9 @@ const handleSubmit = () => {
         </div>
 
           )}
-        {/* <div>
+        <div>
             <Footer />
-        </div> */}
+        </div>
     </div>
 
   )
