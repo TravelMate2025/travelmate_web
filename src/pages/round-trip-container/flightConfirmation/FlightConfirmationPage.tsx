@@ -18,6 +18,7 @@ import { useMediaQuery } from "react-responsive";
 import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined';
 
 
+
 const FlightConfirmationPage = () => {
     const isMobile = useMediaQuery({ maxWidth: 768 });
   return (
@@ -32,7 +33,7 @@ const FlightConfirmationPage = () => {
             <Link to="/">
             <p className='text-[14px] mt-[5px] font-medium font-inter'>Done</p>
             </Link>
-            <p className='text-[20px] font-semibold font-inter'>Flight Confirmation</p>r
+            <p className='text-[20px] font-semibold font-inter'>Flight Confirmation</p>
             <div>     
             <div className="mb-6 ">
                 <div className="w-[35px] mt-[-5px] h-[35px] p-[4px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] ">
@@ -288,16 +289,16 @@ const FlightConfirmationPage = () => {
 
                         <div className="flex justify-between">
                             <div>
-                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Return Flight</p>
-                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
+                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">Return Flight</p>
+                            <p className="text-[12px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
                             </div>
                             <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
                         </div>
 
                             <div className="flex justify-between">
                             <div>
-                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Taxes & Fees</p>
-                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
+                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">Taxes & Fees</p>
+                            <p className="text-[12px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
                             </div>
                             <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
                         </div>
@@ -376,9 +377,7 @@ const FlightConfirmationPage = () => {
                 </Link>
             </div>
 
-            <div className="mt-24">
-                 <Footer  />
-            </div>
+            
            
 
 
@@ -728,13 +727,15 @@ const FlightConfirmationPage = () => {
 
     </div>
         </div>
-
-            <Footer />
         </div>
 
 
     )}
 
+        
+        <div className="mt-24">
+                 <Footer  />
+            </div>
            
     </div>
   )

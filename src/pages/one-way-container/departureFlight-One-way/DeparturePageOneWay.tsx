@@ -1087,7 +1087,7 @@ const handleApplyFilters = () => {
               </div>
               </Link>
                   </Dialog>
-              </div>
+        </div>
           </div>
         
           </div>
