@@ -708,11 +708,11 @@ const FlightConfirmationPage = () => {
         </div>
         </div>
 
- )}
+       )}
         </div>
         
-<div className="mt-24">
-                 <Footer  />
+            <div className="mt-24">
+            <Footer  />
             </div>
     </div>
   )
