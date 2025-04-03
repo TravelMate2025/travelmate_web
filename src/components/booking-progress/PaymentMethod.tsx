@@ -24,7 +24,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
   const [cvv, setCvv] = useState("");
   const [isDefault, setIsDefault] = useState(false);
 
-  const [savedCards, setSavedCards] = useState<Card[]>(initialCards);
+  const [savedCards] = useState<Card[]>(initialCards);
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
   const [showAddCardModal, setShowAddCardModal] = useState(false);
 
