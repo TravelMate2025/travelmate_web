@@ -1,3 +1,4 @@
+
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -5,10 +6,79 @@ import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import playstore from "../../assets/playstore.svg";
 import googleplay from "../../assets/googleplay.svg";
 import scan from "../../assets/scan.svg";
+import { useMediaQuery } from "react-responsive";
 
 const TravelmateApp = () => {
+    const isMobile = useMediaQuery({ maxWidth: 768 });
   return (
+
     <div className="w-[90%] mx-auto">
+
+      {isMobile ? (
+
+         <div className="bg-white mt-6 w-full h-auto p-4 border border-[#CDCED1] rounded-md shadow-md shadow-[#00000014] mb-24">
+        <div className="flex flex-col w-[100%] justify-between gap-6">
+          
+          {/* Left Section */}
+          <div className="w-full ">
+            <p className="text-[16px] font-semibold font-inter text-[#181818]">
+              Get the TravelMate App Now!
+            </p>
+            <p className="text-[#4E4F52] text-[14px] font-inter mt-2">
+              Discover hotel, flight, and rental car deals exclusively in the app. Download today to stay connected with important trip details.
+            </p>
+           
+
+            {/* Input & Button */}
+            <div className="flex flex-col gap-4 mt-6">
+              <Box sx={{ width: "100%" }}>
+                <TextField
+                  id="from"
+                  variant="outlined"
+                  size="small"
+                  placeholder="Enter Email Address"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailOutlinedIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    width: "100%",
+                    "& .MuiInputBase-root": { height: "44px" },
+                    "& .MuiOutlinedInput-input": { fontSize: "14px" },
+                    "& .MuiInputAdornment-root svg": { fontSize: "20px" },
+                  }}
+                />
+              </Box>
+
+            <button className="bg-[#023E8A] w-full sm:w-40 h-[44px] px-6 text-white font-inter text-sm rounded-md">
+            Send Link
+            </button>
+
+            </div>
+          </div>
+
+          {/* Right Section - Images */}
+          <div className="flex  gap-4 justify-between">
+            <div className="flex gap-4 mt-5">
+              <img src={googleplay} alt="Google Play" className="max-w-[96px] w-full h-[44px] " />
+              <img src={playstore} alt="Play Store" className="max-w-[103px]  w-full h-[44px]" />
+            </div>
+
+            <div>
+              <img src={scan} alt="QR Code" className="max-w-[96px] mt-4 w-full h-[44px]" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+       ) : (
+
+        // web view
+
+
       <div className="bg-white mt-24 w-full h-auto p-8 border border-[#CDCED1] rounded-md shadow-md shadow-[#00000014] mb-24">
         <div className="flex flex-col md:flex-row justify-between gap-6">
           
@@ -68,6 +138,7 @@ const TravelmateApp = () => {
           </div>
         </div>
       </div>
+       )}
     </div>
   );
 };
