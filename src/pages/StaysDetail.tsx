@@ -12,6 +12,8 @@ import Reviews from "../components/Reviews";
 import ReviewsModal from "../components/modals/ReviewModal";
 import AllPhotosModal from "../components/modals/AllPhotosModal";
 import ShareModal from "../components/modals/ShareModal";
+import Policies from "../components/booking-progress/Policies";
+import RefundCancellation from "../components/booking-progress/RefundCancellation";
 
 
 interface StaysDetailProps {
@@ -26,6 +28,11 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
     const [openModal, setOpenModal] = useState(false);
     const [showPhotosModal, setShowPhotosModal] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
+
+    const cancellationDate = new Date();
+    cancellationDate.setDate(cancellationDate.getDate() + 1);
+    const formattedDate = cancellationDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const formattedTime = "11:59 PM";
 
 
     const sections = [
@@ -275,6 +282,18 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
             <hr className="text-gray-300" />
                     <Reviews />
             </section>
+
+            <section id="Refund and cancellations" className="mt-10"> 
+            <hr className="text-gray-300 mb-8" />
+             <RefundCancellation formattedTime={formattedTime} formattedDate={formattedDate} refundableUntil={formattedTime} />
+            </section>
+
+            <section id="Policies" className="mt-10 mb-10"> 
+            <hr className="text-gray-300 mb-8" />
+                <Policies />
+            </section>
+
+             
         
         </div>
 

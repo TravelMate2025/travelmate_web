@@ -1,4 +1,41 @@
-import React from "react";
+import React, { useState, useRef, useEffect, ReactNode } from "react";
+
+const ResponsiveFlexContainer = ({ children }: { children: ReactNode }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+
+    return () => {
+      window.removeEventListener("resize", updateWidth);
+    };
+  }, []);
+
+  const isRow = containerWidth > 768;
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        display: "flex",
+        flexDirection: isRow ? "row" : "column",
+        width: "100%",
+        alignItems: "flex-start",
+        // justifyContent: "space-between",
+      }}
+    >
+      {children}
+    </div>
+  );
+};
 
 const Policies: React.FC = () => {
   return (
@@ -9,36 +46,42 @@ const Policies: React.FC = () => {
       {/* Body */}
       <div className="border border-gray-300 rounded-lg p-6 space-y-6">
         {/* Check-in Policy */}
-        <div className="flex flex-row items-start justify-between md:flex-col">
-          <p className="font-medium">Check-in Policy:</p>
-          <p className="text-gray-700">Guests must check in after 3:00 PM with a valid ID.</p>
-          <p className="text-gray-700">Guests must check in after 3:00 PM with a valid ID.</p>
-          <p className="text-gray-700">Guests must check in after 3:00 PM with a valid ID.</p>
-        </div>
+        <ResponsiveFlexContainer>
+          <p className="font-medium text-gray-700">Check In & Check Out</p>
+          <ul className="mt-4 ml-8 list-disc md:ml-40">
+            <li>Valid ID card required at Check in time</li>
+            <li>Check In time: 4:00pm</li>
+            <li>Checkout Time: 6:00pm</li>
+          </ul>
+        </ResponsiveFlexContainer>
 
         <hr className="border-gray-300" />
 
-        <div className="flex flex-row items-start justify-between md:flex-col">
-          <p className="font-medium">Reservation Policy:</p>
-          <p className="text-gray-700">All bookings are non refundable.</p>
-        </div>
+        <ResponsiveFlexContainer>
+          <p className="font-medium text-gray-700">Reservation Policy</p>
+          <ul className="list-disc mt-4 ml-8 md:ml-47">
+            <li>All bookings are non refundable once committed</li>
+          </ul>
+        </ResponsiveFlexContainer>
 
         <hr className="border-gray-300" />
 
-        {/* Pet Policy */}
-        <div className="flex flex-row items-start justify-between md:flex-col">
-          <p className="font-medium">Pet Policy:</p>
-          <p className="text-gray-700">Pets are not allowed inside hotel rooms.</p>
-        </div>
+        <ResponsiveFlexContainer>
+          <p className="font-medium text-gray-700">Pet Policy</p>
+          <ul className="list-disc mt-4 ml-8  xl:ml-49 ">
+            <li>No Pets allowed on the premises</li>
+          </ul>
+        </ResponsiveFlexContainer>
 
         <hr className="border-gray-300" />
 
-        {/* Additional Guests */}
-        <div className="flex flex-row items-start justify-between md:flex-col">
-          <p className="font-medium">Additional Guests:</p>
-          <p className="text-gray-700">Extra guests may be charged additional fees.</p>
-          <p className="text-gray-700">Extra guests may be charged additional fees.</p>
-        </div>
+        <ResponsiveFlexContainer>
+          <p className="font-medium text-gray-700">Children and Extra Beds</p>
+          <ul className="list-disc mt-4 ml-8 md:ml-36 xl:ml-47">
+            <li>Children are welcome</li>
+            <li>Cribs not available</li>
+          </ul>
+        </ResponsiveFlexContainer>
       </div>
     </div>
   );

@@ -2,14 +2,41 @@ import React, { useState } from "react";
 import { FaRegCreditCard } from "react-icons/fa";
 import mastercardLogo from "../../assets/images/mastercard-logo.png";
 import visaLogo from "../../assets/images/visa-logo.png";
+import AddNewCard from "../modals/AddNewCard"
 
-const PaymentMethod: React.FC = () => {
-  // State management
+interface PaymentMethodProps {
+  initialCards?: Card[];
+}
+
+interface Card {
+  id: number;
+  cardNumber: string;
+  cardHolder: string;
+  isDefault: boolean;
+  type: "visa" | "mastercard";
+}
+
+
+const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [cvv, setCvv] = useState("");
   const [isDefault, setIsDefault] = useState(false);
+
+  const [savedCards, setSavedCards] = useState<Card[]>(initialCards);
+  const [selectedCard, setSelectedCard] = useState<number | null>(null);
+  const [showAddCardModal, setShowAddCardModal] = useState(false);
+
+  const maskCardNumber = (cardNumber: string) => "**** **** **** " + cardNumber.slice(-4);
+
+  // const handleAddCard = () => {
+  //   setShowAddCardModal(true);
+  // };
+
+  const handleCloseModal = () => {
+    setShowAddCardModal(false);
+  };
 
   return (
     <div className="w-full md:w-[628px] space-y-4">
@@ -30,65 +57,104 @@ const PaymentMethod: React.FC = () => {
           </div>
         </div>
 
-        {/* Input Fields */}
-        <div className="space-y-4">
-          <div>
-            <label className="block mb-2 font-medium">Card Number</label>
-            <input
-              type="text"
-              placeholder="1234 5678 9012 3456"
-              className="w-full border border-gray-400 rounded-lg p-2 outline-none"
-              value={cardNumber}
-              onChange={(e) => setCardNumber(e.target.value)}
-            />
+        {savedCards.length > 0 ? (
+          <div className="space-y-4">
+            {savedCards.map((card) => (
+              <div key={card.id} className="flex items-center border border-gray-300 rounded-lg p-4 w-full">
+                <input
+                  type="radio"
+                  name="selectedCard"
+                  className="mr-3 w-5 h-5"
+                  checked={selectedCard === card.id}
+                  onChange={() => setSelectedCard(card.id)}
+                />
+                <img src={card.type === "visa" ? visaLogo : mastercardLogo} alt={card.type} className="w-10 h-6 mr-4" />
+                <div className="flex-grow">
+                  <p className="font-medium flex items-center">
+                    {card.cardHolder}
+                    {card.isDefault && (
+                      <span className="ml-2 text-xs border border-red-500 text-red-500 px-2 py-1 rounded-md">
+                        Default
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-gray-600">{maskCardNumber(card.cardNumber)}</p>
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={() => setShowAddCardModal(true)}
+              className="absolute bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg"
+            >
+              Add New Card
+            </button>
           </div>
-
-          <div>
-            <label className="block mb-2 font-medium">Cardholder's Name</label>
-            <input
-              type="text"
-              placeholder="Enter Name"
-              className="w-full border border-gray-400 rounded-lg p-2 outline-none"
-              value={cardHolder}
-              onChange={(e) => setCardHolder(e.target.value)}
-            />
-          </div>
-
-        
-            <div className="">
-              <label className="block mb-2 font-medium">Expiry Date</label>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <label className="block mb-2 font-medium">Card Number</label>
               <input
                 type="text"
-                placeholder="MM/YY"
+                placeholder="1234 5678 9012 3456"
                 className="w-full border border-gray-400 rounded-lg p-2 outline-none"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
+                value={cardNumber}
+                onChange={(e) => setCardNumber(e.target.value)}
               />
             </div>
-            <div className="">
-              <label className="block mb-2 font-medium">CVV</label>
+
+            <div>
+              <label className="block mb-2 font-medium">Cardholder's Name</label>
               <input
-                type="password"
-                placeholder="123"
+                type="text"
+                placeholder="Enter Name"
                 className="w-full border border-gray-400 rounded-lg p-2 outline-none"
-                value={cvv}
-                onChange={(e) => setCvv(e.target.value)}
+                value={cardHolder}
+                onChange={(e) => setCardHolder(e.target.value)}
               />
             </div>
 
-        </div>
+          
+              <div>
+                <label className="block mb-2 font-medium">Expiry Date</label>
+                <input
+                  type="text"
+                  placeholder="MM/YY"
+                  className="w-full border border-gray-400 rounded-lg p-2 outline-none"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block mb-2 font-medium">CVV</label>
+                <input
+                  type="password"
+                  placeholder="123"
+                  className="w-full border border-gray-400 rounded-lg p-2 outline-none"
+                  value={cvv}
+                  onChange={(e) => setCvv(e.target.value)}
+                />
+              </div>
 
-        {/* Checkbox */}
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={isDefault}
-            onChange={() => setIsDefault(!isDefault)}
-            className="w-4 h-4 border rounded"
-          />
-          <p className="text-sm text-gray-700">Set as default payment method</p>
-        </div>
+            {/* Checkbox */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={isDefault}
+                onChange={() => setIsDefault(!isDefault)}
+                className="w-4 h-4 border rounded"
+              />
+              <p className="text-sm text-gray-700">Set as default payment method</p>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* <button onClick={handleAddCard} className="bg-blue-600 text-white px-4 py-2 rounded">
+        Add New Card
+      </button> */}
+
+      {/* Conditionally render the modal */}
+      {showAddCardModal && <AddNewCard onClose={handleCloseModal} />}
     </div>
   );
 };

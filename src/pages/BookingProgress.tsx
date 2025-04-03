@@ -1,4 +1,3 @@
-import React from "react";
 import Navbar from "../pages/homePage/Navbar";
 import { GrStatusGood } from "react-icons/gr";
 import HotelCard from "../components/BookingProgressHotelCard";
@@ -9,12 +8,17 @@ import PaymentMethod from "../components/booking-progress/PaymentMethod";
 import RefundCancellation from "../components/booking-progress/RefundCancellation";
 import Policies from "../components/booking-progress/Policies";
 import Footer from "../components/2Footer";
+import { useState } from "react";
+
 
 const BookingProgress: React.FC = () => {
   const cancellationDate = new Date();
   cancellationDate.setDate(cancellationDate.getDate() + 1);
   const formattedDate = cancellationDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const formattedTime = "11:59 PM";
+
+  const [isChecked, setIsChecked] = useState(false);
+
 
   return (
     <div>
@@ -30,7 +34,6 @@ const BookingProgress: React.FC = () => {
           </p>
         </div>
 
-        {/* Hotel Details - Using HotelCard Component */}
         <HotelCard
           imageUrl="src/assets/images/StayImage3.png"
           roomDetails="Standard King Room"
@@ -44,7 +47,7 @@ const BookingProgress: React.FC = () => {
 
             <div className="space-y-4">
               <GuestInformation />
-              <RefundCancellation formattedTime={""} formattedDate={""} refundableUntil={""} />
+              <RefundCancellation formattedTime={formattedTime} formattedDate={formattedDate} refundableUntil={formattedTime} />
               <Policies />
             </div>
           
@@ -52,6 +55,50 @@ const BookingProgress: React.FC = () => {
                 <PriceSummary />
                 <BookingDetails />
                 <PaymentMethod />
+
+
+
+  
+
+              
+                <div className="mt-16">
+                  {/* Terms and Conditions Checkbox */}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="termsCheckbox"
+                      checked={isChecked}
+                      onChange={() => setIsChecked(!isChecked)}
+                      className="w-5 h-5 cursor-pointer"
+                    />
+                    <p className="m-2 text-sm text-gray-700">
+                      I agree to the 
+                      <a href="/booking-conditions" className="text-[#023E8A] cursor-pointer hover:underline">
+                        {" "}Booking Conditions
+                      </a>, 
+                      <a href="/terms-and-conditions" className="text-[#023E8A] cursor-pointer hover:underline">
+                        {" "}TravelMate Terms and Conditions
+                      </a> 
+                      <span className="text-black"> and </span> 
+                      <a href="/privacy-policy" className="text-[#023E8A] cursor-pointer hover:underline">
+                        Privacy Policy
+                      </a>.
+                    </p>
+
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    className={`w-full px-6 py-2 rounded-lg mt-4 text-white ${
+                      isChecked ? "bg-[#023E8A] hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                    disabled={!isChecked}
+                  >
+                    Make Payment
+                  </button>
+                </div>
+
             </div>
           
         </div>

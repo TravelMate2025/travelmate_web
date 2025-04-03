@@ -6,7 +6,7 @@ const BackHomeButton: React.FC = () => {
 
   return (
     <button
-      className="bg-blue-600 text-white px-6 py-2 rounded-lg mt-6 hover:bg-blue-700"
+      className="bg-[#023E8A] w-full text-white px-6 py-2 rounded-lg mt-6 mb-15 hover:bg-blue-700"
       onClick={() => navigate("/")}
     >
       Back to Home

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { FaSortAmountDown } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { FaSortAmountDown, FaPencilAlt } from "react-icons/fa";
 import { HiAdjustmentsHorizontal } from "react-icons/hi2";
 import Navbar from "../components/2Navbar";
 import Breadcrumbs from "../components/Breadcrumbs";
@@ -11,10 +11,24 @@ import FilterModal from "../components/modals/FilterModal";
 import UpdateSearchFilter from "../components/UpdateSearchFilter";
 
 export default function StaysSearchResults() {
-  // State for modals
+  // State for modals and visibility
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
   const [selectedSort, setSelectedSort] = useState("Recommended");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  const [showUpdateSearch, setShowUpdateSearch] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   // Breadcrumb Navigation
   const breadcrumbs = [
@@ -23,22 +37,58 @@ export default function StaysSearchResults() {
     { name: "Search Results" },
   ];
 
+  // Example filter details (replace with actual data)
+  const filterDetails = {
+    state: "Lagos",
+    city: "Ikeja",
+    dates: "Feb 10 - Feb 15 (7 nights)",
+    roomsGuests: "1 Room, 1 Guest",
+  };
+
+  const handleEditClick = () => {
+    setShowUpdateSearch(!showUpdateSearch); // Toggle
+  };
+
   return (
     <div className="h-screen flex flex-col">
       {/* Navbar */}
       <Navbar />
-      <UpdateSearchFilter />
 
-      <Breadcrumbs items={breadcrumbs} />
+      {/* Conditional UpdateSearchFilter */}
+      {(!isMobile || showUpdateSearch) && <UpdateSearchFilter />}
+
+      {/* Conditional Breadcrumbs */}
+      {!isMobile && <Breadcrumbs items={breadcrumbs} />}
 
       {/* Results and Sorting Section */}
       <div className="min-h-screen px-6">
-        <div className="flex justify-between items-center border-b border-t border-gray-300 p-4">
-          <span className="text-black font-bold text-lg">80 Results</span>
+        {/* Filter Details Box (Mobile) */}
+        {isMobile && !showUpdateSearch && (
+         <button
+          onClick={handleEditClick}
+          className="border bg-blue-100 rounded-lg p-4 my-4 flex justify-between items-center"
+          >
+          <div className="text-left">
+            <p className="truncate overflow-hidden whitespace-nowrap">
+              {`${filterDetails.state}, ${filterDetails.city}`}
+            </p>
+            <p className="truncate overflow-hidden whitespace-nowrap">
+              {`${filterDetails.dates} * ${filterDetails.roomsGuests}`}
+            </p>
+          </div>
+          <span className="m-3"><FaPencilAlt /></span>
+
+        </button>
+        )}
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <span className="text-black font-bold text-lg ml-0 sm:ml-4 mb-4 sm:mb-0">
+            80 Results
+          </span>
 
           <div className="flex gap-4">
             <button
-              className="w-[96px] h-[44px] flex items-center justify-center gap-2 border border-gray-300 rounded-lg shadow-sm"
+              className="w-25 sm:w-[96px] sm:h-[44px] flex items-center justify-center gap-2 border border-gray-300 rounded-lg shadow-sm"
               onClick={() => setIsFilterModalOpen(true)}
             >
               <HiAdjustmentsHorizontal />
@@ -46,20 +96,28 @@ export default function StaysSearchResults() {
             </button>
 
             {/* Filter Modal */}
-            <FilterModal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} />
+            <FilterModal
+              isOpen={isFilterModalOpen}
+              onClose={() => setIsFilterModalOpen(false)}
+            />
 
             {/* Sort By Button */}
             <button
-              className="w-[275px] h-[44px] flex items-center justify-between px-4 border border-gray-300 rounded-lg shadow-sm"
+              className="w-25 sm:w-[275px] h-[44px] flex items-center justify-between px-4 border border-gray-300 rounded-lg shadow-sm"
               onClick={() => setIsSortModalOpen(true)}
             >
               <div className="flex items-center gap-2">
                 <FaSortAmountDown />
-                <span>Sort By: {selectedSort}</span>
+                <span>
+                  {isMobile
+                    ? "Sort"
+                    : selectedSort
+                    ? `Sort By: ${selectedSort}`
+                    : "Sort"}
+                </span>
               </div>
-              <span>▼</span>
+              {!isMobile && <span>▼</span>}
             </button>
-
           </div>
         </div>
 
