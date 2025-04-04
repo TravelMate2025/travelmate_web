@@ -1,3 +1,5 @@
+
+
 import Navbar from '../../homePage/Navbar'
 import React, { useState, useMemo,  forwardRef , Ref, ReactElement  } from "react";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -34,7 +36,7 @@ import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutlined';
 import { useMediaQuery } from "react-responsive";
 import { TransitionProps } from "@mui/material/transitions";
-
+import ModeEditOutlinedIcon from '@mui/icons-material/ModeEditOutlined';
 
 
 
@@ -68,10 +70,30 @@ interface DepartureListProps {
   departureInfo: Departure[];
 }
 
+interface Flight {
+  id: number;
+  from: string;
+  to: string;
+  date: string;
+}
+
+interface MultitripData {
+ flights: Flight[],
+  passengers: string;
+  flightClass: string;
+}
+
 
 const DeparturePage: React.FC<DepartureListProps> = () => {
      const isMobile = useMediaQuery({ maxWidth: 768 });
     
+     
+const storedMultiData = sessionStorage.getItem("multitrip");
+
+const multitripData: MultitripData = storedMultiData
+  ? (JSON.parse(storedMultiData) as MultitripData)
+  : { flights: [], passengers: "", flightClass: "" };
+
 
     const location = useLocation();
 
@@ -407,13 +429,34 @@ const handleApplyFilters = () => {
           </Link>
           <p className="text-center font-semibold text-[20px]  mt-[90px]">Departure Flight 2</p>
           </div>
-   
+
+             <div className="border border-[#023E8A] bg-[#CCD8E81A] py-2.5 px-2 rounded-lg mt-8 w-[90%] m-auto">
+               <div className="flex justify-between gap-2">
+                 <div className="text-[#181818]">
+                   {multitripData?.flights?.length > 0 ? (
+                     <>
+                       <p className="text-[16px] font-medium">
+                         {multitripData.flights[1].from} to {multitripData.flights[1].to}
+                       </p>
+                       <p className="text-[14px] font-normal text-gray-500">
+                         {multitripData.flights[1].date}, {multitripData.passengers}
+                       </p>
+                     </>
+                   ) : (
+                     <p className="text-[12px] text-center text-gray-500">No flight data available</p>
+                   )}
+                 </div>
+                 <Link to="/">
+                 <ModeEditOutlinedIcon className="text-[#023E8A] mt-3 cursor-pointer" />
+                 </Link>
+               </div>
+             </div>
 
 
     <div className='bg-white w-full h-full pt-[20px] pb-[50px] mb-[100px]'>
   
 
-     <div className='mt-6'>
+     <div className=''>
              <div className='mb-[20px]'>
                  <div className='w-[90%] m-auto flex justify-between'>
                      

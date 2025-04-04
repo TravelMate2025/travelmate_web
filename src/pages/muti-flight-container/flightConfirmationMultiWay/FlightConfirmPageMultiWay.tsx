@@ -1,3 +1,4 @@
+ 
 // import { useState,useEffect } from 'react';
 import Navbar from '../../homePage/Navbar'
 import { IconButton } from '@mui/material'
@@ -707,7 +708,6 @@ const FlightConfirmationPage = () => {
     </div>
         </div>
         </div>
-
        )}
         </div>
         
