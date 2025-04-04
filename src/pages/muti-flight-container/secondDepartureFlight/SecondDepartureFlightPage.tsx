@@ -429,9 +429,7 @@ const handleApplyFilters = () => {
           </Link>
           <p className="text-center font-semibold text-[20px]  mt-[90px]">Departure Flight 2</p>
           </div>
-   
 
-   
              <div className="border border-[#023E8A] bg-[#CCD8E81A] py-2.5 px-2 rounded-lg mt-8 w-[90%] m-auto">
                <div className="flex justify-between gap-2">
                  <div className="text-[#181818]">
