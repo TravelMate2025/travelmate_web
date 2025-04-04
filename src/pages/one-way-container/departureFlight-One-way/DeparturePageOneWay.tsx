@@ -524,7 +524,6 @@ const handleApplyFilters = () => {
               </Link>
                 <p className="text-center font-semibold text-[20px]  mt-[90px]">Departure Flight</p>
               </div>
-
               
               <div className='mb-[20px] mt-[25px] w-[90%] m-auto'>
                           
@@ -538,9 +537,9 @@ const handleApplyFilters = () => {
 
               </div>
               
-              <div>
-              <div><ModeEditOutlinedIcon className=' text-[#023E8A] mt-3' /></div>
-              </div>
+              <Link to="/">
+                <div><ModeEditOutlinedIcon className=' text-[#023E8A] mt-3' /></div>
+              </Link>
                               
             </div>
                           
@@ -1877,9 +1876,13 @@ const handleApplyFilters = () => {
         </div>
     ))
         ) : (
-            <div className="flex items-center justify-center h-64">
-                <p className="text-gray-500 font-bold text-lg">Not Available</p>
-            </div>
+    <div className="flex flex-col items-center justify-center mt-20">
+          <div >
+          <SearchOutlinedIcon sx={{width:"60px", height:"60px", color:"#67696D"}} className="w-[44px] h-[44px]" />
+          </div>
+          <p className="text-black font-semibold text-[20px] mt-4">No Flight Match your Search</p>
+          <p className="text-[#67696D] w-[80%] m-auto font-normal text-[16px] mt-4 text-center">Looks like there are no flights for your selected route and dates. Try selecting different travel dates.</p>
+          </div>
         )}
 
       <Stack spacing={2} className='mt-50'>

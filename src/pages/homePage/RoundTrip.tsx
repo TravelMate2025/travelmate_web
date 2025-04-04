@@ -108,18 +108,18 @@ const handlePassenger = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(null);
   };
 
-// const [selectedFrom, setSelectedFrom] = useState(""); 
+const [selectedFrom, setSelectedFrom] = useState(""); 
 const [openFrom, setOpenFrom] = useState(false);
 const [FromClick, setFromClick] = useState<HTMLElement | null>(null);
  const [FromId, setFromId] = useState<number | null>(null);
-const [selectedFrom, setSelectedFrom] = useState<string>(() => {
-  return sessionStorage.getItem("selectedFrom") || "";
-});
+// const [selectedFrom, setSelectedFrom] = useState<string>(() => {
+//   return sessionStorage.getItem("selectedFrom") || "";
+// });
 
-const [selectedTo, setSelectedTo] = useState<string>(() => {
-  return sessionStorage.getItem("selectedTo") || "";
-});
-  //  const [selectedTo, setSelectedTo] = useState<string>("");
+// const [selectedTo, setSelectedTo] = useState<string>(() => {
+//   return sessionStorage.getItem("selectedTo") || "";
+// });
+   const [selectedTo, setSelectedTo] = useState<string>("");
    const [openTo, setOpenTo] = useState(false);
    const [ToClick, setToClick] = useState<HTMLElement | null>(null);
    const [ToId, setToId] = useState<number | null>(null);
@@ -199,7 +199,7 @@ const handleRemoveOption = (locationToRemove: string) => {
   setLocations(locations.filter(location => location !== locationToRemove));
 };
 
-  // const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
   const [counts, setCounts] = useState<PassengerCounts>({
     adults: 0,
@@ -207,10 +207,10 @@ const handleRemoveOption = (locationToRemove: string) => {
     infants: 0,
   });
 
-  // const [passengerText, setPassengerText] = useState<string>("");
-  const [passengerText, setPassengerText] = useState<string>(() => {
-  return sessionStorage.getItem("passengerText") || "";
-});
+  const [passengerText, setPassengerText] = useState<string>("");
+//   const [passengerText, setPassengerText] = useState<string>(() => {
+//   return sessionStorage.getItem("passengerText") || "";
+// });
 
   const handleIncrement = (type: PassengerType) => {
     setCounts((prevCounts) => ({
@@ -237,21 +237,21 @@ const handleDone = () => {
   const totalPassengers = counts.adults + counts.children + counts.infants;
   const updatedPassengerText = `${totalPassengers} Passengers`;
   setPassengerText(updatedPassengerText);
-  sessionStorage.setItem("passengerText", updatedPassengerText);
+  // sessionStorage.setItem("passengerText", updatedPassengerText);
   setPassengerAnchor(null); 
 };
 
  const [flightClass, setFlightClass] = useState(false);
   const anchorRef = useRef(null);
 
-  //  const [selectedClass, setSelectedClass] = useState("");
-const [selectedClass, setSelectedClass] = useState<string>(() => {
-  return sessionStorage.getItem("selectedClass") || "";
-});
+   const [selectedClass, setSelectedClass] = useState("");
+// const [selectedClass, setSelectedClass] = useState<string>(() => {
+//   return sessionStorage.getItem("selectedClass") || "";
+// });
 
 const handleClassSelection = (newClass: string) => {
   setSelectedClass(newClass);
-  sessionStorage.setItem("selectedClass", newClass);
+  // sessionStorage.setItem("selectedClass", newClass);
 };
 
     const navigate = useNavigate();
@@ -397,9 +397,9 @@ const handleTextFieldClickOff = () => {
   setShowLocationsOff(true);
 };
 
-const [selectedDate, setSelectedDate] = useState<string>(() => {
-  return sessionStorage.getItem("selectedDate") || "";
-});
+// const [selectedDate, setSelectedDate] = useState<string>(() => {
+//   return sessionStorage.getItem("selectedDate") || "";
+// });
 
      const [userSelectedDate, setUserSelectedDate] = useState(false);
  const formatDate = (date: Date) => format(date, "dd MMM yyyy");
@@ -776,10 +776,10 @@ const handleSelectDate= () => {
                 placeholder="Select Date"
                 value={selectedDate} 
                 onClick={handleClick} 
-                 onChange={(e) => {
-                  setSelectedDate(e.target.value);  // Update the state on change
-                  sessionStorage.setItem("selectedDate", e.target.value);  // Optionally, update sessionStorage
-                }}
+                //  onChange={(e) => {
+                //   setSelectedDate(e.target.value);
+                //   sessionStorage.setItem("selectedDate", e.target.value);
+                // }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -1307,7 +1307,7 @@ const handleSelectDate= () => {
      
 
      
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
               <label htmlFor="departure-date" className="mb-1">Date</label>
               <TextField
                 id="departure-date"
@@ -1392,7 +1392,7 @@ const handleSelectDate= () => {
                 </ClickAwayListener>
               </Popper>
 
-            </Box>
+          </Box>
 
         
         <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -1629,7 +1629,7 @@ const handleSelectDate= () => {
             }}
           />
 
-                    <Dialog
+            <Dialog
                        open={openFrom} 
                        TransitionComponent={Transition}
                        keepMounted
@@ -1902,8 +1902,8 @@ const handleSelectDate= () => {
                 placeholder="Select Date"
                 value={selectedDate} 
                  onChange={(e) => {
-                  setSelectedDate(e.target.value);  // Update the state on change
-                  sessionStorage.setItem("selectedDate", e.target.value);  // Optionally, update sessionStorage
+                  setSelectedDate(e.target.value); 
+                  sessionStorage.setItem("selectedDate", e.target.value);
                 }}
                 onClick={handleClick} 
                 InputProps={{
@@ -2464,11 +2464,9 @@ const handleSelectDate= () => {
                     elevation={3}
                     sx={{
                       boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                      // width: "867px", // Ensures full width
-                      // height: "555px", // Ensures full height
-                      overflow: "hidden", // Prevents content overflow
+                      overflow: "hidden",
                       display: "flex",
-                      justifyContent: "center", // Centers content
+                      justifyContent: "center",
                       alignItems: "center",
                       paddingBottom:"20px",
                     }}
@@ -2731,7 +2729,6 @@ const handleSelectDate= () => {
 
      <div>
     
-
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop:"-10px", width:"100%" }}>
 
 
