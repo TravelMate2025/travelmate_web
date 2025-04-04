@@ -63,7 +63,7 @@ interface Flight {
 const RoundTrip: React.FC = () => {
  const isMobile = useMediaQuery({ maxWidth: 768 });
 
-
+  // const [flights, setFlights] = useState<any[]>([]);
    const [selectedValue, setSelectedValue] = useState<string>(() => {
     return localStorage.getItem("tripType") || "round-trip";
   });
@@ -82,11 +82,11 @@ const RoundTrip: React.FC = () => {
    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
     setSelectedValue(newValue);
-    localStorage.setItem("tripType", newValue);
+    sessionStorage.setItem("tripType", newValue);
   };
 
     useEffect(() => {
-    const savedValue = localStorage.getItem("tripType");
+    const savedValue = sessionStorage.getItem("tripType");
     if (savedValue) {
       setSelectedValue(savedValue);
     }
@@ -108,12 +108,18 @@ const handlePassenger = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(null);
   };
 
-const [selectedFrom, setSelectedFrom] = useState(""); // State for selected option
+// const [selectedFrom, setSelectedFrom] = useState(""); 
 const [openFrom, setOpenFrom] = useState(false);
 const [FromClick, setFromClick] = useState<HTMLElement | null>(null);
  const [FromId, setFromId] = useState<number | null>(null);
+const [selectedFrom, setSelectedFrom] = useState<string>(() => {
+  return sessionStorage.getItem("selectedFrom") || "";
+});
 
-   const [selectedTo, setSelectedTo] = useState<string>("");
+const [selectedTo, setSelectedTo] = useState<string>(() => {
+  return sessionStorage.getItem("selectedTo") || "";
+});
+  //  const [selectedTo, setSelectedTo] = useState<string>("");
    const [openTo, setOpenTo] = useState(false);
    const [ToClick, setToClick] = useState<HTMLElement | null>(null);
    const [ToId, setToId] = useState<number | null>(null);
@@ -179,6 +185,7 @@ const [FromClick, setFromClick] = useState<HTMLElement | null>(null);
         flight.id === dateId ? { ...flight, date: dateString } : flight
       ));
     }
+    //  sessionStorage.setItem("selectedDate", displayText);
     setOpened(false);
   };
 
@@ -192,7 +199,7 @@ const handleRemoveOption = (locationToRemove: string) => {
   setLocations(locations.filter(location => location !== locationToRemove));
 };
 
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  // const [selectedDate, setSelectedDate] = useState<string>("");
 
   const [counts, setCounts] = useState<PassengerCounts>({
     adults: 0,
@@ -200,7 +207,10 @@ const handleRemoveOption = (locationToRemove: string) => {
     infants: 0,
   });
 
-  const [passengerText, setPassengerText] = useState<string>("");
+  // const [passengerText, setPassengerText] = useState<string>("");
+  const [passengerText, setPassengerText] = useState<string>(() => {
+  return sessionStorage.getItem("passengerText") || "";
+});
 
   const handleIncrement = (type: PassengerType) => {
     setCounts((prevCounts) => ({
@@ -217,16 +227,32 @@ const handleRemoveOption = (locationToRemove: string) => {
     }));
   };
 
-  const handleDone = () => {
+//   const handleDone = () => {
+//   const totalPassengers = counts.adults + counts.children + counts.infants;
+//   setPassengerText(`${totalPassengers} Passengers`);
+//   setPassengerAnchor(null); 
+// };
+
+const handleDone = () => {
   const totalPassengers = counts.adults + counts.children + counts.infants;
-  setPassengerText(`${totalPassengers} Passengers`);
+  const updatedPassengerText = `${totalPassengers} Passengers`;
+  setPassengerText(updatedPassengerText);
+  sessionStorage.setItem("passengerText", updatedPassengerText);
   setPassengerAnchor(null); 
 };
 
  const [flightClass, setFlightClass] = useState(false);
   const anchorRef = useRef(null);
 
-   const [selectedClass, setSelectedClass] = useState("");
+  //  const [selectedClass, setSelectedClass] = useState("");
+const [selectedClass, setSelectedClass] = useState<string>(() => {
+  return sessionStorage.getItem("selectedClass") || "";
+});
+
+const handleClassSelection = (newClass: string) => {
+  setSelectedClass(newClass);
+  sessionStorage.setItem("selectedClass", newClass);
+};
 
     const navigate = useNavigate();
 
@@ -278,14 +304,35 @@ const handleRemoveOption = (locationToRemove: string) => {
     { id: 1, from: '', to: '', date: '' },
     { id: 2, from: '', to: '', date: '' },
   ]);
+
+   useEffect(() => {
+    // Retrieve the flight data from sessionStorage when the component is mounted
+    const storedFlights = sessionStorage.getItem("flights");
+    if (storedFlights) {
+      setFlights(JSON.parse(storedFlights));
+    }
+  }, []);
+
+    const handleInputChange = (id: number, field: string, value: string) => {
+    // Update the flights state
+    const updatedFlights = flights.map((flight) =>
+      flight.id === id ? { ...flight, [field]: value } : flight
+    );
+    setFlights(updatedFlights);
+
+    // Save the updated flights array to sessionStorage
+    sessionStorage.setItem("flights", JSON.stringify(updatedFlights));
+  };
+
+
 const [, setLocate] = useState<{ [key: number]: string[] }>({});
 
 
-   const handleInputChange = (id: number, field: 'from' | 'to' | 'date', value: string) => {
-    setFlights(flights.map((flight) =>
-      flight.id === id ? { ...flight, [field]: value } : flight
-    ));
-  };
+  //  const handleInputChange = (id: number, field: 'from' | 'to' | 'date', value: string) => {
+  //   setFlights(flights.map((flight) =>
+  //     flight.id === id ? { ...flight, [field]: value } : flight
+  //   ));
+  // };
 
   const addFlight = () => {
     setFlights([...flights, { id: flights.length + 1, from: '', to: '', date: '' }]);
@@ -307,7 +354,13 @@ const [, setLocate] = useState<{ [key: number]: string[] }>({});
   //     [flightId]: (prevLocations[flightId] || []).filter((item) => item !== location),
   //   }));
   // };
+// const [selectedFrom, setSelectedFrom] = useState<string>(() => {
+//   return sessionStorage.getItem("selectedFrom") || "";
+// });
 
+// const [selectedTo, setSelectedTo] = useState<string>(() => {
+//   return sessionStorage.getItem("selectedTo") || "";
+// });
 
 
  const handleDepartureSelectionFrom = (flightId: number, location: string) => {
@@ -319,6 +372,7 @@ const [, setLocate] = useState<{ [key: number]: string[] }>({});
       ...prevLocations,
       [flightId]: [...(prevLocations[flightId] || []), location],
     }));
+    //  sessionStorage.setItem("selectedFrom", location);
   };
 
 
@@ -331,6 +385,7 @@ const [, setLocate] = useState<{ [key: number]: string[] }>({});
       ...prevLocations,
       [flightId]: [...(prevLocations[flightId] || []), location],
     }));
+    // sessionStorage.setItem("selectedTo", location);
   }
      
 const [showLocations, setShowLocations] = useState(false);
@@ -341,6 +396,10 @@ const [showLocationsOff, setShowLocationsOff] = useState(false);
 const handleTextFieldClickOff = () => {
   setShowLocationsOff(true);
 };
+
+const [selectedDate, setSelectedDate] = useState<string>(() => {
+  return sessionStorage.getItem("selectedDate") || "";
+});
 
      const [userSelectedDate, setUserSelectedDate] = useState(false);
  const formatDate = (date: Date) => format(date, "dd MMM yyyy");
@@ -358,8 +417,9 @@ const handleSelectDate= () => {
         : `${startDateFormatted} - ${endDateFormatted}`;
 
       setSelectedDate(displayText);
-    setOpens(false);
-     handleClose(); 
+      setOpens(false);
+      // sessionStorage.setItem("selectedDate", displayText);
+      handleClose(); 
   }
 };
 
@@ -716,6 +776,10 @@ const handleSelectDate= () => {
                 placeholder="Select Date"
                 value={selectedDate} 
                 onClick={handleClick} 
+                 onChange={(e) => {
+                  setSelectedDate(e.target.value);  // Update the state on change
+                  sessionStorage.setItem("selectedDate", e.target.value);  // Optionally, update sessionStorage
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -1837,6 +1901,10 @@ const handleSelectDate= () => {
                 size="small"
                 placeholder="Select Date"
                 value={selectedDate} 
+                 onChange={(e) => {
+                  setSelectedDate(e.target.value);  // Update the state on change
+                  sessionStorage.setItem("selectedDate", e.target.value);  // Optionally, update sessionStorage
+                }}
                 onClick={handleClick} 
                 InputProps={{
                   startAdornment: (
@@ -2896,8 +2964,16 @@ const handleSelectDate= () => {
             </div>
 
                <div className="mt-4">
-                  <button  onClick={() => setFlightClass(false)} className="bg-[#023E8A] w-full h-[52px] text-white rounded-[6px] mt-[40px] font-infer text-[16px] cursor-pointer">Done</button>
-                </div>
+                <button  
+                  onClick={() => {
+                    setFlightClass(false);
+                    handleClassSelection(selectedClass);
+                  }} 
+                  className="bg-[#023E8A] w-full h-[52px] text-white rounded-[6px] mt-[40px] font-infer text-[16px] cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
 
              </DialogContent>
             </Dialog>
