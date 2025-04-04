@@ -1,6 +1,4 @@
-
-
-
+       
 
 
 
@@ -50,9 +48,10 @@ import AirlineSeatReclineExtraOutlinedIcon from '@mui/icons-material/AirlineSeat
 import Breadcrumb from "../../BreadCrumb"
 import { useMediaQuery } from "react-responsive";
 import { TransitionProps } from "@mui/material/transitions";
-import { format } from 'date-fns';
+// import { format } from 'date-fns';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutlined';
+import ModeEditOutlinedIcon from '@mui/icons-material/ModeEditOutlined';
 
 
 
@@ -97,6 +96,12 @@ interface Flight {
   from: string;
   to: string;
   date: string;
+}
+
+interface MultitripData {
+ flights:[],
+  passengers: string;
+  flightClass: string;
 }
 
 const DeparturePage: React.FC<DepartureListProps> = () => {
@@ -563,29 +568,29 @@ const handleApplyFilters = () => {
       setOpened(false);
     };
   
- const [selectedFrom, setSelectedFrom] = useState("");
-             const [showLocations, setShowLocations] = useState(false);
-             const handleTextFieldClick = () => {
-               setShowLocations(true);
-             };
+//  const [selectedFrom, setSelectedFrom] = useState("");
+//              const [showLocations, setShowLocations] = useState(false);
+//              const handleTextFieldClick = () => {
+//                setShowLocations(true);
+//              };
   //  const handleFromOptionClick = (option: string) => {
   //       setSelectedFrom(option);
   //       setOpenFrom(false); 
   //     };
 
-    const [selectedTo, setSelectedTo] = useState<string>("");                        
-    const [showLocationsOff, setShowLocationsOff] = useState(false);
-    const handleTextFieldClickOff = () => {
-    setShowLocationsOff(true);
-    };
+    // const [selectedTo, setSelectedTo] = useState<string>("");                        
+    // const [showLocationsOff, setShowLocationsOff] = useState(false);
+    // const handleTextFieldClickOff = () => {
+    // setShowLocationsOff(true);
+    // };
   
     // const handleToOptionClick = (option: string) => {
     // setSelectedTo(option);
     // setOpenTo(false); 
     // };
             
-     const [userSelectedDate, setUserSelectedDate] = useState(false);
-    const formatDate = (date: Date) => format(date, "dd MMM yyyy");
+    //  const [userSelectedDate, setUserSelectedDate] = useState(false);
+    // const formatDate = (date: Date) => format(date, "dd MMM yyyy");
 
   const [isSortOpen, setIsSortOpen] = useState(false);
   const openSort = () => {
@@ -606,6 +611,13 @@ const handleApplyFilters = () => {
       setSelectedSort(selectedSortOption); 
       setIsSortOpen(false); 
     };
+
+
+  const storedMultiData = sessionStorage.getItem("multitrip");
+  const multitripData: MultitripData = storedMultiData 
+  ? (JSON.parse(storedMultiData) as MultitripData) 
+  : { flights:[], passengers: "", flightClass: "" };
+
     
 
 
@@ -621,7 +633,7 @@ const handleApplyFilters = () => {
           <Link to="/" >
           <div style={{ position: "absolute", left: "28px", top: "85px" }} className="w-[40px] h-[40px] p-[8px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] ">
           <ArrowBackIosNewOutlinedIcon className="font-bold " />
-          </div>
+          </div>m
           </Link>
           <p className="text-center font-semibold text-[20px]  mt-[90px]">Departure Flight 1</p>
           </div>
@@ -629,7 +641,7 @@ const handleApplyFilters = () => {
 
         <div className='w-[90%] m-auto pt-5 pb-6 mb-[18px] mt-6'>
 
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop:"-10px", width:"100%" }}>
+        {/* <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop:"-10px", width:"100%" }}>
 
 
           <Box sx={{ display: "flex", flexDirection: "column", width:"100%", marginBottom: '-8px'  }}>
@@ -867,15 +879,33 @@ const handleApplyFilters = () => {
             </Dialog>
           </Box>
 
-        </Box>
+        </Box> */}
 
         <div className="mt-[16px]">
 
-       {flights.map((flight, index) => (
+       {/* {flights.map((flight) => (
 
-        <div key={flight.id}>
+        <div key={flight.id}> */}
+          
+              <div className='border-1  border-[#023E8A] w-full bg-[#CCD8E81A] pt-[10px] pb-[10px] pr-[8px] pl-[8px] rounded-[8px]'>
+                                  
+                      <div className='flex gap-2 justify-between'>
+                                      
+                      <div className='text-[#181818]'>
+                        <p className="text-[16px] font-medium">{multitripData?.flights[0]?.from} to {multitripData?.flights[0]?.to}</p>
+                      <p className="text-[14px] font-normal text-[#67696D]">{multitripData?.date} , {passengers}</p>
+        
+                      </div>
+                      
+                      <div>
+                      <div><ModeEditOutlinedIcon className=' text-[#023E8A] mt-3' /></div>
+                      </div>
+                                      
+                    </div>
+                                  
+              </div>
 
-        <label htmlFor={`from-${index + 1}`} className=" text-[#67696D]">Flight {index + 1}</label>
+        {/* <label htmlFor={`from-${index + 1}`} className=" text-[#67696D]">Flight {index + 1}</label>
           <Box>
              
                 <Box sx={{ display: "flex", flexDirection: "column", marginBottom: '16px', marginTop: '16px' }}>
@@ -906,7 +936,7 @@ const handleApplyFilters = () => {
                                          TransitionComponent={Transition}
                                          keepMounted
                                          fullScreen
-                                         // onClick={handleCloseFrom}
+                                        
                                          sx={{
                                            "& .MuiBackdrop-root": {
                                              backgroundColor: "rgba(0, 0, 0, 0.3)",
@@ -1006,10 +1036,7 @@ const handleApplyFilters = () => {
                                                          sx={{ color: "gray" }}
                                                        />
                                                      </div>
-                         
-                                                     {/* {index !== locations.length - 1 && (
-                                                       <Divider sx={{ marginTop: "15px" }} />
-                                                     )} */}
+                        
                                                      {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
                                                    </React.Fragment>
                                                  ))
@@ -1042,60 +1069,11 @@ const handleApplyFilters = () => {
                       "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
                     }} />
 
-                  {/* <Popper id="from-popper"  open={openTo && ToId === flight.id} anchorEl={ToClick} placement="bottom-start">
-                                 <ClickAwayListener onClickAway={handleCloseTo}>
-                                   <Paper
-                                     elevation={3}
-                                     sx={{
-                                       width: "317px",
-                                       borderRadius: "6px",
-                                       backgroundColor: "white",
-                                       boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                                       paddingBottom: "25px",
-                                     }}
-                                   >
-                                     <Typography variant="subtitle1" className="font-inter text-[#343537] text-lg pl-[24px] pt-[24px] pr-[24px]">
-                                       Recent Searches
-                                     </Typography>
-                 
-                                     {locations.length === 0 ? (
-                                       <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
-                                         No recent searches
-                                       </Typography>
-                                     ) : (
-                                       locations.map((location, index) => (
-                                         <React.Fragment key={location}>
-                                           <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
-                                             <div className="flex gap-[8px]" onClick={() => handleDestinationSelectionTo(flight.id, location)}>
-                                               <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
-                                                 <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
-                                               </div>
-                                               <p>{location}</p>
-                                             </div>
-                 
-                 
-                                             <CloseOutlinedIcon
-                                               onClick={(e) => {
-                                                 e.stopPropagation();
-                                                 handleRemoveOption(location);
-                                               } }
-                                               className="cursor-pointer"
-                                               sx={{ color: "gray" }} />
-                                           </div>
-                 
-                                           {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
-                                         </React.Fragment>
-                                       ))
-                                     )}
-                 
-                                   </Paper>
-                                 </ClickAwayListener>
-                  </Popper> */}
 
 
                    <Dialog
                                          open={openTo && ToId === flight.id}
-                                           // onClick={handleCloseTo}
+                                        
                                          TransitionComponent={Transition}
                                          keepMounted
                                          fullScreen
@@ -1146,7 +1124,7 @@ const handleApplyFilters = () => {
                                          id="to"
                                          variant="outlined"
                                          size="small"
-                                         //  onClick={}
+                                        
                                          value={selectedTo}
                                          onChange={(e) => setSelectedTo(e.target.value)}
                                          onClick={handleTextFieldClickOff}
@@ -1236,58 +1214,6 @@ const handleApplyFilters = () => {
                       "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
                     }} />
 
-
-                    {/* <Popper id={id} open={opened && dateId === flight.id} anchorEl={anchorEl} placement="bottom-start">
-    <ClickAwayListener onClickAway={handleCloseDate}>
-      <Paper
-        elevation={3}
-        sx={{
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-          overflow: "hidden",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          paddingBottom: "20px",
-        }}
-      >
-        <div style={{ width: "100%", height: "100%" }}>
-          <DateRange
-            editableDateInputs={true}
-            onChange={(item: RangeKeyDict) => {
-              setDateRange([
-                {
-                  startDate: item.selection.startDate ?? new Date(),
-                  endDate: item.selection.endDate ?? new Date(),
-                  key: item.selection.key ?? "selection",
-                },
-              ]);
-            }}
-            moveRangeOnFirstSelection={false}
-            ranges={dateRange}
-            rangeColors={["#FF6F1E"]}
-            months={2}
-            direction="horizontal"
-            showDateDisplay={false}
-            className="w-full h-full"
-          />
-          <div className="w-[96%] m-auto">
-            <button
-              className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
-              style={{
-                backgroundColor: "#023E8A",
-                color: "white",
-                marginTop: 2,
-              }}
-              onClick={handleSelectDateFunc}
-            >
-              Select Date
-            </button>
-          </div>
-        </div>
-      </Paper>
-    </ClickAwayListener>
-                    </Popper> */}
-
                      <Dialog
                                                   open={opened && dateId === flight.id}
                                                   TransitionComponent={Transition}
@@ -1308,7 +1234,6 @@ const handleApplyFilters = () => {
                                                       position:"fixed",
                                                       bottom:"0px",
                                                       marginBottom:"0px",
-                                                      // paddingBottom:"50px",
                                                       marginTop:"0px",
                                                       paddingTop:"20px"
                                   
@@ -1398,9 +1323,9 @@ const handleApplyFilters = () => {
                 )}
                 </div>
            
-          </Box>
-          </div>
-        ))}
+          </Box> */}
+          {/* </div>
+        ))} */}
 
         <div className="flex justify-end ">
           <div className="flex mt-[8px] text-[#023E8A] cursor-pointer" onClick={addFlight}>

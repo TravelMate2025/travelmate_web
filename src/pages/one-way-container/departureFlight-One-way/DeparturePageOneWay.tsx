@@ -118,7 +118,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
 
     const location = useLocation();
 
-    console.log("Location state:", location.state);
+    // console.log("Location state:", location.state);
 
 
     const { from: initialFrom, to: initialTo, departureDate: initialDepart,  passengers: initialPassenger, flightClass: initialFlight } = location.state || {};
