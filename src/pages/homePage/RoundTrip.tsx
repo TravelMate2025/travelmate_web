@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useRef, useEffect, forwardRef , Ref, ReactElement  } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {Dialog, DialogContent, Radio, Slide} from "@mui/material";
@@ -243,6 +244,7 @@ const handleRemoveOption = (locationToRemove: string) => {
 };
 
 
+
       const handleSearchOneTrip = () => {
       navigate("/departure-flight-one-way", {
         state: {
@@ -254,6 +256,20 @@ const handleRemoveOption = (locationToRemove: string) => {
         },
       });
     };
+
+
+  const handleSearchMultiTrip = () => {
+  const  multitripData = {
+
+    flights, 
+    passengers: passengerText, 
+    flightClass: selectedClass
+
+  }
+  sessionStorage.setItem("multitrip", JSON.stringify(multitripData));
+
+  navigate('/departure-flight-multi-way',  { state: multitripData });
+};
 
    const location = useLocation();
    const receivedFlights = location.state?.flights as Flight[] | undefined;
@@ -292,11 +308,7 @@ const [, setLocate] = useState<{ [key: number]: string[] }>({});
   //   }));
   // };
 
-const handleSearchMultiTrip = () => {
-  navigate('/departure-flight-multi-way', {
-    state: { flights, passengers: passengerText, flightClass: selectedClass },
-  });
-};
+
 
  const handleDepartureSelectionFrom = (flightId: number, location: string) => {
     setFlights(flights.map((flight) =>
