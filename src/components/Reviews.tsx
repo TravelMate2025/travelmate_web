@@ -85,7 +85,7 @@ const Reviews: React.FC = () => {
       {/* Show All Reviews Button */}
       <div className="mt-6 flex justify-center">
         <button
-          className="px-8 py-3 mt-10 bg-[#023E8A] text-white font-medium rounded-lg"
+          className="px-8 py-3 mt-10 bg-[#023E8A] text-white font-medium rounded-lg cursor-pointer"
           onClick={() => setOpenModal(true)}
         >
           Show all 80 reviews
