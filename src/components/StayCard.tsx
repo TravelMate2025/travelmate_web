@@ -1,8 +1,9 @@
 import React from "react";
 import { FaStar, FaMapMarkerAlt, FaCheckCircle, FaRegHeart } from "react-icons/fa";
-
+import { useNavigate } from "react-router-dom";
 
 interface StayCardProps {
+  id: number;
   image: string;
   name: string;
   rating: number;
@@ -14,6 +15,7 @@ interface StayCardProps {
 }
 
 const StayCard: React.FC<StayCardProps> = ({
+  id,
   image,
   name,
   rating,
@@ -23,8 +25,18 @@ const StayCard: React.FC<StayCardProps> = ({
   totalPrice,
   refundableUntil,
 }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    // navigate(`/stay/${id}`);
+    navigate(`/stays-detail`);
+  };
+
   return (
-    <div className="w-[410px] h-[431px] bg-white rounded-lg border border-gray-300 shadow-lg p-4">
+    <div
+      className="w-[410px] h-[431px] bg-white rounded-lg border border-gray-300 shadow-lg p-4 cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Image Section */}
       <div className="relative">
         <img
@@ -37,7 +49,6 @@ const StayCard: React.FC<StayCardProps> = ({
           <FaRegHeart className="text-blue-900 text-2xl" />
         </div>
       </div>
-
 
       {/* Details Section */}
       <div className="mt-4">
@@ -73,7 +84,6 @@ const StayCard: React.FC<StayCardProps> = ({
             <p className="text-gray-500 text-sm">Total (Includes Taxes & Fees)</p>
           </div>
         </div>
-
       </div>
     </div>
   );

@@ -31,7 +31,7 @@ interface ReviewsModalProps {
 
 const ReviewsModal: React.FC<ReviewsModalProps> = ({ onClose }) => {
   return (
-    <div className="fixed top-8 left-1/2 transform -translate-x-1/2 bg-opacity-60 w-full h-full flex items-center justify-center">
+    <div className="fixed top-9 left-1/2 transform -translate-x-1/2 bg-opacity-60 w-full h-full flex items-center justify-center">
       <div className="bg-white rounded-lg w-[1000px] h-[85%] shadow-[0_4px_20px_rgba(0,0,0,0.6)] p-6 z-50">
         {/* Modal Header */}
         <div className="flex justify-between items-center border-b border-gray-300 pb-4">

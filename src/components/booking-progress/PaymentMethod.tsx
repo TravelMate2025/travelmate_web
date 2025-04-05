@@ -44,7 +44,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
       <h3 className="text-lg font-semibold">Payment Method</h3>
 
       {/* Body */}
-      <div className="border border-gray-300 rounded-lg p-6 space-y-4">
+      <div className="border-t border-b md:border border-gray-300 md:rounded-lg p-6 space-y-4">
         {/* Payment Header */}
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">

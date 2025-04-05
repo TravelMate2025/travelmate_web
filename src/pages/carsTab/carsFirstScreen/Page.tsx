@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useEffect, ChangeEvent, forwardRef , Ref, ReactElement } from "react";
 import { Box, TextField, InputAdornment, Popper, ClickAwayListener, Paper, Typography, Divider, MenuItem, Select, Dialog, DialogContent, IconButton, Slide } from '@mui/material';
 import { DateRange, RangeKeyDict } from 'react-date-range';

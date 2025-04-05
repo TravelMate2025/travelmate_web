@@ -41,10 +41,10 @@ const Policies: React.FC = () => {
   return (
     <div className="w-full space-y-4">
       {/* Title */}
-      <h3 className="text-lg font-semibold">Policies</h3>
+      <h3 className="text-lg font-semibold ml-5 md:ml-0">Policies</h3>
 
       {/* Body */}
-      <div className="border border-gray-300 rounded-lg p-6 space-y-6">
+      <div className="border-t border-b md:border border-gray-300 md:rounded-lg p-6 space-y-6">
         {/* Check-in Policy */}
         <ResponsiveFlexContainer>
           <p className="font-medium text-gray-700">Check In & Check Out</p>

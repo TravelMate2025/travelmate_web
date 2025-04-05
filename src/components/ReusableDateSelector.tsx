@@ -21,7 +21,7 @@ interface ReusableDateSelectorProps {
   borderColor?: string;
 }
 
-const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({ initialValue = "", onDateChange, isOneWay = false, borderColor = "black", }) => {
+const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({ initialValue = "", onDateChange, isOneWay = false, borderColor = "light-gray", }) => {
   const [dateRange, setDateRange] = useState<DateRangeType[]>([
     {
       startDate: new Date(),

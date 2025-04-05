@@ -15,7 +15,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-opacity-50">
-      <div className="bg-white rounded-lg w-[610px] h-[214px] p-6 shadow-[0_6px_30px_rgba(0,0,0,0.8)]">
+      <div className="bg-white rounded-lg w-[90%] sm:w-[610px] h-auto sm:h-[214px] p-4 sm:p-6 shadow-[0_6px_30px_rgba(0,0,0,0.8)]">
         {/* Modal Header */}
         <div className="flex justify-between items-center border-b pb-4">
           <h2 className="text-xl font-bold mx-auto">Share</h2>
@@ -25,7 +25,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
         </div>
 
         {/* Share Buttons */}
-        <div className="flex justify-around mt-6">
+        <div className="flex flex-col sm:flex-row justify-around mt-6 space-y-4 sm:space-y-0 sm:gap-4">
           {/* WhatsApp Share */}
           <a
             href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareLink)}`}
@@ -34,9 +34,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
             className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg shadow-md hover:bg-gray-200"
           >
             <span className="bg-gray-200 p-1 rounded-md">
-            <RiWhatsappFill size={20} className="text-green-500" /> 
+              <RiWhatsappFill size={20} className="text-green-500" />
             </span>
-             
             <span>WhatsApp</span>
           </a>
 
@@ -46,9 +45,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
             className="flex gap-2 px-10 py-3 border border-gray-300 rounded-lg shadow-md hover:bg-gray-200"
           >
             <span className="bg-gray-200 p-1 rounded-md">
-                <RiMailFill size={20} />
+              <RiMailFill size={20} />
             </span>
-            
             <span>Email</span>
           </a>
 
@@ -58,7 +56,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
             className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg shadow-md hover:bg-gray-200"
           >
             <span className="bg-gray-200 p-1 rounded-md">
-            <FaLink size={20} />
+              <FaLink size={20} />
             </span>
             <span>Copy Link</span>
           </button>

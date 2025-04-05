@@ -11,7 +11,6 @@ import ResetPassword from "./pages/ResetPassword";
 import Login from "./pages/Login";
 import StaysSearchResults from "./pages/StaysSearchResults";
 import DeparturePage from "./pages/round-trip-container/departureFlight/DeparturePage";
-import Home2 from "./pages/2Home";
 import ReturnPage from "./pages/round-trip-container/returnFlight/ReturnPage";
 import FlightInfoPage from "./pages/round-trip-container/flightInfo-review/FlightInfoPage";
 import FlightConfirmationPage from "./pages/round-trip-container/flightConfirmation/FlightConfirmationPage";
@@ -38,7 +37,6 @@ function App() {
   return (
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home2 />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile-info" element={<ProfileInfo />} />
         <Route path="/login" element={<Login />} />
