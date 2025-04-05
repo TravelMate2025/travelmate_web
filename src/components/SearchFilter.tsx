@@ -11,7 +11,7 @@ interface SearchFilterProps {
 }
 
 const SearchFilter: React.FC<SearchFilterProps> = ({ onSubmit }) => {
-  const [roomGuest, setRoomGuest] = useState('');
+  const [roomGuest] = useState('');
   const [destination, setDestination] = useState("");
   const [locations, setLocations] = useState(["Lagos", "Abuja", "Kano"]);
 

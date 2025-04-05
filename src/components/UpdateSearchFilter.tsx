@@ -8,7 +8,7 @@ export default function UpdateSearchFilter() {
     const [date, setDate] = useState("");
     const [destination, setDestination] = useState("");
     const [locations, setLocations] = useState(["Lagos", "Abuja", "Kano"]);
-    const [roomGuest, setRoomGuest] = useState("");
+    const [roomGuest] = useState("");
     const [anchor, setAnchor] = useState<HTMLElement | null>(null);
     const [guestText, setGuestText] = useState("1 Room, 2 Guests");
     const [counts, setCounts] = useState({ rooms: 1, adults: 2, children: 0, infants: 0 });

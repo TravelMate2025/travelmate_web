@@ -15,7 +15,6 @@ interface StayCardProps {
 }
 
 const StayCard: React.FC<StayCardProps> = ({
-  id,
   image,
   name,
   rating,
