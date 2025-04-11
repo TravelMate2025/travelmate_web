@@ -5,6 +5,7 @@ import { FaRegUser, FaRegStar, FaRegBell } from "react-icons/fa";
 import { PiSignOutFill } from "react-icons/pi";
 import { MdCreditCard } from "react-icons/md";
 import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
+// import { Dispatch, SetStateAction } from "react";
 
 
 
@@ -88,13 +89,20 @@ const options = [
 
 
 
-interface UserOptionsStackedProps {
+// interface UserOptionsStackedProps {
+//   activeTab: string;
+//   onOptionClick: (tab: string) => void;
+// }
+
+type UserOptionsStackedProps = {
   activeTab: string;
-  onOptionClick: (tab: string) => void;
-}
+  // onOptionClick: Dispatch<SetStateAction<string>>;
+  handleOptionClick: (tab: string) => void; // ✅ Add this line
+};
 
 
-export default function UserOptionsStacked({ activeTab, onOptionClick }: UserOptionsStackedProps) {
+
+export default function UserOptionsStacked({ activeTab, handleOptionClick, }: UserOptionsStackedProps) {
   return (
     <div className="">
     <div className=" max-w-[411px] space-y-4 border-1 border-[#CDCED1] rounded-[12px] md:w-[411px] ">
@@ -104,7 +112,7 @@ export default function UserOptionsStacked({ activeTab, onOptionClick }: UserOpt
         return (
           <button
             key={index}
-            onClick={() => onOptionClick(item.title)}
+            onClick={() => handleOptionClick(item.title)}
             className="flex items-center w-[390px] h-[80px] px-6 rounded-lg transition text-left"
           >
             <div className="flex items-center gap-4 cursor-pointer">

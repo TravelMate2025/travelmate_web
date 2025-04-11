@@ -966,7 +966,6 @@ const filteredLocationsFrom = locations.filter((loc) =>
                                   position:"fixed",
                                   bottom:"0px",
                                   marginBottom:"0px",
-                                  // paddingBottom:"50px",
                                   marginTop:"0px",
                                   paddingTop:"20px"
               
