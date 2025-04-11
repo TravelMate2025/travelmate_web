@@ -15,13 +15,13 @@ const options = [
     description: "Update your personal details",
     link: "/profile-info",
   },
-  {
-    icon: <MdCreditCard size={24} />,
-    title: "Payment Method",
-    description: "Manage your payment methods",
-    link: "/profile-info",
-  },
-
+ {
+  icon: <MdCreditCard size={24} />,
+  title: "Payment Method",
+  description: "Manage your payment methods",
+  link: "/profile-info",
+  state: { activeTab: "Payment Method" }, 
+},
   {
     icon: <FaRegBell size={24} />,
     title: "Notifications",
@@ -54,7 +54,7 @@ export default function UserOptions() {
     <div className="grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-3 gap-6 max-w-[1280px] mx-auto mt-6 px-4">
     {options.map((item, index) => (
         <Link
-        to={item.link}
+          to={`/profile-info?tab=${encodeURIComponent(item.title)}`}
         key={index}
         className="flex items-center gap-4 justify-between w-full sm:w-[408px] h-[86px] border border-gray-300 px-6 rounded-lg shadow-sm hover:bg-gray-100"
         >
