@@ -55,11 +55,11 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
     setShowAddCardModal(false);
   };
 
-  const formValid =
-    cardNumber.trim().length === 16 &&
-    cardHolder.trim().length > 0 &&
-    /^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(expiryDate) &&
-    cvv.trim().length === 3;
+  // const formValid =
+  //   cardNumber.trim().length === 16 &&
+  //   cardHolder.trim().length > 0 &&
+  //   /^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(expiryDate) &&
+  //   cvv.trim().length === 3;
 
   return (
     <div className="w-full md:w-[628px] space-y-4">
