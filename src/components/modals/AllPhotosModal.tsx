@@ -8,7 +8,7 @@ interface AllPhotosModalProps {
 
 const AllPhotosModal: React.FC<AllPhotosModalProps> = ({ onClose, images }) => {
   return (
-    <div className="fixed inset-0 top-12 flex items-center justify-center bg-opacity-50">
+    <div className="fixed inset-0 top-14 flex items-center justify-center bg-opacity-50">
       <div className="bg-white rounded-lg w-[1000px] h-[90%] p-6 shadow-[0_9px_60px_rgba(0,0,0,0.9)] z-50">
         {/* Modal Header */}
         <div className="flex justify-between items-center border-b pb-4">

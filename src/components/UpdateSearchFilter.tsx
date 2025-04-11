@@ -1,15 +1,18 @@
 import { useState } from "react";
-import { FaMapMarkerAlt, FaUser } from "react-icons/fa";
 import ReusableDateSelector from "../components/ReusableDateSelector";
-
-
+import HotelGuestSelector from "./HotelGuestSelector";
+import LocationDropdown from "./booking-progress/LocationDropdown";
 
 export default function UpdateSearchFilter() {
     // State for search filters
     const [date, setDate] = useState("");
     const [destination, setDestination] = useState("");
-    const [roomGuest, setRoomGuest] = useState("");
-
+    const [locations, setLocations] = useState(["Lagos", "Abuja", "Kano"]);
+    const [roomGuest] = useState("");
+    const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+    const [guestText, setGuestText] = useState("1 Room, 2 Guests");
+    const [counts, setCounts] = useState({ rooms: 1, adults: 2, children: 0, infants: 0 });
+    
 
     // Handle form submission
     const handleSubmit = (e: { preventDefault: () => void }) => {
@@ -22,6 +25,27 @@ export default function UpdateSearchFilter() {
     };
 
 
+    const handleIncrement = (key: keyof typeof counts) => {
+        setCounts((prev) => ({ ...prev, [key]: prev[key] + 1 }));
+    };
+    
+    const handleDecrement = (key: keyof typeof counts) => {
+        setCounts((prev) => ({ ...prev, [key]: Math.max(prev[key] - 1, 0) }));
+    };
+    
+    const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchor(e.currentTarget);
+    const handleClose = () => setAnchor(null);
+    
+    const updateGuestText = () => {
+        const totalGuests = counts.adults + counts.children + counts.infants;
+        setGuestText(`${counts.rooms} Room${counts.rooms > 1 ? "s" : ""}, ${totalGuests} Guest${totalGuests !== 1 ? "s" : ""}`);
+        handleClose();
+    };
+
+    const handleRemoveLocation = (loc: string) => {
+        setLocations((prev) => prev.filter((item) => item !== loc));
+    };
+
 
     return (
         <div>
@@ -32,39 +56,28 @@ export default function UpdateSearchFilter() {
                 
                 {/* Destination */}
                 <div className="flex flex-col w-full md:w-auto">
-                <label className="text-sm font-medium text-gray-700 mb-1">Destination</label>
-                <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                    <FaMapMarkerAlt />
-                    </span>
-                    <input
-                    type="text"
-                    value={destination}
-                    onChange={(e) => e.target.value.length <= 45 && setDestination(e.target.value)}
-                    placeholder="Enter destination"
-                    className="w-full md:w-[312px] h-[44px] border px-10 rounded-lg text-gray-700 focus:outline-blue-600"
-                    required
+                    <LocationDropdown
+                    label="Destination"
+                    selectedValue={destination}
+                    setSelectedValue={setDestination}
+                    locations={locations}
+                    onRemoveLocation={handleRemoveLocation}
                     />
-                </div>
                 </div>
 
-                {/* Room & Guest */}
+            
                 <div className="flex flex-col w-full md:w-auto">
-                <label className="text-sm font-medium text-gray-700 mb-1">Room & Guest</label>
-                <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                    <FaUser />
-                    </span>
-                    <input
-                    type="text"
-                    value={roomGuest}
-                    onChange={(e) => e.target.value.length <= 45 && setRoomGuest(e.target.value)}
-                    placeholder="Number of rooms & guests"
-                    className="w-full md:w-[312px] h-[44px] border px-10 rounded-lg text-gray-700 focus:outline-blue-600"
-                    required
-                    />
-                </div>
-                </div>
+                            <HotelGuestSelector
+                              guestText={guestText}
+                              handleOpen={handleOpen}
+                              guestAnchor={anchor}
+                              handleClose={handleClose}
+                              handleIncrement={handleIncrement}
+                              handleDecrement={handleDecrement}
+                              counts={counts}
+                              updateGuestText={updateGuestText}
+                            />
+                          </div>      
 
                 {/* Date */}
                 <div className="flex flex-col w-full md:w-auto">

@@ -3,7 +3,6 @@ import StayCard from "./StayCard";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import StayImage from "../assets/images/StayImage.png";
 
-
 // Sample Data
 const stays = Array.from({ length: 100 }, (_, i) => ({
   id: i + 1,
@@ -87,6 +86,7 @@ const StayList: React.FC = () => {
                 currentPage === page ? "bg-blue-500 text-white" : "text-black"
               } ${page === "..." ? "cursor-default opacity-50" : ""}`}
               disabled={page === "..."}
+
             >
               {page}
             </button>
@@ -102,8 +102,6 @@ const StayList: React.FC = () => {
           <FaChevronRight />
         </button>
       </div>
-
-
     </div>
   );
 };

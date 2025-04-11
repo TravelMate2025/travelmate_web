@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { FaSortAmountDown, FaPencilAlt } from "react-icons/fa";
 import { HiAdjustmentsHorizontal } from "react-icons/hi2";
-import Navbar from "../components/2Navbar";
 import Breadcrumbs from "../components/Breadcrumbs";
 import StayList from "../components/StayList";
 import TravelmateApp from "./homePage/TravelmateApp";
@@ -9,6 +8,7 @@ import Footer from "../components/2Footer";
 import SortModal from "../components/modals/SortModal";
 import FilterModal from "../components/modals/FilterModal";
 import UpdateSearchFilter from "../components/UpdateSearchFilter";
+import Navbar from "./homePage/Navbar";
 
 export default function StaysSearchResults() {
   // State for modals and visibility
@@ -50,7 +50,7 @@ export default function StaysSearchResults() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col mt-20">
       {/* Navbar */}
       <Navbar />
 

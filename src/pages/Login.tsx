@@ -1,21 +1,25 @@
 import { useState } from "react";
-import { MdLockOutline, MdOutlineEmail } from "react-icons/md";
+import { MdLockOutline } from "react-icons/md";
 import { RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import AuthNav from "../components/AuthNavbar";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
+import { useSelector } from "react-redux";
+
 
 export default function Login() {
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false); 
   const navigate = useNavigate();
+  const user = useSelector((state: any) => state.auth.user);
+
+  
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log("Logging in with:", { email, password });
+    console.log("Logging in with:", { password });
     
     setTimeout(() => {
         setIsLoading(false);
@@ -37,21 +41,10 @@ export default function Login() {
           <form onSubmit={handleLogin} className="text-left">
             {/* Email Input */}
             <label className="block text-gray-700 font-medium mb-1">Email Address</label>
-            <div className="relative mb-4">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-xl">
-                <MdOutlineEmail />
-              </span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => {
-                    if (e.target.value.length <= 45) setEmail(e.target.value);
-                  }}
-                className="w-full border rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-blue-500"
-                placeholder="name@gmail.com"
-                required
-              />
+            <div className="mb-4 flex items-center py-2 text-gray-600">
+              <span>{user?.email || "Not available"}</span>
             </div>
+
 
             {/* Password Input */}
             <label className="block text-gray-700 font-medium mb-1">Password</label>

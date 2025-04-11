@@ -24,9 +24,9 @@ const BookingProgress: React.FC = () => {
     <div>
       <Navbar />
 
-      <div className="w-[93%] mx-auto my-22 space-y-6">
+      <div className="md:w-[93%] mx-auto my-22 space-y-6">
         {/* Notification */}
-        <div className="bg-green-100 border border-green-700 px-4 py-2 rounded-lg flex items-center gap-3">
+        <div className="bg-blue-100 border border-[#023E8A] px-4 py-2 rounded-lg flex items-center gap-3 mx-4 sm:mx-0">
           <GrStatusGood size={24} className="text-green-600" />
           <p>
             Cancellations made after {formattedTime} on {formattedDate} or no-shows are subject to a fee 
@@ -61,7 +61,7 @@ const BookingProgress: React.FC = () => {
   
 
               
-                <div className="mt-16">
+                <div className="mt-16 mx-5 md:mx-0">
                   {/* Terms and Conditions Checkbox */}
                   <div className="flex items-center gap-2">
                     <input
@@ -90,7 +90,7 @@ const BookingProgress: React.FC = () => {
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    className={`w-full px-6 py-2 rounded-lg mt-4 text-white ${
+                    className={`w-full  px-6 py-2 rounded-lg mt-4 text-white ${
                       isChecked ? "bg-[#023E8A] hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"
                     }`}
                     disabled={!isChecked}

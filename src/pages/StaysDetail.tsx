@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import UpdateSearchFilter from "../components/UpdateSearchFilter";
 import Breadcrumbs from "../components/Breadcrumbs";
-import { FaShareAlt, FaHeart, FaImages,FaMapMarkerAlt, FaCheckCircle,
+import { FaImages,FaMapMarkerAlt, FaCheckCircle,FaHeart, FaShareAlt,
      FaStar, FaWifi, FaSwimmingPool, FaSnowflake, FaCar, 
      FaExpandArrowsAlt,
      FaBed} from "react-icons/fa";
+import { FaArrowLeft } from 'react-icons/fa';
+
 import Navbar from "./homePage/Navbar";
 import TravelmateApp from "./homePage/TravelmateApp";
 import Footer from "../components/2Footer";
@@ -15,6 +17,9 @@ import ShareModal from "../components/modals/ShareModal";
 import Policies from "../components/booking-progress/Policies";
 import RefundCancellation from "../components/booking-progress/RefundCancellation";
 
+import { useMediaQuery } from "react-responsive";
+    
+    
 
 interface StaysDetailProps {
     hotel: {
@@ -28,12 +33,73 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
     const [openModal, setOpenModal] = useState(false);
     const [showPhotosModal, setShowPhotosModal] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    const carouselRef = useRef<HTMLDivElement>(null);
 
     const cancellationDate = new Date();
     cancellationDate.setDate(cancellationDate.getDate() + 1);
     const formattedDate = cancellationDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     const formattedTime = "11:59 PM";
 
+    const isMobile = useMediaQuery({ maxWidth: 768 });
+
+    // Sync the carousel with the current index when a navigation dot is clicked
+    const handleSelectImage = (index: number) => {
+        setCurrentIndex(index);
+        if (carouselRef.current) {
+            carouselRef.current.scrollTo({
+                left: index * window.innerWidth,
+                behavior: 'smooth',
+            });
+        }
+    };
+
+    // Handle manual scrolling
+    const handleScroll = () => {
+        if (carouselRef.current) {
+            // Get the scroll position of the carousel
+            const scrollLeft = carouselRef.current.scrollLeft;
+
+            // Calculate the index of the currently visible image
+            const newIndex = Math.floor(scrollLeft / window.innerWidth);
+            if (newIndex !== currentIndex) {
+                setCurrentIndex(newIndex); // Update the current index
+            }
+        }
+    };
+
+    // Listen for scroll events to update the current index
+    useEffect(() => {
+        const handleResize = () => {
+            if (carouselRef.current) {
+                // On resize, make sure scroll position and index are in sync
+                const scrollLeft = carouselRef.current.scrollLeft;
+                const newIndex = Math.floor(scrollLeft / window.innerWidth);
+                setCurrentIndex(newIndex);
+            }
+        };
+
+        // Attach scroll and resize event listeners
+        const carousel = carouselRef.current;
+        if (carousel) {
+            carousel.addEventListener('scroll', handleScroll);
+            window.addEventListener('resize', handleResize);
+        }
+
+        // Cleanup event listeners on component unmount
+        return () => {
+            if (carousel) {
+                carousel.removeEventListener('scroll', handleScroll);
+            }
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [currentIndex]);
+
+
+    const handleShowPhotosClick = () => {
+        setShowPhotosModal(true);
+      };
 
     const sections = [
         { name: "Overview" },
@@ -77,94 +143,145 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
 
   return (
     <div>
-            {/* Navbar */}
-            <Navbar />
+           {/* Navbar - Hidden on mobile */}
+            {!isMobile && <Navbar />}
 
+            {/* Search Filter - Hidden on mobile */}
+            {!isMobile && (
             <div className="mt-18">
                 <UpdateSearchFilter />
             </div>
+            )}
 
-            <div className="mt-4 px-6 border-b border-gray-300">
-                <Breadcrumbs items={breadcrumbs} />
+            {/* Breadcrumbs - Hidden on mobile */}
+            <div className="mt-4 px-6 border-b border-gray-300 hidden md:block">
+            <Breadcrumbs items={breadcrumbs} />
             </div>
 
-            {/* Image Gallery Section */}
-            <div className="mt-4 px-6 relative">
-                {/* Share & Favorite Buttons */}
-                <div className="flex justify-end gap-4 mb-1 px-10">
-                <button className="flex items-center gap-2 px-4 py-2 cursor-pointer border rounded-lg shadow-sm text-gray-700 hover:bg-gray-100"
-                onClick={() => setShowShareModal(true)}
-                >
-                    <FaShareAlt /> Share
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 cursor-pointer border rounded-lg shadow-sm text-gray-700 hover:bg-gray-100">
-                    <FaHeart /> Add to Favorite
-                </button>
-                </div>
 
-                {/* Images Grid */}
-                <div className="grid grid-cols-2 gap-4 mt-2 p-10">
-
+            <div className="mt-0 sm:mt-4 px-0 sm:px-6 relative">
+                {/* Desktop Grid (Hidden on Mobile) */}
+                <div className="hidden md:grid grid-cols-2 gap-4 mt-2 p-10">
                     <div className="relative">
-                        <img
+                    <img
                         src={roomImages[0]}
                         alt="Main Room"
                         className="w-full h-[445px] object-cover rounded-lg"
-                        />
-                        {/* Show All Photos Button */}
-                        <button className="absolute bottom-4 left-4 flex items-center gap-2 bg-white cursor-pointer px-4 py-2 rounded-lg shadow-md"
-                        onClick={() => setShowPhotosModal(true)}
-                        >
+                    />
+                    <button
+                        className="absolute bottom-4 left-4 flex items-center gap-2 bg-white cursor-pointer px-4 py-2 rounded-lg shadow-md"
+                        onClick={handleShowPhotosClick}
+                    >
                         <FaImages className="text-gray-600" />
                         Show all {roomImages.length} photos
-                        </button>
+                    </button>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        {roomImages.slice(1, 5).map((image, index) => (
+                    {roomImages.slice(1, 5).map((image, index) => (
                         <img
-                            key={index}
-                            src={image}
-                            alt={`Room ${index + 2}`}
-                            className="w-full h-[214px] object-cover rounded-lg"
+                        key={index}
+                        src={image}
+                        alt={`Room ${index + 2}`}
+                        className="w-full h-[214px] object-cover rounded-lg"
                         />
-                        ))}
+                    ))}
                     </div>
                 </div>
-                {showPhotosModal && <AllPhotosModal onClose={() => setShowPhotosModal(false)} images={roomImages} />}
-                {showShareModal && <ShareModal onClose={() => setShowShareModal(false)} shareLink={hotel.shareLink} />}
+
+                
+
+{/* Mobile Carousel (Hidden on Desktop) */}
+<div className="md:hidden flex flex-col items-center relative">
+    {/* Image Carousel with Buttons on Top */}
+    <div className="relative w-full h-[80vw] max-h-[450px]">
+        <div className="absolute top-4 left-0 right-0 z-10 px-4 flex justify-between items-center">
+            <button className="bg-white p-2 rounded-md shadow">
+                {/* Back Button with React Icon */}
+                <FaArrowLeft className="w-5 h-5 text-gray-800" />
+            </button>
+
+            <div className="flex gap-2">
+                <button className="bg-white p-2 rounded-md shadow" onClick={() => setShowShareModal(true)}>
+                    {/* Share Button with React Icon */}
+                    <FaShareAlt className="w-5 h-5 text-gray-800" />
+                </button>
+                <button className="bg-white p-2 rounded-md shadow">
+                    {/* Favorite Button with React Icon */}
+                    <FaHeart className="w-5 h-5 text-gray-800" />
+                </button>
+            </div>
+        </div>
+
+        {/* Image Carousel - Make it scrollable */}
+        <div className="flex overflow-x-auto h-full" ref={carouselRef}>
+            {roomImages.map((image, index) => (
+                <img
+                    key={index}
+                    src={image}
+                    alt={`Room ${index + 1}`}
+                    className="w-full h-full object-cover flex-shrink-0"
+                />
+            ))}
+        </div>
+
+        {/* Photo Indicator - Displayed Below the Image */}
+        <div className="absolute bottom-6 right-3 flex items-center border border-white gap-2 bg-opacity-75 px-3 py-1 rounded-md">
+            <span className="text-white text-sm">
+                {currentIndex + 1} out of {roomImages.length}
+            </span>
+        </div>
+    </div>
+
+    {/* Navigation Dots */}
+    <div className="flex gap-2 mt-4">
+        {roomImages.map((_, index) => (
+            <button
+                key={index}
+                className={`w-3 h-3 rounded-full ${
+                    currentIndex === index ? "bg-orange-500" : "bg-gray-300"
+                }`}
+                onClick={() => handleSelectImage(index)}
+            />
+        ))}
+    </div>
+</div>
+
+{showPhotosModal && <AllPhotosModal onClose={() => setShowPhotosModal(false)} images={roomImages} />}
+{showShareModal && <ShareModal onClose={() => setShowShareModal(false)} shareLink={hotel.shareLink} />}
+
+
+
             </div>
 
 
-
-        <div className="w-[93%] mx-auto px-4">
-            {/* Navigation Tabs */}
-            <div className="border-b border-gray-300">
-                <ul className="flex gap-6 text-gray-600 text-sm font-medium w-full justify-between px-6">
-                {sections.map((section) => (
-                    <li
-                        key={section.name}
-                        className={`cursor-pointer pb-3 ${
-                        activeTab === section.name ? "text-blue-600 border-b-2 border-blue-600" : ""
-                        }`}
-                        onClick={() => {
+                <div className="w-[93%] mx-auto px-4">
+                    {/* Navigation Tabs */}
+                    <div className="border-b border-gray-300 hidden md:block">
+                            <ul className="flex gap-6 text-gray-600 text-sm font-medium w-full justify-between px-6">
+                        {sections.map((section) => (
+                        <li
+                            key={section.name}
+                            className={`cursor-pointer pb-3 ${
+                            activeTab === section.name ? "text-blue-600 border-b-2 border-blue-600" : ""
+                            }`}
+                            onClick={() => {
                             setActiveTab(section.name);
                             const sectionElement = document.getElementById(section.name);
                             if (sectionElement) {
-                              window.scrollTo({
+                                window.scrollTo({
                                 top: sectionElement.offsetTop - 70,
                                 behavior: "smooth",
-                              });
+                                });
                             }
-                          }}
-                          
-                    >
-                        {section.name}
-                    </li>
-                
-                ))}
-                </ul>
-            </div>
+                            }}
+                        >
+                            {section.name}
+                        </li>
+                        ))}
+                    </ul>   
+                </div>
+
 
             <section id="Overview">
                 {/* Overview Section */}
@@ -226,42 +343,45 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
                 <h3 className="font-semibold mx-1 mt-2 mb-2 text-xl">Select a room</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {rooms.map((room, index) => (
-                        <div key={index} className="w-[411px] h-[542px] bg-white shadow-lg rounded-lg p-4">
+                    <div
+                        key={index}
+                        className="w-full sm:w-[411px] h-auto bg-white shadow-lg rounded-lg p-4"
+                    >
                         {/* Room Image */}
                         <img
-                            src={room.image}
-                            alt={room.title}
-                            className="w-[379px] h-[234px] object-cover rounded-lg"
+                        src={room.image}
+                        alt={room.title}
+                        className="w-full h-[234px] object-cover rounded-lg"
                         />
 
                         {/* Room Details */}
                         <h3 className="mt-3 text-lg font-bold">{room.title}</h3>
 
                         <div className="flex items-center gap-2 text-gray-600 text-sm mt-2">
-                            <FaExpandArrowsAlt />
-                            <span>Room size: {room.size}m²</span>
+                        <FaExpandArrowsAlt />
+                        <span>Room size: {room.size}m²</span>
                         </div>
 
                         <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
-                            <FaBed />
-                            <span>{room.bedType}</span>
+                        <FaBed />
+                        <span>{room.bedType}</span>
                         </div>
 
                         <div className="flex items-center gap-2 text-green-600 text-sm mt-2">
-                            <FaCheckCircle />
-                            <span>Fully Refundable before Feb 9</span>
+                        <FaCheckCircle />
+                        <span>Fully Refundable before Feb 9</span>
                         </div>
 
                         {/* Pricing */}
                         <div className="flex justify-between items-end mt-4">
-                            <div>
+                        <div>
                             <p className="text-xl font-bold">N{room.pricePerNight}</p>
                             <span className="text-gray-500 text-sm">per Night</span>
-                            </div>
-                            <div>
+                        </div>
+                        <div>
                             <p className="text-xl font-bold">N{room.pricePerWeek}</p>
                             <span className="text-gray-500 text-sm pl-7">7 Nights</span>
-                            </div>
+                        </div>
                         </div>
 
                         {/* Availability Notice */}
@@ -269,13 +389,13 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
 
                         {/* Select Button */}
                         <button className="mt-3 w-full bg-[#023E8A] text-white py-2 rounded-lg cursor-pointer hover:bg-[#023E9E]">
-                            Select
+                        Select
                         </button>
-                        </div>
-                        ))}
+                    </div>
+                    ))}
                 </div>
+                </section>
 
-            </section>
             
 
             <section id="Reviews" className="mt-10"> 

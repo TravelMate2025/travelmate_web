@@ -67,9 +67,9 @@ const RefundCancellation: React.FC<RefundCancellationProps> = ({
 }) => {
   return (
     <div className="w-full space-y-4">
-      <h3 className="text-lg font-semibold">Refund & Cancellations</h3>
+      <h3 className="text-lg font-semibold ml-5 sm:ml-0">Refund & Cancellations</h3>
 
-      <div className="border border-gray-300 rounded-lg p-6 space-y-6">
+      <div className="sm:border border-gray-300 rounded-lg p-6 space-y-6">
         <ResponsiveFlexContainer>
           <p className="font-medium mb-4 md:mr-50">Cancellations</p>
           <ul className="text-gray-700 ml-4 list-disc">

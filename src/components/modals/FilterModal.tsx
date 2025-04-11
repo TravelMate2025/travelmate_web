@@ -26,7 +26,7 @@ export default function FilterModal({ isOpen, onClose }: FilterModalProps) {
   const formatPrice = (price: number) => `₦${price.toLocaleString()}`;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-opacity-30 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-opacity-30 z-[1200]">
       <div className="w-[350px] max-h-[600px] bg-white rounded-lg shadow-3xl shadow-[0_6px_30px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden">
         
         {/* Header */}
