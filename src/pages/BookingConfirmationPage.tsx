@@ -28,11 +28,12 @@ const BookingConfirmationPage: React.FC = () => {
       <Navbar />
       <div className="w-[93%] mx-auto mt-26 px-4">
         {/* Header Section */}
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold">Booking Confirmation</h1>
-          <div className="flex gap-4">
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg" 
-            onClick={() => setShowShareModal(true)}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold">Booking Confirmation</h1>
+          <div className="flex gap-3 flex-wrap">
+            <button
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg"
+              onClick={() => setShowShareModal(true)}
             >
               <FaShareAlt size={18} />
               Share
@@ -44,39 +45,36 @@ const BookingConfirmationPage: React.FC = () => {
           </div>
           {showShareModal && <ShareModal onClose={() => setShowShareModal(false)} shareLink={""} />}
         </div>
-
+  
         {/* Notification */}
-        <div className="bg-green-100 border border-green-700 px-4 py-2 mb-6 rounded-lg flex items-center gap-3">
-            <GrStatusGood size={24} className="text-green-600" />
-            <p>
-                <span className="font-semibold">Payment Successful</span> and your stay is confirmed.
-                Booking confirmation will also be sent to <span className="font-semibold">elvis@gmail.com</span>.
-            </p>
+        <div className="bg-green-100 border border-green-700 px-4 py-2 mb-6 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <GrStatusGood size={24} className="text-green-600" />
+          <p>
+            <span className="font-semibold">Payment Successful</span> and your stay is confirmed. Booking confirmation will
+            also be sent to <span className="font-semibold">elvis@gmail.com</span>.
+          </p>
         </div>
-
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-4">
+  
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-8 sm:space-y-4">
             <ConfirmationDetails />
             <GuestDetails guests={guests} />
           </div>
-            
+  
           <div className="space-y-4">
-            <PriceSummary /> 
+            <PriceSummary />
             <RoomDetails />
             <HotelDetails />
             <ContactDetails />
-            <BackHomeButton                                                                                                                                                                                                                                                             />
+            <BackHomeButton />
           </div>
-
         </div>
-
       </div>
-
+  
       <Footer />
     </div>
-
-      
   );
+  
 };
 
 export default BookingConfirmationPage;

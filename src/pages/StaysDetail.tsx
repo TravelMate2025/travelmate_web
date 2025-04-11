@@ -6,6 +6,7 @@ import { FaImages,FaMapMarkerAlt, FaCheckCircle,FaHeart, FaShareAlt,
      FaExpandArrowsAlt,
      FaBed} from "react-icons/fa";
 import { FaArrowLeft } from 'react-icons/fa';
+import AmenitiesModal from "../components/modals/AmenitiesModal"
 
 import Navbar from "./homePage/Navbar";
 import TravelmateApp from "./homePage/TravelmateApp";
@@ -18,6 +19,8 @@ import Policies from "../components/booking-progress/Policies";
 import RefundCancellation from "../components/booking-progress/RefundCancellation";
 
 import { useMediaQuery } from "react-responsive";
+import { useNavigate } from "react-router-dom";
+import PartialPolicies from "../components/booking-progress/PartialPolicies";
     
     
 
@@ -41,7 +44,13 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
     cancellationDate.setDate(cancellationDate.getDate() + 1);
     const formattedDate = cancellationDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     const formattedTime = "11:59 PM";
+    const navigate = useNavigate();
+    const [isOpen, setIsOpen] = useState(false);
 
+
+
+    const isLargeScreen = useMediaQuery({ minWidth: 1024 });
+    const visibleCount = isLargeScreen ? 10 : 4;
     const isMobile = useMediaQuery({ maxWidth: 768 });
 
     // Sync the carousel with the current index when a navigation dot is clicked
@@ -141,8 +150,21 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
     ];
 
 
+    const amenities = [
+        { icon: <FaWifi className="text-blue-600" />, name: "Wifi" },
+        { icon: <FaSwimmingPool className="text-blue-600" />, name: "Pool" },
+        { icon: <FaSnowflake className="text-blue-600" />, name: "Air Conditioning" },
+        { icon: <FaCar className="text-blue-600" />, name: "Free Parking" },
+        { icon: <FaCheckCircle className="text-blue-600" />, name: "24-hour Room Service" },
+        { icon: <FaCheckCircle className="text-blue-600" />, name: "Fitness Center" },
+        { icon: <FaCheckCircle className="text-blue-600" />, name: "Restaurant" },
+        { icon: <FaCheckCircle className="text-blue-600" />, name: "Bar & Lounge" },
+        { icon: <FaCheckCircle className="text-blue-600" />, name: "Laundry Service" },
+        { icon: <FaCheckCircle className="text-blue-600" />, name: "Business Center" },
+      ];
+
   return (
-    <div>
+        <div>
            {/* Navbar - Hidden on mobile */}
             {!isMobile && <Navbar />}
 
@@ -191,67 +213,64 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
 
                 
 
-{/* Mobile Carousel (Hidden on Desktop) */}
-<div className="md:hidden flex flex-col items-center relative">
-    {/* Image Carousel with Buttons on Top */}
-    <div className="relative w-full h-[80vw] max-h-[450px]">
-        <div className="absolute top-4 left-0 right-0 z-10 px-4 flex justify-between items-center">
-            <button className="bg-white p-2 rounded-md shadow">
-                {/* Back Button with React Icon */}
-                <FaArrowLeft className="w-5 h-5 text-gray-800" />
-            </button>
+                {/* Mobile Carousel (Hidden on Desktop) */}
+                <div className="md:hidden flex flex-col items-center relative">
+                    {/* Image Carousel with Buttons on Top */}
+                    <div className="relative w-full h-[80vw] max-h-[450px]">
+                        <div className="absolute top-4 left-0 right-0 z-10 px-4 flex justify-between items-center">
+                            <button className="bg-white p-2 rounded-md shadow" onClick={() => navigate(-1)} >
+                                {/* Back Button with React Icon */}
+                                <FaArrowLeft className="w-5 h-5 text-gray-800" />
+                            </button>
 
-            <div className="flex gap-2">
-                <button className="bg-white p-2 rounded-md shadow" onClick={() => setShowShareModal(true)}>
-                    {/* Share Button with React Icon */}
-                    <FaShareAlt className="w-5 h-5 text-gray-800" />
-                </button>
-                <button className="bg-white p-2 rounded-md shadow">
-                    {/* Favorite Button with React Icon */}
-                    <FaHeart className="w-5 h-5 text-gray-800" />
-                </button>
-            </div>
-        </div>
+                            <div className="flex gap-2">
+                                <button className="bg-white p-2 rounded-md shadow" onClick={() => setShowShareModal(true)}>
+                                    {/* Share Button with React Icon */}
+                                    <FaShareAlt className="w-5 h-5 text-gray-800" />
+                                </button>
+                                <button className="bg-white p-2 rounded-md shadow">
+                                    {/* Favorite Button with React Icon */}
+                                    <FaHeart className="w-5 h-5 text-gray-800" />
+                                </button>
+                            </div>
+                        </div>
 
-        {/* Image Carousel - Make it scrollable */}
-        <div className="flex overflow-x-auto h-full" ref={carouselRef}>
-            {roomImages.map((image, index) => (
-                <img
-                    key={index}
-                    src={image}
-                    alt={`Room ${index + 1}`}
-                    className="w-full h-full object-cover flex-shrink-0"
-                />
-            ))}
-        </div>
+                        {/* Image Carousel - Make it scrollable */}
+                        <div className="flex overflow-x-auto h-full" ref={carouselRef}>
+                            {roomImages.map((image, index) => (
+                                <img
+                                    key={index}
+                                    src={image}
+                                    alt={`Room ${index + 1}`}
+                                    className="w-full h-full object-cover flex-shrink-0"
+                                />
+                            ))}
+                        </div>
 
-        {/* Photo Indicator - Displayed Below the Image */}
-        <div className="absolute bottom-6 right-3 flex items-center border border-white gap-2 bg-opacity-75 px-3 py-1 rounded-md">
-            <span className="text-white text-sm">
-                {currentIndex + 1} out of {roomImages.length}
-            </span>
-        </div>
-    </div>
+                        {/* Photo Indicator - Displayed Below the Image */}
+                        <div className="absolute bottom-6 right-3 flex items-center border border-white gap-2 bg-opacity-75 px-3 py-1 rounded-md">
+                            <span className="text-white text-sm">
+                                {currentIndex + 1} out of {roomImages.length}
+                            </span>
+                        </div>
+                    </div>
 
-    {/* Navigation Dots */}
-    <div className="flex gap-2 mt-4">
-        {roomImages.map((_, index) => (
-            <button
-                key={index}
-                className={`w-3 h-3 rounded-full ${
-                    currentIndex === index ? "bg-orange-500" : "bg-gray-300"
-                }`}
-                onClick={() => handleSelectImage(index)}
-            />
-        ))}
-    </div>
-</div>
+                    {/* Navigation Dots */}
+                    <div className="flex gap-2 mt-4">
+                        {roomImages.map((_, index) => (
+                            <button
+                                key={index}
+                                className={`w-3 h-3 rounded-full ${
+                                    currentIndex === index ? "bg-orange-500" : "bg-gray-300"
+                                }`}
+                                onClick={() => handleSelectImage(index)}
+                            />
+                        ))}
+                    </div>
+                </div>
 
-{showPhotosModal && <AllPhotosModal onClose={() => setShowPhotosModal(false)} images={roomImages} />}
-{showShareModal && <ShareModal onClose={() => setShowShareModal(false)} shareLink={hotel.shareLink} />}
-
-
-
+                {showPhotosModal && <AllPhotosModal onClose={() => setShowPhotosModal(false)} images={roomImages} />}
+                {showShareModal && <ShareModal onClose={() => setShowShareModal(false)} shareLink={hotel.shareLink} />}
             </div>
 
 
@@ -323,24 +342,32 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
             </section>
       
             <section id="Amenities" className="py-6 border-b border-gray-300">
-                    <h2 className="text-xl font-semibold">Amenities (10)</h2>
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                    <p className="flex items-center gap-2"><FaWifi className="text-blue-600" /> Wifi</p>
-                    <p className="flex items-center gap-2"><FaSwimmingPool className="text-blue-600" /> Pool</p>
-                    <p className="flex items-center gap-2"><FaSnowflake className="text-blue-600" /> Air Conditioning</p>
-                    <p className="flex items-center gap-2"><FaCar className="text-blue-600" /> Free Parking</p>
-                    <p className="flex items-center gap-2"><FaCheckCircle className="text-blue-600" /> 24-hour Room Service</p>
-                    <p className="flex items-center gap-2"><FaCheckCircle className="text-blue-600" /> Fitness Center</p>
-                    <p className="flex items-center gap-2"><FaCheckCircle className="text-blue-600" /> Restaurant</p>
-                    <p className="flex items-center gap-2"><FaCheckCircle className="text-blue-600" /> Bar & Lounge</p>
-                    <p className="flex items-center gap-2"><FaCheckCircle className="text-blue-600" /> Laundry Service</p>
-                    <p className="flex items-center gap-2"><FaCheckCircle className="text-blue-600" /> Business Center</p>
+                <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Amenities ({amenities.length})</h2>
+                    <button
+                        className="text-blue-600 text-sm flex items-center md:hidden"
+                        onClick={() => setIsOpen(true)}
+                    >
+                    Show all <span className="ml-1">{">"}</span>
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 mt-2 md:grid-cols-3 lg:grid-cols-4">
+                    {amenities.slice(0, visibleCount).map((item, index) => (
+                        <p key={index} className="flex items-center gap-2">
+                        {item.icon} {item.name}
+                        </p>
+                    ))}
                 </div>
             </section>
 
+            {/* Show the modal */}
+            <AmenitiesModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+
+
 
             <section id="Select a room" className="mt-10">
-                <h3 className="font-semibold mx-1 mt-2 mb-2 text-xl">Select a room</h3>
+                <h3 className="font-semibold mx-1 my-2 text-xl">Select a room</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {rooms.map((room, index) => (
                     <div
@@ -388,7 +415,9 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
                         <p className="text-red-600 text-sm mt-2">2 left at this price</p>
 
                         {/* Select Button */}
-                        <button className="mt-3 w-full bg-[#023E8A] text-white py-2 rounded-lg cursor-pointer hover:bg-[#023E9E]">
+                        <button className="mt-3 w-full bg-[#023E8A] text-white py-2 rounded-lg cursor-pointer hover:bg-[#023E9E]"
+                        onClick={() => navigate("/booking-progress")}
+                        >
                         Select
                         </button>
                     </div>
@@ -410,7 +439,9 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
 
             <section id="Policies" className="mt-10 mb-10"> 
             <hr className="text-gray-300 mb-8" />
-                <Policies />
+                
+                {!isMobile ? <Policies /> : <PartialPolicies />}
+                
             </section>
 
              
@@ -422,7 +453,7 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
                 <TravelmateApp />
             </div>
             <Footer />
-    </div>
+        </div>
   );
 };
 

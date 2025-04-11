@@ -9,12 +9,12 @@ interface Guest {
 
 const GuestDetails: React.FC<{ guests: Guest[] }> = ({ guests }) => {
   return (
-    <div className="bg-white p-6">
+    <div className="bg-white sm:p-6">
       <h2 className="text-lg font-semibold mb-4">Guest Details</h2>
 
       <div className="space-y-6">
         {guests.map((guest, index) => (
-          <div key={index} className="p-6 rounded-lg border border-gray-300 space-y-3">
+          <div key={index} className="sm:p-6 rounded-lg sm:border border-gray-300 space-y-3">
             <p className="flex justify-between">
               <span className="font-medium">Name</span> {guest.name}
             </p>

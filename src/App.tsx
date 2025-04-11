@@ -51,7 +51,6 @@ function App() {
         <Route path="/stays-detail" element={<StaysDetail hotel={{ images: [],shareLink: "" }} />} />    
 
         {/* round-trip-section */}
-        <Route path="/stays-detail" element={<StaysDetail hotel={{ images: [],shareLink: "" }} />} /> 
 
         <Route path="/departure-flight" element={<DeparturePage departureInfo={[]} />} />
         <Route path="/return-flight" element={<ReturnPage departureInfo={[]} />} />

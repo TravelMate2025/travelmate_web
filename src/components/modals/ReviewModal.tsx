@@ -1,5 +1,6 @@
 import { Rating } from "@mui/material";
 import { FaTimes, FaSearch } from "react-icons/fa";
+import { useState } from "react";
 
 
 interface ReviewsModalProps {
@@ -28,11 +29,23 @@ interface ReviewsModalProps {
   
   ];
 
+  const filterOptions = ["Most Relevant", "Highest Rated", "Lowest Rated"];
+
+
 
 const ReviewsModal: React.FC<ReviewsModalProps> = ({ onClose }) => {
+  const [selectedFilter, setSelectedFilter] = useState("Most Relevant");
+
+  const filteredReviews = [...reviews].sort((a, b) => {
+    if (selectedFilter === "Highest Rated") return b.rating - a.rating;
+    if (selectedFilter === "Lowest Rated") return a.rating - b.rating;
+    return 0;
+  });
+
+
   return (
     <div className="fixed top-9 left-1/2 transform -translate-x-1/2 bg-opacity-60 w-full h-full flex items-center justify-center">
-      <div className="bg-white rounded-lg w-[1000px] h-[85%] shadow-[0_4px_20px_rgba(0,0,0,0.6)] p-6 z-50">
+      <div className="bg-white rounded-lg w-[1000px] h-[85%] shadow-[0_4px_20px_rgba(0,0,0,0.6)] p-2 md:p-6 z-50">
         {/* Modal Header */}
         <div className="flex justify-between items-center border-b border-gray-300 pb-4">
           <h2 className="text-xl font-bold mx-auto">All Reviews</h2>
@@ -55,7 +68,7 @@ const ReviewsModal: React.FC<ReviewsModalProps> = ({ onClose }) => {
 
         {/* Category Ratings */}
         <p className="mt-4 font-medium">Category Rating</p>
-        <div className="grid grid-cols-2 gap-6 mt-2 mb-6 border border-gray-300 p-6 rounded-xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2  gap-6 mt-2 mb-6 border border-gray-300 p-3 md:p-6 rounded-xl">
             {ratings.map((rating, index) => (
             <div key={index}>
                 <div className="flex justify-between mb-2">
@@ -79,7 +92,17 @@ const ReviewsModal: React.FC<ReviewsModalProps> = ({ onClose }) => {
         {/* Filter & Search */}
         <div className="flex justify-between items-center mb-4">
           <p className="text-lg font-medium">80 Reviews</p>
-          <button className="border px-4 py-1 rounded-lg text-gray-600">Most Relevant</button>
+          <select
+            value={selectedFilter}
+            onChange={(e) => setSelectedFilter(e.target.value)}
+            className="border px-4 py-1 rounded-lg text-gray-600 bg-white focus:outline-blue-600"
+          >
+            {filterOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="relative mb-4">
           <FaSearch className="absolute left-3 top-3 text-gray-400" />
@@ -89,14 +112,14 @@ const ReviewsModal: React.FC<ReviewsModalProps> = ({ onClose }) => {
                 (e.target.value.length <= 45)
               }}
             placeholder="Search Review"
-            className="pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg w-[40%] focus:outline-none"
+            className="pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg w-full md:w-[40%] focus:outline-none"
           />
         </div>
 
         {/* Customer Reviews */}
         <div className="space-y-6">
-          {reviews.map((review) => (
-            <div key={review.id} className="p-4 border border-gray-300 rounded-lg shadow">
+          {filteredReviews.map((review) => (
+            <div key={review.id} className="p-4 border-b md:border border-gray-300 md:rounded-lg md:shadow">
               <div className="flex justify-between items-center">
                 <p className="font-medium">{review.name}</p>
                 <span className="text-gray-500 text-sm">Stayed in {review.date}</span>

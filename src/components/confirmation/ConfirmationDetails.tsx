@@ -4,7 +4,7 @@ const ConfirmationDetails: React.FC = () => {
   return (
     <div className="bg-white">
       <h2 className="text-lg font-semibold mb-2 text-left">Confirmation Details</h2>
-      <div className="space-y-3 rounded-lg p-6 border border-gray-300">
+      <div className="space-y-3 rounded-lg sm:p-6 sm:border border-gray-300">
         <p className="flex justify-between">
           <span className="font-medium">Confirmation Number</span> WER423761
         </p>

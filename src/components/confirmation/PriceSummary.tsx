@@ -3,8 +3,8 @@ import React from "react";
 const PriceSummary: React.FC = () => {
   return (
     <div >
-      <h2 className="text-lg font-semibold ml-5 md:ml-0 mb-2">Price Summary</h2>
-      <div className="bg-white p-6 w-full h-50 border-t border-b md:border md:rounded-lg border-gray-300">
+      <h2 className="text-lg font-semibold mb-2 ml-3">Price Summary</h2>
+      <div className="bg-white px-4 py-2 sm:p-6 w-full h-50 border-t border-b md:border md:rounded-lg border-gray-300">
 
         <div className="space-y-3">
           <p className="flex justify-between">

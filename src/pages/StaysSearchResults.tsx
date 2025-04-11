@@ -61,25 +61,29 @@ export default function StaysSearchResults() {
       {!isMobile && <Breadcrumbs items={breadcrumbs} />}
 
       {/* Results and Sorting Section */}
-      <div className="min-h-screen px-6">
-        {/* Filter Details Box (Mobile) */}
-        {isMobile && !showUpdateSearch && (
-         <button
-          onClick={handleEditClick}
-          className="border bg-blue-100 rounded-lg p-4 my-4 flex justify-between items-center"
-          >
-          <div className="text-left">
-            <p className="truncate overflow-hidden whitespace-nowrap">
-              {`${filterDetails.state}, ${filterDetails.city}`}
-            </p>
-            <p className="truncate overflow-hidden whitespace-nowrap">
-              {`${filterDetails.dates} * ${filterDetails.roomsGuests}`}
-            </p>
-          </div>
-          <span className="m-3"><FaPencilAlt /></span>
+      <div className="min-h-screen px-0">
+        <div className="px-4 sm:px-10">
 
-        </button>
-        )}
+              {/* Filter Details Box (Mobile) */}
+            {isMobile && !showUpdateSearch && (
+              <button
+                onClick={handleEditClick}
+                className="w-full border bg-blue-100 rounded-lg px-4 py-3 my-4 flex justify-between items-center"
+              >
+                <div className="text-left w-11/12">
+                  <p className="truncate text-sm">
+                    {`${filterDetails.state}, ${filterDetails.city}`}
+                  </p>
+                  <p className="truncate text-sm">
+                    {`${filterDetails.dates} • ${filterDetails.roomsGuests}`}
+                  </p>
+                </div>
+                <span className="text-gray-700 text-sm">
+                  <FaPencilAlt />
+                </span>
+              </button>
+            )}
+
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <span className="text-black font-bold text-lg ml-0 sm:ml-4 mb-4 sm:mb-0">
@@ -120,6 +124,8 @@ export default function StaysSearchResults() {
             </button>
           </div>
         </div>
+      </div>
+            
 
         {/* Stay List */}
         <StayList />

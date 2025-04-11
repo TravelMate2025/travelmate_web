@@ -4,7 +4,7 @@ import AuthNav from "../components/AuthNavbar";
 
 export default function CheckEmail() {
   const [email] = useState("user@example.com");
-  const [timer, setTimer] = useState(30); // 
+  const [timer, setTimer] = useState(70);
   const navigate = useNavigate();
 
   useEffect(() => {

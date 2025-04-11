@@ -27,13 +27,12 @@ const StayCard: React.FC<StayCardProps> = ({
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    // navigate(`/stay/${id}`);
     navigate(`/stays-detail`);
   };
 
   return (
     <div
-      className="w-[410px] h-[431px] bg-white rounded-lg border border-gray-300 shadow-lg p-4 cursor-pointer"
+      className="w-full sm:w-[380px] md:w-[410px] bg-white rounded-lg border border-gray-300 shadow-lg p-4 cursor-pointer"
       onClick={handleCardClick}
     >
       {/* Image Section */}
@@ -41,9 +40,9 @@ const StayCard: React.FC<StayCardProps> = ({
         <img
           src={image}
           alt={name}
-          className="w-[378px] h-[224px] rounded-lg object-cover"
+          className="w-full h-[200px] sm:h-[210px] md:h-[224px] rounded-lg object-cover"
         />
-        {/* Heart Icon Container */}
+        {/* Heart Icon */}
         <div className="absolute top-3 right-3 bg-white rounded-md p-2 cursor-pointer">
           <FaRegHeart className="text-blue-900 text-2xl" />
         </div>
@@ -56,7 +55,9 @@ const StayCard: React.FC<StayCardProps> = ({
           <h3 className="text-lg font-semibold">{name}</h3>
           <div className="flex items-center text-orange-500">
             <FaStar className="mr-1" />
-            <span className="font-medium text-black">{rating} ({reviews})</span>
+            <span className="font-medium text-black">
+              {rating} ({reviews})
+            </span>
           </div>
         </div>
 

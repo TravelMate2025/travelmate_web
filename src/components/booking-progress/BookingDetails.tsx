@@ -4,7 +4,7 @@ const BookingDetails: React.FC = () => {
   return (
     <div className="w-full md:w-[628px] space-y-4">
       {/* Title */}
-      <h3 className="text-lg font-semibold">Booking Details</h3>
+      <h3 className="text-lg font-semibold ml-5">Booking Details</h3>
 
       {/* Body */}
       <div className="md:border border-gray-300 rounded-lg p-6 space-y-4">
