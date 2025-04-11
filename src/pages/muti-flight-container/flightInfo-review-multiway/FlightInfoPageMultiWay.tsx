@@ -141,9 +141,38 @@ const handleSubmit = () => {
   }
 };
 
+const isFormValids =
+  !errors.cardNumber &&
+  !errors.cardHolder &&
+  !errors.expiryDate &&
+  !errors.cvv &&
+  formData.cardNumber &&
+  formData.cardHolder &&
+  formData.expiryDate &&
+  formData.cvv;
+
+const [formValues, setFormValues] = useState({
+  firstName: "",
+  lastName: "",
+  email: "",
+  phoneNumber: "",
+  dateOfBirth: "",
+});
+const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { id, value } = e.target;
+  setFormValues(prev => ({ ...prev, [id]: value }));
+};
 
 
-//   const isFormValid = validateFields() && formData.agreement;
+const isEmailValid = (email: string): boolean =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+const isFormVali =
+  formValues.firstName.trim() &&
+  formValues.lastName.trim() &&
+  isEmailValid(formValues.email) &&
+  formValues.phoneNumber.trim() &&
+  formValues.dateOfBirth.trim();
 
   return (
     <div>
@@ -448,6 +477,8 @@ const handleSubmit = () => {
                                                 id="firstName"
                                                 variant="outlined"
                                                 size="small"
+                                                value={formValues.firstName}
+                                                onChange={handleInputChange}
                                                 placeholder="Enter First Name"
                                                 InputProps={{
                                                     startAdornment: (
@@ -469,6 +500,8 @@ const handleSubmit = () => {
                                                 id="lastName"
                                                 variant="outlined"
                                                 size="small"
+                                                value={formValues.lastName}
+                                                onChange={handleInputChange}
                                                 placeholder="Enter Last Name"
                                                 InputProps={{
                                                     startAdornment: (
@@ -492,6 +525,8 @@ const handleSubmit = () => {
                                                 id="email"
                                                 variant="outlined"
                                                 size="small"
+                                                value={formValues.email}
+                                                onChange={handleInputChange}
                                                 placeholder="name@email.com"
                                                 InputProps={{
                                                     startAdornment: (
@@ -512,6 +547,8 @@ const handleSubmit = () => {
                                             <label htmlFor="phoneNumber" className="mb-1 text-[14px]">Phone Number</label>
                                             <TextField
                                                 id="phoneNumber"
+                                                 value={formValues.phoneNumber}
+                                                onChange={handleInputChange}
                                                 variant="outlined"
                                                 size="small"
                                                 placeholder="Enter Phone Number"
@@ -536,6 +573,8 @@ const handleSubmit = () => {
                                                 type='date'
                                                 variant="outlined"
                                                 size="small"
+                                                value={formValues.dateOfBirth}
+                                                onChange={handleInputChange}
                                                 placeholder="Enter Phone Number"
                                                 // value={from}
                                                 // onClick={handleFromClick}
@@ -571,11 +610,10 @@ const handleSubmit = () => {
 
                    {/* <Link to="/car-payment-successful"> */}
                     <div className="w-[90%] m-auto mb-20">
-                        <button
-                        className="w-full text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]"
-                        // disabled={!isFormValid}
+                          <button
+                         className={`w-full text-white h-[56px] rounded-[6px] ${!isFormVali ? "bg-gray-400 cursor-not-allowed" : "bg-[#023E8A]"}`}
                         onClick={handleNext} 
-                        disabled={activeStep === steps.length - 1}
+                        disabled={!isFormVali}
                         >
                         {activeStep === steps.length - 1 ? "Finish" : "Continue"}
                         </button>
@@ -693,7 +731,7 @@ const handleSubmit = () => {
                                                     <label className="mb-[12px] text-[#181818] font-medium text-[16px]">Expiry Date</label>
                                                     <TextField
                                                     name="expiryDate"
-                                                    type="date"
+                                                      type="month"
                                                     variant="outlined"
                                                     size="small"
                                                     value={formData.expiryDate}
@@ -733,8 +771,13 @@ const handleSubmit = () => {
                                                     }}
                                                     />
                                                 </div>
-                        
-                                                <FormControlLabel control={<Checkbox />} label="Save this card for future payment" className='mt-[-10px]'  />
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox disabled={!isFormValids} />
+                                                    }
+                                                    label="Set as default Payment Method"
+                                                    className='mt-[-10px]' 
+                                                    />
                                                 </div>
                                                 </div>
         
@@ -798,7 +841,7 @@ const handleSubmit = () => {
                                                             control={<Checkbox checked={formData.agreement} onChange={handleCheckboxChange} />}
                                                             label={
                                                                 <p className="text-[11px]">
-                                                                I agree to the <span className="text-[#023E8A]">booking conditions, Travel Mate terms and conditions, and Privacy Policy.</span>
+                                                                I agree to the <span className="text-[#023E8A]">booking conditions, TravelMate terms and conditions, and Privacy Policy.</span>
                                                                 </p>
                                                             }
                                                             />
@@ -1187,7 +1230,7 @@ const handleSubmit = () => {
                             <label className="mb-[12px] text-[#181818] font-medium text-[14px]">Expiry Date</label>
                             <TextField
                             name="expiryDate"
-                            type="date"
+                              type="month"
                             variant="outlined"
                             size="small"
                             value={formData.expiryDate}
@@ -1228,7 +1271,12 @@ const handleSubmit = () => {
                             />
                         </div>
 
-                        <FormControlLabel control={<Checkbox />} label="Set as default Payment Method" />
+                        <FormControlLabel
+                            control={
+                                <Checkbox disabled={!isFormValids} />
+                            }
+                            label="Set as default Payment Method"
+                            />
                         </div>
                     </div>
 
@@ -1237,7 +1285,7 @@ const handleSubmit = () => {
                         control={<Checkbox checked={formData.agreement} onChange={handleCheckboxChange} />}
                         label={
                             <p>
-                            I agree to the <span className="text-[#023E8A]">booking conditions, Travel Mate terms, and Privacy Policy.</span>
+                            I agree to the <span className="text-[#023E8A]">booking conditions, TravelMate terms, and Privacy Policy.</span>
                             </p>
                         }
                         />

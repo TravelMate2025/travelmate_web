@@ -3,7 +3,7 @@ import { FaRegCreditCard } from "react-icons/fa";
 import mastercardLogo from "../../assets/images/mastercard-logo.png";
 import visaLogo from "../../assets/images/visa-logo.png";
 import AddNewCard from "../modals/AddNewCard";
-import { submitCardCVV } from "../../api/paymentApi"
+import { submitCardCVV } from "../../api/paymentApi";
 import PaymentFailedModal from "../modals/PaymentFailedModal";
 
 interface PaymentMethodProps {
@@ -22,13 +22,12 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
+  const [cvv, setCvv] = useState(""); // Declare cvv state
   const [isDefault, setIsDefault] = useState(false);
   const [savedCards] = useState<Card[]>(initialCards);
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
-  const [cvvInputs, setCvvInputs] = useState<{ [cardId: number]: string }>({});
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [showFailedModal, setShowFailedModal] = useState(false);
-
 
   const maskCardNumber = (cardNumber: string) => "**** **** **** " + cardNumber.slice(-4);
 
@@ -36,12 +35,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
     setSelectedCard(prev => (prev === cardId ? null : cardId));
   };
 
-  const handleCvvChange = (cardId: number, value: string) => {
-    setCvvInputs({ ...cvvInputs, [cardId]: value });
-  };
-
   const handleSubmitCvv = async (cardId: number) => {
-    const cvv = cvvInputs[cardId];
     if (!cvv || cvv.length < 3) {
       alert("Please enter a valid CVV");
       return;
@@ -61,6 +55,12 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
     setShowAddCardModal(false);
   };
 
+  const formValid =
+    cardNumber.trim().length === 16 &&
+    cardHolder.trim().length > 0 &&
+    /^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(expiryDate) &&
+    cvv.trim().length === 3;
+
   return (
     <div className="w-full md:w-[628px] space-y-4">
       <h3 className="text-lg font-semibold ml-5">Payment Method</h3>
@@ -72,8 +72,16 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
             <p className="font-medium">Card</p>
           </div>
           <div className="flex gap-2">
-            <img src={mastercardLogo} alt="Mastercard" className="w-12 h-8 rounded-lg bg-white p-1 border border-gray-300 shadow" />
-            <img src={visaLogo} alt="Visa" className="w-12 h-8 rounded-lg bg-white p-1 border border-gray-300 shadow" />
+            <img
+              src={mastercardLogo}
+              alt="Mastercard"
+              className="w-12 h-8 rounded-lg bg-white p-1 border border-gray-300 shadow"
+            />
+            <img
+              src={visaLogo}
+              alt="Visa"
+              className="w-12 h-8 rounded-lg bg-white p-1 border border-gray-300 shadow"
+            />
           </div>
         </div>
 
@@ -89,7 +97,11 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
                     checked={selectedCard === card.id}
                     onChange={() => handleCardSelect(card.id)}
                   />
-                  <img src={card.type === "visa" ? visaLogo : mastercardLogo} alt={card.type} className="w-10 h-6 mr-4" />
+                  <img
+                    src={card.type === "visa" ? visaLogo : mastercardLogo}
+                    alt={card.type}
+                    className="w-10 h-6 mr-4"
+                  />
                   <div className="flex-grow">
                     <p className="font-medium flex items-center">
                       {card.cardHolder}
@@ -109,8 +121,8 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
                       type="password"
                       placeholder="Enter CVV"
                       className="w-full border border-gray-400 rounded-lg p-2 outline-none"
-                      value={cvvInputs[card.id] || ""}
-                      onChange={(e) => handleCvvChange(card.id, e.target.value)}
+                      value={cvv}
+                      onChange={(e) => setCvv(e.target.value)}
                     />
                     <button
                       onClick={() => handleSubmitCvv(card.id)}
@@ -152,10 +164,11 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
                 onChange={(e) => setCardHolder(e.target.value)}
               />
             </div>
+
             <div>
               <label className="block mb-2 font-medium">Expiry Date</label>
               <input
-                type="text"
+                type="date"
                 placeholder="MM/YY"
                 className="w-full border border-gray-400 rounded-lg p-2 outline-none"
                 value={expiryDate}
@@ -171,6 +184,21 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
               />
               <p className="text-sm text-gray-700">Set as default payment method</p>
             </div>
+          
+
+            {/* Checkbox */}
+            {/* <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={isDefault}
+                onChange={() => setIsDefault(!isDefault)}
+                className="w-4 h-4 border rounded"
+                disabled={!formValid}
+              />
+              <p className={`text-sm ${!formValid ? "text-gray-400" : "text-gray-700"}`}>
+                Set as default payment method
+              </p>
+            </div> */}
           </div>
         )}
       </div>

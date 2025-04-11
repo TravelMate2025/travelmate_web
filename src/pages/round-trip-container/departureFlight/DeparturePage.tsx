@@ -2,14 +2,15 @@
 
 
 import Navbar from '../../homePage/Navbar'
-import React, { useState, useRef, useMemo, forwardRef , Ref, ReactElement  } from "react";
+import React, { useState, useEffect, useRef, useMemo, forwardRef , Ref, ReactElement  } from "react";
 import Radio from "@mui/material/Radio";
 import {RadioGroup, Slide} from "@mui/material";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import InputAdornment from "@mui/material/InputAdornment";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+// import LocationOnOutlinedIcon from "@mui/icons-material/LocationOn";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import Popper from "@mui/material/Popper";
@@ -48,6 +49,7 @@ import { useMediaQuery } from "react-responsive";
 import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutlined';
 import ModeEditOutlinedIcon from '@mui/icons-material/ModeEditOutlined';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
+import axios from "axios"
 
 interface DateRangeType {
   startDate: Date;
@@ -79,6 +81,7 @@ interface DepartureListProps {
 }
 
 import { TransitionProps } from "@mui/material/transitions";
+
 
 
 const Transition = forwardRef<unknown, TransitionProps & { children: ReactElement }>(
@@ -148,6 +151,12 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
       setFromClick(event.currentTarget);
     };
 
+      //   const handleFromClick = (event: React.MouseEvent<HTMLElement>, id: number) => {
+      //   setFromClick(event.currentTarget);
+      //   setOpenFrom((prevOpen) => !prevOpen);
+      //   setFromId(id);
+      // };
+
     const handleOptionClick = (selectedLocation: string, isFrom: boolean) => {
     if (isFrom) {
         setFrom(selectedLocation);
@@ -183,7 +192,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
         };
 
     
-    const [counts, setCounts] = useState({ adults: 1, children: 0, infants: 0 });
+    const [counts, setCounts] = useState({ adults: 0, children: 0, infants: 0 });
 
     const handleIncrement = (type: keyof typeof counts) => {
     setCounts((prevCounts) => ({
@@ -502,6 +511,71 @@ const handleApplyFilters = () => {
   closeDialog();
 };
 
+  const [filteredLocationsFrom, setFilteredLocationsFrom] = useState<string[]>([]);
+const [filteredLocationsTo, setFilteredLocationsTo] = useState<string[]>([]);
+
+
+
+useEffect(() => {
+  const delayDebounce = setTimeout(() => {
+    if (from.trim()) {
+      fetchLocations(from, true);
+    } else {
+      setLocations([]);
+    }
+  }, 500); // debounce for 500ms
+
+  return () => clearTimeout(delayDebounce);
+}, [from]);
+
+// For To location search:
+useEffect(() => {
+  const delayDebounce = setTimeout(() => {
+    if (to.trim()) {
+      fetchLocations(to, false);
+    } else {
+      setLocations([]);
+    }
+  }, 500); // debounce for 500ms
+
+  return () => clearTimeout(delayDebounce);
+}, [to]);
+
+
+const fetchLocations = async (query: string, isFrom: boolean) => {
+  try {
+    const response = await axios.get(
+      `https://wft-geo-db.p.rapidapi.com/v1/geo/cities`,
+      {
+        params: {
+          namePrefix: query,
+          limit: 5,
+          sort: "-population",
+        },
+        headers: {
+          "X-RapidAPI-Key": "f8e601d31bmsh872d32d4d10fddbp1d8eeajsn162587dd4b51",
+          "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com",
+        },
+      }
+    );
+
+    const citySuggestions = response.data.data.map(
+      (item: { city: string; country: string }) => `${item.city}, ${item.country}`
+    );
+
+    setLocations(citySuggestions);
+    if (isFrom) {
+      setFilteredLocationsFrom(citySuggestions);
+    } else {
+      setFilteredLocationsTo(citySuggestions);
+    }
+  } catch (error) {
+    console.error("Error fetching locations:", error);
+    setLocations([]);
+  }
+};
+
+
 
 
 
@@ -568,19 +642,26 @@ const handleApplyFilters = () => {
                       InputProps={{
                           startAdornment: (
                           <InputAdornment position="start">
-                              <TuneIcon />
+                              <TuneIcon sx={{ color: "black" }} />
                           </InputAdornment>
                           ),
                           readOnly: true, 
                       }}
                       sx={{
-                          width: "100px",
-                          "& .MuiInputBase-root": {
+                        width: "100px",
+                        "& .MuiInputBase-root": {
                           height: "44px",
                           borderRadius: "8px",
                           borderColor: "#DEDFE1",
                           cursor: "pointer",
-                          },
+                        },
+                        "& .MuiInputBase-input::placeholder": {
+                          color: "black",
+                          opacity: 1, // ensures full color visibility
+                        },
+                        "& .MuiInputBase-input": {
+                          color: "black",
+                        },
                       }}
                       />
 
@@ -774,20 +855,27 @@ const handleApplyFilters = () => {
                     InputProps={{
                     startAdornment: (
                     <InputAdornment position="start">
-                    <SortIcon />
+                    <SortIcon sx={{ color: "black" }} />
                     </InputAdornment>
                     ),
                     readOnly: true, 
                     }}
                  
-                      sx={{
-                          width: "100px",
-                          "& .MuiInputBase-root": {
+                    sx={{
+                        width: "100px",
+                        "& .MuiInputBase-root": {
                           height: "44px",
                           borderRadius: "8px",
                           borderColor: "#DEDFE1",
                           cursor: "pointer",
-                          },
+                        },
+                        "& .MuiInputBase-input::placeholder": {
+                          color: "black",
+                          opacity: 1, // ensures full color visibility
+                        },
+                        "& .MuiInputBase-input": {
+                          color: "black",
+                        },
                       }}
                       />
                       
@@ -873,7 +961,7 @@ const handleApplyFilters = () => {
           {paginatedItems.length > 0 ? (
               paginatedItems.map((depart) => (
               <div key={depart.id} className="group" onClick={() => handleOpen(depart)}>
-                  <div className='w-full font-inter border mb-4 border-[#809EC4] h-[175px] rounded-[7px] pt-[16px] pd-[16px] pl-[16px] pr-[16px] 
+                  <div className='w-full font-inter border mb-4 border-[#809EC4]  rounded-[7px] pt-[16px] pb-[16px] pl-[16px] pr-[16px] 
                       group-hover:bg-[#CCD8E81A] group-hover:border-[#023E8A] group-hover:border-[1px] transition-all duration-300'>
 
                       <div className='flex gap-3 justify-between mb-4'>
@@ -892,9 +980,9 @@ const handleApplyFilters = () => {
 
                   
                       <div className='flex justify-center gap-6'>
-                          <div>
+                          <div className='relative left-6'>
                               <p className="text-[14px] font-semibold">{depart.timefrom}</p>
-                              <p className="text-[14px] font-normal text-[#4E4F52]">{depart.placefrom}</p>
+                              <p className="text-[14px] font-normal text-[#4E4F52] relative right-3">{depart.placefrom}</p>
                           </div>
 
                           <div>
@@ -909,7 +997,7 @@ const handleApplyFilters = () => {
 
                           <div>
                               <p  className="text-[14px] font-semibold">{depart.timeto}</p>
-                              <p className="text-[14px] font-normal text-[#4E4F52]">{depart.placeto}</p>
+                              <p className="text-[14px] font-normal text-[#4E4F52] relative right-3" >{depart.placeto}</p>
                           </div>
                       </div>
 
@@ -994,7 +1082,7 @@ const handleApplyFilters = () => {
                   <div className="flex items-center justify-center relative">
                        
                    <div 
-                      onClick={closeDialog} 
+                      onClick={handleCloseClick} 
                       style={{position:"absolute",  left:"0px", top:"-5px"}}
                     className=" w-[32px] h-[32px]  text-center bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)]"
                       >
@@ -1012,7 +1100,7 @@ const handleApplyFilters = () => {
                       <div className='w-full border-1 border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] mb-[16px] '>
 
                           <div className='items-center p-2'>
-                              <p className='text-[18px] text-[#181818] font-inter font-normal'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
+                              <p className='text-[18px] text-[#181818] font-inter font-medium'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
                               <p className='text-[15px] text-[#4E4F52] '>Feb 19, 1 {selectedDeparture?.passenger}</p>
 
                           </div>
@@ -1022,9 +1110,9 @@ const handleApplyFilters = () => {
                             <div>
                               <div className="w-full border-1 border-[#DEDFE1] bd-white rounded-[6px] p-[12px]">
                                   <div>
-                                  <p className="text-[19px]  font-normal text-[#67696D] ">Departure Flight</p>
-                                  <p className="text-[#181818] text-[16px] font-semibold">₦50,000 </p>
-                                  <p className="text-[#4E4F52] text-[16px] font-normal">Per Passenger</p>
+                                  <p className="text-[19px]  font-medium text-[#181818] ">Departure Flight</p>
+                                  <p className="text-[#181818] text-[16px] font-medium">₦50,000 </p>
+                                  <p className="text-[#67696D] text-[16px] font-normal">Per Passenger</p>
                                   <p  className="text-[#181818] text-[16px] font-medium"><ErrorOutlineIcon />Price Includes tax & Fees</p>
 
                                   </div>
@@ -1042,9 +1130,9 @@ const handleApplyFilters = () => {
                                       <p className='text-[#4E4F52] font-normal text-[16px]'><FlightClassOutlinedIcon />{selectedDeparture?.class}</p>
                                       <p className='text-[#4E4F52] font-normal text-[16px]'><CalendarMonthOutlinedIcon />Feb 19</p>
                                       <p className="text-[#4E4F52] text-[16px] font-normal"><AccessTimeIcon />{selectedDeparture?.timefrom} - {selectedDeparture?.timeto} ({selectedDeparture?.duration} {selectedDeparture?.non})</p>
-                                      <p className="text-[#4E4F52] text-[16px] font-medium"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
-                                      <p className="text-[#4E4F52] text-[16px] font-medium"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
-                                      <p className="text-[#4E4F52] text-[16px] font-medium"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
+                                      <p className="text-[#4E4F52] text-[16px] font-normal"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
+                                      <p className="text-[#4E4F52] text-[16px] font-normal"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
+                                      <p className="text-[#4E4F52] text-[16px] font-normal"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
                                       
                                   </div>
 
@@ -1115,19 +1203,32 @@ const handleApplyFilters = () => {
                   size="small"
                   placeholder="Search Destination"
                   value={from}
+                  // value={from}
+                  onChange={(e) => setFrom(e.target.value)}
                   onClick={handleFromClick}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <LocationOnIcon />
+                        <LocationOnOutlinedIcon />
                       </InputAdornment>
                     ),
                   }}
-                  sx={{
-                    width: "200px",
-                  
-                    "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-                  }}
+                    sx={{
+                  width: '200px',
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                }}
                 />
 
                 <Popper id="from-popper" open={openFrom} anchorEl={FromClick} placement="bottom-start">
@@ -1146,12 +1247,12 @@ const handleApplyFilters = () => {
                       Recent Searches
                     </Typography>
 
-                      {locations.length === 0 ? (
+                      {filteredLocationsFrom.length === 0 ? (
                         <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
                           No recent searches
                         </Typography>
                       ) : (
-                      locations.map((location, index) => (
+                      filteredLocationsFrom.map((location, index) => (
                         <React.Fragment key={location}>
                           <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
                             <div className="flex gap-[8px]" onClick={() => handleOptionClick(location, true)}>
@@ -1168,11 +1269,11 @@ const handleApplyFilters = () => {
                                 handleRemoveOption(location);
                               }}
                               className="cursor-pointer"
-                              sx={{ color: "gray" }}
+                              sx={{ color: "black" }}
                             />
                           </div>
 
-                          {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
+                          {index !== filteredLocationsFrom.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
                         </React.Fragment>
                       ))
                     )}
@@ -1190,20 +1291,33 @@ const handleApplyFilters = () => {
                   variant="outlined"
                   size="small"
                   value={to}
+                  // value={selectedTo}
+                  onChange={(e) => setTo(e.target.value)}
                   onClick={handleToClick}
                   placeholder="Search Destination"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <LocationOnIcon />
+                        <LocationOnOutlinedIcon />
                       </InputAdornment>
                     ),
                   }}
-                  sx={{
-                    width: "200px",
-                  
-                    "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-                  }}
+                   sx={{
+                  width: '200px',
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                }}
                 />
 
             <Popper id="from-popper" open={openTo} anchorEl={ToClick} placement="bottom-start">
@@ -1222,12 +1336,12 @@ const handleApplyFilters = () => {
                   Recent Searches
                 </Typography>
 
-                  {locations.length === 0 ? (
+                  {filteredLocationsTo.length === 0 ? (
                     <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
                       No recent searches
                     </Typography>
                   ) : (
-                  locations.map((location, index) => (
+                  filteredLocationsTo.map((location, index) => (
                     <React.Fragment key={location}>
                       <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
                         <div className="flex gap-[8px]" onClick={() => handleOptionClick(location, false)}>
@@ -1244,11 +1358,11 @@ const handleApplyFilters = () => {
                             handleRemoveOption(location);
                           }}
                           className="cursor-pointer"
-                          sx={{ color: "gray" }}
+                          sx={{ color: "black" }}
                         />
                       </div>
 
-                      {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
+                      {index !== filteredLocationsTo.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
                     </React.Fragment>
                   ))
                 )}
@@ -1269,6 +1383,8 @@ const handleApplyFilters = () => {
                       size="small"
                       placeholder="Select Date"
                       value={departureDate} 
+                      onChange={(e) => setDepartureDate(e.target.value)}
+
                       onClick={handleClick} 
                       InputProps={{
                         startAdornment: (
@@ -1277,11 +1393,29 @@ const handleApplyFilters = () => {
                           </InputAdornment>
                         ),
                       }}
-                      sx={{
-                        width: "200px",
-                        "& .MuiInputBase-root": { height: "44px", borderRadius:"8px" },
-                        "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
-                      }}
+                      // sx={{
+                      //   width: "200px",
+                      //   "& .MuiInputBase-root": { height: "44px", borderRadius:"8px" },
+                      // }}
+
+                  sx={{
+                  width: '200px',
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  
+                  "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
+                }}
                     />
 
 
@@ -1329,6 +1463,13 @@ const handleApplyFilters = () => {
                   />
 
                 <div className="w-[96%] m-auto">
+                    <p className="text-center mb-[20px] font-bold font-inter">
+                        {dateRange[0].startDate
+                      ? format(dateRange[0].startDate, "MMM d, yyyy") +
+                        (dateRange[0].endDate ? ` - ${format(dateRange[0].endDate, "MMM d, yyyy")}` : "")
+                      : "Pick a date"}
+
+                    </p>
                     <button
                         className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
                         style={{
@@ -1362,6 +1503,8 @@ const handleApplyFilters = () => {
                   size="small"
                   placeholder="1 Passenger"
                   value={passengers}
+                  onChange={(e) => setPassengers(e.target.value)}
+
                   onClick={handlePassenger}
                   InputProps={{
                     startAdornment: (
@@ -1371,10 +1514,21 @@ const handleApplyFilters = () => {
                     ),
                   }}
                   sx={{
-                    width: "200px",
-                  
-                    "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-                  }}
+                  width: '200px',
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                }}
                 />
               
 
@@ -1490,6 +1644,8 @@ const handleApplyFilters = () => {
                   value={selectedClass}
                   inputRef={anchorRef}
                   onClick={() => setFlightClasses(true)}
+                  onChange={(e) => setSelectedClass(e.target.value)}
+
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -1498,10 +1654,21 @@ const handleApplyFilters = () => {
                     ),
                   }}
                   sx={{
-                      width: "200px",
-                  
-                    "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-                  }}
+                  width: '200px',
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                }}
                 />
 
             <Popper open={flightClasses} anchorEl={anchorRef.current} placement="bottom-start">
@@ -1588,20 +1755,27 @@ const handleApplyFilters = () => {
                       InputProps={{
                           startAdornment: (
                           <InputAdornment position="start">
-                              <TuneIcon />
+                              <TuneIcon sx={{ color: "black" }} />
                           </InputAdornment>
                           ),
                           readOnly: true, 
                       }}
-                      sx={{
-                          width: "100px",
-                          "& .MuiInputBase-root": {
-                          height: "44px",
-                          borderRadius: "8px",
-                          borderColor: "#DEDFE1",
-                          cursor: "pointer",
-                          },
-                      }}
+                       sx={{
+                      width: "100px",
+                      "& .MuiInputBase-root": {
+                        height: "44px",
+                        borderRadius: "8px",
+                        borderColor: "#DEDFE1",
+                        cursor: "pointer",
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "black",
+                        opacity: 1, // ensures full color visibility
+                      },
+                      "& .MuiInputBase-input": {
+                        color: "black",
+                      },
+                    }}
                       />
 
 
@@ -1769,7 +1943,7 @@ const handleApplyFilters = () => {
                                 displayEmpty
                               startAdornment={
                                   <InputAdornment position="start">
-                                  <SortIcon />
+                                  <SortIcon sx={{ color: "black" }} />
                                   </InputAdornment>
                               }
                               MenuProps={{
@@ -1845,9 +2019,9 @@ const handleApplyFilters = () => {
 
                   
                       <div className='flex justify-center gap-6'>
-                          <div>
+                          <div className='relative left-6'>
                               <p>{depart.timefrom}</p>
-                              <p>{depart.placefrom}</p>
+                              <p className='relative right-3'>{depart.placefrom}</p>
                           </div>
 
                           <div>
@@ -1862,7 +2036,7 @@ const handleApplyFilters = () => {
 
                           <div>
                               <p>{depart.timeto}</p>
-                              <p>{depart.placeto}</p>
+                              <p className='relative right-3'>{depart.placeto}</p>
                           </div>
                       </div>
 
@@ -1936,10 +2110,10 @@ const handleApplyFilters = () => {
                 
                   
                     <IconButton 
-                      onClick={closeDialog} 
+                      onClick={handleCloseClick} 
                       sx={{position:"absolute",  right:"0px", top:"-5px"}}
                   >
-                      <CloseOutlinedIcon className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
+                      <CloseOutlinedIcon  onClick={handleCloseClick}  className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
                   </IconButton>
                     
                   </div>
@@ -1949,7 +2123,7 @@ const handleApplyFilters = () => {
                       <div className='w-full border-1 border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] mb-[16px] '>
 
                           <div className='items-center p-2'>
-                              <p className='text-[18px] text-[#181818] font-inter font-normal'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
+                              <p className='text-[18px] text-[#181818] font-inter font-medium'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
                               <p className='text-[15px] text-[#4E4F52] '>Feb 19, 1 {selectedDeparture?.passenger}</p>
 
                           </div>
@@ -1959,9 +2133,9 @@ const handleApplyFilters = () => {
                             <div>
                               <div className="w-full border-1 border-[#DEDFE1] bd-white rounded-[6px] p-[12px]">
                                   <div>
-                                  <p className="text-[19px]  font-normal text-[#67696D] ">Departure Flight</p>
-                                  <p className="text-[#181818] text-[16px] font-semibold">₦50,000 </p>
-                                  <p className="text-[#4E4F52] text-[16px] font-normal">Per Passenger</p>
+                                  <p className="text-[19px]  font-medium text-[#181818] ">Departure Flight</p>
+                                  <p className="text-[#181818] text-[16px] font-medium">₦50,000 </p>
+                                  <p className="text-[#67696D] text-[16px] font-normal">Per Passenger</p>
                                   <p  className="text-[#181818] text-[16px] font-medium"><ErrorOutlineIcon />Price Includes tax & Fees</p>
 
                                   </div>
@@ -1979,9 +2153,9 @@ const handleApplyFilters = () => {
                                       <p className='text-[#4E4F52] font-normal text-[16px]'><FlightClassOutlinedIcon />{selectedDeparture?.class}</p>
                                       <p className='text-[#4E4F52] font-normal text-[16px]'><CalendarMonthOutlinedIcon />Feb 19</p>
                                       <p className="text-[#4E4F52] text-[16px] font-normal"><AccessTimeIcon />{selectedDeparture?.timefrom} - {selectedDeparture?.timeto} ({selectedDeparture?.duration} {selectedDeparture?.non})</p>
-                                      <p className="text-[#4E4F52] text-[16px] font-medium"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
-                                      <p className="text-[#4E4F52] text-[16px] font-medium"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
-                                      <p className="text-[#4E4F52] text-[16px] font-medium"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
+                                      <p className="text-[#4E4F52] text-[16px] font-normal"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
+                                      <p className="text-[#4E4F52] text-[16px] font-normal"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
+                                      <p className="text-[#4E4F52] text-[16px] font-normal"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
                                       
                                   </div>
 

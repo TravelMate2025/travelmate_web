@@ -10,7 +10,8 @@ import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import InputAdornment from "@mui/material/InputAdornment";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+// import LocationOnOutlinedIcon from "@mui/icons-material/LocationOn";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import Popper from "@mui/material/Popper";
@@ -29,6 +30,7 @@ import RemoveOutlinedIcon from '@mui/icons-material/RemoveOutlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { useMediaQuery } from "react-responsive";
 import { TransitionProps } from "@mui/material/transitions";
+import axios from "axios";
 
 
 const Transition = forwardRef<unknown, TransitionProps & { children: ReactElement }>(
@@ -153,13 +155,21 @@ const [FromClick, setFromClick] = useState<HTMLElement | null>(null);
         setOpenFrom(false);
       };
 
-      const handleFromOptionClick = (option: string) => {
-        setSelectedFrom(option);
-        setOpenFrom(false); 
-      };
+      // const handleFromOptionClick = (option: string) => {
+      //   setSelectedFrom(option);
+      //   setOpenFrom(false); 
+      // };
 
-      const handleToOptionClick = (option: string) => {
-        setSelectedTo(option);
+    const handleFromOptionClick = (location: string) => {
+      setSelectedFrom(location);
+      setShowLocations(false);
+      setOpenFrom(false); 
+    };
+
+
+      const handleToOptionClick = (location: string) => {
+        setSelectedTo(location);
+        setShowLocationsOff(false);
         setOpenTo(false); 
       };
 
@@ -313,16 +323,36 @@ const handleClassSelection = (newClass: string) => {
     }
   }, []);
 
-    const handleInputChange = (id: number, field: string, value: string) => {
-    // Update the flights state
-    const updatedFlights = flights.map((flight) =>
-      flight.id === id ? { ...flight, [field]: value } : flight
-    );
-    setFlights(updatedFlights);
+  //   const handleInputChange = (id: number, field: string, value: string) => {
+  //   // Update the flights state
+  //   const updatedFlights = flights.map((flight) =>
+  //     flight.id === id ? { ...flight, [field]: value } : flight
+  //   );
+  //   setFlights(updatedFlights);
 
-    // Save the updated flights array to sessionStorage
-    sessionStorage.setItem("flights", JSON.stringify(updatedFlights));
-  };
+  //   // Save the updated flights array to sessionStorage
+  //   sessionStorage.setItem("flights", JSON.stringify(updatedFlights));
+  // };
+
+  const handleInputChange = (id: number, field: string, value: string, direction: 'from' | 'to') => {
+  // Update the flights state
+  const updatedFlights = flights.map((flight) =>
+    flight.id === id ? { ...flight, [field]: value } : flight
+  );
+  setFlights(updatedFlights);
+
+  // Save the updated flights array to sessionStorage
+  sessionStorage.setItem("flights", JSON.stringify(updatedFlights));
+
+    if (direction === 'from') {
+    setSelectedFrom(value);
+  } else {
+    setSelectedTo(value);
+  }
+
+};
+
+
 
 
 const [, setLocate] = useState<{ [key: number]: string[] }>({});
@@ -376,6 +406,8 @@ const [, setLocate] = useState<{ [key: number]: string[] }>({});
   };
 
 
+
+
  const handleDestinationSelectionTo = (flightId: number, location: string) => {
     setFlights(flights.map((flight) =>
       flight.id === flightId ? { ...flight, to: location } : flight
@@ -423,6 +455,80 @@ const handleSelectDate= () => {
   }
 };
 
+const handleDateChange  = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  id: number
+) => {
+  const updatedFlights = flights.map((f) =>
+    f.id === id ? { ...f, date: e.target.value } : f
+  );
+  setFlights(updatedFlights);
+};
+
+
+useEffect(() => {
+  const delayDebounce = setTimeout(() => {
+    if (selectedFrom.trim()) {
+      fetchLocations(selectedFrom);
+    } else {
+      setLocations([]);
+    }
+  }, 500); // debounce for 500ms
+
+  return () => clearTimeout(delayDebounce);
+}, [selectedFrom]);
+
+
+useEffect(() => {
+  const delayDebounce = setTimeout(() => {
+    if (selectedTo.trim()) {
+      fetchLocations(selectedTo);
+    } else {
+      setLocations([]);
+    }
+  }, 500); // debounce for 500ms
+
+  return () => clearTimeout(delayDebounce);
+}, [selectedTo]);
+
+
+const fetchLocations = async (query: string) => {
+  try {
+    const response = await axios.get(
+      `https://wft-geo-db.p.rapidapi.com/v1/geo/cities`,
+      {
+        params: {
+          namePrefix: query,
+          limit: 5,
+          sort: "-population",
+        },
+        headers: {
+          "X-RapidAPI-Key": "f8e601d31bmsh872d32d4d10fddbp1d8eeajsn162587dd4b51",
+          "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com",
+        },
+      }
+    );
+
+   const citySuggestions = response.data.data.map((item: { city: string; country: string }) => 
+  `${item.city}, ${item.country}`
+);
+
+    setLocations(citySuggestions);
+
+     setShowLocations(selectedFrom.trim() !== '');
+    setShowLocationsOff(selectedTo.trim() !== '');
+  } catch (error) {
+    console.error("Error fetching locations:", error);
+    setLocations([]);
+  }
+};
+
+const filteredLocationsTo = locations.filter((loc) =>
+  loc.toLowerCase().includes(selectedTo.toLowerCase())
+);
+const filteredLocationsFrom = locations.filter((loc) =>
+  loc.toLowerCase().includes(selectedFrom.toLowerCase())
+);
 
 
 
@@ -480,28 +586,39 @@ const handleSelectDate= () => {
         
         <Box sx={{ display: "flex", flexDirection: "column" , marginBottom: "16px",  marginTop:"-10px" }}>
           <label htmlFor="from" className="mb-1 text-[16px] font-medium">From</label>
-          <TextField
-            id="from"
-            variant="outlined"
-            size="small"
-            placeholder="Search Destination"
-           
-            value={selectedFrom}
-            onClick={handleFromClick1}
-            // onClick={() => handleFromOptionClick(location)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LocationOnIcon />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              width: "100%",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
-          />
+     <TextField
+  id="from"
+  variant="outlined"
+  size="small"
+  placeholder="Search Destination"
+  onChange={(e) => setSelectedFrom(e.target.value)}
+  value={selectedFrom}
+  onClick={handleFromClick1}
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <LocationOnOutlinedIcon />
+      </InputAdornment>
+    ),
+  }}
+  sx={{
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
+/>
+
 
           <Dialog
                        open={openFrom} 
@@ -557,13 +674,18 @@ const handleSelectDate= () => {
                                  size="small"
                                  placeholder="Search City or Airport"
                                  value={selectedFrom}
-                                 onChange={(e) => setSelectedFrom(e.target.value)}
+                                //  onChange={(e) => setSelectedFrom(e.target.value)}
+                                onChange={(e) => {
+                                  setSelectedFrom(e.target.value);
+                                  setShowLocations(true);
+                                }}
+
                                  onClick={handleTextFieldClick}
        
                                  InputProps={{
                                    startAdornment: (
                                      <InputAdornment position="start">
-                                       <LocationOnIcon />
+                                       <LocationOnOutlinedIcon />
                                      </InputAdornment>
                                    ),
                                  }}
@@ -575,7 +697,7 @@ const handleSelectDate= () => {
            
            
                                {showLocations &&
-                             (locations.length === 0 ? (
+                             (filteredLocationsFrom.length === 0 ? (
                                <Typography
                                  sx={{ textAlign: "center", padding: "20px", color: "#777" }}
                                  className="font-inter"
@@ -583,7 +705,7 @@ const handleSelectDate= () => {
                                  No recent searches
                                </Typography>
                              ) : (
-                               locations.map((location, index) => (
+                               filteredLocationsFrom.map((location, index) => (
                                  <React.Fragment key={location}>
                                    <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
                                      <div
@@ -605,7 +727,7 @@ const handleSelectDate= () => {
                                          handleRemoveOption(location);
                                        }}
                                        className="cursor-pointer"
-                                       sx={{ color: "gray" }}
+                                       sx={{ color: "black" }}
                                      />
                                    </div>
        
@@ -629,20 +751,32 @@ const handleSelectDate= () => {
             size="small"
             value={selectedTo}
              onClick={handleToClick1}
+               onChange={(e) => setSelectedTo(e.target.value)}
             //  onClick={() => handleToOptionClick(location)}
             placeholder="Search Destination"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <LocationOnIcon />
+                  <LocationOnOutlinedIcon />
                 </InputAdornment>
               ),
             }}
             sx={{
-               width: "100%",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
 
       
@@ -702,13 +836,17 @@ const handleSelectDate= () => {
                         size="small"
                         //  onClick={}
                         value={selectedTo}
-                        onChange={(e) => setSelectedTo(e.target.value)}
+                        // onChange={(e) => setSelectedTo(e.target.value)}
+                         onChange={(e) => {
+                                  setSelectedTo(e.target.value);
+                                  setShowLocationsOff(true);
+                                }}
                         onClick={handleTextFieldClickOff}
                         placeholder="Search City or Airport "
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <LocationOnIcon />
+                              <LocationOnOutlinedIcon />
                             </InputAdornment>
                           ),
                         }}
@@ -721,7 +859,7 @@ const handleSelectDate= () => {
             
                        
                             {showLocationsOff &&
-                              (locations.length === 0 ? (
+                              (filteredLocationsTo.length === 0 ? (
                                 <Typography
                                   sx={{ textAlign: "center", padding: "20px", color: "#777" }}
                                   className="font-inter"
@@ -729,7 +867,7 @@ const handleSelectDate= () => {
                                   No recent searches
                                 </Typography>
                               ) : (
-                                locations.map((location, index) => (
+                                filteredLocationsTo.map((location, index) => (
                                   <React.Fragment key={location}>
                                     <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
                                       <div
@@ -751,7 +889,7 @@ const handleSelectDate= () => {
                                           handleRemoveOption(location);
                                         }}
                                         className="cursor-pointer"
-                                        sx={{ color: "gray" }}
+                                        sx={{ color: "black" }}
                                       />
                                     </div>
         
@@ -775,6 +913,7 @@ const handleSelectDate= () => {
                 size="small"
                 placeholder="Select Date"
                 value={selectedDate} 
+                  onChange={(e) => setSelectedDate(e.target.value)}
                 onClick={handleClick} 
                 //  onChange={(e) => {
                 //   setSelectedDate(e.target.value);
@@ -787,11 +926,22 @@ const handleSelectDate= () => {
                     </InputAdornment>
                   ),
                 }}
-                sx={{
-                  width: "100%",
-                  "& .MuiInputBase-root": { height: "44px", borderRadius:"8px" },
-                  "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
-                }}
+                 sx={{
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
               />
 
 
@@ -843,6 +993,7 @@ const handleSelectDate= () => {
                                       </IconButton>
                                       <p className="text-center font-medium text-[20px] mt-[-20px]">Choose Date</p>
                                       </div>
+                                      <div className="w-full  mx-auto">
                                         <DateRange
                                           editableDateInputs={true}
                                             onChange={(item: RangeKeyDict) => {
@@ -864,8 +1015,9 @@ const handleSelectDate= () => {
                                           months={2} 
                                           direction="vertical"
                                           showDateDisplay={false} 
-                                          className="w-[100%] h-[100%]"
+                                          className="w-full h-full"
                                         />
+                                        </div>
                   
               
                                       <Divider style={{marginTop:"40px", marginBottom:"20px"}}/>
@@ -906,6 +1058,7 @@ const handleSelectDate= () => {
             size="small"
             placeholder="1 Passenger"
              value={passengerText}
+               onChange={(e) => setPassengerText(e.target.value)}
             onClick={handlePassenger}
             InputProps={{
               startAdornment: (
@@ -915,10 +1068,21 @@ const handleSelectDate= () => {
               ),
             }}
             sx={{
-              width: "100%",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
         
 
@@ -1050,6 +1214,7 @@ const handleSelectDate= () => {
             size="small"
             placeholder="Economy"
             value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
             inputRef={anchorRef}
             onClick={() => setFlightClass(true)}
             InputProps={{
@@ -1060,10 +1225,21 @@ const handleSelectDate= () => {
               ),
             }}
             sx={{
-                width: "100%",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
 
 
@@ -1160,19 +1336,31 @@ const handleSelectDate= () => {
            
             value={selectedFrom}
              onClick={handleFromClick1}
+              onChange={(e) => setSelectedFrom(e.target.value)}
             // onClick={() => handleFromOptionClick(location)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <LocationOnIcon />
+                  <LocationOnOutlinedIcon />
                 </InputAdornment>
               ),
             }}
             sx={{
-              width: "200px",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+    width: "200px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
 
           <Popper id="from-popper" open={openFrom} anchorEl={FromClick} placement="bottom-start">
@@ -1213,7 +1401,7 @@ const handleSelectDate= () => {
                           handleRemoveOption(location);
                         }}
                         className="cursor-pointer"
-                        sx={{ color: "gray" }}
+                        sx={{ color: "black" }}
                       />
                     </div>
 
@@ -1235,21 +1423,34 @@ const handleSelectDate= () => {
             variant="outlined"
             size="small"
             value={selectedTo}
+            
              onClick={handleToClick1}
             //  onClick={() => handleToOptionClick(location)}
             placeholder="Search Destination"
+             onChange={(e) => setSelectedTo(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <LocationOnIcon />
+                  <LocationOnOutlinedIcon />
                 </InputAdornment>
               ),
             }}
-            sx={{
-               width: "200px",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+                    sx={{
+    width: "200px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
 
       <Popper id="from-popper" open={openTo} anchorEl={ToClick} placement="bottom-start">
@@ -1290,7 +1491,7 @@ const handleSelectDate= () => {
                       handleRemoveOption(location);
                     }}
                     className="cursor-pointer"
-                    sx={{ color: "gray" }}
+                    sx={{ color: "black" }}
                   />
                 </div>
 
@@ -1315,6 +1516,7 @@ const handleSelectDate= () => {
                 size="small"
                 placeholder="Select Date"
                 value={selectedDate} 
+                 onChange={(e) => setSelectedDate(e.target.value)}
                 onClick={handleClick} 
                 InputProps={{
                   startAdornment: (
@@ -1324,10 +1526,23 @@ const handleSelectDate= () => {
                   ),
                 }}
                 sx={{
-                  width: "200px",
-                  "& .MuiInputBase-root": { height: "44px", borderRadius:"8px" },
-                  "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
-                }}
+                width: "200px",
+                "& .MuiInputBase-root": {
+                  height: "44px",
+                  borderRadius: "8px",
+                },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#818489",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#818489",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#818489",
+                },
+                "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
+
+              }}
               />
 
 
@@ -1370,6 +1585,9 @@ const handleSelectDate= () => {
                       />
 
                     <div className="w-[96%] m-auto">
+                        <p className="text-center mb-[20px] font-bold font-inter">
+                          {dateRange[0].startDate ? formatDate(dateRange[0].startDate) + (dateRange[0].endDate ? ` - ${formatDate(dateRange[0].endDate)}` : "") : "Pick a date"}
+                        </p>
                         <button
                             className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
                             style={{
@@ -1403,6 +1621,7 @@ const handleSelectDate= () => {
             size="small"
             placeholder="1 Passenger"
              value={passengerText}
+              onChange={(e) => setPassengerText(e.target.value)}
             onClick={handlePassenger}
             InputProps={{
               startAdornment: (
@@ -1411,11 +1630,22 @@ const handleSelectDate= () => {
                 </InputAdornment>
               ),
             }}
-            sx={{
-              width: "200px",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+                           sx={{
+    width: "200px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
         
 
@@ -1529,6 +1759,7 @@ const handleSelectDate= () => {
             size="small"
             placeholder="Economy"
             value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
             inputRef={anchorRef}
             onClick={() => setFlightClass(true)}
             InputProps={{
@@ -1538,11 +1769,22 @@ const handleSelectDate= () => {
                 </InputAdornment>
               ),
             }}
-            sx={{
-                width: "200px",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+                          sx={{
+    width: "200px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
 
       <Popper open={flightClass} anchorEl={anchorRef.current} placement="bottom-start">
@@ -1613,20 +1855,32 @@ const handleSelectDate= () => {
             placeholder="Search Destination"
            
             value={selectedFrom}
+              onChange={(e) => setSelectedFrom(e.target.value)}
              onClick={handleFromClick1}
             // onClick={() => handleFromOptionClick(location)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <LocationOnIcon />
+                  <LocationOnOutlinedIcon />
                 </InputAdornment>
               ),
             }}
-            sx={{
-              width: "100%",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+                           sx={{
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
 
             <Dialog
@@ -1689,7 +1943,7 @@ const handleSelectDate= () => {
                                  InputProps={{
                                    startAdornment: (
                                      <InputAdornment position="start">
-                                       <LocationOnIcon />
+                                       <LocationOnOutlinedIcon />
                                      </InputAdornment>
                                    ),
                                  }}
@@ -1731,7 +1985,7 @@ const handleSelectDate= () => {
                                          handleRemoveOption(location);
                                        }}
                                        className="cursor-pointer"
-                                       sx={{ color: "gray" }}
+                                       sx={{ color: "black" }}
                                      />
                                    </div>
        
@@ -1754,21 +2008,33 @@ const handleSelectDate= () => {
             variant="outlined"
             size="small"
             value={selectedTo}
+              onChange={(e) => setSelectedTo(e.target.value)}
              onClick={handleToClick1}
             //  onClick={() => handleToOptionClick(location)}
             placeholder="Search Destination"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <LocationOnIcon />
+                  <LocationOnOutlinedIcon />
                 </InputAdornment>
               ),
             }}
-            sx={{
-               width: "100%",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+                                 sx={{
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
 
       
@@ -1834,7 +2100,7 @@ const handleSelectDate= () => {
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <LocationOnIcon />
+                              <LocationOnOutlinedIcon />
                             </InputAdornment>
                           ),
                         }}
@@ -1877,7 +2143,7 @@ const handleSelectDate= () => {
                                           handleRemoveOption(location);
                                         }}
                                         className="cursor-pointer"
-                                        sx={{ color: "gray" }}
+                                        sx={{ color: "black" }}
                                       />
                                     </div>
         
@@ -1901,10 +2167,11 @@ const handleSelectDate= () => {
                 size="small"
                 placeholder="Select Date"
                 value={selectedDate} 
-                 onChange={(e) => {
-                  setSelectedDate(e.target.value); 
-                  sessionStorage.setItem("selectedDate", e.target.value);
-                }}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                //  onChange={(e) => {
+                //   setSelectedDate(e.target.value); 
+                //   sessionStorage.setItem("selectedDate", e.target.value);
+                // }}
                 onClick={handleClick} 
                 InputProps={{
                   startAdornment: (
@@ -1913,13 +2180,28 @@ const handleSelectDate= () => {
                     </InputAdornment>
                   ),
                 }}
-                sx={{
-                  width: "100%",
-                  "& .MuiInputBase-root": { height: "44px", borderRadius:"8px" },
-                  "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
-                }}
-              />
 
+                sx={{
+                width: "100%",
+                "& .MuiInputBase-root": {
+                  height: "44px",
+                  borderRadius: "8px",
+                },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#818489",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#818489",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#818489",
+                },
+              "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
+              }}
+
+
+              />
+     
 
 
             <Dialog
@@ -2032,6 +2314,7 @@ const handleSelectDate= () => {
             size="small"
             placeholder="1 Passenger"
              value={passengerText}
+               onChange={(e) => setPassengerText(e.target.value)}
             onClick={handlePassenger}
             InputProps={{
               startAdornment: (
@@ -2040,11 +2323,22 @@ const handleSelectDate= () => {
                 </InputAdornment>
               ),
             }}
-            sx={{
-              width: "100%",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+                           sx={{
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
         
 
@@ -2176,6 +2470,7 @@ const handleSelectDate= () => {
             size="small"
             placeholder="Economy"
             value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
             inputRef={anchorRef}
             onClick={() => setFlightClass(true)}
             InputProps={{
@@ -2185,11 +2480,22 @@ const handleSelectDate= () => {
                 </InputAdornment>
               ),
             }}
-            sx={{
-                width: "100%",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+                          sx={{
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
 
 
@@ -2285,20 +2591,32 @@ const handleSelectDate= () => {
             placeholder="Search Destination"
            
             value={selectedFrom}
+              onChange={(e) => setSelectedFrom(e.target.value)}
              onClick={handleFromClick1}
             // onClick={() => handleFromOptionClick(location)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <LocationOnIcon />
+                  <LocationOnOutlinedIcon />
                 </InputAdornment>
               ),
             }}
-            sx={{
-              width: "200px",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+                            sx={{
+    width: "200px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
 
           <Popper id="from-popper" open={openFrom} anchorEl={FromClick} placement="bottom-start">
@@ -2339,7 +2657,7 @@ const handleSelectDate= () => {
                           handleRemoveOption(location);
                         }}
                         className="cursor-pointer"
-                        sx={{ color: "gray" }}
+                        sx={{ color: "black" }}
                       />
                     </div>
 
@@ -2361,21 +2679,33 @@ const handleSelectDate= () => {
             variant="outlined"
             size="small"
             value={selectedTo}
+              onChange={(e) => setSelectedTo(e.target.value)}
              onClick={handleToClick1}
             //  onClick={() => handleToOptionClick(location)}
             placeholder="Search Destination"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <LocationOnIcon />
+                  <LocationOnOutlinedIcon />
                 </InputAdornment>
               ),
             }}
-            sx={{
-               width: "200px",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+                   sx={{
+    width: "200px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
 
       <Popper id="from-popper" open={openTo} anchorEl={ToClick} placement="bottom-start">
@@ -2416,7 +2746,7 @@ const handleSelectDate= () => {
                       handleRemoveOption(location);
                     }}
                     className="cursor-pointer"
-                    sx={{ color: "gray" }}
+                    sx={{ color: "black" }}
                   />
                 </div>
 
@@ -2440,7 +2770,8 @@ const handleSelectDate= () => {
                 variant="outlined"
                 size="small"
                 placeholder="Select Date"
-                value={selectedDate} 
+                value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)} 
                 onClick={handleClick} 
                 InputProps={{
                   startAdornment: (
@@ -2449,12 +2780,25 @@ const handleSelectDate= () => {
                     </InputAdornment>
                   ),
                 }}
-                sx={{
+                  sx={{
                   width: "200px",
-                  "& .MuiInputBase-root": { height: "44px", borderRadius:"8px" },
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
                   "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
                 }}
-              />
+
+                />
 
 
 
@@ -2494,6 +2838,9 @@ const handleSelectDate= () => {
                       />
 
                     <div className="w-[96%] m-auto">
+                        <p className="text-center mb-[20px] font-bold font-inter">
+                            {dateRange[0].startDate ? formatDate(dateRange[0].startDate) + (dateRange[0].endDate ? ` - ${formatDate(dateRange[0].endDate)}` : "") : "Pick a date"}
+                       </p>
                         <button
                             className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
                             style={{
@@ -2527,6 +2874,7 @@ const handleSelectDate= () => {
             size="small"
             placeholder="1 Passenger"
              value={passengerText}
+               onChange={(e) => setPassengerText(e.target.value)}
             onClick={handlePassenger}
             InputProps={{
               startAdornment: (
@@ -2535,11 +2883,22 @@ const handleSelectDate= () => {
                 </InputAdornment>
               ),
             }}
-            sx={{
-              width: "200px",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+                                   sx={{
+    width: "200px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
         
 
@@ -2653,6 +3012,7 @@ const handleSelectDate= () => {
             size="small"
             placeholder="Economy"
             value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
             inputRef={anchorRef}
             onClick={() => setFlightClass(true)}
             InputProps={{
@@ -2662,11 +3022,22 @@ const handleSelectDate= () => {
                 </InputAdornment>
               ),
             }}
-            sx={{
-                width: "200px",
-             
-              "& .MuiInputBase-root": { height: "44px", borderRadius:"8px", },
-            }}
+                                   sx={{
+    width: "200px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
           />
 
       <Popper open={flightClass} anchorEl={anchorRef.current} placement="bottom-start">
@@ -2722,8 +3093,8 @@ const handleSelectDate= () => {
     )}
 
 
-      {selectedValue === "multi-city" &&(
-<div>
+      {selectedValue === "multi-city" &&( 
+      <div>
 
   {isMobile ? (
 
@@ -2741,6 +3112,7 @@ const handleSelectDate= () => {
               placeholder="1 Passenger"
               value={passengerText}
               onClick={handlePassenger}
+                onChange={(e) => setPassengerText(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -2748,11 +3120,23 @@ const handleSelectDate= () => {
                   </InputAdornment>
                 ),
               }}
-              sx={{
-                width: "100%",
-
-                "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
-              }} />
+                                     sx={{
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
+              />
 
 
 
@@ -2879,6 +3263,7 @@ const handleSelectDate= () => {
               size="small"
               placeholder="Economy"
               value={selectedClass}
+                onChange={(e) => setSelectedClass(e.target.value)}
               inputRef={anchorRef}
               onClick={() => setFlightClass(true)}
               InputProps={{
@@ -2888,11 +3273,23 @@ const handleSelectDate= () => {
                   </InputAdornment>
                 ),
               }}
-              sx={{
-                width: "100%",
-
-                "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
-              }} />
+                                              sx={{
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
+               />
                 
             <Dialog
                               
@@ -2997,19 +3394,31 @@ const handleSelectDate= () => {
                 size="small"
                 placeholder="Search Destination"
                 value={flight.from}
-                onChange={(e) => handleInputChange(flight.id, 'from', e.target.value)}
+                onChange={(e) => handleInputChange(flight.id, 'from', e.target.value, 'from')}
                 onClick={(e) => handleFromClick(e, flight.id)}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LocationOnIcon />
+                      <LocationOnOutlinedIcon />
                     </InputAdornment>
                   ),
                 }}
-                sx={{
-                  width:"100%",
-                  '& .MuiInputBase-root': { height: '44px', borderRadius: '8px' },
-                }}
+                                              sx={{
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
               />
 
                <Dialog
@@ -3072,7 +3481,7 @@ const handleSelectDate= () => {
                                  InputProps={{
                                    startAdornment: (
                                      <InputAdornment position="start">
-                                       <LocationOnIcon />
+                                       <LocationOnOutlinedIcon />
                                      </InputAdornment>
                                    ),
                                  }}
@@ -3114,7 +3523,7 @@ const handleSelectDate= () => {
                                          handleRemoveOption(location);
                                        }}
                                        className="cursor-pointer"
-                                       sx={{ color: "gray" }}
+                                       sx={{ color: "black" }}
                                      />
                                    </div>
        
@@ -3143,72 +3552,34 @@ const handleSelectDate= () => {
                 variant="outlined"
                 size="small"
                 value={flight.to}
-                onChange={(e) => handleInputChange(flight.id, 'to', e.target.value)}
+                onChange={(e) => handleInputChange(flight.id, 'to', e.target.value, 'to')}
                 onClick={(e) => handleToClick(e, flight.id)}
                 placeholder="Search Destination"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LocationOnIcon />
+                      <LocationOnOutlinedIcon />
                     </InputAdornment>
                   ),
                 }}
-                sx={{
-                  width: "100%",
-                  '& .MuiInputBase-root': { height: '44px', borderRadius: '8px' },
-                }}
+                                               sx={{
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
               />
               
-              {/* <Popper id="from-popper"  open={openTo && ToId === flight.id} anchorEl={ToClick} placement="bottom-start">
-                <ClickAwayListener onClickAway={handleCloseTo}>
-                  <Paper
-                    elevation={3}
-                    sx={{
-                      width: "317px",
-                      borderRadius: "6px",
-                      backgroundColor: "white",
-                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                      paddingBottom: "25px",
-                    }}
-                  >
-                    <Typography variant="subtitle1" className="font-inter text-[#343537] text-lg pl-[24px] pt-[24px] pr-[24px]">
-                      Recent Searches
-                    </Typography>
-
-                    {locations.length === 0 ? (
-                      <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
-                        No recent searches
-                      </Typography>
-                    ) : (
-                      locations.map((location, index) => (
-                        <React.Fragment key={location}>
-                          <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
-                            <div className="flex gap-[8px]" onClick={() => handleDestinationSelectionTo(flight.id, location)}>
-                              <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
-                                <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
-                              </div>
-                              <p>{location}</p>
-                            </div>
-
-
-                            <CloseOutlinedIcon
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveOption(location);
-                              } }
-                              className="cursor-pointer"
-                              sx={{ color: "gray" }} />
-                          </div>
-
-                          {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
-                        </React.Fragment>
-                      ))
-                    )}
-
-                  </Paper>
-                </ClickAwayListener>
-              </Popper> */}
-
               <Dialog
                         open={openTo && ToId === flight.id}
                           // onClick={handleCloseTo}
@@ -3270,7 +3641,7 @@ const handleSelectDate= () => {
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <LocationOnIcon />
+                              <LocationOnOutlinedIcon />
                             </InputAdornment>
                           ),
                         }}
@@ -3313,7 +3684,7 @@ const handleSelectDate= () => {
                                           handleRemoveOption(location);
                                         }}
                                         className="cursor-pointer"
-                                        sx={{ color: "gray" }}
+                                        sx={{ color: "black" }}
                                       />
                                     </div>
         
@@ -3340,6 +3711,7 @@ const handleSelectDate= () => {
                 size="small"
                 value={flight.date}
                 onClick={(e) => handleClickDate(e, flight.id)}
+                 onChange={(e) => handleDateChange(e, flight.id)}
                 placeholder="Select Date"
                 InputProps={{
                   startAdornment: (
@@ -3348,63 +3720,25 @@ const handleSelectDate= () => {
                     </InputAdornment>
                   ),
                 }}
-                sx={{
-                  width: "100%",
-                  '& .MuiInputBase-root': { height: '44px', borderRadius: '8px' },
-                }}
+                                                sx={{
+    width: "100%",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
               />
           
 
-                {/* <Popper id={id} open={opened && dateId === flight.id} anchorEl={anchorEl} placement="bottom-start">
-    <ClickAwayListener onClickAway={handleCloseDate}>
-      <Paper
-        elevation={3}
-        sx={{
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-          overflow: "hidden",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          paddingBottom: "20px",
-        }}
-      >
-        <div style={{ width: "100%", height: "100%" }}>
-          <DateRange
-            editableDateInputs={true}
-            onChange={(item: RangeKeyDict) => {
-              setDateRange([
-                {
-                  startDate: item.selection.startDate ?? new Date(),
-                  endDate: item.selection.endDate ?? new Date(),
-                  key: item.selection.key ?? "selection",
-                },
-              ]);
-            }}
-            moveRangeOnFirstSelection={false}
-            ranges={dateRange}
-            rangeColors={["#FF6F1E"]}
-            months={2}
-            direction="horizontal"
-            showDateDisplay={false}
-            className="w-full h-full"
-          />
-          <div className="w-[96%] m-auto">
-            <button
-              className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
-              style={{
-                backgroundColor: "#023E8A",
-                color: "white",
-                marginTop: 2,
-              }}
-              onClick={handleSelectDateFunc}
-            >
-              Select Date
-            </button>
-          </div>
-        </div>
-      </Paper>
-    </ClickAwayListener>
-              </Popper> */}
 
               <Dialog
                               open={opened && dateId === flight.id}
@@ -3555,6 +3889,7 @@ const handleSelectDate= () => {
               size="small"
               placeholder="1 Passenger"
               value={passengerText}
+                onChange={(e) => setPassengerText(e.target.value)}
               onClick={handlePassenger}
               InputProps={{
                 startAdornment: (
@@ -3563,11 +3898,23 @@ const handleSelectDate= () => {
                   </InputAdornment>
                 ),
               }}
-              sx={{
-                width: "42vw",
-
-                "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
-              }} />
+                                             sx={{
+    width: "42vw",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#818489",
+    },
+  }}
+              />
 
 
 
@@ -3676,6 +4023,9 @@ const handleSelectDate= () => {
               value={selectedClass}
               inputRef={anchorRef}
               onClick={() => setFlightClass(true)}
+                onChange={(e) => setSelectedClass(e.target.value)}
+
+              
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -3683,11 +4033,23 @@ const handleSelectDate= () => {
                   </InputAdornment>
                 ),
               }}
-              sx={{
+               sx={{
                 width: "42vw",
-
-                "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
-              }} />
+                "& .MuiInputBase-root": {
+                  height: "44px",
+                  borderRadius: "8px",
+                },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#818489",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#818489",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#818489",
+                },
+              }}
+              />
 
             <Popper open={flightClass} anchorEl={anchorRef.current} placement="bottom-start">
               <ClickAwayListener onClickAway={() => setFlightClass(false)}>
@@ -3750,18 +4112,35 @@ const handleSelectDate= () => {
                 size="small"
                 placeholder="Search Destination"
                 value={flight.from}
-                onChange={(e) => handleInputChange(flight.id, 'from', e.target.value)}
+                onChange={(e) => handleInputChange(flight.id, 'from', e.target.value, 'from')}
                 onClick={(e) => handleFromClick(e, flight.id)}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LocationOnIcon />
+                      <LocationOnOutlinedIcon />
                     </InputAdornment>
                   ),
                 }}
-                sx={{
+                // sx={{
+                //   width: index < 2 ? '26.9vw' : '24.5vw',
+                //   '& .MuiInputBase-root': { height: '44px', borderRadius: '8px' },
+                // }}
+
+                  sx={{
                   width: index < 2 ? '26.9vw' : '24.5vw',
-                  '& .MuiInputBase-root': { height: '44px', borderRadius: '8px' },
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
                 }}
               />
 
@@ -3803,7 +4182,7 @@ const handleSelectDate= () => {
                                 handleRemoveOption(location);
                               } }
                               className="cursor-pointer"
-                              sx={{ color: "gray" }} />
+                              sx={{ color: "black" }} />
                           </div>
 
                           {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
@@ -3824,19 +4203,31 @@ const handleSelectDate= () => {
                 variant="outlined"
                 size="small"
                 value={flight.to}
-                onChange={(e) => handleInputChange(flight.id, 'to', e.target.value)}
+                onChange={(e) => handleInputChange(flight.id, 'to', e.target.value, 'to')}
                 onClick={(e) => handleToClick(e, flight.id)}
                 placeholder="Search Destination"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LocationOnIcon />
+                      <LocationOnOutlinedIcon />
                     </InputAdornment>
                   ),
                 }}
-                sx={{
+                         sx={{
                   width: index < 2 ? '26.9vw' : '24.5vw',
-                  '& .MuiInputBase-root': { height: '44px', borderRadius: '8px' },
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
                 }}
               />
               
@@ -3878,7 +4269,7 @@ const handleSelectDate= () => {
                                 handleRemoveOption(location);
                               } }
                               className="cursor-pointer"
-                              sx={{ color: "gray" }} />
+                              sx={{ color: "black" }} />
                           </div>
 
                           {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
@@ -3900,6 +4291,7 @@ const handleSelectDate= () => {
                 size="small"
                 value={flight.date}
                 onClick={(e) => handleClickDate(e, flight.id)}
+                 onChange={(e) => handleDateChange(e, flight.id)}
                 placeholder="Select Date"
                 InputProps={{
                   startAdornment: (
@@ -3908,9 +4300,21 @@ const handleSelectDate= () => {
                     </InputAdornment>
                   ),
                 }}
-                sx={{
+                         sx={{
                   width: index < 2 ? '26.9vw' : '24.5vw',
-                  '& .MuiInputBase-root': { height: '44px', borderRadius: '8px' },
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
                 }}
               />
           
@@ -3949,6 +4353,9 @@ const handleSelectDate= () => {
             className="w-full h-full"
           />
           <div className="w-[96%] m-auto">
+              <p className="text-center mb-[20px] font-bold font-inter">
+                  {dateRange[0].startDate ? formatDate(dateRange[0].startDate) + (dateRange[0].endDate ? ` - ${formatDate(dateRange[0].endDate)}` : "") : "Pick a date"}
+              </p>
             <button
               className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
               style={{

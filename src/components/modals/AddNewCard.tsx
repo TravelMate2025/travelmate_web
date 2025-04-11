@@ -33,6 +33,13 @@ const AddNewCardModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       </p>
     ) : null;
 
+    const formValid =
+  cardNumber.trim().length === 16 &&
+  cardHolder.trim().length > 0 &&
+  /^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(expiryDate) &&
+  cvv.trim().length === 3;
+
+
   return (
     <div className="fixed inset-0 top-12 flex items-center justify-center bg-opacity-50">
       <div className="bg-white rounded-lg w-[500px] h-[91%] p-6 shadow-[0_9px_60px_rgba(0,0,0,0.9)] z-50">
@@ -78,7 +85,13 @@ const AddNewCardModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 placeholder="MM/YY"
                 className="w-full border border-gray-400 rounded-lg p-2 outline-none"
                 value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Allow only digits and slash
+                  if (/^(0[1-9]|1[0-2])\/?([0-9]{0,2})?$/.test(value) || value === "") {
+                    setExpiryDate(value);
+                  }
+                }}
               />
               {renderError("expiryDate")}
             </div>
@@ -95,14 +108,18 @@ const AddNewCardModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </div>
     
           <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={isDefault}
-              onChange={() => setIsDefault(!isDefault)}
-              className="w-4 h-4 border rounded"
-            />
-            <p className="text-sm text-gray-700">Set as default payment method</p>
-          </div>
+  <input
+    type="checkbox"
+    checked={isDefault}
+    onChange={() => setIsDefault(!isDefault)}
+    className="w-4 h-4 border rounded"
+    disabled={!formValid}
+  />
+  <p className={`text-sm ${!formValid ? "text-gray-400" : "text-gray-700"}`}>
+    Set as default payment method
+  </p>
+</div>
+
         </div>
 
         {/* Footer */}

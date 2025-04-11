@@ -1,61 +1,127 @@
+
+
+
 import { FaRegUser, FaRegStar, FaRegBell } from "react-icons/fa";
 import { PiSignOutFill } from "react-icons/pi";
 import { MdCreditCard } from "react-icons/md";
-import { Link } from "react-router-dom";
+import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
+
+
+
+
+// const options = [
+//   {
+//     icon: <FaRegUser size={24} />,
+//     title: "Profile",
+//     description: "Update your personal details",
+//     link: "/profile-info",
+//   },
+//   {
+//     icon: <MdCreditCard size={24} />,
+//     title: "Payment Method",
+//     description: "Manage your payment methods",
+//     link: "#/account/payments",
+//   },
+
+//   {
+//     icon: <FaRegBell size={24} />,
+//     title: "Notifications",
+//     description: "Manage alerts and reminders",
+//     link: "#/account/notifications",
+//   },
+//    {
+//     icon: <SecurityOutlinedIcon />,
+//     title: "Security",
+//     description: "Manage your Email and Password",
+//     link: "#/account/security",
+//   },
+//   {
+//     icon: <FaRegStar size={24} />,
+//     title: "Reviews",
+//     description: "View and manage reviews",
+//     link: "#/account/security",
+//   },
+//   {
+//     icon: <PiSignOutFill size={24} />,
+//     title: "Log Out",
+//     link: "#/logout",
+//   },
+// ];
 
 const options = [
   {
-    icon: <FaRegUser size={24} />,
+    icon: (isActive: boolean) => <FaRegUser size={24} className={isActive ? "text-[#023E8A]" : "text-gray-800"} />,
     title: "Profile",
     description: "Update your personal details",
     link: "/profile-info",
   },
   {
-    icon: <MdCreditCard size={24} />,
+    icon: (isActive: boolean) => <MdCreditCard size={24} className={isActive ? "text-[#023E8A]" : "text-gray-800"} />,
     title: "Payment Method",
     description: "Manage your payment methods",
-    link: "#/account/payments",
+    link: "/account/payments",
   },
-
   {
-    icon: <FaRegBell size={24} />,
+    icon: (isActive: boolean) => <FaRegBell size={24} className={isActive ? "text-[#023E8A]" : "text-gray-800"} />,
     title: "Notifications",
     description: "Manage alerts and reminders",
     link: "#/account/notifications",
   },
   {
-    icon: <FaRegStar size={24} />,
+    icon: (isActive: boolean) => <SecurityOutlinedIcon className={isActive ? "text-[#023E8A]" : "text-gray-800"} />,
+    title: "Security",
+    description: "Manage your Email and Password",
+    link: "#/account/security",
+  },
+  {
+    icon: (isActive: boolean) => <FaRegStar size={24} className={isActive ? "text-[#023E8A]" : "text-gray-800"} />,
     title: "Reviews",
     description: "View and manage reviews",
     link: "#/account/security",
   },
   {
-    icon: <PiSignOutFill size={24} />,
+    icon: (isActive: boolean) => <PiSignOutFill size={24} className={isActive ? "text-[#023E8A]" : "text-gray-800"} />,
     title: "Log Out",
     link: "#/logout",
   },
 ];
 
 
-export default function UserOptionsStacked() {
-  return (
-    <div className="w-full max-w-[411px] space-y-4 border-2 border-gray-300 rounded-lg md:w-[411px]">
 
-      {options.map((item, index) => (
-        <Link
-        to={item.link}
-        key={index}
-        className="flex items-center w-[390px] h-[80px] px-6 rounded-lg hover:bg-gray-100 transition"
-        >
-            <div key={index} className="flex items-center gap-4 ">
-                <div>{item.icon}</div>
-                <div>
-                    <h3 className="text-lg font-semibold">{item.title}</h3>
-                    <p className="text-sm text-gray-500">{item.description}</p>
-                </div>
+interface UserOptionsStackedProps {
+  activeTab: string;
+  onOptionClick: (tab: string) => void;
+}
+
+
+export default function UserOptionsStacked({ activeTab, onOptionClick }: UserOptionsStackedProps) {
+  return (
+    <div className="">
+    <div className=" max-w-[411px] space-y-4 border-1 border-[#CDCED1] rounded-[12px] md:w-[411px] ">
+      {options.map((item, index) => {
+        const isActive = activeTab === item.title;
+
+        return (
+          <button
+            key={index}
+            onClick={() => onOptionClick(item.title)}
+            className="flex items-center w-[390px] h-[80px] px-6 rounded-lg transition text-left"
+          >
+            <div className="flex items-center gap-4 cursor-pointer">
+              <div>{item.icon(isActive)}</div>
+              <div>
+                <h3 className={`text-lg font-semibold ${isActive ? "text-[#023E8A]" : "text-gray-800"}`}>
+                  {item.title}
+                </h3>
+                <p className={`text-sm ${isActive ? "text-[#023E8A]" : "text-gray-500"}`}>
+                  {item.description}
+                </p>
+              </div>
             </div>
-        </Link>
-      ))}
+          </button>
+        );
+      })}
+    </div>
     </div>
   );
 }
