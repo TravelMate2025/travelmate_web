@@ -8,7 +8,8 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import InputAdornment from "@mui/material/InputAdornment";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
+// import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import LocationOnOutlinedIcon from "@mui/icons-material/LocationOn";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import Popper from "@mui/material/Popper";
@@ -194,7 +195,7 @@ const ReturnPage: React.FC<DepartureListProps> = () => {
         };
 
     
-    const [counts, setCounts] = useState({ adults: 1, children: 0, infants: 0 });
+    const [counts, setCounts] = useState({ adults: 0, children: 0, infants: 0 });
 
     const handleIncrement = (type: keyof typeof counts) => {
     setCounts((prevCounts) => ({
@@ -580,20 +581,27 @@ const roundtripData: RoundtripData = storedData
                       InputProps={{
                           startAdornment: (
                           <InputAdornment position="start">
-                              <TuneIcon />
+                              <TuneIcon sx={{ color: "black" }} />
                           </InputAdornment>
                           ),
                           readOnly: true, 
                       }}
-                      sx={{
-                          width: "100px",
-                          "& .MuiInputBase-root": {
-                          height: "44px",
-                          borderRadius: "8px",
-                          borderColor: "#DEDFE1",
-                          cursor: "pointer",
-                          },
-                      }}
+                       sx={{
+                      width: "100px",
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                    borderColor: "#DEDFE1",
+                    cursor: "pointer",
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: "black",
+                    opacity: 1, // ensures full color visibility
+                  },
+                  "& .MuiInputBase-input": {
+                    color: "black",
+                  },
+                }}
                       />
 
 
@@ -785,21 +793,28 @@ const roundtripData: RoundtripData = storedData
                     InputProps={{
                     startAdornment: (
                     <InputAdornment position="start">
-                    <SortIcon />
+                    <SortIcon sx={{ color: "black" }} />
                     </InputAdornment>
                     ),
                     readOnly: true, 
                     }}
                  
                       sx={{
-                          width: "100px",
-                          "& .MuiInputBase-root": {
-                          height: "44px",
-                          borderRadius: "8px",
-                          borderColor: "#DEDFE1",
-                          cursor: "pointer",
-                          },
-                      }}
+    width: "100px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+      borderColor: "#DEDFE1",
+      cursor: "pointer",
+    },
+    "& .MuiInputBase-input::placeholder": {
+      color: "black",
+      opacity: 1, // ensures full color visibility
+    },
+    "& .MuiInputBase-input": {
+      color: "black",
+    },
+  }}
                       />
                       
                     <Dialog
@@ -905,9 +920,9 @@ const roundtripData: RoundtripData = storedData
 
                   
                       <div className='flex justify-center gap-6'>
-                          <div>
+                          <div className='relative left-6'>
                               <p className="text-[14px] font-semibold">{depart.timefrom}</p>
-                              <p className="text-[14px] font-normal text-[#4E4F52]">{depart.placefrom}</p>
+                              <p className="text-[14px] font-normal text-[#4E4F52] relative right-3" >{depart.placefrom}</p>
                           </div>
 
                           <div>
@@ -922,7 +937,7 @@ const roundtripData: RoundtripData = storedData
 
                           <div>
                               <p  className="text-[14px] font-semibold">{depart.timeto}</p>
-                              <p className="text-[14px] font-normal text-[#4E4F52]">{depart.placeto}</p>
+                              <p className="text-[14px] font-normal text-[#4E4F52] relative right-3">{depart.placeto}</p>
                           </div>
                       </div>
 
@@ -1007,7 +1022,7 @@ const roundtripData: RoundtripData = storedData
                   <div className="flex items-center justify-center relative">
                        
                     <div 
-                      onClick={closeDialog} 
+                      onClick={handleCloseClick} 
                       style={{position:"absolute",  left:"0px", top:"-5px"}}
                       className=" w-[32px] h-[32px]  text-center bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)]"
                   >
@@ -1025,7 +1040,7 @@ const roundtripData: RoundtripData = storedData
                       <div className='w-full border-1 border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] mb-[16px] '>
 
                           <div className='items-center p-2'>
-                              <p className='text-[18px] text-[#181818] font-inter font-normal'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
+                              <p className='text-[18px] text-[#181818] font-inter font-medium'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
                               <p className='text-[15px] text-[#4E4F52] '>Feb 19, 1 {selectedDeparture?.passenger}</p>
 
                           </div>
@@ -1035,9 +1050,9 @@ const roundtripData: RoundtripData = storedData
                             <div>
                               <div className="w-full border-1 border-[#DEDFE1] bd-white rounded-[6px] p-[12px]">
                                   <div>
-                                  <p className="text-[19px]  font-normal text-[#67696D] ">Departure Flight</p>
-                                  <p className="text-[#181818] text-[16px] font-semibold">₦50,000 </p>
-                                  <p className="text-[#4E4F52] text-[16px] font-normal">Per Passenger</p>
+                                  <p className="text-[19px]  font-medium text-[#181818] ">Departure Flight</p>
+                                  <p className="text-[#181818] text-[16px] font-medium">₦50,000 </p>
+                                  <p className="text-[#67696D] text-[16px] font-normal">Per Passenger</p>
                                   <p  className="text-[#181818] text-[16px] font-medium"><ErrorOutlineIcon />Price Includes tax & Fees</p>
 
                                   </div>
@@ -1055,9 +1070,9 @@ const roundtripData: RoundtripData = storedData
                                       <p className='text-[#4E4F52] font-normal text-[16px]'><FlightClassOutlinedIcon />{selectedDeparture?.class}</p>
                                       <p className='text-[#4E4F52] font-normal text-[16px]'><CalendarMonthOutlinedIcon />Feb 19</p>
                                       <p className="text-[#4E4F52] text-[16px] font-normal"><AccessTimeIcon />{selectedDeparture?.timefrom} - {selectedDeparture?.timeto} ({selectedDeparture?.duration} {selectedDeparture?.non})</p>
-                                      <p className="text-[#4E4F52] text-[16px] font-medium"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
-                                      <p className="text-[#4E4F52] text-[16px] font-medium"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
-                                      <p className="text-[#4E4F52] text-[16px] font-medium"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
+                                      <p className="text-[#4E4F52] text-[16px] font-normal"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
+                                      <p className="text-[#4E4F52] text-[16px] font-normal"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
+                                      <p className="text-[#4E4F52] text-[16px] font-normal"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
                                       
                                   </div>
 
@@ -1139,7 +1154,7 @@ const roundtripData: RoundtripData = storedData
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <LocationOnIcon />
+                  <LocationOnOutlinedIcon />
                 </InputAdornment>
               ),
             }}
@@ -1215,7 +1230,7 @@ const roundtripData: RoundtripData = storedData
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <LocationOnIcon />
+                  <LocationOnOutlinedIcon />
                 </InputAdornment>
               ),
             }}
@@ -1594,21 +1609,28 @@ const roundtripData: RoundtripData = storedData
                 InputProps={{
                     startAdornment: (
                     <InputAdornment position="start">
-                        <TuneIcon />
+                        <TuneIcon sx={{ color: "black" }} />
                     </InputAdornment>
                     ),
                     readOnly: true, 
                     // sx: { pointerEvents: "none" }, 
                 }}
-                sx={{
-                    width: "100px",
-                    "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
-                    borderColor: "#DEDFE1",
-                    cursor: "pointer",
-                    },
-                }}
+              sx={{
+              width: "100px",
+              "& .MuiInputBase-root": {
+                height: "44px",
+                borderRadius: "8px",
+                borderColor: "#DEDFE1",
+                cursor: "pointer",
+              },
+              "& .MuiInputBase-input::placeholder": {
+                color: "black",
+                opacity: 1, // ensures full color visibility
+              },
+              "& .MuiInputBase-input": {
+                color: "black",
+              },
+            }}
                 />
 
 
@@ -1776,7 +1798,7 @@ const roundtripData: RoundtripData = storedData
                           displayEmpty
                         startAdornment={
                             <InputAdornment position="start">
-                            <SortIcon />
+                            <SortIcon sx={{ color: "black" }} />
                             </InputAdornment>
                         }
                         MenuProps={{
@@ -1852,9 +1874,9 @@ const roundtripData: RoundtripData = storedData
 
             
                 <div className='flex justify-center gap-6'>
-                    <div>
+                    <div className='relative left-6'>
                         <p>{depart.timefrom}</p>
-                        <p>{depart.placefrom}</p>
+                        <p className='relative right-3'>{depart.placefrom}</p>
                     </div>
 
                     <div>
@@ -1869,7 +1891,7 @@ const roundtripData: RoundtripData = storedData
 
                     <div>
                         <p>{depart.timeto}</p>
-                        <p>{depart.placeto}</p>
+                        <p className='relative right-3'>{depart.placeto}</p>
                     </div>
                 </div>
 
@@ -1956,7 +1978,7 @@ const roundtripData: RoundtripData = storedData
                 <div className='w-full border-1 border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] mb-[16px] '>
 
                     <div className='items-center p-2'>
-                        <p className='text-[18px] text-[#181818] font-inter font-normal'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
+                        <p className='text-[18px] text-[#181818] font-inter font-medium'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
                         <p className='text-[15px] text-[#4E4F52] '>Feb 19, 1 {selectedDeparture?.passenger}</p>
 
                     </div>
@@ -1966,7 +1988,7 @@ const roundtripData: RoundtripData = storedData
                       <div>
                         <div className="w-full border-1 border-[#DEDFE1] bd-white rounded-[6px] p-[12px]">
                              <div>
-                            <p className="text-[19px]  font-normal text-[#67696D] ">Return Flight</p>
+                            <p className="text-[19px]  font-medium text-[#181818] ">Return Flight</p>
                             <p className="text-[#181818] text-[16px] font-semibold">₦50,000 </p>
                             <p className="text-[#4E4F52] text-[16px] font-normal">Per Passenger</p>
                             <p  className="text-[#181818] text-[16px] font-medium"><ErrorOutlineIcon />Price Includes tax & Fees</p>
@@ -1986,9 +2008,9 @@ const roundtripData: RoundtripData = storedData
                                 <p className='text-[#4E4F52] font-normal text-[16px]'><FlightClassOutlinedIcon />{selectedDeparture?.class}</p>
                                 <p className='text-[#4E4F52] font-normal text-[16px]'><CalendarMonthOutlinedIcon />Feb 19</p>
                                 <p className="text-[#4E4F52] text-[16px] font-normal"><AccessTimeIcon />{selectedDeparture?.timefrom} - {selectedDeparture?.timeto} ({selectedDeparture?.duration} {selectedDeparture?.non})</p>
-                                <p className="text-[#4E4F52] text-[16px] font-medium"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
-                                <p className="text-[#4E4F52] text-[16px] font-medium"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
-                                <p className="text-[#4E4F52] text-[16px] font-medium"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
+                                <p className="text-[#4E4F52] text-[16px] font-normal"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
+                                <p className="text-[#4E4F52] text-[16px] font-normal"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
+                                <p className="text-[#4E4F52] text-[16px] font-normal"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
                                 
                             </div>
 

@@ -8,7 +8,8 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import InputAdornment from "@mui/material/InputAdornment";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+// import LocationOnOutlinedIcon from "@mui/icons-material/LocationOn";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import Popper from "@mui/material/Popper";
@@ -16,7 +17,7 @@ import ClickAwayListener from "@mui/material/ClickAwayListener";
 import { DateRange, RangeKeyDict } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
-import { addDays } from "date-fns";
+import { addDays, format } from "date-fns";
 import FlightClassOutlinedIcon from "@mui/icons-material/FlightClassOutlined";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
@@ -48,7 +49,7 @@ import { TransitionProps } from "@mui/material/transitions";
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutlined';
 import ModeEditOutlinedIcon from '@mui/icons-material/ModeEditOutlined';
-
+import axios from "axios"
 
 
 const Transition = forwardRef<unknown, TransitionProps & { children: ReactElement }>(
@@ -204,7 +205,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   //       };
 
     
-    const [counts, setCounts] = useState({ adults: 1, children: 0, infants: 0 });
+    const [counts, setCounts] = useState({ adults: 0, children: 0, infants: 0 });
 
     const handleIncrement = (type: keyof typeof counts) => {
     setCounts((prevCounts) => ({
@@ -504,13 +505,51 @@ const handleApplyFilters = () => {
   const [flights, setFlights] = useState<Flight[]>(receivedFlights || []);
 
 
-  const handleInputChange = (id: number, field: string, value: string) => {
-  setFlights(
-    flights.map((flight) =>
-      flight.id === id ? { ...flight, [field]: value } : flight
-    )
+//   const handleInputChange = (id: number, field: string, value: string, direction: 'from' | 'to') => {
+//   setFlights(
+//     flights.map((flight) =>
+//       flight.id === id ? { ...flight, [field]: value } : flight
+//     )
+//   );
+  
+//     if (direction === 'from') {
+//     setSelectedFrom(value);
+//   } else {
+//     setSelectedTo(value);
+//   }
+// };
+
+const handleInputChange = (id: number, field: string, value: string, locationType: "from" | "to") => {
+  const updatedFlights = flights.map((flight) =>
+    flight.id === id ? { ...flight, [field]: value } : flight
   );
+  setFlights(updatedFlights);
+
+  if (value.trim()) {
+    fetchLocations(value, locationType === "from");
+  }
 };
+
+
+//   const handleInputChange = (id: number, field: string, value: string, direction: 'from' | 'to') => {
+//   // Update the flights state
+//   const updatedFlights = flights.map((flight) =>
+//     flight.id === id ? { ...flight, [field]: value } : flight
+//   );
+//   setFlights(updatedFlights);
+
+//   // Save the updated flights array to sessionStorage
+//   sessionStorage.setItem("flights", JSON.stringify(updatedFlights));
+
+//     if (direction === 'from') {
+//     setSelectedFrom(value);
+//   } else {
+//     setSelectedTo(value);
+//   }
+
+// };
+
+
     const addFlight = () => {
     setFlights([...flights, { id: flights.length + 1, from: '', to: '', date: '' }]);
   };
@@ -563,30 +602,7 @@ const handleApplyFilters = () => {
       }
       setOpened(false);
     };
-  
-//  const [selectedFrom, setSelectedFrom] = useState("");
-//              const [showLocations, setShowLocations] = useState(false);
-//              const handleTextFieldClick = () => {
-//                setShowLocations(true);
-//              };
-  //  const handleFromOptionClick = (option: string) => {
-  //       setSelectedFrom(option);
-  //       setOpenFrom(false); 
-  //     };
 
-    // const [selectedTo, setSelectedTo] = useState<string>("");                        
-    // const [showLocationsOff, setShowLocationsOff] = useState(false);
-    // const handleTextFieldClickOff = () => {
-    // setShowLocationsOff(true);
-    // };
-  
-    // const handleToOptionClick = (option: string) => {
-    // setSelectedTo(option);
-    // setOpenTo(false); 
-    // };
-            
-    //  const [userSelectedDate, setUserSelectedDate] = useState(false);
-    // const formatDate = (date: Date) => format(date, "dd MMM yyyy");
 
   const [isSortOpen, setIsSortOpen] = useState(false);
   const openSort = () => {
@@ -615,6 +631,54 @@ const multitripData: MultitripData = storedMultiData
   ? (JSON.parse(storedMultiData) as MultitripData)
   : { flights: [], passengers: "", flightClass: "" };
 
+  const handleDateChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    id: number
+  ) => {
+    const updatedFlights = flights.map((f) =>
+      f.id === id ? { ...f, date: e.target.value } : f
+    );
+    setFlights(updatedFlights);
+  };
+
+const [filteredLocationsFrom, setFilteredLocationsFrom] = useState<string[]>([]);
+const [filteredLocationsTo, setFilteredLocationsTo] = useState<string[]>([]);
+
+
+
+const fetchLocations = async (query: string, isFrom: boolean) => {
+  try {
+    const response = await axios.get(
+      `https://wft-geo-db.p.rapidapi.com/v1/geo/cities`,
+      {
+        params: {
+          namePrefix: query,
+          limit: 5,
+          sort: "-population",
+        },
+        headers: {
+          "X-RapidAPI-Key": "f8e601d31bmsh872d32d4d10fddbp1d8eeajsn162587dd4b51",
+          "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com",
+        },
+      }
+    );
+
+    const citySuggestions = response.data.data.map(
+      (item: { city: string; country: string }) => `${item.city}, ${item.country}`
+    );
+
+    setLocations(citySuggestions);
+    if (isFrom) {
+      setFilteredLocationsFrom(citySuggestions);
+    } else {
+      setFilteredLocationsTo(citySuggestions);
+    }
+  } catch (error) {
+    console.error("Error fetching locations:", error);
+    setLocations([]);
+  }
+};
+
     
 
 
@@ -630,7 +694,7 @@ const multitripData: MultitripData = storedMultiData
           <Link to="/" >
           <div style={{ position: "absolute", left: "28px", top: "85px" }} className="w-[40px] h-[40px] p-[8px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] ">
           <ArrowBackIosNewOutlinedIcon className="font-bold " />
-          </div>m
+          </div>
           </Link>
           <p className="text-center font-semibold text-[20px]  mt-[90px]">Departure Flight 1</p>
           </div>
@@ -705,20 +769,27 @@ const multitripData: MultitripData = storedMultiData
                          InputProps={{
                              startAdornment: (
                              <InputAdornment position="start">
-                                 <TuneIcon />
+                                 <TuneIcon sx={{ color: "black" }} />
                              </InputAdornment>
                              ),
                              readOnly: true, 
                          }}
                          sx={{
-                             width: "100px",
-                             "& .MuiInputBase-root": {
-                             height: "44px",
-                             borderRadius: "8px",
-                             borderColor: "#DEDFE1",
-                             cursor: "pointer",
-                             },
-                         }}
+    width: "100px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+      borderColor: "#DEDFE1",
+      cursor: "pointer",
+    },
+    "& .MuiInputBase-input::placeholder": {
+      color: "black",
+      opacity: 1, // ensures full color visibility
+    },
+    "& .MuiInputBase-input": {
+      color: "black",
+    },
+  }}
                          />
    
    
@@ -911,21 +982,28 @@ const multitripData: MultitripData = storedMultiData
                        InputProps={{
                        startAdornment: (
                        <InputAdornment position="start">
-                       <SortIcon />
+                       <SortIcon sx={{ color: "black" }} />
                        </InputAdornment>
                        ),
                        readOnly: true, 
                        }}
                     
                          sx={{
-                             width: "100px",
-                             "& .MuiInputBase-root": {
-                             height: "44px",
-                             borderRadius: "8px",
-                             borderColor: "#DEDFE1",
-                             cursor: "pointer",
-                             },
-                         }}
+    width: "100px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+      borderColor: "#DEDFE1",
+      cursor: "pointer",
+    },
+    "& .MuiInputBase-input::placeholder": {
+      color: "black",
+      opacity: 1, // ensures full color visibility
+    },
+    "& .MuiInputBase-input": {
+      color: "black",
+    },
+  }}
                          />
                          
                        <Dialog
@@ -1027,9 +1105,9 @@ const multitripData: MultitripData = storedMultiData
        
                          
                              <div className='flex justify-center gap-6'>
-                                 <div>
+                                 <div className='relative left-6'>
                                      <p className="text-[14px] font-semibold">{depart.timefrom}</p>
-                                     <p className="text-[14px] font-normal text-[#4E4F52]">{depart.placefrom}</p>
+                                     <p className="text-[14px] font-normal text-[#4E4F52] relative right-3">{depart.placefrom}</p>
                                  </div>
        
                                  <div>
@@ -1044,7 +1122,7 @@ const multitripData: MultitripData = storedMultiData
        
                                  <div>
                                      <p  className="text-[14px] font-semibold">{depart.timeto}</p>
-                                     <p className="text-[14px] font-normal text-[#4E4F52]">{depart.placeto}</p>
+                                     <p className="text-[14px] font-normal text-[#4E4F52] relative right-3">{depart.placeto}</p>
                                  </div>
                              </div>
        
@@ -1129,14 +1207,14 @@ const multitripData: MultitripData = storedMultiData
                          <div className="flex items-center justify-center relative">
                               
                           <div 
-                             onClick={closeDialog} 
+                             onClick={handleCloseClick} 
                              style={{position:"absolute",  left:"0px", top:"-5px"}}
                            className=" w-[32px] h-[32px]  text-center bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)]"
                              >
                            <CloseOutlinedIcon className=" w-[25px] font-bold " />
                          </div>
                            
-                             <p className="text-[20px] font-inter font-medium ">Departure Flight</p>
+                             <p className="text-[20px] font-inter font-medium">Departure Flight</p>
                        
                       
                            
@@ -1147,7 +1225,7 @@ const multitripData: MultitripData = storedMultiData
                              <div className='w-full border-1 border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] mb-[16px] '>
        
                                  <div className='items-center p-2'>
-                                     <p className='text-[18px] text-[#181818] font-inter font-normal'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
+                                     <p className='text-[18px] text-[#181818] font-inter font-medium'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
                                      <p className='text-[15px] text-[#4E4F52] '>Feb 19, 1 {selectedDeparture?.passenger}</p>
        
                                  </div>
@@ -1157,9 +1235,9 @@ const multitripData: MultitripData = storedMultiData
                                    <div>
                                      <div className="w-full border-1 border-[#DEDFE1] bd-white rounded-[6px] p-[12px]">
                                          <div>
-                                         <p className="text-[19px]  font-normal text-[#67696D] ">Departure Flight 1</p>
-                                         <p className="text-[#181818] text-[16px] font-semibold">₦50,000 </p>
-                                         <p className="text-[#4E4F52] text-[16px] font-normal">Per Passenger</p>
+                                         <p className="text-[19px]  font-medium text-[#181818]  ">Departure Flight 1</p>
+                                         <p className="text-[#181818] text-[16px] font-medium">₦50,000 </p>
+                                         <p className="text-[#67696D] text-[16px] font-normal">Per Passenger</p>
                                          <p  className="text-[#181818] text-[16px] font-medium"><ErrorOutlineIcon />Price Includes tax & Fees</p>
        
                                          </div>
@@ -1177,9 +1255,9 @@ const multitripData: MultitripData = storedMultiData
                                              <p className='text-[#4E4F52] font-normal text-[16px]'><FlightClassOutlinedIcon />{selectedDeparture?.class}</p>
                                              <p className='text-[#4E4F52] font-normal text-[16px]'><CalendarMonthOutlinedIcon />Feb 19</p>
                                              <p className="text-[#4E4F52] text-[16px] font-normal"><AccessTimeIcon />{selectedDeparture?.timefrom} - {selectedDeparture?.timeto} ({selectedDeparture?.duration} {selectedDeparture?.non})</p>
-                                             <p className="text-[#4E4F52] text-[16px] font-medium"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
-                                             <p className="text-[#4E4F52] text-[16px] font-medium"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
-                                             <p className="text-[#4E4F52] text-[16px] font-medium"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
+                                             <p className="text-[#4E4F52] text-[16px] font-normal"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
+                                             <p className="text-[#4E4F52] text-[16px] font-normal"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
+                                             <p className="text-[#4E4F52] text-[16px] font-normal"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
                                              
                                          </div>
        
@@ -1264,10 +1342,22 @@ const multitripData: MultitripData = storedMultiData
                 ),
               }}
               sx={{
-                width: "44vw",
-
-                "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
-              }} />
+                  width: '44vw',
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                }}
+              />
 
 
 
@@ -1384,10 +1474,22 @@ const multitripData: MultitripData = storedMultiData
                 ),
               }}
               sx={{
-                width: "42vw",
-
-                "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
-              }} />
+                  width: '42vw',
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                }} 
+              />
 
             <Popper open={flightClasses} anchorEl={anchorRef.current} placement="bottom-start">
               <ClickAwayListener onClickAway={() => setFlightClasses(false)}>
@@ -1449,21 +1551,37 @@ const multitripData: MultitripData = storedMultiData
                     size="small"
                     placeholder="Search Destination"
                     value={flight.from}
-                    onChange={(e) => handleInputChange(flight.id, "from", e.target.value)}
+                    onChange={(e) => handleInputChange(flight.id, "from", e.target.value, "from")}
                     
                     onClick={(e) => handleFromClick(e, flight.id)}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <LocationOnIcon />
+                          <LocationOnOutlinedIcon />
                         </InputAdornment>
                       ),
                     }}
+                    
+
                     sx={{
                      width: index < 2 ? "28.1vw" : "25.8vw",
 
-                      "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
-                    }} />
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                }}
+                    
+                    />
 
                   <Popper id="from-popper" open={openFrom && FromId === flight.id} anchorEl={FromClick} placement="bottom-start">
                                   <ClickAwayListener onClickAway={handleCloseFrom}>
@@ -1481,12 +1599,12 @@ const multitripData: MultitripData = storedMultiData
                                         Recent Searches
                                       </Typography>
                   
-                                      {locations.length === 0 ? (
+                                      {filteredLocationsFrom.length === 0 ? (
                                         <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
                                           No recent searches
                                         </Typography>
                                       ) : (
-                                        locations.map((location, index) => (
+                                        filteredLocationsFrom.map((location, index) => (
                                           <React.Fragment key={location}>
                                             <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
                                               <div className="flex gap-[8px]" onClick={() => handleDepartureSelectionFrom(flight.id, location)}>
@@ -1503,10 +1621,10 @@ const multitripData: MultitripData = storedMultiData
                                                   handleRemoveOption(location);
                                                 } }
                                                 className="cursor-pointer"
-                                                sx={{ color: "gray" }} />
+                                                sx={{ color: "black" }} />
                                             </div>
                   
-                                            {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
+                                            {index !== filteredLocationsFrom.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
                                           </React.Fragment>
                                         ))
                                       )}
@@ -1524,20 +1642,34 @@ const multitripData: MultitripData = storedMultiData
                     size="small"
                     value={flight.to}
                     onClick={(e) => handleToClick(e, flight.id)}
-                    onChange={(e) => handleInputChange(flight.id, "to", e.target.value)}
+                    onChange={(e) => handleInputChange(flight.id, "to", e.target.value, "to")}
                     placeholder="Search Destination"
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <LocationOnIcon />
+                          <LocationOnOutlinedIcon />
                         </InputAdornment>
                       ),
                     }}
                     sx={{
                      width: index < 2 ? "28.1vw" : "25.8vw",
 
-                      "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
-                    }} />
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                }}
+                    
+                    />
 
                   <Popper id="from-popper"  open={openTo && ToId === flight.id} anchorEl={ToClick} placement="bottom-start">
                                  <ClickAwayListener onClickAway={handleCloseTo}>
@@ -1555,12 +1687,12 @@ const multitripData: MultitripData = storedMultiData
                                        Recent Searches
                                      </Typography>
                  
-                                     {locations.length === 0 ? (
+                                     {filteredLocationsTo.length === 0 ? (
                                        <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
                                          No recent searches
                                        </Typography>
                                      ) : (
-                                       locations.map((location, index) => (
+                                       filteredLocationsTo.map((location, index) => (
                                          <React.Fragment key={location}>
                                            <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
                                              <div className="flex gap-[8px]" onClick={() => handleDestinationSelectionTo(flight.id, location)}>
@@ -1577,10 +1709,10 @@ const multitripData: MultitripData = storedMultiData
                                                  handleRemoveOption(location);
                                                } }
                                                className="cursor-pointer"
-                                               sx={{ color: "gray" }} />
+                                               sx={{ color: "black" }} />
                                            </div>
                  
-                                           {index !== locations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
+                                           {index !== filteredLocationsTo.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
                                          </React.Fragment>
                                        ))
                                      )}
@@ -1599,7 +1731,7 @@ const multitripData: MultitripData = storedMultiData
                     placeholder="Select Date"
                     value={flight.date} 
                     onClick={(e) => handleClickDate(e, flight.id)}
-                    onChange={(e) => handleInputChange(flight.id, "date", e.target.value)}
+                    onChange={(e) => handleDateChange(e, flight.id)}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -1607,11 +1739,29 @@ const multitripData: MultitripData = storedMultiData
                         </InputAdornment>
                       ),
                     }}
+                   
+
                     sx={{
-                      width: index < 2 ? "28.9vw" : "25.8vw",
-                      "& .MuiInputBase-root": { height: "44px", borderRadius: "8px" },
-                      "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
-                    }} />
+                     width: index < 2 ? "28.1vw" : "25.8vw",
+
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#818489",
+                  },
+
+                  "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
+                }}
+                    
+                    />
 
 
                     <Popper id={id} open={opened && dateId === flight.id} anchorEl={anchorEl} placement="bottom-start">
@@ -1648,6 +1798,12 @@ const multitripData: MultitripData = storedMultiData
             className="w-full h-full"
           />
           <div className="w-[96%] m-auto">
+             <p className="text-center mb-[20px] font-bold font-inter">
+                {dateRange[0].startDate
+                  ? format(dateRange[0].startDate, "MMM d, yyyy") +
+                (dateRange[0].endDate ? ` - ${format(dateRange[0].endDate, "MMM d, yyyy")}` : "")
+                  : "Pick a date"}
+            </p>
             <button
               className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
               style={{
@@ -1724,20 +1880,27 @@ const multitripData: MultitripData = storedMultiData
                 InputProps={{
                     startAdornment: (
                     <InputAdornment position="start">
-                        <TuneIcon />
+                        <TuneIcon sx={{ color: "black" }} />
                     </InputAdornment>
                     ),
                     readOnly: true, 
                 }}
                 sx={{
-                    width: "100px",
-                    "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
-                    borderColor: "#DEDFE1",
-                    cursor: "pointer",
-                    },
-                }}
+    width: "100px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+      borderColor: "#DEDFE1",
+      cursor: "pointer",
+    },
+    "& .MuiInputBase-input::placeholder": {
+      color: "black",
+      opacity: 1, // ensures full color visibility
+    },
+    "& .MuiInputBase-input": {
+      color: "black",
+    },
+  }}
                 />
 
 
@@ -1905,7 +2068,7 @@ const multitripData: MultitripData = storedMultiData
                           displayEmpty
                         startAdornment={
                             <InputAdornment position="start">
-                            <SortIcon />
+                            <SortIcon sx={{ color: "black" }} />
                             </InputAdornment>
                         }
                         MenuProps={{
@@ -1979,9 +2142,9 @@ const multitripData: MultitripData = storedMultiData
 
             
                 <div className='flex justify-center gap-6'>
-                    <div>
+                    <div className='relative left-6'>
                         <p>{depart.timefrom}</p>
-                        <p>{depart.placefrom}</p>
+                        <p className='relative right-3'>{depart.placefrom}</p>
                     </div>
 
                     <div>
@@ -1996,7 +2159,7 @@ const multitripData: MultitripData = storedMultiData
 
                     <div>
                         <p>{depart.timeto}</p>
-                        <p>{depart.placeto}</p>
+                        <p className='relative right-3'>{depart.placeto}</p>
                     </div>
                 </div>
 
@@ -2070,10 +2233,10 @@ const multitripData: MultitripData = storedMultiData
           
              
                <IconButton 
-                onClick={closeDialog} 
+                onClick={handleCloseClick} 
                 sx={{position:"absolute",  right:"0px", top:"-5px"}}
             >
-                <CloseOutlinedIcon className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
+                <CloseOutlinedIcon onClick={handleCloseClick}  className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
             </IconButton>
               
             </div>
@@ -2083,7 +2246,7 @@ const multitripData: MultitripData = storedMultiData
                 <div className='w-full border-1 border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] mb-[16px] '>
 
                     <div className='items-center p-2'>
-                        <p className='text-[18px] text-[#181818] font-inter font-normal'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
+                        <p className='text-[18px] text-[#181818] font-inter font-medium'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
                         <p className='text-[15px] text-[#4E4F52] '>Feb 19, 1 {selectedDeparture?.passenger}</p>
 
                     </div>
@@ -2093,9 +2256,9 @@ const multitripData: MultitripData = storedMultiData
                       <div>
                         <div className="w-full border-1 border-[#DEDFE1] bd-white rounded-[6px] p-[12px]">
                              <div>
-                            <p className="text-[19px]  font-normal text-[#67696D] ">Departure Flight</p>
-                            <p className="text-[#181818] text-[16px] font-semibold">₦50,000 </p>
-                            <p className="text-[#4E4F52] text-[16px] font-normal">Per Passenger</p>
+                            <p className="text-[19px]  font-medium text-[#181818] ">Departure Flight 1</p>
+                            <p className="text-[#181818] text-[16px] font-medium">₦50,000 </p>
+                            <p className="text-[#67696D] text-[16px] font-normal">Per Passenger</p>
                             <p  className="text-[#181818] text-[16px] font-medium"><ErrorOutlineIcon />Price Includes tax & Fees</p>
 
                             </div>
@@ -2113,9 +2276,9 @@ const multitripData: MultitripData = storedMultiData
                                 <p className='text-[#4E4F52] font-normal text-[16px]'><FlightClassOutlinedIcon />{selectedDeparture?.class}</p>
                                 <p className='text-[#4E4F52] font-normal text-[16px]'><CalendarMonthOutlinedIcon />Feb 19</p>
                                 <p className="text-[#4E4F52] text-[16px] font-normal"><AccessTimeIcon />{selectedDeparture?.timefrom} - {selectedDeparture?.timeto} ({selectedDeparture?.duration} {selectedDeparture?.non})</p>
-                                <p className="text-[#4E4F52] text-[16px] font-medium"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
-                                <p className="text-[#4E4F52] text-[16px] font-medium"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
-                                <p className="text-[#4E4F52] text-[16px] font-medium"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
+                                <p className="text-[#4E4F52] text-[16px] font-normal"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
+                                <p className="text-[#4E4F52] text-[16px] font-normal"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
+                                <p className="text-[#4E4F52] text-[16px] font-normal"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
                                 
                             </div>
 

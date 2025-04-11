@@ -38,6 +38,13 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
     setShowAddCardModal(false);
   };
 
+  const formValid =
+  cardNumber.trim().length === 16 &&
+  cardHolder.trim().length > 0 &&
+  /^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(expiryDate) &&
+  cvv.trim().length === 3;
+
+
   return (
     <div className="w-full md:w-[628px] space-y-4">
       {/* Title */}
@@ -121,7 +128,13 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
                   placeholder="MM/YY"
                   className="w-full border border-gray-400 rounded-lg p-2 outline-none"
                   value={expiryDate}
-                  onChange={(e) => setExpiryDate(e.target.value)}
+                  onChange={(e) => {
+                  const value = e.target.value;
+                  // Allow only digits and slash
+                  if (/^(0[1-9]|1[0-2])\/?([0-9]{0,2})?$/.test(value) || value === "") {
+                    setExpiryDate(value);
+                  }
+                }}
                 />
               </div>
               <div>
@@ -136,15 +149,19 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ initialCards = [] }) => {
               </div>
 
             {/* Checkbox */}
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={isDefault}
-                onChange={() => setIsDefault(!isDefault)}
-                className="w-4 h-4 border rounded"
-              />
-              <p className="text-sm text-gray-700">Set as default payment method</p>
-            </div>
+        <div className="flex items-center gap-2">
+  <input
+    type="checkbox"
+    checked={isDefault}
+    onChange={() => setIsDefault(!isDefault)}
+    className="w-4 h-4 border rounded"
+    disabled={!formValid}
+  />
+  <p className={`text-sm ${!formValid ? "text-gray-400" : "text-gray-700"}`}>
+    Set as default payment method
+  </p>
+</div>
+
           </div>
         )}
       </div>

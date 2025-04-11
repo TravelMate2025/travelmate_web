@@ -6,7 +6,8 @@ import { DateRange, RangeKeyDict } from 'react-date-range';
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { addDays, format } from "date-fns";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+// import LocationOnOutlinedIcon from "@mui/icons-material/LocationOn";
 import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
@@ -236,7 +237,7 @@ const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
                     InputProps={{
                     startAdornment: (
                         <InputAdornment position="start">
-                        <LocationOnIcon />
+                        <LocationOnOutlinedIcon />
                         </InputAdornment>
                     ),
                     }}
@@ -312,7 +313,7 @@ const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
                     InputProps={{
                     startAdornment: (
                         <InputAdornment position="start">
-                        <LocationOnIcon />
+                        <LocationOnOutlinedIcon />
                         </InputAdornment>
                     ),
                     }}

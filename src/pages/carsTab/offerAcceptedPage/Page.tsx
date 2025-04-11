@@ -197,6 +197,15 @@ useEffect(() => {
 }, [passFormData]);
 
 
+const isFormValids =
+  !errors.cardNumber &&
+  !errors.cardHolder &&
+  !errors.expiryDate &&
+  !errors.cvv &&
+  formData.cardNumber &&
+  formData.cardHolder &&
+  formData.expiryDate &&
+  formData.cvv;
 
 
   return (
@@ -805,7 +814,7 @@ useEffect(() => {
                                             <label className="mb-[12px] text-[#181818] font-medium text-[16px]">Expiry Date</label>
                                             <TextField
                                             name="expiryDate"
-                                            type="date"
+                                            type="month"
                                             variant="outlined"
                                             size="small"
                                             value={formData.expiryDate}
@@ -845,8 +854,15 @@ useEffect(() => {
                                             }}
                                             />
                                         </div>
-                
-                                        <FormControlLabel control={<Checkbox />} label="Save this card for future payment" className='mt-[-10px]'  />
+                                        
+                                        <FormControlLabel
+                                        className='mt-[-10px]'
+                                            control={
+                                            <Checkbox disabled={!isFormValids} />
+                                        }
+                                        label="Set as default Payment Method"
+                                        />
+            
                                         </div>
                                         </div>
 
@@ -894,7 +910,7 @@ useEffect(() => {
                                                     control={<Checkbox checked={formData.agreement} onChange={handleCheckboxChange} />}
                                                     label={
                                                         <p className="text-[11px]">
-                                                        I agree to the <span className="text-[#023E8A]">booking conditions, Travel Mate terms and conditions, and Privacy Policy.</span>
+                                                        I agree to the <span className="text-[#023E8A]">booking conditions, TravelMate terms and conditions, and Privacy Policy.</span>
                                                         </p>
                                                     }
                                                     />
@@ -1348,7 +1364,7 @@ useEffect(() => {
                             <label className="mb-[12px] text-[#181818] font-medium text-[14px]">Expiry Date</label>
                             <TextField
                             name="expiryDate"
-                            type="date"
+                            type="month"
                             variant="outlined"
                             size="small"
                             value={formData.expiryDate}
@@ -1388,8 +1404,12 @@ useEffect(() => {
                             }}
                             />
                         </div>
-
-                        <FormControlLabel control={<Checkbox />} label="Set as default Payment Method" />
+                                <FormControlLabel
+                                control={
+                                    <Checkbox disabled={!isFormValids} />
+                                }
+                                label="Set as default Payment Method"
+                                />
                         </div>
                     </div>
 
@@ -1398,7 +1418,7 @@ useEffect(() => {
                         control={<Checkbox checked={formData.agreement} onChange={handleCheckboxChange} />}
                         label={
                             <p>
-                            I agree to the <span className="text-[#023E8A]">booking conditions, Travel Mate terms, and Privacy Policy.</span>
+                            I agree to the <span className="text-[#023E8A]">booking conditions, TravelMate terms, and Privacy Policy.</span>
                             </p>
                         }
                         />

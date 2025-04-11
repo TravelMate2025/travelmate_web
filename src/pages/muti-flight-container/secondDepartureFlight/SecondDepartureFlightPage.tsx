@@ -99,7 +99,7 @@ const multitripData: MultitripData = storedMultiData
 
     console.log("Location state:", location.state);
     
-    const [counts, setCounts] = useState({ adults: 1, children: 0, infants: 0 });
+    const [counts, setCounts] = useState({ adults: 0, children: 0, infants: 0 });
 
     const handleIncrement = (type: keyof typeof counts) => {
     setCounts((prevCounts) => ({
@@ -474,20 +474,27 @@ const handleApplyFilters = () => {
                          InputProps={{
                              startAdornment: (
                              <InputAdornment position="start">
-                                 <TuneIcon />
+                                 <TuneIcon sx={{color:"black"}} />
                              </InputAdornment>
                              ),
                              readOnly: true, 
                          }}
                          sx={{
-                             width: "100px",
-                             "& .MuiInputBase-root": {
-                             height: "44px",
-                             borderRadius: "8px",
-                             borderColor: "#DEDFE1",
-                             cursor: "pointer",
-                             },
-                         }}
+    width: "100px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+      borderColor: "#DEDFE1",
+      cursor: "pointer",
+    },
+    "& .MuiInputBase-input::placeholder": {
+      color: "black",
+      opacity: 1, // ensures full color visibility
+    },
+    "& .MuiInputBase-input": {
+      color: "black",
+    },
+  }}
                          />
    
    
@@ -680,21 +687,28 @@ const handleApplyFilters = () => {
                        InputProps={{
                        startAdornment: (
                        <InputAdornment position="start">
-                       <SortIcon />
+                       <SortIcon sx={{color:"black"}} />
                        </InputAdornment>
                        ),
                        readOnly: true, 
                        }}
                     
                          sx={{
-                             width: "100px",
-                             "& .MuiInputBase-root": {
-                             height: "44px",
-                             borderRadius: "8px",
-                             borderColor: "#DEDFE1",
-                             cursor: "pointer",
-                             },
-                         }}
+    width: "100px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+      borderColor: "#DEDFE1",
+      cursor: "pointer",
+    },
+    "& .MuiInputBase-input::placeholder": {
+      color: "black",
+      opacity: 1, // ensures full color visibility
+    },
+    "& .MuiInputBase-input": {
+      color: "black",
+    },
+  }}
                          />
                          
                        <Dialog
@@ -796,9 +810,9 @@ const handleApplyFilters = () => {
        
                          
                              <div className='flex justify-center gap-6'>
-                                 <div>
+                                 <div className='relative left-6'>
                                      <p className="text-[14px] font-semibold">{depart.timefrom}</p>
-                                     <p className="text-[14px] font-normal text-[#4E4F52]">{depart.placefrom}</p>
+                                     <p className="text-[14px] font-normal text-[#4E4F52] relative right-3">{depart.placefrom}</p>
                                  </div>
        
                                  <div>
@@ -813,7 +827,7 @@ const handleApplyFilters = () => {
        
                                  <div>
                                      <p  className="text-[14px] font-semibold">{depart.timeto}</p>
-                                     <p className="text-[14px] font-normal text-[#4E4F52]">{depart.placeto}</p>
+                                     <p className="text-[14px] font-normal text-[#4E4F52] relative right-3">{depart.placeto}</p>
                                  </div>
                              </div>
        
@@ -898,11 +912,11 @@ const handleApplyFilters = () => {
                          <div className="flex items-center justify-center relative">
                               
                           <div 
-                             onClick={closeDialog} 
+                             onClick={handleCloseClick} 
                              style={{position:"absolute",  left:"0px", top:"-5px"}}
                            className=" w-[32px] h-[32px]  text-center bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)]"
                              >
-                           <CloseOutlinedIcon className=" w-[25px] font-bold " />
+                           <CloseOutlinedIcon onClick={handleCloseClick} className=" w-[25px] font-bold " />
                          </div>
                            
                              <p className="text-[20px] font-inter font-medium ">Departure Flight 2</p>
@@ -914,7 +928,7 @@ const handleApplyFilters = () => {
                              <div className='w-full border-1 border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] mb-[16px] '>
        
                                  <div className='items-center p-2'>
-                                     <p className='text-[18px] text-[#181818] font-inter font-normal'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
+                                     <p className='text-[18px] text-[#181818] font-inter font-medium'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
                                      <p className='text-[15px] text-[#4E4F52] '>Feb 19, 1 {selectedDeparture?.passenger}</p>
        
                                  </div>
@@ -924,8 +938,8 @@ const handleApplyFilters = () => {
                                    <div>
                                      <div className="w-full border-1 border-[#DEDFE1] bd-white rounded-[6px] p-[12px]">
                                          <div>
-                                         <p className="text-[19px]  font-normal text-[#67696D] ">Departure Flight</p>
-                                         <p className="text-[#181818] text-[16px] font-semibold">₦50,000 </p>
+                                         <p className="text-[19px]  font-medium text-[#181818] ">Departure Flight 2</p>
+                                         <p className="text-[#181818] text-[16px] font-medium">₦50,000 </p>
                                          <p className="text-[#4E4F52] text-[16px] font-normal">Per Passenger</p>
                                          <p  className="text-[#181818] text-[16px] font-medium"><ErrorOutlineIcon />Price Includes tax & Fees</p>
        
@@ -944,9 +958,9 @@ const handleApplyFilters = () => {
                                              <p className='text-[#4E4F52] font-normal text-[16px]'><FlightClassOutlinedIcon />{selectedDeparture?.class}</p>
                                              <p className='text-[#4E4F52] font-normal text-[16px]'><CalendarMonthOutlinedIcon />Feb 19</p>
                                              <p className="text-[#4E4F52] text-[16px] font-normal"><AccessTimeIcon />{selectedDeparture?.timefrom} - {selectedDeparture?.timeto} ({selectedDeparture?.duration} {selectedDeparture?.non})</p>
-                                             <p className="text-[#4E4F52] text-[16px] font-medium"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
-                                             <p className="text-[#4E4F52] text-[16px] font-medium"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
-                                             <p className="text-[#4E4F52] text-[16px] font-medium"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
+                                             <p className="text-[#4E4F52] text-[16px] font-normal"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
+                                             <p className="text-[#4E4F52] text-[16px] font-normal"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
+                                             <p className="text-[#4E4F52] text-[16px] font-normal"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
                                              
                                          </div>
        
@@ -1041,20 +1055,27 @@ const handleApplyFilters = () => {
                 InputProps={{
                     startAdornment: (
                     <InputAdornment position="start">
-                        <TuneIcon />
+                        <TuneIcon sx={{color:"black"}} />
                     </InputAdornment>
                     ),
                     readOnly: true, 
                 }}
                 sx={{
-                    width: "100px",
-                    "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
-                    borderColor: "#DEDFE1",
-                    cursor: "pointer",
-                    },
-                }}
+    width: "100px",
+    "& .MuiInputBase-root": {
+      height: "44px",
+      borderRadius: "8px",
+      borderColor: "#DEDFE1",
+      cursor: "pointer",
+    },
+    "& .MuiInputBase-input::placeholder": {
+      color: "black",
+      opacity: 1, 
+    },
+    "& .MuiInputBase-input": {
+      color: "black",
+    },
+  }}
                 />
 
 
@@ -1220,7 +1241,7 @@ const handleApplyFilters = () => {
                           displayEmpty
                         startAdornment={
                             <InputAdornment position="start">
-                            <SortIcon />
+                            <SortIcon sx={{color:"black"}} />
                             </InputAdornment>
                         }
                         MenuProps={{
@@ -1296,9 +1317,9 @@ const handleApplyFilters = () => {
 
             
                 <div className='flex justify-center gap-6'>
-                    <div>
+                    <div className='relative left-6'>
                         <p>{depart.timefrom}</p>
-                        <p>{depart.placefrom}</p>
+                        <p className='relative right-3'>{depart.placefrom}</p>
                     </div>
 
                     <div>
@@ -1313,7 +1334,7 @@ const handleApplyFilters = () => {
 
                     <div>
                         <p>{depart.timeto}</p>
-                        <p>{depart.placeto}</p>
+                        <p className='relative right-3'>{depart.placeto}</p>
                     </div>
                 </div>
 
@@ -1383,14 +1404,14 @@ const handleApplyFilters = () => {
          <div className="absolute z-40 top-0 left-0 right-0 bg-white border-b border-gray-300 rounded-t-[10px] pl-6 pr-4 pb-3 pt-4">
             <div className="flex items-center justify-center relative">
                
-                <p className="text-[20px] font-inter font-medium ">Departure Flight</p>
+                <p className="text-[20px] font-inter font-medium ">Departure Flight 2</p>
           
              
                <IconButton 
-                onClick={closeDialog} 
+                onClick={handleCloseClick} 
                 sx={{position:"absolute",  right:"0px", top:"-5px"}}
             >
-                <CloseOutlinedIcon className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
+                <CloseOutlinedIcon onClick={handleCloseClick}  className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
             </IconButton>
               
             </div>
@@ -1400,7 +1421,7 @@ const handleApplyFilters = () => {
                 <div className='w-full border-1 border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] mb-[16px] '>
 
                     <div className='items-center p-2'>
-                        <p className='text-[18px] text-[#181818] font-inter font-normal'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
+                        <p className='text-[18px] text-[#181818] font-inter font-medium'>{selectedDeparture?.placefrom} to  {selectedDeparture?.placeto}</p>
                         <p className='text-[15px] text-[#4E4F52] '>Feb 19, 1 {selectedDeparture?.passenger}</p>
 
                     </div>
@@ -1410,8 +1431,8 @@ const handleApplyFilters = () => {
                       <div>
                         <div className="w-full border-1 border-[#DEDFE1] bd-white rounded-[6px] p-[12px]">
                              <div>
-                            <p className="text-[19px]  font-normal text-[#67696D] ">Departure Flight</p>
-                            <p className="text-[#181818] text-[16px] font-semibold">₦50,000 </p>
+                            <p className="text-[19px]  font-medium text-[#181818] ">Departure Flight 2</p>
+                            <p className="text-[#181818] text-[16px] font-medium">₦50,000 </p>
                             <p className="text-[#4E4F52] text-[16px] font-normal">Per Passenger</p>
                             <p  className="text-[#181818] text-[16px] font-medium"><ErrorOutlineIcon />Price Includes tax & Fees</p>
 
@@ -1430,9 +1451,9 @@ const handleApplyFilters = () => {
                                 <p className='text-[#4E4F52] font-normal text-[16px]'><FlightClassOutlinedIcon />{selectedDeparture?.class}</p>
                                 <p className='text-[#4E4F52] font-normal text-[16px]'><CalendarMonthOutlinedIcon />Feb 19</p>
                                 <p className="text-[#4E4F52] text-[16px] font-normal"><AccessTimeIcon />{selectedDeparture?.timefrom} - {selectedDeparture?.timeto} ({selectedDeparture?.duration} {selectedDeparture?.non})</p>
-                                <p className="text-[#4E4F52] text-[16px] font-medium"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
-                                <p className="text-[#4E4F52] text-[16px] font-medium"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
-                                <p className="text-[#4E4F52] text-[16px] font-medium"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
+                                <p className="text-[#4E4F52] text-[16px] font-normal"><LuggageOutlinedIcon />1 Carry-on + 23kg Checked Bag</p>
+                                <p className="text-[#4E4F52] text-[16px] font-normal"><AirlineSeatReclineExtraOutlinedIcon /> Seat Selection is not allowed</p>
+                                <p className="text-[#4E4F52] text-[16px] font-normal"><CloseOutlinedIcon /> {selectedDeparture?.refundable}</p>
                                 
                             </div>
 
