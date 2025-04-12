@@ -97,8 +97,8 @@ export default function VerifyEmail() {
                 disabled={isLoading}
               />
             ))}
-             <span className="absolute -top-8 text-xs bg-gray-700 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-              Use 3030 as the correct testing code
+             <span className="absolute -top-8 text-xs bg-blue-700 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+              Use "3030" as the correct testing code
             </span>
           </div>
 
