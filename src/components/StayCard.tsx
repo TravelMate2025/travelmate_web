@@ -1,6 +1,14 @@
-import React from "react";
-import { FaStar, FaMapMarkerAlt, FaCheckCircle, FaRegHeart } from "react-icons/fa";
+import React, { useState } from "react";
+import {
+  FaStar,
+  FaMapMarkerAlt,
+  FaCheckCircle,
+  FaRegHeart,
+  FaHeart,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+// import { toggleFavorite } from "../api/favorites";
+import toast from "react-hot-toast";
 
 interface StayCardProps {
   id: number;
@@ -12,9 +20,11 @@ interface StayCardProps {
   pricePerNight: string;
   totalPrice: string;
   refundableUntil: string;
+  isFavorited?: boolean;
 }
 
 const StayCard: React.FC<StayCardProps> = ({
+  // id,
   image,
   name,
   rating,
@@ -23,18 +33,45 @@ const StayCard: React.FC<StayCardProps> = ({
   pricePerNight,
   totalPrice,
   refundableUntil,
+  isFavorited = false,
 }) => {
   const navigate = useNavigate();
+  const [favorite, setFavorite] = useState(isFavorited);
+  const [showTooltip, setShowTooltip] = useState(false);
 
-  const handleCardClick = () => {
-    navigate(`/stays-detail`);
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    try {
+      // await toggleFavorite(id, favorite);
+      const newFavorite = !favorite;
+      setFavorite(newFavorite);
+      toast.success(`Stay ${newFavorite ? "added to" : "removed from"} favorite`);
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
   };
 
   return (
     <div
-      className="w-full sm:w-[380px] md:w-[410px] bg-white rounded-lg border border-gray-300 shadow-lg p-4 cursor-pointer"
-      onClick={handleCardClick}
+      className="w-full sm:w-[380px] md:w-[410px] bg-white rounded-lg border border-gray-300 shadow-lg p-4 cursor-pointer relative"
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (!target.closest("button")) {
+          navigate(`/stays-detail`);
+        }
+      }}
     >
+      {/* Tooltip */}
+      {showTooltip && (
+        <div className="absolute top-6 right-20 bg-white text-black text-sm px-3 py-2 rounded shadow-md z-10">
+          <div className="absolute top-1/2 -right-2 transform -translate-y-1/2 w-0 h-0 border-t-8 border-b-8 border-l-8 border-t-transparent border-b-transparent border-l-white"></div>
+          {favorite ? "Remove from favorite" : "Add to favorite"}
+        </div>
+      )}
+
+
+
       {/* Image Section */}
       <div className="relative">
         <img
@@ -42,15 +79,22 @@ const StayCard: React.FC<StayCardProps> = ({
           alt={name}
           className="w-full h-[200px] sm:h-[210px] md:h-[224px] rounded-lg object-cover"
         />
-        {/* Heart Icon */}
-        <div className="absolute top-3 right-3 bg-white rounded-md p-2 cursor-pointer">
-          <FaRegHeart className="text-blue-900 text-2xl" />
-        </div>
+        <button
+          onClick={handleFavoriteClick}
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+          className="absolute top-3 right-3 bg-white rounded-md p-2 cursor-pointer"
+        >
+          {favorite ? (
+            <FaHeart className="text-red-600 text-2xl" />
+          ) : (
+            <FaRegHeart className="text-blue-900 text-2xl" />
+          )}
+        </button>
       </div>
 
       {/* Details Section */}
       <div className="mt-4">
-        {/* Name & Rating */}
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold">{name}</h3>
           <div className="flex items-center text-orange-500">
@@ -61,19 +105,16 @@ const StayCard: React.FC<StayCardProps> = ({
           </div>
         </div>
 
-        {/* Location */}
         <div className="flex items-center text-gray-500 mt-1">
           <FaMapMarkerAlt className="mr-2" />
           <span className="text-sm">{location}</span>
         </div>
 
-        {/* Refund Policy */}
         <div className="flex items-center text-green-600 mt-1">
           <FaCheckCircle className="mr-2" />
           <span className="text-sm">Fully Refundable before {refundableUntil}</span>
         </div>
 
-        {/* Pricing */}
         <div className="flex w-full justify-between items-end mt-4">
           <div>
             <span className="text-xl font-bold">N{pricePerNight}</span>

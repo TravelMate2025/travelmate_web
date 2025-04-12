@@ -47,8 +47,10 @@ const BookingConfirmationPage: React.FC = () => {
         </div>
   
         {/* Notification */}
-        <div className="bg-green-100 border border-green-700 px-4 py-2 mb-6 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <GrStatusGood size={24} className="text-green-600" />
+        <div className="bg-green-50 border border-green-600 px-4 py-2 mb-6 rounded-lg flex sm:flex-row items-start sm:items-center gap-3">
+        <div className="pt-1 sm:pt-0 flex justify-center sm:justify-start items-center">
+          <GrStatusGood size={24} className="text-green-600 mt-5 sm:mt-0" />
+        </div>
           <p>
             <span className="font-semibold">Payment Successful</span> and your stay is confirmed. Booking confirmation will
             also be sent to <span className="font-semibold">elvis@gmail.com</span>.
