@@ -7,6 +7,7 @@ import { addDays, format } from "date-fns";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import { Typography, Box } from "@mui/material"; // Import Typography and Box
 
 interface DateRangeType {
   startDate: Date;
@@ -21,7 +22,12 @@ interface ReusableDateSelectorProps {
   borderColor?: string;
 }
 
-const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({ initialValue = "", onDateChange, isOneWay = false, borderColor = "light-gray", }) => {
+const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
+  initialValue = "",
+  onDateChange,
+  isOneWay = false,
+  borderColor = "light-gray",
+}) => {
   const [dateRange, setDateRange] = useState<DateRangeType[]>([
     {
       startDate: new Date(),
@@ -32,7 +38,7 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({ initialValu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedDate, setSelectedDate] = useState<string>(initialValue);
   const [monthsToShow, setMonthsToShow] = useState(2);
-
+  const [opened, setOpened] = useState(false); 
 
   useEffect(() => {
     const updateMonths = () => {
@@ -42,23 +48,36 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({ initialValu
     window.addEventListener("resize", updateMonths);
     return () => window.removeEventListener("resize", updateMonths);
   }, []);
-  
+
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(anchorEl ? null : event.currentTarget);
+    setAnchorEl(event.currentTarget);
+    setOpened((prevOpen) => !prevOpen); // Toggle opened state
   };
 
   const handleClose = () => {
     setAnchorEl(null);
+    setOpened(false); // Close the popper
   };
 
-  const handleSelectDate = () => {
-    const formattedDate = isOneWay
-      ? format(dateRange[0].startDate, "dd MMM yyyy")
-      : `${format(dateRange[0].startDate, "dd MMM yyyy")} - ${format(dateRange[0].endDate, "dd MMM yyyy")}`;
+  const formatDate = (date: Date) => format(date, "dd MMM");
 
-    setSelectedDate(formattedDate);
-    onDateChange(formattedDate);
-    handleClose();
+  const handleSelectDate = () => {
+    if (dateRange[0].startDate) {
+      const startDateFormatted = formatDate(dateRange[0].startDate);
+      const endDateFormatted = dateRange[0].endDate
+        ? formatDate(dateRange[0].endDate)
+        : startDateFormatted;
+
+      const displayText =
+        startDateFormatted === endDateFormatted
+          ? startDateFormatted
+          : `${startDateFormatted} - ${endDateFormatted}`;
+
+      setSelectedDate(displayText);
+      onDateChange(displayText);
+      setOpened(false); // Close the popper
+      handleClose();
+    }
   };
 
   const open = Boolean(anchorEl);
@@ -76,13 +95,13 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({ initialValu
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <CalendarMonthOutlinedIcon sx={{ cursor: "pointer" }}/>
+              <CalendarMonthOutlinedIcon sx={{ cursor: "pointer" }} />
             </InputAdornment>
           ),
         }}
         sx={{
-         maxwidth: "288px",
-          "& .MuiInputBase-root": { height: "44px", borderRadius: "8px", },
+          maxwidth: "288px",
+          "& .MuiInputBase-root": { height: "44px", borderRadius: "8px" },
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: borderColor,
           },
@@ -98,11 +117,21 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({ initialValu
               boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
               overflow: "hidden",
               display: "flex",
-              justifyContent: "center",
+              flexDirection: "column", // Arrange children vertically
               alignItems: "center",
               paddingBottom: "20px",
             }}
           >
+            <Box sx={{ p: 2, width: '100%', textAlign: 'center' }}>
+              <Typography sx={{ color: "#1A1A1A", fontWeight: 500 }}>
+                {dateRange[0].startDate && dateRange[0].endDate
+                  ? `${format(dateRange[0].startDate, "dd MMM")} - ${format(
+                      dateRange[0].endDate,
+                      "dd MMM"
+                    )}`
+                  : format(dateRange[0].startDate, "dd MMM")}
+              </Typography>
+            </Box>
             <div style={{ width: "100%", height: "100%" }}>
               <DateRange
                 editableDateInputs={true}
@@ -124,13 +153,12 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({ initialValu
                 className="w-full h-full"
               />
 
-              <div className="w-[96%] m-auto">
+              <div className="w-[96%] m-auto mt-2"> {/* Added mt-2 for spacing */}
                 <button
                   className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
                   style={{
                     backgroundColor: "#023E8A",
                     color: "white",
-                    marginTop: 2,
                   }}
                   onClick={handleSelectDate}
                 >

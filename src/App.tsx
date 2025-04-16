@@ -23,7 +23,7 @@ import SecondDepartureFlightPage from "./pages/muti-flight-container/secondDepar
 import FlightInfoPageMultiWay from "./pages/muti-flight-container/flightInfo-review-multiway/FlightInfoPageMultiWay"
 import FlightConfirmPageMultiWay from "./pages/muti-flight-container/flightConfirmationMultiWay/FlightConfirmPageMultiWay"
 import ProfileInfo from "./pages/ProfileInfo";
-import Profile from "./pages/Profile";
+import Profile from "./pages/Account";
 import Page from "./pages/carsTab/carsFirstScreen/Page";
 import DisplayCars from "./pages/carsTab/displayAllCars/DisplayCars";
 import Pages from "./pages/carsTab/offerAcceptedPage/Page";
@@ -41,7 +41,7 @@ function App() {
         <Toaster />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/account" element={<Profile />} />
           <Route path="/profile-info" element={<ProfileInfo />} />
           <Route path="/login" element={<Login />} />
           <Route path="/create-account" element={<CreateAccount />} />

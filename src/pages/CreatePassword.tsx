@@ -5,6 +5,8 @@ import { FaCheck, FaTimes } from "react-icons/fa";
 import { RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import { MdLockOutline } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { createPassword } from "../api/auth";
+import toast from "react-hot-toast";
 
 export default function CreatePassword() {
   const [password, setPassword] = useState("");
@@ -13,6 +15,7 @@ export default function CreatePassword() {
   const [success, setSuccess] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
   const navigate = useNavigate();
+  const email = localStorage.getItem("email");
 
   const requirements = [
     { label: "At Least 8 Characters", check: password.length >= 8 },
@@ -24,26 +27,27 @@ export default function CreatePassword() {
 
   const allValid = requirements.every((req) => req.check);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!allValid) return;
+    if (!allValid || !email) return;
   
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    const res = await createPassword(email, password);
+    setLoading(false);
+  
+    if (res.Status === 200 || res.Status === 201) {
       setSuccess(true);
-  
-      // Show success message
+      setTimeout(() => setShowSpinner(true), 2000);
       setTimeout(() => {
-        setShowSpinner(true);
-  
-        setTimeout(() => {
-          setShowSpinner(false);
-          navigate("/login");
-        }, 4000);
-      }, 2000);
-    }, 2000);
+        setShowSpinner(false);
+        localStorage.removeItem("email");
+        navigate("/login");
+      }, 6000);
+    } else {
+      toast.error(res.Message || "Something went wrong. Please try again.");
+    }
   };
+  
   
 
   return (

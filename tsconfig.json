@@ -5,7 +5,7 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
-    "types": ["react-date-range"],
-      "typeRoots": ["./src/@types", "./node_modules/@types"]
+    "types": ["react-date-range", "node"],
+    "typeRoots": ["./src/@types", "./node_modules/@types"]
   }
 }

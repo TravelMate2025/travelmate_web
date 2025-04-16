@@ -3,22 +3,47 @@ import { FaGoogle, FaApple, FaFacebook } from "react-icons/fa";
 import AuthNavbar from "../components/AuthNavbar";
 import Spinner from "../components/Spinner"; 
 import { useNavigate } from "react-router-dom";
+import { submitEmail } from "../api/auth"
+import { toast } from "react-hot-toast";
 
 export default function CreateAccount() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
-    setTimeout(() => {
-      console.log("Submitted Email:", email);
+  
+    try {
+      if (!email || !email.includes("@")) {
+        toast.error("Please enter a valid email address.");
+        return;
+      }
+  
+      await submitEmail(email);
+      toast.success("Verification email sent successfully.");
+  
+      localStorage.setItem("verify_email", email);
+      navigate("/verify-page", { state: { email } });
+  
+    } catch (err: any) {
+      console.error(err);
+  
+      const message = 
+        err?.response?.data?.Message || 
+        err?.response?.data?.error || 
+        "Failed to send verification email. Please try again.";
+  
+      toast.error(message);
+    } finally {
       setIsLoading(false);
-      navigate("/verify-page");
-    }, 3000);
+    }
   };
+  
+  
+
 
   return (
     <div className="h-screen flex flex-col relative bg-white">
@@ -37,6 +62,7 @@ export default function CreateAccount() {
           <form onSubmit={handleSubmit} className="text-left">
             <label className="block text-gray-700 font-medium mb-1">Email Address</label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => {
