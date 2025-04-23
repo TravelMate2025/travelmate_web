@@ -141,24 +141,16 @@ export default function CreateAccount() {
             <hr className="flex-grow border-gray-300" />
           </div>
 
-          {/* <button className="relative w-full border border-[#023E8A] text-[#023E8A] flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition">
-            <span className="absolute left-4"><FaGoogle /></span>
+          <button
+            type="button"
+            onClick={() => googleLogin()}
+            className="relative w-full border border-[#023E8A] text-[#023E8A] flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition"
+          >
+            <span className="absolute left-4">
+              <FaGoogle />
+            </span>
             <span>Continue with Google</span>
-          </button> */}
-
-<button
-  type="button"
-  onClick={() => googleLogin()}
-  className="relative w-full border border-[#023E8A] text-[#023E8A] flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition"
->
-  <span className="absolute left-4">
-    <FaGoogle />
-  </span>
-  <span>Continue with Google</span>
-</button>
-
-
-
+          </button>
 
           <button className="relative w-full border border-[#023E8A] text-[#023E8A] flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition">
             <span className="absolute left-4"><FaApple /></span>
