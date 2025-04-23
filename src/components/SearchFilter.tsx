@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { FaMapMarkerAlt, FaUser } from 'react-icons/fa';
 import ReusableDateSelector from "../components/ReusableDateSelector";
 import LocationDropdown from './booking-progress/LocationDropdown';
-// import { FaUser } from 'react-icons/fa';
 import HotelGuestSelector from './HotelGuestSelector';
 
 interface SearchFilterProps {

@@ -7,6 +7,7 @@ import Spinner from "../components/Spinner";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/";
 import { loginSuccess } from "../features/auth/authSlice";
+import { useLocation } from "react-router-dom";
 import { loginUser } from "../api/auth";
 
 export default function Login() {
@@ -16,20 +17,29 @@ export default function Login() {
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
-  const email = user.email || localStorage.getItem("email") || "Not available";
-
+  
+  const location = useLocation();
+  const redirectedEmail = location.state?.email;
+  const email = redirectedEmail || user.email || localStorage.getItem("email") || "Not available";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+  
     try {
       const res = await loginUser(email || "", password);
-      dispatch(loginSuccess({
-        token: res.access,
-        refreshToken: res.refresh,
-        email: user.email || ""
-      }));
+      dispatch(
+        loginSuccess({
+          accessToken: res.access,
+          refreshToken: res.refresh,
+          user: {
+            id: res.setup_info.id,
+            email: res.setup_info.email,
+            name: `${res.setup_info.first_name} ${res.setup_info.last_name}`,
+          },
+          registrationComplete: res.registration_complete,
+        })
+      );
       navigate("/");
     } catch (err) {
       console.error("Login failed:", err);
@@ -37,6 +47,8 @@ export default function Login() {
       setIsLoading(false);
     }
   };
+  
+  
 
   return (
     <div className="flex flex-col min-h-screen bg-white">

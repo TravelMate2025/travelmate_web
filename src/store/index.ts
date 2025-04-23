@@ -2,7 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "../features/auth/authSlice";
 
 import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage"; // defaults to localStorage
+import storage from "redux-persist/lib/storage";
 import { combineReducers } from "redux";
 
 
@@ -31,16 +31,3 @@ export type RootState = ReturnType<typeof store.getState>;
 
 
 
-
-
-// const store = configureStore({
-//   reducer: {
-//     auth: authReducer,
-//   },
-// });
-
-// export default store;
-
-// // Infer the `RootState` type
-// export type RootState = ReturnType<typeof store.getState>;
-// export type AppDispatch = typeof store.dispatch;

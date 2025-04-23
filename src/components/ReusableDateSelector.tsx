@@ -7,7 +7,7 @@ import { addDays, format } from "date-fns";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import { Typography, Box } from "@mui/material"; // Import Typography and Box
+import { Typography, Box, Divider } from "@mui/material";
 
 interface DateRangeType {
   startDate: Date;
@@ -59,7 +59,7 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
     setOpened(false); // Close the popper
   };
 
-  const formatDate = (date: Date) => format(date, "dd MMM");
+  const formatDate = (date: Date) => format(date, "dd MMM yyyy");
 
   const handleSelectDate = () => {
     if (dateRange[0].startDate) {
@@ -153,7 +153,10 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
                 className="w-full h-full"
               />
 
-              <div className="w-[96%] m-auto mt-2"> {/* Added mt-2 for spacing */}
+              <div className="w-[96%] m-auto mt-2">
+              <p className="text-center mb-[20px] font-bold font-inter">
+                {dateRange[0].startDate ? formatDate(dateRange[0].startDate) + (dateRange[0].endDate ? ` - ${formatDate(dateRange[0].endDate)}` : "") : "Pick a date"}
+              </p>
                 <button
                   className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
                   style={{

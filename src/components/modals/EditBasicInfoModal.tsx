@@ -1,14 +1,75 @@
 import Modal from "./Modal";
 import { FaUser, FaCalendarAlt } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { updateUserProfile, createUserProfile } from "../../api/profile";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store"; 
+
 
 interface EditBasicInfoModalProps {
   isOpen: boolean;
   onClose: () => void;
+  currentUserInfo: {
+    firstName: string;
+    lastName: string;
+    gender: string;
+    dob: string;
+  };
 }
 
-export default function EditBasicInfoModal({ isOpen, onClose }: EditBasicInfoModalProps) {
+export default function EditBasicInfoModal({
+  isOpen,
+  onClose,
+  currentUserInfo,
+}: EditBasicInfoModalProps) {
+  const [firstName, setFirstName] = useState(currentUserInfo.firstName);
+  const [lastName, setLastName] = useState(currentUserInfo.lastName);
+  const [gender, setGender] = useState(currentUserInfo.gender);
+  const [dob, setDob] = useState(currentUserInfo.dob);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { user, accessToken } = useSelector((state: RootState) => state.auth);
+    
+  const userId = user?.id
+
+  
+  useEffect(() => {
+    setFirstName(currentUserInfo.firstName);
+    setLastName(currentUserInfo.lastName);
+    setGender(currentUserInfo.gender);
+    setDob(currentUserInfo.dob);
+  }, [currentUserInfo]);
+
+  const handleSave = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (!accessToken || !userId) {
+        setError("Please login again to update your profile.");
+        return;
+      }
+
+      const userData = { first_name: firstName, last_name: lastName, gender: gender, date_of_birth: dob, };
+      console.log("Sending profile update:", userData);
+      await createUserProfile(userData, accessToken, userId);
+      onClose();
+      window.location.reload();
+    } catch (err: any) {
+      if (err.message === "Unauthorized") {
+        setError("Session expired. Please login again.");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Edit Basic Information" onSave={() => console.log("Saved")}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Edit Basic Information" onSave={handleSave}>
       <div className="space-y-4">
         {/* First Name */}
         <div>
@@ -17,7 +78,13 @@ export default function EditBasicInfoModal({ isOpen, onClose }: EditBasicInfoMod
             <span className="text-gray-500 mr-2">
               <FaUser />
             </span>
-            <input type="text" placeholder="Enter first name" className="w-full outline-none" />
+            <input
+              type="text"
+              placeholder="Enter first name"
+              className="w-full outline-none"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
           </div>
         </div>
 
@@ -28,7 +95,13 @@ export default function EditBasicInfoModal({ isOpen, onClose }: EditBasicInfoMod
             <span className="text-gray-500 mr-2">
               <FaUser />
             </span>
-            <input type="text" placeholder="Enter last name" className="w-full outline-none" />
+            <input
+              type="text"
+              placeholder="Enter last name"
+              className="w-full outline-none"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
           </div>
         </div>
 
@@ -37,13 +110,37 @@ export default function EditBasicInfoModal({ isOpen, onClose }: EditBasicInfoMod
           <label className="block font-semibold mb-2">Gender</label>
           <div className="space-y-2">
             <label className="flex items-center">
-              <input type="radio" name="gender" value="Male" className="mr-2" /> Male
+              <input
+                type="radio"
+                name="gender"
+                value="Male"
+                checked={gender === "Male"}
+                className="mr-2"
+                onChange={() => setGender("Male")}
+              />
+              Male
             </label>
             <label className="flex items-center">
-              <input type="radio" name="gender" value="Female" className="mr-2" /> Female
+              <input
+                type="radio"
+                name="gender"
+                value="Female"
+                checked={gender === "Female"}
+                className="mr-2"
+                onChange={() => setGender("Female")}
+              />
+              Female
             </label>
             <label className="flex items-center">
-              <input type="radio" name="gender" value="Not Say" className="mr-2" /> I prefer not to say
+              <input
+                type="radio"
+                name="gender"
+                value="Not Say"
+                checked={gender === "Not Say"}
+                className="mr-2"
+                onChange={() => setGender("Not Say")}
+              />
+              I prefer not to say
             </label>
           </div>
         </div>
@@ -55,10 +152,18 @@ export default function EditBasicInfoModal({ isOpen, onClose }: EditBasicInfoMod
             <span className="text-gray-500 mr-2">
               <FaCalendarAlt />
             </span>
-            <input type="date" className="w-full outline-none" />
+            <input
+              type="date"
+              className="w-full outline-none"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+            />
           </div>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </Modal>
   );
 }

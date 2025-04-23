@@ -9,46 +9,6 @@ import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
 
 
 
-
-// const options = [
-//   {
-//     icon: <FaRegUser size={24} />,
-//     title: "Profile",
-//     description: "Update your personal details",
-//     link: "/profile-info",
-//   },
-//   {
-//     icon: <MdCreditCard size={24} />,
-//     title: "Payment Method",
-//     description: "Manage your payment methods",
-//     link: "#/account/payments",
-//   },
-
-//   {
-//     icon: <FaRegBell size={24} />,
-//     title: "Notifications",
-//     description: "Manage alerts and reminders",
-//     link: "#/account/notifications",
-//   },
-//    {
-//     icon: <SecurityOutlinedIcon />,
-//     title: "Security",
-//     description: "Manage your Email and Password",
-//     link: "#/account/security",
-//   },
-//   {
-//     icon: <FaRegStar size={24} />,
-//     title: "Reviews",
-//     description: "View and manage reviews",
-//     link: "#/account/security",
-//   },
-//   {
-//     icon: <PiSignOutFill size={24} />,
-//     title: "Log Out",
-//     link: "#/logout",
-//   },
-// ];
-
 const options = [
   {
     icon: (isActive: boolean) => <FaRegUser size={24} className={isActive ? "text-[#023E8A]" : "text-gray-800"} />,
@@ -105,7 +65,7 @@ type UserOptionsStackedProps = {
 export default function UserOptionsStacked({ activeTab, handleOptionClick, }: UserOptionsStackedProps) {
   return (
     <div className="">
-    <div className=" max-w-[411px] space-y-4 border-1 border-[#CDCED1] rounded-[12px] md:w-[411px] ">
+    <div className=" max-w-[411px] space-y-4 border-1 border-[#CDCED1] rounded-[12px] md:w-[100%] ">
       {options.map((item, index) => {
         const isActive = activeTab === item.title;
 

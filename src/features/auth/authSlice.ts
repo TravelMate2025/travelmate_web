@@ -4,70 +4,64 @@ interface AuthState {
   email: string;
   accessToken: string | null;
   refreshToken: string | null;
-  user: { email: string } | null;
+  user: {
+    profileImage: string;
+    id: number;
+    email: string;
+    name: string;
+  } | null;
+  registrationComplete: boolean;
 }
 
 const initialState: AuthState = {
+  email: "",
   accessToken: null,
   refreshToken: null,
   user: null,
-  email: ""
+  registrationComplete: false,
 };
 
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    loginSuccess: (state, action: PayloadAction<{ token: string;refreshToken: string; email: string }>) => {
-      state.accessToken = action.payload.token;
+    loginSuccess: (
+      state,
+      action: PayloadAction<{
+        accessToken: string;
+        refreshToken: string;
+        user: { id: number; email: string; name: string, profileImage?: string };
+        registrationComplete: boolean;
+      }>
+    ) => {
+      state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
-      state.user = { email: action.payload.email };
+      state.user = {
+        id: action.payload.user.id,
+        email: action.payload.user.email,
+        name: action.payload.user.name,
+        profileImage: action.payload.user.profileImage || "",
+      };
+      state.email = action.payload.user.email;
+      state.registrationComplete = action.payload.registrationComplete;
     },
     logout: (state) => {
       state.accessToken = null;
       state.refreshToken = null;
       state.user = null;
+      state.email = "";
+      state.registrationComplete = false;
+    },
+    updateUserName: (state, action: PayloadAction<string>) => {
+      if (state.user) {
+        state.user.name = action.payload;
+      }
     },
     updateToken: (state, action: PayloadAction<string>) => {
       state.accessToken = action.payload;
-    }
-    
+    },
   },
 });
 
-export const { loginSuccess, logout, updateToken } = authSlice.actions;
+export const { loginSuccess, logout, updateToken, updateUserName } = authSlice.actions;
 export default authSlice.reducer;
-
-
-
-
-
-
-
-
-
-
-
-// import { createSlice } from "@reduxjs/toolkit";
-
-// const initialState = {
-//   user: {
-//     email: "elvis@gmail.com",
-//   },
-// };
-
-// const authSlice = createSlice({
-//   name: "auth",
-//   initialState,
-//   reducers: {
-//     setUser: (state, action) => {
-//       state.user = action.payload;
-//     },
-//   },
-// });
-
-// export const { setUser } = authSlice.actions;
-// export default authSlice.reducer;
-
-
-

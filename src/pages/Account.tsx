@@ -18,13 +18,13 @@ export default function Profile() {
       <Breadcrumbs items={breadcrumbs} />
 
       <div className="flex flex-col items-center mt-8">
-        <UserData name="Elvis" email="elvis@example.com" />
+        <UserData />
       </div>
       <UserOptions />
       <div className="m-10"></div>
       <TravelmateApp />
       <div className="m-10"></div>
       <Footer />
-    </div>
+    </div>  
   );
 }

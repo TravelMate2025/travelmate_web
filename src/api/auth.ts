@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// Get the base URL from the environment variable
 const API_BASE_URL = 'https://travelmate-backend-0suw.onrender.com'
 
 export const submitEmail = async (email: string) => {
@@ -113,4 +112,17 @@ export const refreshToken = async (access: string) => {
         console.error("❌ Login Error:", error.response?.data || error.message);
         throw error;
     }
+};
+
+
+export const socialLogin = async (accessToken: string) => {
+  const response = await axios.post(`${API_BASE_URL}/api/auth/social/google/`, {
+    access_token: accessToken,
+  }, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  return response.data;
 };
