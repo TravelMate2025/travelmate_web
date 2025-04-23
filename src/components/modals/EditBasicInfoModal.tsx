@@ -1,7 +1,7 @@
 import Modal from "./Modal";
 import { FaUser, FaCalendarAlt } from "react-icons/fa";
 import { useState, useEffect } from "react";
-import { updateUserProfile, createUserProfile } from "../../api/profile";
+import { createUserProfile } from "../../api/profile";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store"; 
 
@@ -26,7 +26,7 @@ export default function EditBasicInfoModal({
   const [lastName, setLastName] = useState(currentUserInfo.lastName);
   const [gender, setGender] = useState(currentUserInfo.gender);
   const [dob, setDob] = useState(currentUserInfo.dob);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { user, accessToken } = useSelector((state: RootState) => state.auth);

@@ -1,5 +1,4 @@
 import { FaEdit } from "react-icons/fa";
-import Spinner from "../components/Spinner";
 
 interface Field {
   label: string;
