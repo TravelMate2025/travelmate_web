@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { submitEmail } from "../api/auth"
 import { toast } from "react-hot-toast";
 
-import { GoogleLogin, useGoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin } from "@react-oauth/google";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../features/auth/authSlice";
 import { socialLogin } from "../api/auth";

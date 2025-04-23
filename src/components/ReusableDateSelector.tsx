@@ -7,7 +7,7 @@ import { addDays, format } from "date-fns";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import { Typography, Box, Divider } from "@mui/material";
+import { Typography, Box } from "@mui/material";
 
 interface DateRangeType {
   startDate: Date;
@@ -38,7 +38,7 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedDate, setSelectedDate] = useState<string>(initialValue);
   const [monthsToShow, setMonthsToShow] = useState(2);
-  const [opened, setOpened] = useState(false); 
+  const [, setOpened] = useState(false); 
 
   useEffect(() => {
     const updateMonths = () => {
