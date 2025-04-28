@@ -13,8 +13,10 @@ interface EditContactInfoModalProps {
 }
 
 export default function EditContactInfoModal({ isOpen, onClose, currentUserInfo }: EditContactInfoModalProps) {
-  const { user, accessToken } = useSelector((state: RootState) => state.auth);
-  const userId = user?.id;
+  const { accessToken } = useSelector((state: RootState) => state.auth);
+  const profileId = useSelector((state: RootState) => state.auth.user?.profileId);
+  
+  // const userId = user?.id;
 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -35,8 +37,13 @@ export default function EditContactInfoModal({ isOpen, onClose, currentUserInfo 
     setError(null);
 
     try {
-      if (!accessToken || !userId) {
+      if (!accessToken) {
         setError("Please login again to update your profile.");
+        return;
+      }
+
+      if (!profileId) {
+        setError("this user does not exist. Please contact customer support.");
         return;
       }
 
@@ -47,7 +54,7 @@ export default function EditContactInfoModal({ isOpen, onClose, currentUserInfo 
       };
 
       console.log("Sending contact update:", updatedData);
-      await updateUserProfile(userId, updatedData);
+      await updateUserProfile(profileId, updatedData);
       onClose();
       window.location.reload();
     } catch (err: any) {

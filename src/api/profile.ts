@@ -1,13 +1,10 @@
-import axios from 'axios';
-import { getAccessToken } from '../utils/authUtils';
- 
-
-
+import api from '../../src/api/services/api';
 
 const API_BASE_URL = 'https://travelmate-backend-0suw.onrender.com/api';
 
 
 export interface UserProfile {
+  id: number;
   first_name: string;
   last_name: string;
   gender: string | null;
@@ -27,38 +24,16 @@ interface ProfileData {
   address?: string;
 }
 
-// Apply the access token to the Axios request headers
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-      'Content-Type': 'application/json',
-  },
-});
-
-// Request interceptor to automatically add the access token
-api.interceptors.request.use(
-  (config) => {
-      const accessToken = getAccessToken();
-      if (accessToken && config.headers) {
-          config.headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-      return config;
-  },
-  (error) => {
-      return Promise.reject(error);
-  }
-);
-
 
 
 export const createUserProfile = async (
   profileData: ProfileData,
   accessToken: string,
-  userId: number
+  profileId: number,
 ) => {
   try {
-    const response = await axios.put(
-      `${API_BASE_URL}/profile/${userId}/`,
+    const response = await api.put(
+      `${API_BASE_URL}/profile/${profileId}/`,
       profileData,
       {
         headers: {
@@ -80,33 +55,48 @@ export const createUserProfile = async (
 
 
 
-export const fetchUserProfile = async (userId: number, token: string): Promise<UserProfile> => {
-  console.log("Fetching user profile...");
-  console.log("API Endpoint:", `${API_BASE_URL}/profile/${userId}/`);
+
+
+export const fetchUserProfile = async (token: string): Promise<UserProfile> => {
+  console.log("🔄 Fetching user profile...");
+  console.log("📡 API Endpoint:", `${API_BASE_URL}/profile/`);
 
   try {
-    const response = await api.get(`${API_BASE_URL}/profile/${userId}/`, {
+    const response = await api.get(`${API_BASE_URL}/profile/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log("Fetched Profile Data:", response.data);
-    return response.data;
+
+    const userProfile = response.data?.results?.[0];
+    console.log("✅ Fetched profile data:", userProfile);
+
+    if (!userProfile) {
+      throw new Error("No profile found for the current user.");
+    }
+
+    return userProfile;
   } catch (error: any) {
-    console.error("Error fetching profile:", error);
+    console.error("❌ Error fetching profile:", error);
+
+    if (error.message === "No profile found for the current user.") {
+      throw new Error("No profile found. Please complete your profile setup.");
+    }
+
     if (error.isAxiosError) {
       const status = error.response?.status;
 
       if (status === 404) {
-        throw new Error("User not found!");
+        throw new Error("User profile not found.");
       }
 
-      if (error.message === 'Network Error') {
-        throw new Error("Network Error! Please check your internet connection");
+      if (error.message === "Network Error") {
+        throw new Error("Network error. Please check your internet connection.");
       }
 
-      console.error("Axios Error Details:", error.response ? error.response.data : error.message);
+      console.error("🧾 Axios error details:", error.response?.data || error.message);
     }
+
     throw new Error("An unexpected error occurred while fetching your profile.");
   }
 };

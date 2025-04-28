@@ -45,7 +45,7 @@ export default function VerifyEmail() {
     if (res.Status === 200 && res.Error === false) {
       console.log("OTP verified, navigating...");
       localStorage.setItem("email", email);
-      navigate("/create-password");
+      navigate("/create-password", { state: { email } });
     } else {
       console.error("OTP verification failed:", res.Message || res);
       setShowError(true);

@@ -31,6 +31,19 @@ export default function CreateAccount() {
   
       await submitEmail(email);
       toast.success("Verification email sent successfully.");
+
+      // dispatch(
+      //   loginSuccess({
+      //     accessToken: res.access,
+      //     refreshToken: res.refresh,
+      //     user: {
+      //       id: res.setup_info.id,
+      //       email: res.setup_info.email,
+      //       name: `${res.setup_info.first_name} ${res.setup_info.last_name}`,
+      //     },
+      //     registrationComplete: res.registration_complete,
+      //   })
+      // );
   
       localStorage.setItem("verify_email", email);
       navigate("/verify-page", { state: { email } });

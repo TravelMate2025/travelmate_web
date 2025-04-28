@@ -17,11 +17,15 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import Spinner from "../components/Spinner";
 import { useDispatch } from "react-redux";
-import { updateUserName } from "../features/auth/authSlice";
+import { updateProfileId, updateUserName } from "../features/auth/authSlice";
+import { setUserProfile as setProfileInRedux } from "../features/reduxslices/profileSlice"
+import UserReviews from "../components/UserReviews";
+
 
 
 
 interface UserProfile {
+  id: number;
   first_name: string;
   last_name: string;
   gender: string | null;
@@ -70,36 +74,52 @@ export default function ProfileInfo() {
     };
 
     useEffect(() => {
-      console.log("Running useEffect: checking user and token", user?.id, accessToken);
-      if (!user?.id || !accessToken) {
-        setIsLoading(false);
-        setError("Session expired. Please log in again.");
-        return;
-      }
-    
-      const loadUserProfile = async () => {
-        setIsLoading(true);
-        setError(null);
-    
-        try {
-          const profileData = await fetchUserProfile(user.id, accessToken);
-          setUserProfile(profileData);
-          if (profileData?.first_name && profileData?.last_name) {
-            const fullName = `${profileData.first_name} ${profileData.last_name}`;
-            dispatch(updateUserName(fullName));
-          }
-        } catch (err: any) {
-          setError(err.message || "Failed to load profile information.");
-          console.error("Error loading profile:", err);
-        } finally {
-          setTimeout(() => {
-            setIsLoading(false);
-          }, 1500);
+        console.log("📍 Checking user and token:", user?.id, accessToken);
+      
+        if (!accessToken) {
+          setIsLoading(false);
+          setError("Session expired. Please log in again.");
+          return;
         }
-      };
-    
-      loadUserProfile();
-    }, [user?.id, accessToken]);
+      
+        const loadUserProfile = async () => {
+          setIsLoading(true);
+          setError(null);
+      
+          try {
+            console.log("🚀 Loading user profile from API...");
+            const profileData = await fetchUserProfile(accessToken);
+      
+            console.log("📦 Profile data received:", profileData);
+            setUserProfile(profileData);
+      
+            if (profileData?.first_name && profileData?.last_name) {
+              const fullName = `${profileData.first_name} ${profileData.last_name}`;
+              dispatch(updateUserName(fullName));
+              console.log("📝 Full name updated in Redux:", fullName);
+            }
+
+            if (profileData?.id) {
+                dispatch(updateProfileId(profileData.id));
+                console.log("📌 Profile ID saved in Redux:", profileData.id);
+            }
+      
+            dispatch(setProfileInRedux(profileData));
+            console.log("✅ Full user profile saved to Redux");
+      
+          } catch (err: any) {
+            console.error("⚠️ Error loading profile:", err);
+            setError(err.message || "Failed to load profile information.");
+          } finally {
+            setTimeout(() => {
+              setIsLoading(false);
+            }, 1500);
+          }
+        };
+      
+        loadUserProfile();
+      }, [accessToken]);
+      
     
     
 
@@ -167,8 +187,7 @@ export default function ProfileInfo() {
                                     )}
                                     {activeTab === "Reviews" && (
                                         <div>
-                                            <h2 className="text-2xl font-semibold">Reviews</h2>
-                                            <p className="text-gray-600">View and manage your reviews.</p>
+                                            <UserReviews reviews={[]} />
                                         </div>
                                     )}
                                 </div>
@@ -240,8 +259,7 @@ export default function ProfileInfo() {
                                     )}
                                     {activeTab === "Reviews" && (
                                         <div>
-                                            <h2 className="text-2xl font-semibold">Reviews</h2>
-                                            <p className="text-gray-600">View and manage your reviews.</p>
+                                            <UserReviews reviews={[]} />
                                         </div>
                                     )}
                                 </div>

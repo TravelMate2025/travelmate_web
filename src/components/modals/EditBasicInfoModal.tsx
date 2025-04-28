@@ -29,9 +29,10 @@ export default function EditBasicInfoModal({
   const [, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { user, accessToken } = useSelector((state: RootState) => state.auth);
+  const { accessToken } = useSelector((state: RootState) => state.auth);
+  const profileId = useSelector((state: RootState) => state.auth.user?.profileId);
+
     
-  const userId = user?.id
 
   
   useEffect(() => {
@@ -46,14 +47,19 @@ export default function EditBasicInfoModal({
     setError(null);
 
     try {
-      if (!accessToken || !userId) {
+      if (!accessToken) {
         setError("Please login again to update your profile.");
+        return;
+      }
+
+      if (!profileId) {
+        setError("this user does not exist. Please contact customer support.");
         return;
       }
 
       const userData = { first_name: firstName, last_name: lastName, gender: gender, date_of_birth: dob, };
       console.log("Sending profile update:", userData);
-      await createUserProfile(userData, accessToken, userId);
+      await createUserProfile(userData, accessToken, profileId);
       onClose();
       window.location.reload();
     } catch (err: any) {

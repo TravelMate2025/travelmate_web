@@ -1,0 +1,39 @@
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
+import { useEffect, useRef } from "react";
+
+const ChatMessages = () => {
+  const { activeChat } = useSelector((state: RootState) => state.chat);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [activeChat?.messages.length]);
+
+  if (!activeChat) return null;
+
+  return (
+    <div className="flex flex-col gap-4 my-6 overflow-y-auto h-[60vh]">
+      {activeChat.messages.map((msg, idx) => (
+        <div
+          key={msg.id || idx}
+          className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+        >
+          <div
+            className={`max-w-[60%] p-3 rounded-lg ${
+              msg.pending ? "bg-yellow-100" : "bg-gray-100"
+            }`}
+          >
+            <p>{msg.content}</p>
+            <small className="text-gray-500 text-xs">
+              {new Date(msg.timestamp).toLocaleString()}
+            </small>
+          </div>
+        </div>
+      ))}
+      <div ref={bottomRef} />
+    </div>
+  );
+};
+
+export default ChatMessages;
