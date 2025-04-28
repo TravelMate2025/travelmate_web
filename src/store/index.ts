@@ -4,27 +4,26 @@ import profileReducer from "../features/reduxslices/profileSlice";
 import chatReducer from "../features/chat/chatSlice";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import { PersistPartial } from "redux-persist/es/persistReducer"; // 👈 Add this import
+import { PersistPartial } from "redux-persist/es/persistReducer";
 
-
-// Combine all your reducers first
+// 1. Combine all your reducers
 const rootReducer = combineReducers({
   auth: authReducer,
   profile: profileReducer,
   chat: chatReducer,
 });
 
-// Persist config
+// 2. Persist config
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth", "profile"], 
+  whitelist: ["auth", "profile"], // ✅ Only auth and profile slices are persisted
 };
 
-// Persisted reducer
+// 3. Persisted reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-// Create the store
+// 4. Create the store
 export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
@@ -33,14 +32,9 @@ export const store = configureStore({
     }),
 });
 
-// Persistor
+// 5. Persistor
 export const persistor = persistStore(store);
 
-
-export type RootState = {
-  auth: ReturnType<typeof authReducer> & PersistPartial;
-  profile: ReturnType<typeof profileReducer> & PersistPartial;
-  chat: ReturnType<typeof chatReducer>;
-};
-
+// 6. Types
+export type RootState = ReturnType<typeof rootReducer> & PersistPartial;
 export type AppDispatch = typeof store.dispatch;
