@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import {useEffect, useRef, useState } from "react";
 import Draggable from "react-draggable";
 import { useNavigate } from "react-router-dom";
 import { FaQuestion, FaRegEnvelope } from "react-icons/fa";
@@ -11,6 +11,7 @@ const FloatingChatButton = () => {
   const navigate = useNavigate();
   const wasDragged = useRef(false);
 
+  const modalRef = useRef<HTMLDivElement | null>(null);
 
   const options = [
     {
@@ -49,8 +50,28 @@ const FloatingChatButton = () => {
 
   const handleNavigate = (path: string) => {
     navigate(path);
-    setOpen(false); // close modal after navigating
+    setOpen(false); 
   };
+
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
+
 
   return (
     <>
@@ -67,7 +88,8 @@ const FloatingChatButton = () => {
 
       {open && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="flex flex-col bg-white rounded-xl shadow-2xl w-[90%] max-w-md overflow-hidden">
+          <div ref={modalRef}
+          className="flex flex-col bg-white rounded-xl shadow-2xl w-[90%] max-w-md overflow-hidden">
             {options.map((option, index) => (
               <button
                 key={index}
