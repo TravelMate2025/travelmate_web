@@ -25,7 +25,7 @@ const ChatInput = ({ onSend }: { onSend: (text: string) => void }) => {
       />
       <button
         onClick={handleSend}
-        className="ml-2 bg-[#023E8A] text-white px-4 py-2 rounded text-sm md:text-base"
+        className="ml-2 bg-[#023E8A] text-white px-4 py-2 rounded text-sm md:text-base cursor-pointer"
       >
         Send
       </button>

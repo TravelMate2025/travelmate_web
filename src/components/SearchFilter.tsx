@@ -95,7 +95,7 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ onSubmit }) => {
           <div className="flex-grow"></div>
           <button
             type="submit"
-            className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg hover:bg-[#0450A2]"
+            className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg cursor-pointer hover:bg-[#0450A2]"
           >
             Search
           </button>

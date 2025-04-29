@@ -9,7 +9,7 @@ export default function Footer() {
           <ul className="space-y-2">
             <li><a href="#" className="hover:underline">Stays</a></li>
             <li><a href="#" className="hover:underline">Flight</a></li>
-            <li><a href="#" className="hover:underline">Car Rentals</a></li>
+            <li><a href="#" className="hover:underline">Airport Taxi</a></li>
           </ul>
         </div>
 
