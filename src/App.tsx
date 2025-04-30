@@ -33,6 +33,8 @@ import BookingConfirmationPage from "./pages/BookingConfirmationPage";
 import BookingProgress from "./pages/BookingProgress";
 import FaqPage from "./pages/faq";
 import ChatPage from "./pages/ChatPage";
+import TicketsPage from "./pages/TicketsPage";
+import TicketDetailPage from "./pages/TicketDetailPage";
 
 
 
@@ -57,7 +59,9 @@ function App() {
           <Route path="/stays-detail" element={<StaysDetail hotel={{ images: [],shareLink: "" }} />} />    
           <Route path="/faqs" element={<FaqPage />} />  
           <Route path="/chat-with-us" element={<ChatPage />} />  
-
+          <Route path="/tickets" element={<TicketsPage />} />  
+          <Route path="/tickets/:id" element={<TicketDetailPage />} />  
+          
 
           {/* round-trip-section */}
 

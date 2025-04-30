@@ -52,7 +52,7 @@ export default function CreateAccount() {
       console.error(err);
 
       if (err?.response?.data?.Message === "Enter your password to log in.") {
-        toast("You already have an account. Redirecting to login...");
+        // toast("You already have an account. Redirecting to login...");
         navigate("/login", { state: { email } });
         return;
       }

@@ -7,11 +7,18 @@ import { createNewChat, getUserChats, getChat, clearActiveChat, sendMessage } fr
 import AgentList from "../features/chat/AgentList";
 import ChatMessages from "../features/chat/ChatMessages";
 import ChatInput from "../features/chat/ChatInput";
+import Navbar from "./homePage/Navbar";
+// import Breadcrumbs from "../components/Breadcrumbs";
 
 const ChatPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { activeChat, chats, loading, error } = useSelector((state: any) => state.chat);
   const [loadingNewChat, setLoadingNewChat] = useState(false);
+
+  // const breadcrumbs = [
+  //   { name: "Home", link: "/" },
+  //   { name: "Chat With Us" },
+  // ];
 
   useEffect(() => {
     dispatch(getUserChats());
@@ -65,6 +72,9 @@ const ChatPage = () => {
 
   return (
     <div className="flex flex-col min-h-screen sm:max-w-[93%] mx-auto p-4">
+      <Navbar />
+      <div className="my-10"></div>
+      {/* <Breadcrumbs items={breadcrumbs} /> */}
   
     <div className="text-left">
         <h1 className="text-xl font-bold mb-2 text-center sm:text-left">Chat with Us</h1>
