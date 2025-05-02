@@ -31,6 +31,7 @@ import CarPaidForPage from "./pages/carsTab/carPaidFor/CarPaidForPage";
 import StaysDetail from "./pages/StaysDetail";
 import BookingConfirmationPage from "./pages/BookingConfirmationPage";
 import BookingProgress from "./pages/BookingProgress";
+import AirportTaxi from './pages/AirportTaxi'
 
 
 
@@ -82,6 +83,8 @@ function App() {
           <Route path="/car-confirmation" element={<Page />} />
           <Route path="/car-payment-successful" element={<CarPaidForPage />} />
           
+          {/** Airport Taxi */}
+          <Route path="/airport-taxi" element={<AirportTaxi />} />
         </Routes>
       </>
 
