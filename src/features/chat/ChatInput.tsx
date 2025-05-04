@@ -1,3 +1,4 @@
+// src/features/chat/ChatInput.tsx
 import { useState } from "react";
 
 const ChatInput = ({ onSend }: { onSend: (text: string) => void }) => {
@@ -11,7 +12,9 @@ const ChatInput = ({ onSend }: { onSend: (text: string) => void }) => {
   };
 
   return (
-    <div className="flex items-center px-2 py-3 md:p-5 rounded-md border border-gray-300">
+    <div className="fixed bottom-0 right-0 left-0 p-3 bg-white">
+      
+      <div className="flex items-center px-2 py-3 md:p-5 rounded-md border border-gray-300">
       <button className="mr-2 text-xl">
         📷 {/* Image upload icon (can later connect file upload) */}
       </button>
@@ -30,7 +33,13 @@ const ChatInput = ({ onSend }: { onSend: (text: string) => void }) => {
         Send
       </button>
     </div>
+
+    </div>
+    
   );
 };
 
 export default ChatInput;
+
+
+

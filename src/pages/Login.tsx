@@ -28,6 +28,11 @@ export default function Login() {
   
     try {
       const res = await loginUser(email || "", password);
+
+      const firstName = res.setup_info.first_name?.trim() || "";
+      const lastName = res.setup_info.last_name?.trim() || "";
+      const fullName = `${firstName} ${lastName}`.trim();
+
       dispatch(
         loginSuccess({
           accessToken: res.access,
@@ -35,11 +40,12 @@ export default function Login() {
           user: {
             id: res.setup_info.id,
             email: res.setup_info.email,
-            name: `${res.setup_info.first_name} ${res.setup_info.last_name}`,
+            name: fullName || "", 
           },
           registrationComplete: res.registration_complete,
         })
       );
+
       navigate("/");
     } catch (err) {
       console.error("Login failed:", err);

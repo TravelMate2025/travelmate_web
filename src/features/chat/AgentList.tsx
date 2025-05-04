@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 // CircleAvatar Component
 interface CircleAvatarProps {
@@ -39,22 +39,49 @@ const dummyAgents = [
 
 // AgentList Component
 const AgentList: React.FC = () => {
+  const [agents, setAgents] = useState<any[]>([]); // State for storing agents
+  const [loading, setLoading] = useState<boolean>(true);
+  const [ ,setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch available agents from the backend
+    const fetchAvailableAgents = async () => {
+      try {
+        // const response = await fetch("/api/agents"); // Replace with actual API endpoint
+        // const data = await response.json();
+        // setAgents(data); // Assume the response contains an array of available agents
+      } catch (err) {
+        setError("Failed to fetch agents");
+        console.error("Error fetching agents:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAvailableAgents();
+  }, []);
+
+  // If no agents are available from the backend, fall back to dummy agents
+  const displayedAgents = agents.length > 0 ? agents : dummyAgents;
+
   return (
     <div className="flex justify-center my-4">
       <div className="flex items-center">
-        {dummyAgents.map((agent, index) => (
+        {displayedAgents.map((agent, index) => (
           <div
             key={agent.id}
             className="relative"
             style={{
               marginLeft: index === 0 ? 0 : "-7%",
-              zIndex: dummyAgents.length - index,   // make sure leftmost is at the bottom
+              zIndex: displayedAgents.length - index, // make sure leftmost is at the bottom
             }}
           >
             <CircleAvatar text={agent.firstName} />
           </div>
         ))}
       </div>
+      {loading && <p>Loading agents...</p>}
+      {/* {error && <p className="text-red-500">{error}</p>} */}
     </div>
   );
 };

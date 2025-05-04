@@ -1,17 +1,16 @@
-import {useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Draggable from "react-draggable";
 import { useNavigate } from "react-router-dom";
 import { FaQuestion, FaRegEnvelope } from "react-icons/fa";
 import { FiChevronRight } from "react-icons/fi";
 import { MdOutlineMessage } from "react-icons/md";
 
-
 const FloatingChatButton = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const wasDragged = useRef(false);
-
   const modalRef = useRef<HTMLDivElement | null>(null);
+  const draggableRef = useRef<HTMLDivElement | null>(null); // 👈 Add this line
 
   const options = [
     {
@@ -50,9 +49,8 @@ const FloatingChatButton = () => {
 
   const handleNavigate = (path: string) => {
     navigate(path);
-    setOpen(false); 
+    setOpen(false);
   };
-
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -72,12 +70,16 @@ const FloatingChatButton = () => {
     };
   }, [open]);
 
-
   return (
     <>
       {/* Floating Draggable Button */}
-      <Draggable onStart={handleStart} onDrag={handleDrag} onStop={handleStop}>
-        <div className="fixed bottom-10 right-4 z-50 touch-none">
+      <Draggable
+        nodeRef={draggableRef} // 👈 Pass nodeRef here
+        onStart={handleStart}
+        onDrag={handleDrag}
+        onStop={handleStop}
+      >
+        <div ref={draggableRef} className="fixed bottom-10 right-4 z-50 touch-none">
           <button
             className="w-14 h-14 bg-[#023E8A] text-white rounded-lg flex items-center justify-center shadow-lg cursor-pointer"
           >
@@ -88,18 +90,20 @@ const FloatingChatButton = () => {
 
       {open && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div ref={modalRef}
-          className="flex flex-col bg-white rounded-xl shadow-2xl w-[90%] max-w-md overflow-hidden">
+          <div
+            ref={modalRef}
+            className="flex flex-col bg-white rounded-xl shadow-2xl w-[90%] max-w-md overflow-hidden"
+          >
             {options.map((option, index) => (
               <button
                 key={index}
                 onClick={() => handleNavigate(option.path)}
                 className={`flex items-center justify-between p-4 transition hover:bg-gray-100 ${
-                  index === options.length - 1 ? '' : 'border-b border-gray-200'
+                  index === options.length - 1 ? "" : "border-b border-gray-200"
                 }`}
               >
                 <div className="flex items-center gap-4 text-left">
-                  <div className="">{option.icon}</div>
+                  <div>{option.icon}</div>
                   <div>
                     <p className="font-medium text-gray-800">{option.title}</p>
                     <p className="text-sm text-gray-500">{option.description}</p>
@@ -111,7 +115,6 @@ const FloatingChatButton = () => {
           </div>
         </div>
       )}
-
     </>
   );
 };

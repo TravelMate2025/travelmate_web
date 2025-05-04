@@ -1,16 +1,29 @@
-import { useSelector } from "react-redux";
-import { RootState } from "../../store";
 import { useEffect, useRef } from "react";
 
-const ChatMessages = () => {
-  const { activeChat } = useSelector((state: RootState) => state.chat);
+interface Message {
+  id?: number;
+  content: string;
+  sender: string;
+  timestamp: string;
+  pending?: boolean;
+}
+
+interface Chat {
+  messages: Message[];
+}
+
+const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeChat?.messages.length]);
 
-  if (!activeChat) return null;
+  if (!activeChat) {
+    console.log("no active chat")
+    return null;
+  };
+  
 
   return (
     <div className="flex flex-col gap-4 my-6 overflow-y-auto h-[60vh]">

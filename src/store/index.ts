@@ -17,7 +17,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth", "profile"], // ✅ Only auth and profile slices are persisted
+  whitelist: ["auth", "profile"],
 };
 
 // 3. Persisted reducer

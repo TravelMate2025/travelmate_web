@@ -115,14 +115,29 @@ export const refreshToken = async (access: string) => {
 };
 
 
-export const socialLogin = async (accessToken: string) => {
+export const socialGoogleLogin = async (access_token: string) => {
   const response = await axios.post(`${API_BASE_URL}/api/auth/social/google/`, {
-    access_token: accessToken,
+    access_token: access_token,
   }, {
     headers: {
       'Content-Type': 'application/json',
     },
   });
+
+  return response.data;
+};
+
+
+export const socialFacebookLogin = async (access_token: string) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/api/auth/social/facebook/`,
+    { access_token },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
   return response.data;
 };

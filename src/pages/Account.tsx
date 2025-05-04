@@ -1,9 +1,9 @@
-import Navbar from "../components/2Navbar";
 import Breadcrumbs from "../components/Breadcrumbs"
 import UserData from "../components/UserData";
 import UserOptions from "../components/UserOptions";
 import Footer from "../components/2Footer";
 import TravelmateApp from "./homePage/TravelmateApp";
+import Navbar from "./homePage/Navbar";
 
 export default function Profile() {
   const breadcrumbs = [
@@ -15,6 +15,7 @@ export default function Profile() {
     <div className="h-screen flex flex-col">
       {/* Navbar */}
       <Navbar />
+      <div className="my-10"></div>
       <Breadcrumbs items={breadcrumbs} />
 
       <div className="flex flex-col items-center mt-8">

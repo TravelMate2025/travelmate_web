@@ -16,11 +16,11 @@ export default function UserData() {
             className="w-full h-full object-cover rounded-full"
           />
         ) : (
-          user.name.charAt(0).toUpperCase()
+          user.name.charAt(0).toUpperCase() || "U"
         )}
       </div>
 
-      <h2 className="mt-3 text-lg font-semibold">{user.name}</h2>
+      <h2 className="mt-3 text-lg font-semibold">{user.name ? user.name : "User"}</h2>
       <p className="text-gray-500">{user.email}</p>
     </div>
   );

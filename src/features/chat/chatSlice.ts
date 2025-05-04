@@ -1,9 +1,16 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { createChat, fetchChat, fetchUserChats, markChatAsRead, sendChatMessage } from "../../api/chat";
+import {
+  createChat,
+  fetchChat,
+  fetchUserChats,
+  markChatAsRead,
+  sendChatMessage,
+} from "../../api/chat";
 import { v4 as uuidv4 } from "uuid";
+import { RootState } from "../../store"; // Ensure this points to your actual store definition
 
 interface Message {
-  id: number;
+  id: number | string;
   sender: string;
   content: string;
   timestamp: string;
@@ -36,61 +43,74 @@ const initialState: ChatState = {
   error: null,
 };
 
+// Helper to extract and validate token
+const getAuthToken = (state: RootState): string => {
+  const token = state.auth.accessToken;
+  if (!token) throw new Error("Missing access token");
+  return token;
+};
+
 // Async actions
-export const createNewChat = createAsyncThunk(
-  "chat/createNewChat",
-  async ({ userId, title }: { userId: number; title: string }) => {
-    return await createChat(userId, title);
-  }
-);
+export const createNewChat = createAsyncThunk<
+  any,
+  { userId: number; title: string },
+  { state: RootState }
+>("chat/createNewChat", async ({ userId, title }, { getState }) => {
+  const token = getAuthToken(getState());
+  return await createChat(userId, title, token);
+});
 
-export const getChat = createAsyncThunk(
-  "chat/getChat",
-  async (chatId: number) => {
-    return await fetchChat(chatId);
-  }
-);
+export const getChat = createAsyncThunk<
+  Chat,
+  number,
+  { state: RootState }
+>("chat/getChat", async (chatId, { getState }) => {
+  const token = getAuthToken(getState());
+  return await fetchChat(chatId, token);
+});
 
-export const getUserChats = createAsyncThunk(
-  "chat/getUserChats",
-  async () => {
-    return await fetchUserChats();
-  }
-);
+export const getUserChats = createAsyncThunk<
+  Chat[],
+  void,
+  { state: RootState }
+>("chat/getUserChats", async (_, { getState }) => {
+  const token = getAuthToken(getState());
+  return await fetchUserChats(token);
+});
 
-export const markAsRead = createAsyncThunk(
-  "chat/markAsRead",
-  async (chatId: number) => {
-    return await markChatAsRead(chatId);
-  }
-);
+export const markAsRead = createAsyncThunk<
+  any,
+  number,
+  { state: RootState }
+>("chat/markAsRead", async (chatId, { getState }) => {
+  const token = getAuthToken(getState());
+  return await markChatAsRead(chatId, token);
+});
 
-export const sendMessage = createAsyncThunk(
-  "chat/sendMessage",
-  async ({ chatId, text }: { chatId: number; text: string }, { dispatch }) => {
-    const tempMessage = {
-      id: uuidv4(), // temporary id
-      sender: "user", // or your logged-in user id
-      content: text,
-      timestamp: new Date().toISOString(),
-      pending: true, // custom field to mark it pending
-    };
+export const sendMessage = createAsyncThunk<
+  void,
+  { chatId: number; text: string; senderId: string },
+  { state: RootState; dispatch: any }
+>("chat/sendMessage", async ({ chatId, text, senderId }, { dispatch, getState }) => {
+  const token = getAuthToken(getState());
+  console.log("Dispatching sendMessage thunk with:", { chatId, text, senderId });
 
-    // Optimistic update: add the temp message to the chat
-    dispatch(addTemporaryMessage({ chatId, message: tempMessage }));
+  const tempMessage = {
+    id: uuidv4(),
+    sender: senderId,
+    content: text,
+    timestamp: new Date().toISOString(),
+    pending: true,
+  };
 
-    // Send the actual message to the backend
-    await sendChatMessage(chatId, text);
+  dispatch(addTemporaryMessage({ chatId, message: tempMessage }));
+  await sendChatMessage(chatId, text, token);
 
-    // Fetch the updated chat after sending the message
-    const updatedChat = await dispatch(getChat(chatId));
+  const result = await dispatch(getChat(chatId));
+  const updatedChat = result.payload as Chat;
 
-    // Dispatch the action to update the message (remove 'pending' status)
-    dispatch(updateSentMessage({ chatId, updatedChat }));
-
-    return null;
-  }
-);
+  dispatch(updateSentMessage({ chatId, updatedChat }));
+});
 
 // Slice
 const chatSlice = createSlice({
@@ -109,7 +129,6 @@ const chatSlice = createSlice({
     updateSentMessage: (state, action) => {
       const { chatId, updatedChat } = action.payload;
       if (state.activeChat && state.activeChat.id === chatId) {
-        // Replace 'pending' messages with the actual ones
         state.activeChat.messages = updatedChat.messages.map((msg: Message) =>
           msg.pending ? { ...msg, pending: false } : msg
         );

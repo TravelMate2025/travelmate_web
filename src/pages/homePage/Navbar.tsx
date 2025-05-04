@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useEffect, useState } from "react";
 import {
   AppBar,
@@ -39,14 +35,15 @@ import { RootState } from "../../store";
 
 
 
-const pages = ["Home", "Stays", "Flights", "Cars"];
+const pages = ["Home", "Stays", "Flights", "Airport Taxi"];
 const settings = ["Profile", "Account", "Dashboard", "Logout"];
 
 const Navbar = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
-  const user = useSelector((state: RootState) => state.auth.user);
+  const { user, accessToken } = useSelector((state: RootState) => state.auth);
   const initials = user?.name?.charAt(0).toUpperCase() || "U";
-
+  
+  const isLoggedIn = Boolean(accessToken && user && user.email);
 
   const toggleDrawer = () => {
       setOpenDrawer((prev) => !prev); 
@@ -56,7 +53,7 @@ const Navbar = () => {
   // const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   // const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [fromLogin, setFromLogin] = useState(false);
+  const [, setFromLogin] = useState(false);
 
   useEffect(() => {
     // const token = localStorage.getItem("authToken");
@@ -193,113 +190,113 @@ const logout =[
                   onClick={(e) => e.stopPropagation()}
                 >
                 <Box sx={{ display: "flex", justifyContent:"space-between", padding: "20px" }}>
-                  {!fromLogin ? (
 
-                 
-              <div  style={{ display: "flex", justifyContent:"flex-start", marginTop:"20px" }}>
+
+
+            {isLoggedIn ? (
+              <div style={{ display: "flex", justifyContent: "flex-start", marginTop: "20px" }}>
                 <Avatar sx={{ bgcolor: "#023E8A" }}>
-                {user?.profileImage ? (
-                  <Avatar alt={user.name} src={user.profileImage} />
-                ) : (
-                  <Avatar sx={{ bgcolor: "#023E8A" }}>{initials}</Avatar>
-                )}
-        
+                  {user?.profileImage ? (
+                    <Avatar alt={user.name} src={user.profileImage} />
+                  ) : (
+                    <Avatar sx={{ bgcolor: "#023E8A" }}>{initials}</Avatar>
+                  )}
                 </Avatar>
                 <Box sx={{ ml: 2 }}>
                   <Typography sx={{ fontWeight: "bold", color: "#181818", fontSize: "14px" }}>
                     {user?.name || "User"}
                   </Typography>
                   <Typography sx={{ fontWeight: "bold", color: "#67696D", fontSize: "14px" }}>
-                    {user?.email || "example@email.com"}
+                    {user?.email || ""}
                   </Typography>
                 </Box>
+
+                {/* <Tooltip title="Notifications">
+                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, mr: 3 }}>
+                    <div className="bg-[#CCD8E81A] w-[40px] h-[40px] rounded-full border border-[#023E8A] text-center">
+                      <NotificationsNoneOutlinedIcon />
+                    </div>
+                  </IconButton>
+                </Tooltip> */}
               </div>
-              
-    
-        ) : (
-          <>
-            {/* <Tooltip title="Notifications">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, mr: 3 }}>
-                <div className="bg-[#CCD8E81A] w-[40px] h-[40px] rounded-full border border-[#023E8A] text-center">
-                  <NotificationsNoneOutlinedIcon />
+                
+
+            ) : (
+              <>
+                
+
+                <div className="md:flex">
+                  <Link
+                    to="/create-account"
+                    className="px-4 py-2 bg-[#023E8A] text-white rounded-lg hover:bg-[#012A5D] transition"
+                  >
+                    Create an Account or Log In
+                  </Link>
                 </div>
-              </IconButton>
-            </Tooltip> */}
+              </>
+            )}
 
-              <div className=" md:flex">
-            <Link
-              to="/create-account"
-              className="px-4 py-2 bg-[#023E8A] text-white rounded-lg hover:bg-[#012A5D] transition"
-            >
-              Create an Account or Login
-            </Link>
 
-            
-          </div>
+              {/* User Menu */}
+              <Menu
+                sx={{ mt: "45px" }}
+                id="menu-appbar"
+                anchorEl={anchorElUser}
+                anchorOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                open={Boolean(anchorElUser)}
+                onClose={handleCloseUserMenu}
+              >
+                {settings.map((setting) => (
+                  <MenuItem key={setting} onClick={handleCloseUserMenu}>
+                    <Typography sx={{ textAlign: "center" }}>{setting}</Typography>
+                  </MenuItem>
+                ))}
+              </Menu>
+                      </Box>
 
-          </>
-        )}
+                      <Divider />
+                        <List >
+                          {["Home", "Stays", "Flights", "Airport Taxi"].map((page) => (
+                            <ListItem key={page} component="button" onClick={toggleDrawer} sx={{ cursor: "pointer" }}>
+                              <ListItemText primary={page} />
+                            </ListItem>
+                          ))}
+                        </List>
 
-        {/* User Menu */}
-        <Menu
-          sx={{ mt: "45px" }}
-          id="menu-appbar"
-          anchorEl={anchorElUser}
-          anchorOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          keepMounted
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          open={Boolean(anchorElUser)}
-          onClose={handleCloseUserMenu}
-        >
-          {settings.map((setting) => (
-            <MenuItem key={setting} onClick={handleCloseUserMenu}>
-              <Typography sx={{ textAlign: "center" }}>{setting}</Typography>
-            </MenuItem>
-          ))}
-        </Menu>
-                </Box>
+                          <Divider sx={{marginBottom:"20px"}} />
 
-                <Divider />
-                  <List >
-                    {["Home", "Stays", "Flights", "Cars"].map((page) => (
-                      <ListItem key={page} component="button" onClick={toggleDrawer} sx={{ cursor: "pointer" }}>
-                        <ListItemText primary={page} />
-                      </ListItem>
-                    ))}
-                  </List>
+                        {menuItems.map(({ text, icon }) => (
+                          <ListItem key={text} component="button" onClick={text === "Account" ? handleAccountClick : toggleDrawer} sx={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
+                            <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
+                            <ListItemText primary={text} />
+                          </ListItem>
+                        ))}
+                    
 
-                    <Divider sx={{marginBottom:"20px"}} />
+                        {logout.map(({text, icon}) =>(
+                            <ListItem key={text} component="button" onClick={toggleDrawer} sx={{ cursor: "pointer", display: "flex", alignItems: "center" , marginTop:"26px"}}>
+                            <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
+                            <ListItemText primary={text} />
+                          </ListItem>
+                        ))}
+                      </Box>
+                  
+                  </Drawer>
+                  </motion.div>
 
-                  {menuItems.map(({ text, icon }) => (
-                    <ListItem key={text} component="button" onClick={text === "Account" ? handleAccountClick : toggleDrawer} sx={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-                      <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
-                      <ListItemText primary={text} />
-                    </ListItem>
-                  ))}
-               
-
-                  {logout.map(({text, icon}) =>(
-                      <ListItem key={text} component="button" onClick={toggleDrawer} sx={{ cursor: "pointer", display: "flex", alignItems: "center" , marginTop:"26px"}}>
-                      <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
-                      <ListItemText primary={text} />
-                    </ListItem>
-                  ))}
-                </Box>
-             
-            </Drawer>
-             </motion.div>
-
-          </div>
-          </div>
-        </Toolbar>
-      </Container>
-    </AppBar>
+                </div>
+                </div>
+              </Toolbar>
+            </Container>
+          </AppBar>
 
        ) : (
 
@@ -364,7 +361,7 @@ const logout =[
 
       {/* User Account / Notifications */}
       <Box sx={{ display: "flex", justifyContent:"space-between" }}>
-        {!fromLogin ? (
+        {!isLoggedIn ? (
           <div className="hidden md:flex">
             <Link
               to="/create-account"
@@ -396,7 +393,7 @@ const logout =[
                     {user?.name || "User"}
                   </Typography>
                   <Typography sx={{ fontWeight: "bold", color: "#67696D", fontSize: "14px" }}>
-                    {user?.email || "example@email.com"}
+                    {user?.email || ""}
                   </Typography>
                 </Box>
               </IconButton>

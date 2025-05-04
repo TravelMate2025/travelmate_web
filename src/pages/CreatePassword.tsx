@@ -83,7 +83,7 @@ export default function CreatePassword() {
       <div className="flex-1 flex flex-col items-center justify-center bg-white px-6">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-[#023E8A]">Create Password</h1>
+          <h1 className="text-3xl font-bold">Create Password</h1>
           <p className="text-gray-700 mt-2">
             Create a strong password to keep your TravelMate account secure.
           </p>

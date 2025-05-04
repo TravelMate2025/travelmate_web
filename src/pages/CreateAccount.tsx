@@ -3,13 +3,14 @@ import { FaGoogle, FaApple, FaFacebook } from "react-icons/fa";
 import AuthNavbar from "../components/AuthNavbar";
 import Spinner from "../components/Spinner"; 
 import { useNavigate } from "react-router-dom";
-import { submitEmail } from "../api/auth"
+import { socialFacebookLogin, submitEmail } from "../api/auth"
 import { toast } from "react-hot-toast";
 
 import { useGoogleLogin } from "@react-oauth/google";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../features/auth/authSlice";
-import { socialLogin } from "../api/auth";
+import { socialGoogleLogin } from "../api/auth";
+import { facebookLogin } from "../utils/firebase";
 
 
 export default function CreateAccount() {
@@ -29,21 +30,21 @@ export default function CreateAccount() {
         return;
       }
   
-      await submitEmail(email);
+      const res = await submitEmail(email);
       toast.success("Verification email sent successfully.");
 
-      // dispatch(
-      //   loginSuccess({
-      //     accessToken: res.access,
-      //     refreshToken: res.refresh,
-      //     user: {
-      //       id: res.setup_info.id,
-      //       email: res.setup_info.email,
-      //       name: `${res.setup_info.first_name} ${res.setup_info.last_name}`,
-      //     },
-      //     registrationComplete: res.registration_complete,
-      //   })
-      // );
+      dispatch(
+        loginSuccess({
+          accessToken: res.access,
+          refreshToken: res.refresh,
+          user: {
+            id: res.setup_info.id,
+            email: res.setup_info.email,
+            name: `${res.setup_info.first_name} ${res.setup_info.last_name}`,
+          },
+          registrationComplete: res.registration_complete,
+        })
+      );
   
       localStorage.setItem("verify_email", email);
       navigate("/verify-page", { state: { email } });
@@ -67,44 +68,135 @@ export default function CreateAccount() {
       setIsLoading(false);
     }
   };
+
+  // facebook app ID:732054406012701
+
+
+  // Import the functions you need from the SDKs you need
+// import { initializeApp } from "firebase/app";
+// import { getAnalytics } from "firebase/analytics";
+// // TODO: Add SDKs for Firebase products that you want to use
+// // https://firebase.google.com/docs/web/setup#available-libraries
+
+// // Your web app's Firebase configuration
+// // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// const firebaseConfig = {
+//   apiKey: "AIzaSyA-V4ygxvUqmejVDnuPBS4eo6Hdb0T-xes",
+//   authDomain: "travel-mate-4570d.firebaseapp.com",
+//   projectId: "travel-mate-4570d",
+//   storageBucket: "travel-mate-4570d.firebasestorage.app",
+//   messagingSenderId: "684415608404",
+//   appId: "1:684415608404:web:65cd1ba9f312af8101efc1",
+//   measurementId: "G-FYXED6H55S"
+// };
+
+// // Initialize Firebase
+// const app = initializeApp(firebaseConfig);
+// const analytics = getAnalytics(app);
   
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
         const access_token = tokenResponse.access_token;
         console.log("Google Access Token:", access_token);
+  
         if (!access_token) {
           toast.error("Google login failed: No access token received.");
           return;
         }
-        
-        // Replace 'socialLogin' with your actual API call for social login.
-        const res = await socialLogin(access_token);
-        
-        dispatch(
-          loginSuccess({
-            accessToken: res.access,
-            refreshToken: res.refresh,
-            user: {
-              id: res.setup_info.id,
-              email: res.setup_info.email,
-              name: `${res.setup_info.first_name} ${res.setup_info.last_name}`,
-            },
-            registrationComplete: res.registration_complete,
-          })
-        );
-        
-        navigate("/");
-      } catch (error) {
+  
+        const res = await socialGoogleLogin(access_token);
+  
+        // Check if response contains expected access/refresh tokens
+        toast.success("Logging In...");
+        console.log("Google login success response:", res);
+        if (res?.access && res?.refresh) {
+          dispatch(
+            loginSuccess({
+              accessToken: res.access,
+              refreshToken: res.refresh,
+              user: {
+                id: res.user?.id ?? 0,
+                email: res.user?.email ?? "",
+                name: res.user?.name ?? "",
+              },
+              registrationComplete: res.registration_complete ?? false,
+            })
+          );
+          navigate("/");
+        } else {
+          toast.error("Unexpected response format. Please try again.");
+          console.error("Unexpected Google login response:", res);
+        }
+      } catch (error: any) {
         console.error("Google login failed:", error);
-        toast.error("Google login failed. Please try again.");
+  
+        const backendError = error?.response?.data;
+  
+        // Handle known error: already registered
+        if (
+          backendError?.non_field_errors?.includes("User is already registered with this e-mail address.")
+        ) {
+          toast.error("This Google account is already registered. Please log in instead.");
+          navigate("/login");
+        } else {
+          // Generic fallback
+          toast.error("Google login failed. Please try again.");
+          console.error("Google login error response:", backendError);
+        }
       }
     },
     onError: () => {
       toast.error("Google login was unsuccessful.");
     },
-    flow: 'implicit',
+    flow: "implicit",
   });
+
+
+  const handleFacebookLogin = async () => {
+    try {
+      const access_token = await facebookLogin(); // Must return Facebook access token via Firebase
+  
+      if (!access_token) {
+        toast.error("Facebook login failed: No token received.");
+        return;
+      }
+  
+      const res = await socialFacebookLogin(access_token);
+
+      toast.loading("Logging in...");
+  
+      console.log("Facebook login success response:", res);
+  
+      if (res?.access && res?.refresh) {
+        toast.dismiss();
+        toast.success("Login successful");
+  
+        dispatch(
+          loginSuccess({
+            accessToken: res.access,
+            refreshToken: res.refresh,
+            user: {
+              id: res.setup_info?.id ?? 0,
+              email: res.setup_info?.email ?? "",
+              name: `${res.setup_info?.first_name || ""} ${res.setup_info?.last_name || ""}`.trim(),
+            },
+            registrationComplete: res.registration_complete ?? false,
+          })
+        );
+        navigate("/");
+      } else {
+        toast.dismiss();
+        toast.error("Unexpected response format. Please try again.");
+        console.error("Unexpected Facebook login response:", res);
+      }
+    } catch (error: any) {
+      toast.dismiss();
+      toast.error("Facebook login failed.");
+      console.error("Facebook login error:", error?.response?.data || error);
+    }
+  };
+  
   
 
 
@@ -157,7 +249,7 @@ export default function CreateAccount() {
           <button
             type="button"
             onClick={() => googleLogin()}
-            className="relative w-full border border-[#023E8A] text-[#023E8A] flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition"
+            className="relative w-full border border-[#023E8A] text-[#023E8A] cursor-pointer flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition"
           >
             <span className="absolute left-4">
               <FaGoogle />
@@ -165,12 +257,17 @@ export default function CreateAccount() {
             <span>Continue with Google</span>
           </button>
 
-          <button className="relative w-full border border-[#023E8A] text-[#023E8A] flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition">
+          <button 
+           className="relative w-full border border-[#023E8A] text-[#023E8A] cursor-pointer flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition">
             <span className="absolute left-4"><FaApple /></span>
             <span>Continue with Apple</span>
           </button>
 
-          <button className="relative w-full border border-[#023E8A] text-[#023E8A] flex items-center justify-center py-2 rounded-lg hover:bg-gray-100 transition">
+          <button
+            type="button"
+            onClick={handleFacebookLogin}
+            className="relative w-full border border-[#023E8A] text-[#023E8A] cursor-pointer flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition"
+          >
             <span className="absolute left-4"><FaFacebook /></span>
             <span>Continue with Facebook</span>
           </button>

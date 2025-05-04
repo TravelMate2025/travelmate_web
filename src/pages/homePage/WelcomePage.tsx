@@ -86,7 +86,7 @@ const WelcomePage = () => {
         <Tab
           icon={<img src={car} alt="car" style={{ width: 20, height: 20 }} />}
           iconPosition="start"
-          label="Cars"
+          label="Airport Taxi"
           value="3"
         />
       </TabList>
@@ -142,7 +142,7 @@ const WelcomePage = () => {
                                     <Tab 
                                         icon={<img src={car} alt="car" style={{ width: 20, height: 20 }} />} 
                                         iconPosition="start"
-                                        label="Cars" 
+                                        label="Airport Taxi" 
                                         value="3" 
                                     />
                                 </TabList>
