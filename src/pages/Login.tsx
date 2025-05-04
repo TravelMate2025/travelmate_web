@@ -21,7 +21,7 @@ export default function Login() {
   
   const location = useLocation();
   const redirectedEmail = location.state?.email;
-  const email = redirectedEmail || user.email || localStorage.getItem("email") || "Not available";
+  const email = redirectedEmail || user.email || localStorage.getItem("email") || localStorage.getItem("verify_email") || "Not available";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
