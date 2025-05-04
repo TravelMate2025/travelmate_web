@@ -25,7 +25,7 @@ const TravelmateApp = () => {
               Get the TravelMate App Now!
             </p>
             <p className="text-[#4E4F52] text-[14px] font-inter mt-2">
-              Discover hotel, flight, and rental car deals exclusively in the app. Download today to stay connected with important trip details.
+              Discover hotel, flight, and airport taxi deals exclusively in the app. Download today to stay connected with important trip details.
             </p>
            
 
