@@ -141,3 +141,75 @@ export const socialFacebookLogin = async (access_token: string) => {
 
   return response.data;
 };
+
+
+
+
+
+// Password Reset API functions using Axios
+export const requestPasswordReset = async (email: string) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/api/users/reset_password/`,
+      { email },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.detail || 'Failed to send reset email'
+      );
+    }
+    throw new Error('Failed to send reset email');
+  }
+};
+
+export const validateResetToken = async (email: string, token: string) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/api/users/validate_reset_token/`,
+      { email, token },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.Message || 'Invalid token'
+      );
+    }
+    throw new Error('Invalid token');
+  }
+};
+
+export const setNewPassword = async (email: string, new_password: string) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/api/users/set_new_password/`,
+      { email, new_password },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    // For 204 No Content responses, axios returns null for data
+    return response.status === 204 ? { success: true } : response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.Message || 'Failed to set new password'
+      );
+    }
+    throw new Error('Failed to set new password');
+  }
+};

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState} from "react";
 import {
   createChat,
   fetchChat,
@@ -29,9 +29,9 @@ interface Chat {
 }
 
 const ChatPage = () => {
-  const [chats, setChats] = useState<Chat[]>([]);
+  const [, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingNewChat, setLoadingNewChat] = useState(false);
   const { user, accessToken } = useSelector((state: RootState) => state.auth);

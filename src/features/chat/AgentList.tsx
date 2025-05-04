@@ -39,7 +39,7 @@ const dummyAgents = [
 
 // AgentList Component
 const AgentList: React.FC = () => {
-  const [agents, setAgents] = useState<any[]>([]); // State for storing agents
+  const [agents,] = useState<any[]>([]); // State for storing agents
   const [loading, setLoading] = useState<boolean>(true);
   const [ ,setError] = useState<string | null>(null);
 

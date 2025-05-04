@@ -3,6 +3,8 @@ import { MdOutlineEmail } from "react-icons/md";
 import AuthNav from "../components/AuthNavbar";
 import Spinner from "../components/Spinner";
 import { useNavigate } from "react-router-dom";
+import { requestPasswordReset } from "../api/auth";
+import toast from "react-hot-toast";
 
 export default function ResetPassword() {
   const [email, setEmail] = useState("");
@@ -14,23 +16,20 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      // Simulate an API request
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log("Reset link sent to:", email);
+      await requestPasswordReset(email);
+      console.log("email submitted for password reset")
+      toast.success("Password reset email has been sent");
+      navigate("/reset-email-link", { state: { email } });
     } catch (error) {
-      console.error("Error sending reset link:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to send reset link");
     } finally {
       setLoading(false);
-      navigate("/reset-email-link");
     }
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      {/* Full-width Navbar */}
       <AuthNav />
-
-      {/* Centered Content */}
       <div className="flex flex-col items-center flex-1 px-4">
         <div className="text-center w-full max-w-[660px] mt-10">
           <h2 className="text-4xl font-bold text-gray-800 mb-4">Reset Your Password</h2>
@@ -67,7 +66,6 @@ export default function ResetPassword() {
             </button>
           </form>
 
-          {/* Terms and Privacy */}
           <p className="text-gray-700 text-sm text-center mt-40">
             By continuing, you agree to our{" "}
             <a href="#" className="text-[#023E8A] font-medium hover:underline">

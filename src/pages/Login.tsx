@@ -9,6 +9,7 @@ import { RootState } from "../store/";
 import { loginSuccess } from "../features/auth/authSlice";
 import { useLocation } from "react-router-dom";
 import { loginUser } from "../api/auth";
+import { toast } from "react-hot-toast";
 
 export default function Login() {
   const [password, setPassword] = useState("");
@@ -46,8 +47,14 @@ export default function Login() {
         })
       );
 
+      toast.success(`Welcome back, ${firstName || "User"}!`);
+
       navigate("/");
-    } catch (err) {
+    } catch (err : any) {
+      const errorMsg =
+        err.response?.data?.Message ||
+        "Something went wrong. Please try again.";
+      toast.error(errorMsg);
       console.error("Login failed:", err);
     } finally {
       setIsLoading(false);

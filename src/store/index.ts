@@ -1,7 +1,7 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import authReducer from "../features/auth/authSlice";
 import profileReducer from "../features/reduxslices/profileSlice";
-import chatReducer from "../features/chat/chatSlice";
+// import chatReducer from "../features/chat/chatSlice";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { PersistPartial } from "redux-persist/es/persistReducer";
@@ -10,7 +10,7 @@ import { PersistPartial } from "redux-persist/es/persistReducer";
 const rootReducer = combineReducers({
   auth: authReducer,
   profile: profileReducer,
-  chat: chatReducer,
+  // chat: chatReducer,
 });
 
 // 2. Persist config

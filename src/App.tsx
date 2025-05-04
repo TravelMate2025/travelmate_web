@@ -7,7 +7,7 @@ import CreateAccount from "./pages/CreateAccount";
 import VerifyPage from "./pages/VerifyPage";
 import Home from "./pages/Home";
 import CreatePassword from "./pages/CreatePassword";
-import EmailResetLink from "./pages/EmailResetLink";
+// import EmailResetLink from "./pages/EmailResetLink";
 import ResetPassword from "./pages/ResetPassword";
 import Login from "./pages/Login";
 import StaysSearchResults from "./pages/StaysSearchResults";
@@ -35,6 +35,8 @@ import FaqPage from "./pages/faq";
 import ChatPage from "./pages/ChatPage";
 import TicketsPage from "./pages/TicketsPage";
 import TicketDetailPage from "./pages/TicketDetailPage";
+import CreateNewPassword from "./pages/CreateNewPassword";
+import VerifyEmailForPasswordReset from "./pages/VerifyEmailForPasswordReset";
 
 
 
@@ -50,8 +52,10 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/create-account" element={<CreateAccount />} />
           <Route path="/verify-page" element={<VerifyPage />} />
+          <Route path="/reset-email-link" element={<VerifyEmailForPasswordReset />} />
           <Route path="/create-password" element={<CreatePassword />} />
-          <Route path="/reset-email-link" element={<EmailResetLink />} />
+          <Route path="/create-new-password" element={<CreateNewPassword />} />
+          {/* <Route path="/reset-email-link" element={<EmailResetLink />} /> */}
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/stays-search-result" element={<StaysSearchResults />} />
           <Route path="/booking-progress" element={<BookingProgress />} />
