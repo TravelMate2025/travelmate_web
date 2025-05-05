@@ -22,7 +22,7 @@ const provider = new FacebookAuthProvider();
 export const facebookLogin = async () => {
   try {
     const result = await signInWithPopup(auth, provider);
-    const token = await result.user.getIdToken(); // You send this to your backend
+    const token = await result.user.getIdToken();
     console.log("Facebook access token from Firebase:", token);
     return token;
   } catch (error) {

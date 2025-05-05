@@ -155,7 +155,7 @@ export default function CreateAccount() {
 
   const handleFacebookLogin = async () => {
     try {
-      const access_token = await facebookLogin(); // Must return Facebook access token via Firebase
+      const access_token = await facebookLogin();
   
       if (!access_token) {
         toast.error("Facebook login failed: No token received.");
