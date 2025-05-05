@@ -5,6 +5,10 @@ import { FaCheck, FaTimes } from "react-icons/fa";
 import { RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import { MdLockOutline } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { createPassword } from "../api/auth";
+import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../features/auth/authSlice";
 
 export default function CreatePassword() {
   const [password, setPassword] = useState("");
@@ -13,6 +17,8 @@ export default function CreatePassword() {
   const [success, setSuccess] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
   const navigate = useNavigate();
+  const email = localStorage.getItem("email");
+  const dispatch = useDispatch();
 
   const requirements = [
     { label: "At Least 8 Characters", check: password.length >= 8 },
@@ -24,26 +30,39 @@ export default function CreatePassword() {
 
   const allValid = requirements.every((req) => req.check);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!allValid) return;
+    if (!allValid || !email) return;
   
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    const res = await createPassword(email, password);
+    setLoading(false);
+  
+    if (res.Status === 200 || res.Status === 201) {
       setSuccess(true);
-  
-      // Show success message
+      dispatch(
+        loginSuccess({
+          accessToken: res.access,
+          refreshToken: res.refresh,
+          user: {
+            id: 0,
+            email: email,
+            name: "",
+          },
+          registrationComplete: true,
+        })
+      );
+      setTimeout(() => setShowSpinner(true), 2000);
       setTimeout(() => {
-        setShowSpinner(true);
-  
-        setTimeout(() => {
-          setShowSpinner(false);
-          navigate("/login");
-        }, 4000);
-      }, 2000);
-    }, 2000);
+        setShowSpinner(false);
+        // localStorage.removeItem("email");
+        navigate("/");
+      }, 6000);
+    } else {
+      toast.error(res.Message || "Something went wrong. Please try again.");
+    }
   };
+  
   
 
   return (
@@ -135,7 +154,7 @@ export default function CreatePassword() {
         {/* Success Message */}
         {success && (
           <div className="w-full max-w-[670px] mt-4 flex items-center gap-2 border border-green-500 bg-blue-50 px-4 py-2 rounded-lg text-green-700">
-            <span className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-white">
+            <span className="min-w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-white">
               <FaCheck size={14} />
             </span>
             Password created successfully. Use this password when next you want to log in.

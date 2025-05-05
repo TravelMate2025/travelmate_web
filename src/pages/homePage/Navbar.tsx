@@ -33,17 +33,24 @@ import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined';
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
+
+
 
 
 const pages = ["Home", "Stays", "Flights", "Cars"];
 const settings = ["Profile", "Account", "Dashboard", "Logout"];
 
 const Navbar = () => {
-   const [openDrawer, setOpenDrawer] = useState(false);
+  const [openDrawer, setOpenDrawer] = useState(false);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const initials = user?.name?.charAt(0).toUpperCase() || "U";
 
-const toggleDrawer = () => {
-    setOpenDrawer((prev) => !prev); 
-  };
+
+  const toggleDrawer = () => {
+      setOpenDrawer((prev) => !prev); 
+   };
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
   // const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
@@ -69,6 +76,11 @@ const toggleDrawer = () => {
   // const handleCloseNavMenu = () => {
   //   setAnchorElNav(null);
   // };
+
+  const handleAccountClick = () => {
+      handleCloseUserMenu();
+      window.location.href = "/account"; // Replace with your actual account page URL
+    };
 
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
@@ -185,18 +197,24 @@ const logout =[
 
                  
               <div  style={{ display: "flex", justifyContent:"flex-start", marginTop:"20px" }}>
-                <Avatar sx={{ bgcolor: "#023E8A" }}>E</Avatar>
+                <Avatar sx={{ bgcolor: "#023E8A" }}>
+                {user?.profileImage ? (
+                  <Avatar alt={user.name} src={user.profileImage} />
+                ) : (
+                  <Avatar sx={{ bgcolor: "#023E8A" }}>{initials}</Avatar>
+                )}
+        
+                </Avatar>
                 <Box sx={{ ml: 2 }}>
                   <Typography sx={{ fontWeight: "bold", color: "#181818", fontSize: "14px" }}>
-                    Elvis
+                    {user?.name || "User"}
                   </Typography>
                   <Typography sx={{ fontWeight: "bold", color: "#67696D", fontSize: "14px" }}>
-                    Elvis@gmail.com
+                    {user?.email || "example@email.com"}
                   </Typography>
                 </Box>
               </div>
-
-
+              
     
         ) : (
           <>
@@ -259,7 +277,7 @@ const logout =[
                     <Divider sx={{marginBottom:"20px"}} />
 
                   {menuItems.map(({ text, icon }) => (
-                    <ListItem key={text} component="button" onClick={toggleDrawer} sx={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
+                    <ListItem key={text} component="button" onClick={text === "Account" ? handleAccountClick : toggleDrawer} sx={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
                       <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
                       <ListItemText primary={text} />
                     </ListItem>
@@ -365,19 +383,25 @@ const logout =[
               </IconButton>
             </Tooltip>
 
+
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, display: "flex", alignItems: "center" }}>
-                <Avatar sx={{ bgcolor: "#023E8A" }}>E</Avatar>
+                {user?.profileImage ? (
+                  <Avatar alt={user.name} src={user.profileImage} />
+                ) : (
+                  <Avatar sx={{ bgcolor: "#023E8A" }}>{initials}</Avatar>
+                )}
                 <Box sx={{ ml: 2 }}>
                   <Typography sx={{ fontWeight: "bold", color: "#181818", fontSize: "14px" }}>
-                    Elvis
+                    {user?.name || "User"}
                   </Typography>
                   <Typography sx={{ fontWeight: "bold", color: "#67696D", fontSize: "14px" }}>
-                    Elvis@gmail.com
+                    {user?.email || "example@email.com"}
                   </Typography>
                 </Box>
               </IconButton>
             </Tooltip>
+
           </>
         )}
 
@@ -399,7 +423,7 @@ const logout =[
           onClose={handleCloseUserMenu}
         >
           {settings.map((setting) => (
-            <MenuItem key={setting} onClick={handleCloseUserMenu}>
+            <MenuItem key={setting} onClick={setting === "Account" ? handleAccountClick : handleCloseUserMenu}>
               <Typography sx={{ textAlign: "center" }}>{setting}</Typography>
             </MenuItem>
           ))}

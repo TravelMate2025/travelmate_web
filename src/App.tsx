@@ -23,7 +23,7 @@ import SecondDepartureFlightPage from "./pages/muti-flight-container/secondDepar
 import FlightInfoPageMultiWay from "./pages/muti-flight-container/flightInfo-review-multiway/FlightInfoPageMultiWay"
 import FlightConfirmPageMultiWay from "./pages/muti-flight-container/flightConfirmationMultiWay/FlightConfirmPageMultiWay"
 import ProfileInfo from "./pages/ProfileInfo";
-import Profile from "./pages/Profile";
+import Profile from "./pages/Account";
 import Page from "./pages/carsTab/carsFirstScreen/Page";
 import DisplayCars from "./pages/carsTab/displayAllCars/DisplayCars";
 import Pages from "./pages/carsTab/offerAcceptedPage/Page";
@@ -31,6 +31,8 @@ import CarPaidForPage from "./pages/carsTab/carPaidFor/CarPaidForPage";
 import StaysDetail from "./pages/StaysDetail";
 import BookingConfirmationPage from "./pages/BookingConfirmationPage";
 import BookingProgress from "./pages/BookingProgress";
+import FaqPage from "./pages/faq";
+import ChatPage from "./pages/ChatPage";
 
 
 
@@ -41,7 +43,7 @@ function App() {
         <Toaster />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/account" element={<Profile />} />
           <Route path="/profile-info" element={<ProfileInfo />} />
           <Route path="/login" element={<Login />} />
           <Route path="/create-account" element={<CreateAccount />} />
@@ -53,6 +55,9 @@ function App() {
           <Route path="/booking-progress" element={<BookingProgress />} />
           <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
           <Route path="/stays-detail" element={<StaysDetail hotel={{ images: [],shareLink: "" }} />} />    
+          <Route path="/faqs" element={<FaqPage />} />  
+          <Route path="/chat-with-us" element={<ChatPage />} />  
+
 
           {/* round-trip-section */}
 

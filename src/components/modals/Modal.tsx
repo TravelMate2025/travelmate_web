@@ -4,9 +4,10 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  children: ReactNode;
-  onSave?: () => void;
+  onSave: () => void | Promise<void>;
   saveText?: string;
+  loading?: boolean;
+  children: ReactNode;
 }
 
 export default function Modal({ isOpen, onClose, title, children, onSave, saveText = "Save" }: ModalProps) {
