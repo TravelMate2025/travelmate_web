@@ -51,9 +51,19 @@ export default function Login() {
 
       navigate("/");
     } catch (err : any) {
-      const errorMsg =
-        err.response?.data?.Message ||
-        "Something went wrong. Please try again.";
+      let errorMsg = "Something went wrong. Please try again.";
+
+      const serverMessage = err.response?.data?.Message;
+  
+      if (
+        serverMessage &&
+        serverMessage.includes("The password you entered doesn't match our records")
+      ) {
+        errorMsg = "Invalid email or password.";
+      } else if (serverMessage) {
+        errorMsg = serverMessage;
+      }
+  
       toast.error(errorMsg);
       console.error("Login failed:", err);
     } finally {

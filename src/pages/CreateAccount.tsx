@@ -31,36 +31,28 @@ export default function CreateAccount() {
       }
   
       const res = await submitEmail(email);
-      toast.success("Verification email sent successfully.");
-
-      dispatch(
-        loginSuccess({
-          accessToken: res.access,
-          refreshToken: res.refresh,
-          user: {
-            id: res.setup_info.id,
-            email: res.setup_info.email,
-            name: `${res.setup_info.first_name} ${res.setup_info.last_name}`,
-          },
-          registrationComplete: res.registration_complete,
-        })
-      );
+      console.log("📥 Backend Response:", res);
   
-      localStorage.setItem("verify_email", email);
-      navigate("/verify-page", { state: { email } });
+      if (res?.Error === false && res?.Message) {
+        toast.success(res.Message || "Verification OTP sent to your email.");
+        localStorage.setItem("verify_email", email);
+        navigate("/verify-page", { state: { email } });
+      } else {
+        // Handle unexpected structure even in success
+        toast.error(res?.Message || "Failed to send verification email. Please try again.");
+      }
   
     } catch (err: any) {
       console.error(err);
-
+  
       if (err?.response?.data?.Message === "Enter your password to log in.") {
-        // toast("You already have an account. Redirecting to login...");
         navigate("/login", { state: { email } });
         return;
       }
   
-      const message = 
-        err?.response?.data?.Message || 
-        err?.response?.data?.error || 
+      const message =
+        err?.response?.data?.Message ||
+        err?.response?.data?.error ||
         "Failed to send verification email. Please try again.";
   
       toast.error(message);
@@ -68,31 +60,10 @@ export default function CreateAccount() {
       setIsLoading(false);
     }
   };
+  
 
-  // facebook app ID:732054406012701
 
 
-  // Import the functions you need from the SDKs you need
-// import { initializeApp } from "firebase/app";
-// import { getAnalytics } from "firebase/analytics";
-// // TODO: Add SDKs for Firebase products that you want to use
-// // https://firebase.google.com/docs/web/setup#available-libraries
-
-// // Your web app's Firebase configuration
-// // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-// const firebaseConfig = {
-//   apiKey: "AIzaSyA-V4ygxvUqmejVDnuPBS4eo6Hdb0T-xes",
-//   authDomain: "travel-mate-4570d.firebaseapp.com",
-//   projectId: "travel-mate-4570d",
-//   storageBucket: "travel-mate-4570d.firebasestorage.app",
-//   messagingSenderId: "684415608404",
-//   appId: "1:684415608404:web:65cd1ba9f312af8101efc1",
-//   measurementId: "G-FYXED6H55S"
-// };
-
-// // Initialize Firebase
-// const app = initializeApp(firebaseConfig);
-// const analytics = getAnalytics(app);
   
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -138,7 +109,8 @@ export default function CreateAccount() {
           backendError?.non_field_errors?.includes("User is already registered with this e-mail address.")
         ) {
           toast.error("This Google account is already registered. Please log in instead.");
-          navigate("/login");
+          // localStorage.setItem("email", email);
+          navigate("/login", { state: { email } });
         } else {
           // Generic fallback
           toast.error("Google login failed. Please try again.");
