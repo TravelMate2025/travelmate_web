@@ -21,13 +21,13 @@ export default function AirportTaxiBooking() {
   };
 
   return (
-    <div className="w-[90%] mx-auto mt-[100px] md:mt-[150px]  bg-white rounded-lg border border-[#CDCED1] shadow">
+    <div className="w-[90%] mx-auto mt-[130px] md:mt-[150px]  bg-white rounded-lg border border-[#CDCED1] shadow">
       <div className="mb-6 p-4 flex flex-col gap-2">
         <h1 className="text-2xl font-bold text-gray-900 ">Easy and Affordable Airport Taxis</h1>
         <p className="text-gray-600">Find the perfect ride from the airport to your destination.</p>
       </div>
       <div className='border-t border-gray-200 h-2 w-full'></div>
-      <div className='flex flex-col md:flex-row justify-between items-center  pt-6 p-4'>
+      <div className='flex flex-col md:flex-row justify-between md:items-center  pt-6 p-4'>
         <div className=" md:w-[89%]">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
