@@ -122,17 +122,31 @@ export const updateUserProfile = async (userId: number, updatedData: any): Promi
 
 
 
-export const deleteUserAccount = async (userId: number, accessToken: string): Promise<void> => {
+export const deleteUserAccount = async (
+  accessToken: string,
+  reason: string,
+  feedback?: string
+): Promise<void> => {
   try {
-    const response = await api.delete(`${API_BASE_URL}/profile/${userId}/`, {
+    const payload: { reason: string; additional_feedback?: string } = {
+      reason,
+    };
+
+    if (reason === "Others" && feedback) {
+      payload.additional_feedback = feedback;
+    }
+
+    const response = await api.delete(`${API_BASE_URL}/users/me/`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
+      data: payload,
     });
+
     console.log("Account deleted:", response.data);
   } catch (error: any) {
-    console.error("Error deleting account:", error);
-    throw error;
+    console.error("Error deleting account:", error?.response?.data || error.message);
+    throw error?.response?.data || new Error("Account deletion failed.");
   }
 };
-

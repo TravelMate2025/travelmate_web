@@ -141,10 +141,10 @@ export default function EditBasicInfoModal({
               <input
                 type="radio"
                 name="gender"
-                value="Not Say"
-                checked={gender === "Not Say"}
+                value="I prefer not to say"
+                checked={gender === "I prefer not to say"}
                 className="mr-2"
-                onChange={() => setGender("Not Say")}
+                onChange={() => setGender("I prefer not to say")}
               />
               I prefer not to say
             </label>

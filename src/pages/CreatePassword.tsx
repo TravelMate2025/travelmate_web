@@ -40,10 +40,11 @@ export default function CreatePassword() {
   
     if (res.Status === 200 || res.Status === 201) {
       setSuccess(true);
+      console.log("Access:", res.tokens.access);
       dispatch(
         loginSuccess({
-          accessToken: res.access,
-          refreshToken: res.refresh,
+          accessToken: res.tokens.access,
+          refreshToken: res.tokens.refresh,          
           user: {
             id: 0,
             email: email,
@@ -55,7 +56,6 @@ export default function CreatePassword() {
       setTimeout(() => setShowSpinner(true), 2000);
       setTimeout(() => {
         setShowSpinner(false);
-        // localStorage.removeItem("email");
         navigate("/");
       }, 6000);
     } else {
