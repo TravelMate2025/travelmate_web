@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   AppBar,
   Box,
@@ -21,54 +21,45 @@ import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import Travelmate from "../../assets/Travelmate_logo.svg";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { motion } from "framer-motion";
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
-import ClassOutlinedIcon from "@mui/icons-material/ClassOutlined";
-import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
-import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
+import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
+import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
+import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
+import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined';
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
 
-// Define types for the pages and settings
-type Page = "Home" | "Stays" | "Flights" | "Airport Taxi";
-type Setting = "Profile" | "Account" | "Dashboard" | "Logout";
-type MenuItem = {
-  text: string;
-  icon: React.ReactNode;
-};
+const navItems = [
+  { name: "Home", path: "/" },
+  { name: "Stays", path: "/stays-search-result" },
+  { name: "Flights", path: "/flights" },
+  { name: "Airport Taxi", path: "/airport-taxi" }
+];
 
-// URL to page mapping
-const urlToPageMap: Record<string, Page> = {
-  "/": "Home",
-  "/stays": "Stays",
-  "/flights": "Flights",
-  "/airport-taxi": "Airport Taxi",
-};
+const settings = ["Profile", "Account", "Dashboard", "Logout"];
 
-const Navbar: React.FC = () => {
-  const [openDrawer, setOpenDrawer] = useState<boolean>(false);
-  const [anchorElUser, setAnchorElUser] = useState<HTMLElement | null>(null);
-  const [fromLogin, setFromLogin] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<Page>("Home");
-  const location = useLocation();
+const menuItems = [
+  { text: "Account", icon: <PersonOutlinedIcon /> },
+  { text: "Bookings", icon: <ClassOutlinedIcon /> },
+  { text: "Favorites", icon: <FavoriteBorderOutlinedIcon /> },
+  { text: "Notifications", icon: <NotificationsNoneOutlinedIcon /> },
+];
+
+const logout = [
+  { text: "Log out", icon: <LoginOutlinedIcon /> }
+];
+
+const Navbar = () => {
+  const [openDrawer, setOpenDrawer] = useState(false);
+  const { user, accessToken } = useSelector((state: RootState) => state.auth);
+  const initials = user?.name?.charAt(0).toUpperCase() || "U";
+  const isLoggedIn = Boolean(accessToken && user && user.email);
   const isMobile = useMediaQuery({ maxWidth: 768 });
-
-  const pages: Page[] = ["Home", "Stays", "Flights", "Airport Taxi"];
-  const settings: Setting[] = ["Profile", "Account", "Dashboard", "Logout"];
-
-  // Set active tab based on current URL
-  useEffect(() => {
-    const pathname = location.pathname;
-    const currentPage = urlToPageMap[pathname] || "Home"; // Default to "Home" if no match
-    setActiveTab(currentPage);
-  }, [location.pathname]); // Re-run when URL changes
-
-  useEffect(() => {
-    const previousPage = document.referrer;
-    if (previousPage.includes("/login")) {
-      setFromLogin(true);
-    }
-  }, []);
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+  const [activeTab, setActiveTab] = useState("Home");
+  const navigate = useNavigate();
 
   const toggleDrawer = () => {
     setOpenDrawer((prev) => !prev);
@@ -82,18 +73,14 @@ const Navbar: React.FC = () => {
     setAnchorElUser(null);
   };
 
-  const handleTabClick = (page: Page) => {
-    setActiveTab(page);
+  const handleNavItemClick = (path: string) => {
+    setOpenDrawer(false);
+    navigate(path);
   };
 
-  const menuItems: MenuItem[] = [
-    { text: "Account", icon: <PersonOutlinedIcon /> },
-    { text: "Bookings", icon: <ClassOutlinedIcon /> },
-    { text: "Favorites", icon: <FavoriteBorderOutlinedIcon /> },
-    { text: "Notifications", icon: <NotificationsNoneOutlinedIcon /> },
-  ];
-
-  const logout: MenuItem[] = [{ text: "Log out", icon: <LoginOutlinedIcon /> }];
+  const handleTabClick = (page: string) => {
+    setActiveTab(page);
+  };
 
   return (
     <div>
@@ -141,19 +128,17 @@ const Navbar: React.FC = () => {
                   <MenuIcon />
                 </IconButton>
 
-                <div className="">
+                <div>
                   {/* Animated Drawer Menu */}
                   <motion.div
                     initial={{ x: "100%" }}
-                    animate={{ x: 0 }}
-                    exit={{ x: "100%" }}
-                    transition={{ duration: 2, ease: "easeInOut" }}
+                    animate={{ x: openDrawer ? 0 : "100%" }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
                   >
                     <Drawer
                       anchor="right"
                       open={openDrawer}
                       onClose={toggleDrawer}
-                      hideBackdrop
                       sx={{
                         "& .MuiDrawer-paper": {
                           width: "90%",
@@ -179,15 +164,21 @@ const Navbar: React.FC = () => {
                         onClick={(e) => e.stopPropagation()}
                       >
                         <Box sx={{ display: "flex", justifyContent: "space-between", padding: "20px" }}>
-                          {!fromLogin ? (
+                          {isLoggedIn ? (
                             <div style={{ display: "flex", justifyContent: "flex-start", marginTop: "20px" }}>
-                              <Avatar sx={{ bgcolor: "#023E8A" }}>E</Avatar>
+                              <Avatar sx={{ bgcolor: "#023E8A" }}>
+                                {user?.profileImage ? (
+                                  <Avatar alt={user.name} src={user.profileImage} />
+                                ) : (
+                                  <Avatar sx={{ bgcolor: "#023E8A" }}>{initials}</Avatar>
+                                )}
+                              </Avatar>
                               <Box sx={{ ml: 2 }}>
                                 <Typography sx={{ fontWeight: "bold", color: "#181818", fontSize: "14px" }}>
-                                  Elvis
+                                  {user?.name || "User"}
                                 </Typography>
                                 <Typography sx={{ fontWeight: "bold", color: "#67696D", fontSize: "14px" }}>
-                                  Elvis@gmail.com
+                                  {user?.email || ""}
                                 </Typography>
                               </Box>
                             </div>
@@ -196,8 +187,9 @@ const Navbar: React.FC = () => {
                               <Link
                                 to="/create-account"
                                 className="px-4 py-2 bg-[#023E8A] text-white rounded-lg hover:bg-[#012A5D] transition"
+                                onClick={toggleDrawer}
                               >
-                                Create an Account or Login
+                                Create an Account or Log In
                               </Link>
                             </div>
                           )}
@@ -205,22 +197,13 @@ const Navbar: React.FC = () => {
 
                         <Divider />
                         <List>
-                          {pages.map((page) => (
-                            <ListItem
-                              key={page}
-                              component={Link}
-                              to={page === "Home" ? "/" : page === "Airport Taxi" ? "/airport-taxi" : `/${page.toLowerCase()}`}
-                              onClick={() => {
-                                toggleDrawer();
-                                handleTabClick(page);
-                              }}
-                              sx={{
-                                cursor: "pointer",
-                                backgroundColor: activeTab === page ? "#CCD8E81A" : "transparent", // Highlight active page
-                                color: activeTab === page ? "#023E8A" : "#000000", // Change text color for active page
-                              }}
+                          {navItems.map((item) => (
+                            <ListItem 
+                              key={item.name}
+                              onClick={() => handleNavItemClick(item.path)}
+                              sx={{ cursor: "pointer" }}
                             >
-                              <ListItemText primary={page} />
+                              <ListItemText primary={item.name} />
                             </ListItem>
                           ))}
                         </List>
@@ -228,10 +211,9 @@ const Navbar: React.FC = () => {
                         <Divider sx={{ marginBottom: "20px" }} />
 
                         {menuItems.map(({ text, icon }) => (
-                          <ListItem
+                          <ListItem 
                             key={text}
-                            component="button"
-                            onClick={toggleDrawer}
+                            onClick={() => handleNavItemClick(text.toLowerCase())}
                             sx={{ cursor: "pointer", display: "flex", alignItems: "center" }}
                           >
                             <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
@@ -239,18 +221,11 @@ const Navbar: React.FC = () => {
                           </ListItem>
                         ))}
 
-                        {logout.map(({ text, icon }) => (
-                          <ListItem
+                        {logout.map(({text, icon}) => (
+                          <ListItem 
                             key={text}
-                            component="button"
                             onClick={toggleDrawer}
-                            sx={{
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              marginTop: "26px",
-                            }}
-                            aria-label="log out"
+                            sx={{ cursor: "pointer", display: "flex", alignItems: "center", marginTop: "26px" }}
                           >
                             <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
                             <ListItemText primary={text} />
@@ -265,7 +240,7 @@ const Navbar: React.FC = () => {
           </Container>
         </AppBar>
       ) : (
-        // Web view
+        // Desktop View
         <AppBar
           position="fixed"
           sx={{
@@ -276,14 +251,14 @@ const Navbar: React.FC = () => {
             color: "#000000",
           }}
         >
-          <Toolbar
-            disableGutters
-            sx={{
-              width: "90%",
-              margin: "auto",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+          <Toolbar 
+            disableGutters 
+            sx={{ 
+              width: "90%", 
+              margin: "auto", 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: "center"
             }}
           >
             {/* Logo */}
@@ -293,32 +268,31 @@ const Navbar: React.FC = () => {
 
             {/* Navigation Links */}
             <Box sx={{ display: "flex", flexGrow: 1, justifyContent: "center" }}>
-              {pages.map((page) => (
-                <Link
-                  key={page}
-                  to={page === "Home" ? "/" : page === "Airport Taxi" ? "/airport-taxi" : `/${page.toLowerCase()}`}
+              {navItems.map((item) => (
+                <Link 
+                  key={item.name} 
+                  to={item.path}
                   style={{ textDecoration: "none" }}
                 >
                   <Button
                     onClick={() => {
                       handleCloseUserMenu();
-                      handleTabClick(page);
+                      handleTabClick(item.name);
                     }}
-                    sx={{
-                      my: 2,
-                      mr: 2,
-                      color: activeTab === page ? "#023E8A" : "#000000",
-                      display: "block",
+                    sx={{ 
+                      my: 2, 
+                      mr: 2, 
+                      color: activeTab === item.name ? "#023E8A" : "#000000",  
+                      display: "block", 
                       textTransform: "capitalize",
-                      fontWeight: activeTab === page ? 'bold' : '',
                       backgroundColor: "transparent",
                       "&:hover": { backgroundColor: "transparent" },
                       "&:focus": { backgroundColor: "transparent" },
                       "&:active": { backgroundColor: "transparent" },
                     }}
-                    className="font-black font-inter text-xl"
+                    className="font-bold font-inter text-xl"
                   >
-                    {page}
+                    {item.name}
                   </Button>
                 </Link>
               ))}
@@ -326,7 +300,7 @@ const Navbar: React.FC = () => {
 
             {/* User Account / Notifications */}
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              {!fromLogin ? (
+              {!isLoggedIn ? (
                 <div className="hidden md:flex">
                   <Link
                     to="/create-account"
@@ -347,13 +321,17 @@ const Navbar: React.FC = () => {
 
                   <Tooltip title="Open settings">
                     <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, display: "flex", alignItems: "center" }}>
-                      <Avatar sx={{ bgcolor: "#023E8A" }}>E</Avatar>
+                      {user?.profileImage ? (
+                        <Avatar alt={user.name} src={user.profileImage} />
+                      ) : (
+                        <Avatar sx={{ bgcolor: "#023E8A" }}>{initials}</Avatar>
+                      )}
                       <Box sx={{ ml: 2 }}>
                         <Typography sx={{ fontWeight: "bold", color: "#181818", fontSize: "14px" }}>
-                          Elvis
+                          {user?.name || "User"}
                         </Typography>
                         <Typography sx={{ fontWeight: "bold", color: "#67696D", fontSize: "14px" }}>
-                          Elvis@gmail.com
+                          {user?.email || ""}
                         </Typography>
                       </Box>
                     </IconButton>
@@ -379,7 +357,13 @@ const Navbar: React.FC = () => {
                 onClose={handleCloseUserMenu}
               >
                 {settings.map((setting) => (
-                  <MenuItem key={setting} onClick={handleCloseUserMenu}>
+                  <MenuItem 
+                    key={setting} 
+                    onClick={() => {
+                      handleCloseUserMenu();
+                      navigate(`/${setting.toLowerCase()}`);
+                    }}
+                  >
                     <Typography sx={{ textAlign: "center" }}>{setting}</Typography>
                   </MenuItem>
                 ))}

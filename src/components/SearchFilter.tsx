@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { FaMapMarkerAlt, FaUser } from 'react-icons/fa';
 import ReusableDateSelector from "../components/ReusableDateSelector";
 import LocationDropdown from './booking-progress/LocationDropdown';
-// import { FaUser } from 'react-icons/fa';
 import HotelGuestSelector from './HotelGuestSelector';
 
 interface SearchFilterProps {
@@ -97,7 +95,7 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ onSubmit }) => {
           <div className="flex-grow"></div>
           <button
             type="submit"
-            className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg hover:bg-[#0450A2]"
+            className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg cursor-pointer hover:bg-[#0450A2]"
           >
             Search
           </button>

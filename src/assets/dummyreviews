@@ -1,0 +1,32 @@
+const dummyReviews = [
+  {
+    id: 1,
+    name: "Hotel Paradise",
+    image: "/images/hotel.jpg",
+    dateRange: "April 1 - 5, 2025",
+    price: "$120/night",
+    comment: "Great experience!",
+    rating: 5,
+    questions: [
+      { question: "How was the cleanliness?", rating: 5 },
+      { question: "Was the staff friendly?", rating: 4 },
+      { question: "Would you visit again?", rating: 5 },
+      { question: "How would you rate the value?", rating: 4 },
+    ],
+  },
+  {
+    id: 2,
+    name: "Flight ABC",
+    image: "/images/flight.jpg",
+    dateRange: "April 10, 2025",
+    price: "$350",
+    comment: "Good flight, comfortable seats.",
+    rating: 4,
+    questions: [
+      { question: "How was the comfort?", rating: 4 },
+      { question: "Was the staff polite?", rating: 5 },
+      { question: "Would you fly again?", rating: 4 },
+      { question: "How was the food?", rating: 3 },
+    ],
+  },
+];

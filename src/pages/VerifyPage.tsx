@@ -1,19 +1,20 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import AuthNavbar from "../components/AuthNavbar";
 import Spinner from "../components/Spinner";
 import { MdErrorOutline } from "react-icons/md";
-// import { verifyCode } from "../api/verifyCode"; 
+import { verifyCode, resendCode } from "../api/auth";
 
 export default function VerifyEmail() {
   const [code, setCode] = useState<string[]>(["", "", "", ""]);
   const [resendTimer, setResendTimer] = useState<number>(60);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showError, setShowError] = useState<boolean>(false);
-  const firstInputRef = useRef<HTMLInputElement | null>(null);
-
-  // const [, setIsVerified] = useState<boolean | null>(null); 
+  const [resendVisible, setResendVisible] = useState<boolean>(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email || localStorage.getItem("verify_email");
+
 
   const handleChange = (index: number, value: string) => {
     if (/^\d?$/.test(value)) {
@@ -24,71 +25,86 @@ export default function VerifyEmail() {
       if (value && index < 3) {
         document.getElementById(`code-${index + 1}`)?.focus();
       }
-
-      if (newCode.every(digit => digit !== "")) {
-        // Trigger validation when the code is complete
-        handleValidateCode(newCode.join(""));
-      }
     }
   };
+
+  useEffect(() => {
+    if (code.every((digit) => digit !== "")) {
+      handleAutoSubmit();
+    }
+  }, [code]);
+
+  const handleAutoSubmit = async () => {
+    if (!email) return;
+    setIsLoading(true);
+    const fullCode = code.join("");
+    const res = await verifyCode(email, fullCode);
+    console.log("Verification result:", res); 
+  
+    setIsLoading(false);
+    if (res.Status === 200 && res.Error === false) {
+      console.log("OTP verified, navigating...");
+      localStorage.setItem("email", email);
+      navigate("/create-password", { state: { email } });
+    } else {
+      console.error("OTP verification failed:", res.Message || res);
+      setShowError(true);
+      setCode(["", "", "", ""]);
+      setTimeout(() => setShowError(false), 10000);
+      setTimeout(() => {
+        const firstInput = document.getElementById("code-0");
+        if (firstInput) firstInput.focus();
+      }, 100);
+    }
+  };
+  
 
   useEffect(() => {
     if (resendTimer > 0) {
       const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
       return () => clearTimeout(timer);
+    } else {
+      setResendVisible(true);
     }
   }, [resendTimer]);
 
-  const handleValidateCode = async (codeInput: string) => {
+  const handleResend = async () => {
     setIsLoading(true);
-    await new Promise(res => setTimeout(res, 1500));
     try {
-      // const response = await verifyCode(codeInput);
-      const isCorrect = codeInput === "3030";
-  
-      if (isCorrect) {
-        // setIsVerified(true);
-        navigate("/create-password");
-      } else {
-        // setIsVerified(false);
-        setShowError(true);
-        setCode(["", "", "", ""]);
-        setTimeout(() => setShowError(false), 5000);
-        setTimeout(() => firstInputRef.current?.focus(), 100);
-      }
-    } catch (error) {
-      // setIsVerified(false);
-      setShowError(true);
+      await resendCode();
       setCode(["", "", "", ""]);
-      setTimeout(() => setShowError(false), 5000);
-      setTimeout(() => firstInputRef.current?.focus(), 100);
+      setResendTimer(60);
+      setResendVisible(false);
+    } catch (err) {
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
   };
-  
-  return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      <AuthNavbar />
-      <div className="flex flex-col items-center justify-center flex-grow px-6 relative">
-        {isLoading && (
-          <div className="fixed inset-0 bg-blue-200/50 bg-opacity-50 flex justify-center items-center z-50">
-            <Spinner size="40px" borderWidth={8} />
-          </div>
-        )}
 
+  return (
+    <div className="flex flex-col h-screen bg-gray-50 relative">
+      <AuthNavbar />
+      {isLoading && (
+        <div className="absolute inset-0 bg-blue-100/50 bg-opacity-60 flex items-center justify-center z-50">
+          <Spinner size="40px" />
+        </div>
+      )}
+      <div className="flex flex-col items-center justify-center flex-grow px-6">
         <div className="text-center max-w-md">
           <h2 className="text-4xl font-bold text-gray-900">Verify Your Email</h2>
-          <p className="text-gray-600 mt-2">Kindly enter the 4-digit code we sent to Name@gmail.com</p>
+          <p className="text-gray-600 mt-2">
+            Kindly enter the 4-digit code we sent to <span className="font-semibold">{email}</span>
+          </p>
+
         </div>
 
         <div className="w-full max-w-md text-center mt-6">
-          <div className="flex justify-center gap-4 relative group">
+          <div className="flex justify-center gap-4">
             {code.map((digit, index) => (
               <input
                 key={index}
                 id={`code-${index}`}
-                ref={index === 0 ? firstInputRef : null}
                 type="text"
                 value={digit}
                 onChange={(e) => handleChange(index, e.target.value)}
@@ -97,26 +113,36 @@ export default function VerifyEmail() {
                 disabled={isLoading}
               />
             ))}
-             <span className="absolute -top-8 text-xs bg-blue-700 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-              Use "3030" as the correct testing code
-            </span>
           </div>
 
           {showError && (
-            <p className="flex items-center text-red-600 text-sm mt-2 pl-2 sm:pl-18">
-              <MdErrorOutline />
-              <span className="ml-1">Incorrect code, try again</span>
+            <p className="flex items-center text-red-600 text-sm mt-2">
+              <span className="ml-2 text-lg"><MdErrorOutline /></span>
+              <span className="ml-1">Invalid code. Please try again.</span>
             </p>
           )}
         </div>
 
-        <p className="text-gray-600 mt-4">Didn’t receive an email?</p>
-        <p className="text-gray-500">
-          You can request another in <span className="font-semibold text-[#023E8A]">{resendTimer}s</span>
-        </p>
+        {resendVisible ? (
+          <button
+            onClick={handleResend}
+            className="mt-4 text-[#023E8A] font-bold hover:underline hover:text-blue-800"
+            disabled={isLoading}
+          >
+            Resend another Code
+          </button>
+        ) : (
+          <div className="text-center mt-4">
+            <p className="text-gray-600">Didn’t receive an email?</p>
+            <p className="text-gray-500">
+              You can request another in{" "}
+              <span className="font-semibold text-[#023E8A]">{resendTimer}s</span>
+            </p>
+          </div>
+        )}
 
-        <p className="text-gray-500 text-sm mt-22 max-w-md text-center px-4">
-          By continuing, you have read and agree to our{" "}
+        <p className="text-gray-500 text-sm mt-10 max-w-md text-center px-4">
+          By continuing, you agree to our{" "}
           <Link to="/terms" className="text-blue-600 hover:underline">Terms of Use</Link> and{" "}
           <Link to="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>.
         </p>
