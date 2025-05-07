@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 
 export default function ResetEmailLink() {
   const [code, setCode] = useState<string[]>(["", "", "", ""]);
-  const [resendTimer, setResendTimer] = useState<number>(60);
+  const [resendTimer, setResendTimer] = useState<number>(120);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showError, setShowError] = useState<boolean>(false);
   const [resendVisible, setResendVisible] = useState<boolean>(false);
@@ -75,7 +75,7 @@ export default function ResetEmailLink() {
       await requestPasswordReset(email);
       toast.success("New code sent successfully");
       setCode(["", "", "", ""]);
-      setResendTimer(60);
+      setResendTimer(120);
       setResendVisible(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to resend code");
@@ -137,7 +137,9 @@ export default function ResetEmailLink() {
             <p className="text-gray-600">Didn't receive an email?</p>
             <p className="text-gray-500">
               You can request another in{" "}
-              <span className="font-semibold text-[#023E8A]">{resendTimer}s</span>
+              <span className="font-semibold text-[#023E8A]">
+                {Math.floor(resendTimer / 60)}:{(resendTimer % 60).toString().padStart(2, '0')} mins
+              </span>
             </p>
           </div>
         )}

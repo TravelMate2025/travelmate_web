@@ -7,7 +7,7 @@ import { verifyCode, resendCode } from "../api/auth";
 
 export default function VerifyEmail() {
   const [code, setCode] = useState<string[]>(["", "", "", ""]);
-  const [resendTimer, setResendTimer] = useState<number>(60);
+  const [resendTimer, setResendTimer] = useState<number>(120);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showError, setShowError] = useState<boolean>(false);
   const [resendVisible, setResendVisible] = useState<boolean>(false);
@@ -73,7 +73,7 @@ export default function VerifyEmail() {
     try {
       await resendCode();
       setCode(["", "", "", ""]);
-      setResendTimer(60);
+      setResendTimer(120);
       setResendVisible(false);
     } catch (err) {
       console.error(err);
@@ -136,8 +136,11 @@ export default function VerifyEmail() {
             <p className="text-gray-600">Didn’t receive an email?</p>
             <p className="text-gray-500">
               You can request another in{" "}
-              <span className="font-semibold text-[#023E8A]">{resendTimer}s</span>
+              <span className="font-semibold text-[#023E8A]">
+                {Math.floor(resendTimer / 60)}:{(resendTimer % 60).toString().padStart(2, '0')} mins
+              </span>
             </p>
+
           </div>
         )}
 
