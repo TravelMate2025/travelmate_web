@@ -404,12 +404,17 @@ const Navbar = () => {
                     key={setting} 
                     onClick={() => {
                       handleCloseUserMenu();
-                      navigate(`/${setting.toLowerCase()}`);
+                      if (setting === "Logout") {
+                        handleLogout();
+                      } else {
+                        navigate(`/${setting.toLowerCase()}`);
+                      }
                     }}
                   >
                     <Typography sx={{ textAlign: "center" }}>{setting}</Typography>
                   </MenuItem>
                 ))}
+
 
               </Menu>
             </Box>
