@@ -406,6 +406,8 @@ const Navbar = () => {
                       handleCloseUserMenu();
                       if (setting === "Logout") {
                         handleLogout();
+                      } else if (setting === "Profile") {
+                        navigate("/profile-info");
                       } else {
                         navigate(`/${setting.toLowerCase()}`);
                       }
@@ -414,6 +416,7 @@ const Navbar = () => {
                     <Typography sx={{ textAlign: "center" }}>{setting}</Typography>
                   </MenuItem>
                 ))}
+
 
 
               </Menu>
