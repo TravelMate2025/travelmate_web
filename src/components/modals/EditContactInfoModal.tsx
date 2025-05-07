@@ -99,7 +99,13 @@ export default function EditContactInfoModal({ isOpen, onClose, currentUserInfo 
             <input
               type="text"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => {
+                const input = e.target.value;
+                if (/^\d*$/.test(input)) {
+                  setPhone(input.slice(0, 14)); 
+                }
+              }}
+              maxLength={14}
               className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2"
               placeholder="Enter phone number"
             />
