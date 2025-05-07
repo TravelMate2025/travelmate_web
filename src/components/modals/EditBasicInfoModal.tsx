@@ -137,7 +137,7 @@ export default function EditBasicInfoModal({
               />
               Female
             </label>
-            <label className="flex items-center">
+            {/* <label className="flex items-center">
               <input
                 type="radio"
                 name="gender"
@@ -147,7 +147,7 @@ export default function EditBasicInfoModal({
                 onChange={() => setGender("I prefer not to say")}
               />
               I prefer not to say
-            </label>
+            </label> */}
           </div>
         </div>
 

@@ -54,7 +54,7 @@ export default function ProfileInfo() {
 
     const breadcrumbs = [
         { name: "Home", link: "/" },
-        { name: "Account", link: "/profile" },
+        { name: "Account", link: "/account" },
         { name: activeTab },
     ];
 

@@ -99,6 +99,43 @@ export const loginUser = async (email: string, password: string) => {
 
 
 
+
+// Corrected logoutUser function
+export const logoutUser = async (accessToken: string): Promise<void> => {
+  try {
+    console.log("📤 Initiating logout request...");
+    console.log("🔐 Access Token:", accessToken);
+
+    const response = await axios.post(
+      `${API_BASE_URL}/users/logout/`,
+      {}, // empty body
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    console.log("✅ Logout successful:", response.status); // Should log 204
+  } catch (error: any) {
+    if (error.response) {
+      console.error("❌ Logout request failed", error.response.status, error.response.data);
+    } else if (error.request) {
+      console.error("📭 No response received:", error.request);
+    } else {
+      console.error("🚨 Logout error:", error.message);
+    }
+    throw new Error("Logout failed. Check network and CORS settings.");
+  }
+};
+
+
+
+
+
+
+
 export const refreshToken = async (access: string) => {
     try {
         console.log("Attempting to refresh token with:", access);
