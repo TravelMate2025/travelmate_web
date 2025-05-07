@@ -14,7 +14,7 @@ import toast from "react-hot-toast";
 export default function UserOptions() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, accessToken } = useSelector((state: RootState) => state.auth);
+  const { accessToken } = useSelector((state: RootState) => state.auth);
   const [logoutLoading, setLogoutLoading] = useState(false);
 
 
