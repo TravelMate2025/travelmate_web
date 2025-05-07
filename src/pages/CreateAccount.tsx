@@ -124,7 +124,7 @@ export default function CreateAccount() {
         if (
           backendError?.non_field_errors?.includes("User is already registered with this e-mail address.")
         ) {
-          toast.error("This Google account is already registered. Please log in instead.");
+          toast.success("This Google account is already registered. Please log in instead.");
           navigate("/login", { state: { email: googleEmail } }); // ✅ pass the fetched email here
         } else {
           // Generic fallback
