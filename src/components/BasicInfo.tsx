@@ -41,7 +41,11 @@ export default function BasicInfo({ title, fields, onEdit }: BasicInfoProps) {
         {fields.map((field, index) => (
           <div key={index}>
             <p className="text-lg font-semibold">{field.label}</p>
-            <p className="text-gray-600">{field.value || "Not available"}</p>
+            <p className="text-gray-600">
+              {(!field.value || field.value.trim().toLowerCase().includes("null"))
+                ? "Not available"
+                : field.value}
+            </p>
           </div>
         ))}
       </div>
