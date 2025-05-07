@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { FaGoogle, FaApple, FaFacebook } from "react-icons/fa";
+import { FaGoogle, FaApple } from "react-icons/fa";
 import AuthNavbar from "../components/AuthNavbar";
 import Spinner from "../components/Spinner"; 
 import { useNavigate } from "react-router-dom";
-import { socialFacebookLogin, submitEmail } from "../api/auth"
+import { submitEmail } from "../api/auth"
 import { toast } from "react-hot-toast";
 
 import { useGoogleLogin } from "@react-oauth/google";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../features/auth/authSlice";
 import { socialGoogleLogin } from "../api/auth";
-import { facebookLogin } from "../utils/firebase";
+// import { facebookLogin } from "../utils/firebase";
 
 
 export default function CreateAccount() {
@@ -125,49 +125,49 @@ export default function CreateAccount() {
   });
 
 
-  const handleFacebookLogin = async () => {
-    try {
-      const access_token = await facebookLogin();
+  // const handleFacebookLogin = async () => {
+  //   try {
+  //     const access_token = await facebookLogin();
   
-      if (!access_token) {
-        toast.error("Facebook login failed: No token received.");
-        return;
-      }
+  //     if (!access_token) {
+  //       toast.error("Facebook login failed: No token received.");
+  //       return;
+  //     }
   
-      const res = await socialFacebookLogin(access_token);
+  //     const res = await socialFacebookLogin(access_token);
 
-      toast.loading("Logging in...");
+  //     toast.loading("Logging in...");
   
-      console.log("Facebook login success response:", res);
+  //     console.log("Facebook login success response:", res);
   
-      if (res?.access && res?.refresh) {
-        toast.dismiss();
-        toast.success("Login successful");
+  //     if (res?.access && res?.refresh) {
+  //       toast.dismiss();
+  //       toast.success("Login successful");
   
-        dispatch(
-          loginSuccess({
-            accessToken: res.access,
-            refreshToken: res.refresh,
-            user: {
-              id: res.setup_info?.id ?? 0,
-              email: res.setup_info?.email ?? "",
-              name: `${res.setup_info?.first_name || ""} ${res.setup_info?.last_name || ""}`.trim(),
-            },
-            registrationComplete: res.registration_complete ?? false,
-          })
-        );
-        navigate("/");
-      } else {
-        toast.dismiss();
-        toast.error("Unexpected response format. Please try again.");
-        console.error("Unexpected Facebook login response:", res);
-      }
-    } catch (error: any) {
-      toast.dismiss();
-      toast.error("Facebook login failed.");
-      console.error("Facebook login error:", error?.response?.data || error);
-    }
-  };
+  //       dispatch(
+  //         loginSuccess({
+  //           accessToken: res.access,
+  //           refreshToken: res.refresh,
+  //           user: {
+  //             id: res.setup_info?.id ?? 0,
+  //             email: res.setup_info?.email ?? "",
+  //             name: `${res.setup_info?.first_name || ""} ${res.setup_info?.last_name || ""}`.trim(),
+  //           },
+  //           registrationComplete: res.registration_complete ?? false,
+  //         })
+  //       );
+  //       navigate("/");
+  //     } else {
+  //       toast.dismiss();
+  //       toast.error("Unexpected response format. Please try again.");
+  //       console.error("Unexpected Facebook login response:", res);
+  //     }
+  //   } catch (error: any) {
+  //     toast.dismiss();
+  //     toast.error("Facebook login failed.");
+  //     console.error("Facebook login error:", error?.response?.data || error);
+  //   }
+  // };
   
   
 
@@ -235,16 +235,16 @@ export default function CreateAccount() {
             <span>Continue with Apple</span>
           </button>
 
-          <button
+          {/* <button
             type="button"
             onClick={handleFacebookLogin}
             className="relative w-full border border-[#023E8A] text-[#023E8A] cursor-pointer flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition"
           >
             <span className="absolute left-4"><FaFacebook /></span>
             <span>Continue with Facebook</span>
-          </button>
+          </button> */}
 
-          <p className="text-gray-700 text-sm text-center mt-5">
+          <p className="text-gray-700 text-sm text-center mt-15">
             By continuing, you have read and agree with our{" "}
             <a href="#" className="text-[#023E8A] font-medium hover:underline">Terms of Use</a> and{" "}
             <a href="#" className="text-[#023E8A] font-medium hover:underline">Privacy Policy</a>.
