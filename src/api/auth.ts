@@ -101,13 +101,13 @@ export const loginUser = async (email: string, password: string) => {
 
 
 // Corrected logoutUser function
-export const logoutUser = async (accessToken: string): Promise<void> => {
+export const logoutUser = async (accessToken: string) => {
   try {
     console.log("📤 Initiating logout request...");
     console.log("🔐 Access Token:", accessToken);
 
     const response = await axios.post(
-      `${API_BASE_URL}/users/logout/`,
+      `${API_BASE_URL}/api/users/logout/`,
       {}, // empty body
       {
         headers: {

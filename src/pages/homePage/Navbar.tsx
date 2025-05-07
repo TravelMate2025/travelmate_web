@@ -31,6 +31,13 @@ import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined';
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 
+import { useDispatch } from "react-redux";
+import { logoutUser } from "../../api/auth";
+import { logout as navlogout } from "../../features/auth/authSlice";
+import toast from "react-hot-toast";
+import Spinner from "../../components/Spinner";
+
+
 const navItems = [
   { name: "Home", path: "/" },
   { name: "Stays", path: "/stays-search-result" },
@@ -41,11 +48,12 @@ const navItems = [
 const settings = ["Profile", "Account", "Dashboard", "Logout"];
 
 const menuItems = [
-  { text: "Account", icon: <PersonOutlinedIcon /> },
-  { text: "Bookings", icon: <ClassOutlinedIcon /> },
-  { text: "Favorites", icon: <FavoriteBorderOutlinedIcon /> },
-  { text: "Notifications", icon: <NotificationsNoneOutlinedIcon /> },
+  { text: "Account", icon: <PersonOutlinedIcon />, path: "/account" },
+  { text: "Bookings", icon: <ClassOutlinedIcon />, path: "/bookings" },
+  { text: "Favorites", icon: <FavoriteBorderOutlinedIcon />, path: "/favorites" },
+  { text: "Notifications", icon: <NotificationsNoneOutlinedIcon />, path: "/notifications" },
 ];
+
 
 const logout = [
   { text: "Log out", icon: <LoginOutlinedIcon /> }
@@ -53,6 +61,7 @@ const logout = [
 
 const Navbar = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
   const { user, accessToken } = useSelector((state: RootState) => state.auth);
   const initials = user?.name?.charAt(0).toUpperCase() || "U";
   const isLoggedIn = Boolean(accessToken && user && user.email);
@@ -60,6 +69,27 @@ const Navbar = () => {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [activeTab, setActiveTab] = useState("Home");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleLogout = async () => {
+    if (!accessToken) {
+      toast.error("User session expired. Login again to continue.");
+      return;
+    }
+
+    setLogoutLoading(true);
+    try {
+      await logoutUser(accessToken);
+      dispatch(navlogout());
+      localStorage.clear();
+      navigate("/create-account");
+    } catch (error) {
+      console.error("Logout failed", error);
+      toast.error("Logout failed. Please try again.");
+    } finally {
+      setLogoutLoading(false);
+    }
+  };
 
   const toggleDrawer = () => {
     setOpenDrawer((prev) => !prev);
@@ -84,6 +114,15 @@ const Navbar = () => {
 
   return (
     <div>
+      {logoutLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-50">
+          <div className="w-16 h-16 flex items-center justify-center bg-[#CCD8E8] rounded-full bg-opacity-50 z-50">
+            <Spinner />
+          </div>
+        </div>
+      )}
+
+
       {isMobile ? (
         <AppBar
           position="fixed"
@@ -210,10 +249,10 @@ const Navbar = () => {
 
                         <Divider sx={{ marginBottom: "20px" }} />
 
-                        {menuItems.map(({ text, icon }) => (
+                        {menuItems.map(({ text, icon, path }) => (
                           <ListItem 
                             key={text}
-                            onClick={() => handleNavItemClick(text.toLowerCase())}
+                            onClick={() => handleNavItemClick(path)}
                             sx={{ cursor: "pointer", display: "flex", alignItems: "center" }}
                           >
                             <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
@@ -221,10 +260,14 @@ const Navbar = () => {
                           </ListItem>
                         ))}
 
+
                         {logout.map(({text, icon}) => (
                           <ListItem 
                             key={text}
-                            onClick={toggleDrawer}
+                            onClick={() => {
+                              toggleDrawer();
+                              handleLogout();
+                            }}
                             sx={{ cursor: "pointer", display: "flex", alignItems: "center", marginTop: "26px" }}
                           >
                             <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
@@ -367,6 +410,7 @@ const Navbar = () => {
                     <Typography sx={{ textAlign: "center" }}>{setting}</Typography>
                   </MenuItem>
                 ))}
+
               </Menu>
             </Box>
           </Toolbar>
