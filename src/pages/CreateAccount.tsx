@@ -67,6 +67,8 @@ export default function CreateAccount() {
   
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
+      let googleEmail = "";
+      
       try {
         const access_token = tokenResponse.access_token;
         console.log("Google Access Token:", access_token);
@@ -74,6 +76,20 @@ export default function CreateAccount() {
         if (!access_token) {
           toast.error("Google login failed: No access token received.");
           return;
+        }
+  
+        // Fetch user info from Google
+        try {
+          const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+            },
+          });
+          const googleUser = await userInfoRes.json();
+          googleEmail = googleUser?.email || "";
+          console.log("Fetched Google email:", googleEmail);
+        } catch (err) {
+          console.error("Failed to fetch Google user info:", err);
         }
   
         const res = await socialGoogleLogin(access_token);
@@ -109,8 +125,7 @@ export default function CreateAccount() {
           backendError?.non_field_errors?.includes("User is already registered with this e-mail address.")
         ) {
           toast.error("This Google account is already registered. Please log in instead.");
-          localStorage.setItem("email", email);
-          navigate("/login", { state: { email } });
+          navigate("/login", { state: { email: googleEmail } }); // ✅ pass the fetched email here
         } else {
           // Generic fallback
           toast.error("Google login failed. Please try again.");
@@ -122,54 +137,10 @@ export default function CreateAccount() {
       toast.error("Google login was unsuccessful.");
     },
     flow: "implicit",
+    scope: "openid email profile", // ✅ make sure this is included
   });
+  
 
-
-  // const handleFacebookLogin = async () => {
-  //   try {
-  //     const access_token = await facebookLogin();
-  
-  //     if (!access_token) {
-  //       toast.error("Facebook login failed: No token received.");
-  //       return;
-  //     }
-  
-  //     const res = await socialFacebookLogin(access_token);
-
-  //     toast.loading("Logging in...");
-  
-  //     console.log("Facebook login success response:", res);
-  
-  //     if (res?.access && res?.refresh) {
-  //       toast.dismiss();
-  //       toast.success("Login successful");
-  
-  //       dispatch(
-  //         loginSuccess({
-  //           accessToken: res.access,
-  //           refreshToken: res.refresh,
-  //           user: {
-  //             id: res.setup_info?.id ?? 0,
-  //             email: res.setup_info?.email ?? "",
-  //             name: `${res.setup_info?.first_name || ""} ${res.setup_info?.last_name || ""}`.trim(),
-  //           },
-  //           registrationComplete: res.registration_complete ?? false,
-  //         })
-  //       );
-  //       navigate("/");
-  //     } else {
-  //       toast.dismiss();
-  //       toast.error("Unexpected response format. Please try again.");
-  //       console.error("Unexpected Facebook login response:", res);
-  //     }
-  //   } catch (error: any) {
-  //     toast.dismiss();
-  //     toast.error("Facebook login failed.");
-  //     console.error("Facebook login error:", error?.response?.data || error);
-  //   }
-  // };
-  
-  
 
 
 
@@ -234,15 +205,6 @@ export default function CreateAccount() {
             <span className="absolute left-4"><FaApple /></span>
             <span>Continue with Apple</span>
           </button>
-
-          {/* <button
-            type="button"
-            onClick={handleFacebookLogin}
-            className="relative w-full border border-[#023E8A] text-[#023E8A] cursor-pointer flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition"
-          >
-            <span className="absolute left-4"><FaFacebook /></span>
-            <span>Continue with Facebook</span>
-          </button> */}
 
           <p className="text-gray-700 text-sm text-center mt-15">
             By continuing, you have read and agree with our{" "}
