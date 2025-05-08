@@ -13,7 +13,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
 
   if (!token) {
     toast.error("You must be logged in to access that page.");
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/create-account" replace />;
   }
 
   return children;
