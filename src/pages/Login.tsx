@@ -6,10 +6,12 @@ import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/";
-import { loginSuccess } from "../features/auth/authSlice";
+import { loginSuccess, updateProfileId, updateUserName } from "../features/auth/authSlice";
 import { useLocation } from "react-router-dom";
 import { loginUser } from "../api/auth";
+import { setUserProfile as setProfileInRedux } from "../features/reduxslices/profileSlice"
 import { toast } from "react-hot-toast";
+import { fetchUserProfile } from "../api/profile";
 
 export default function Login() {
   const [password, setPassword] = useState("");
@@ -28,12 +30,10 @@ export default function Login() {
     setIsLoading(true);
   
     try {
+      // Step 1: Authenticate and save basic user info to Redux
       const res = await loginUser(email || "", password);
-
-      const firstName = res.setup_info.first_name?.trim() || "";
-      const lastName = res.setup_info.last_name?.trim() || "";
-      const fullName = `${firstName} ${lastName}`.trim();
-
+  
+      // Step 2: Dispatch basic auth info to Redux (no temporary empty name here)
       dispatch(
         loginSuccess({
           accessToken: res.access,
@@ -41,18 +41,42 @@ export default function Login() {
           user: {
             id: res.setup_info.id,
             email: res.setup_info.email,
-            name: fullName || "", 
+            name: `${res.setup_info.first_name || ""} ${res.setup_info.last_name || ""}`.trim(),
           },
           registrationComplete: res.registration_complete,
         })
       );
-
-      toast.success(`Welcome back, ${firstName || "User"}!`);
-
-      navigate("/");
-    } catch (err : any) {
+  
+      // Step 3: Fetch full user profile
+      const profileData = await fetchUserProfile(res.access);
+  
+      // Ensure the profile data is saved in Redux
+      dispatch(setProfileInRedux(profileData));
+  
+      // Step 4: Update full name if needed (already set during login step, but ensure consistency)
+      const fullName = `${profileData.first_name || ""} ${profileData.last_name || ""}`.trim();
+      if (fullName) {
+        dispatch(updateUserName(fullName));
+      }
+  
+      // Step 5: Update profile ID if available
+      if (profileData.id) {
+        dispatch(updateProfileId(profileData.id));
+      }
+  
+      // Step 6: Check for missing profile information
+      const isProfileIncomplete = !profileData.first_name || !profileData.last_name || !profileData.gender || !profileData.date_of_birth;
+  
+      if (isProfileIncomplete) {
+        toast.success(`Welcome back, ${fullName || "User"}!, Please navigate to the profile page to complete your profile`);
+        navigate("/");
+      } else {
+        toast.success(`Welcome back, ${fullName || "User"}!`);
+        navigate("/");
+      }
+  
+    } catch (err: any) {
       let errorMsg = "Something went wrong. Please try again.";
-
       const serverMessage = err.response?.data?.Message;
   
       if (
@@ -70,6 +94,7 @@ export default function Login() {
       setIsLoading(false);
     }
   };
+  
   
   
 

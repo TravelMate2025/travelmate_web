@@ -57,7 +57,7 @@ export default function DeleteAccountModal({ isOpen, onClose }: DeleteAccountMod
       localStorage.removeItem("email");
       localStorage.removeItem("verify_email");
 
-      navigate("/");
+      navigate("/create-account");
     } catch (err: any) {
       const backendMessage = err?.response?.data?.Message || err?.response?.data?.message;
       setError(backendMessage || "Failed to delete account. Please try again.");

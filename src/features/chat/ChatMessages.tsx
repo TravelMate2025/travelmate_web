@@ -6,6 +6,7 @@ interface Message {
   sender: string;
   timestamp: string;
   pending?: boolean;
+  clientId?: string;
 }
 
 interface Chat {
@@ -20,17 +21,16 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
   }, [activeChat?.messages.length]);
 
   if (!activeChat) {
-    console.log("no active chat")
+    console.log("no active chat");
     return null;
-  };
-  
+  }
 
   return (
     <div className="flex flex-col gap-4 my-6 overflow-y-auto h-[60vh]">
       {activeChat.messages.map((msg, idx) => (
         <div
-          key={msg.id || idx}
-          className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+          key={`${msg.id ?? idx}-${msg.timestamp}`}
+          className={`flex mb-6 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
         >
           <div
             className={`max-w-[60%] p-3 rounded-lg ${
@@ -39,7 +39,9 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
           >
             <p>{msg.content}</p>
             <small className="text-gray-500 text-xs">
-              {new Date(msg.timestamp).toLocaleString()}
+              {msg.pending
+                ? "Pending..."
+                : new Date(msg.timestamp).toLocaleString()}
             </small>
           </div>
         </div>
