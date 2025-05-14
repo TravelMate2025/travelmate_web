@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
 
-// CircleAvatar Component
+const API_BASE_URL = 'https://travelmate-backend-0suw.onrender.com/api';
+
 interface CircleAvatarProps {
   text: string;
   size?: number;
+}
+
+interface Agent {
+  id: number;
+  displayName: string;
 }
 
 const CircleAvatar: React.FC<CircleAvatarProps> = ({ text, size = 40 }) => {
@@ -30,26 +38,41 @@ const CircleAvatar: React.FC<CircleAvatarProps> = ({ text, size = 40 }) => {
   );
 };
 
-// Dummy agents
-const dummyAgents = [
-  { id: 1, firstName: "Elvis" },
-  { id: 2, firstName: "Sarah" },
-  { id: 3, firstName: "Michael" },
-];
 
-// AgentList Component
 const AgentList: React.FC = () => {
-  const [agents,] = useState<any[]>([]); // State for storing agents
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [ ,setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
+  const { accessToken } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-    // Fetch available agents from the backend
     const fetchAvailableAgents = async () => {
       try {
-        // const response = await fetch("/api/agents"); // Replace with actual API endpoint
-        // const data = await response.json();
-        // setAgents(data); // Assume the response contains an array of available agents
+        const token = accessToken
+        if (!token) {
+          throw new Error("Access token not found");
+        }
+
+        const response = await fetch(`${API_BASE_URL}/chat/admins`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const contentType = response.headers.get("content-type");
+        if (!response.ok || !contentType?.includes("application/json")) {
+          throw new Error("Invalid response from server");
+        }
+
+        const data = await response.json();
+        const extractedAgents = data.results.map((agent: any) => ({
+          id: agent.id,
+          displayName:
+            agent.first_name?.trim() || agent.email?.split("@")[0] || "A",
+        }));
+
+        setAgents(extractedAgents);
       } catch (err) {
         setError("Failed to fetch agents");
         console.error("Error fetching agents:", err);
@@ -61,8 +84,7 @@ const AgentList: React.FC = () => {
     fetchAvailableAgents();
   }, []);
 
-  // If no agents are available from the backend, fall back to dummy agents
-  const displayedAgents = agents.length > 0 ? agents : dummyAgents;
+  const displayedAgents = agents.slice(0, 3);
 
   return (
     <div className="flex justify-center my-4">
@@ -73,15 +95,14 @@ const AgentList: React.FC = () => {
             className="relative"
             style={{
               marginLeft: index === 0 ? 0 : "-7%",
-              zIndex: displayedAgents.length - index, // make sure leftmost is at the bottom
+              zIndex: displayedAgents.length - index,
             }}
           >
-            <CircleAvatar text={agent.firstName} />
+            <CircleAvatar text={agent.displayName} />
           </div>
         ))}
       </div>
-      {loading && <p>Loading agents...</p>}
-      {/* {error && <p className="text-red-500">{error}</p>} */}
+      {loading && <p className="ml-4">Loading...</p>}
     </div>
   );
 };

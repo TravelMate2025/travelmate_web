@@ -1,17 +1,27 @@
 import { useEffect, useRef } from "react";
+import { Chat } from "../../types/chat";
 
-interface Message {
-  id?: number;
-  content: string;
-  sender: string;
-  timestamp: string;
-  pending?: boolean;
-  clientId?: string;
-}
 
-interface Chat {
-  messages: Message[];
-}
+// interface Message {
+//   id?: number;
+//   content: string;
+//   sender: string;
+//   timestamp: string;
+//   pending?: boolean;
+//   first_name?: string;
+// }
+
+// interface UserInfo {
+//   first_name?: string;
+//   email?: string;
+// }
+
+// interface Chat {
+//   messages: Message[];
+//   admin_info: UserInfo;
+//   user_info: UserInfo;
+// }
+
 
 const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -26,27 +36,66 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
   }
 
   return (
-    <div className="flex flex-col gap-4 my-6 overflow-y-auto h-[60vh]">
-      {activeChat.messages.map((msg, idx) => (
-        <div
-          key={`${msg.id ?? idx}-${msg.timestamp}`}
-          className={`flex mb-6 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
-        >
+    <div className="flex flex-col gap-2 py-2 mb-20">
+      {activeChat.messages.map((msg, idx) => {
+        const isUser = msg.sender === "user";
+        const sender = isUser ? activeChat.user_info : activeChat.admin_info;
+        
+        const displayName =
+          sender?.first_name?.trim() ||
+          sender?.email?.split("@")[0] ||
+          (isUser ? "User" : "Admin");
+        
+        const adminInitial = sender?.first_name?.charAt(0).toUpperCase() || sender?.email?.charAt(0).toUpperCase() || "A";
+        
+
+        return (
           <div
-            className={`max-w-[60%] p-3 rounded-lg ${
-              msg.pending ? "bg-yellow-100" : "bg-gray-100"
-            }`}
+            key={`${msg.id ?? idx}-${msg.timestamp}`}
+            className={`flex mb-2 ${isUser ? "justify-end" : "justify-start"}`}
           >
-            <p>{msg.content}</p>
-            <small className="text-gray-500 text-xs">
-              {msg.pending
-                ? "Pending..."
-                : new Date(msg.timestamp).toLocaleString()}
-            </small>
+            <div className={`flex ${isUser ? "flex-row-reverse items-end" : "gap-2 items-center"}`}>
+
+              {!isUser && (
+                <div className="w-8 h-8 rounded-full bg-[#023E8A] text-white flex items-center justify-center text-sm font-semibold">
+                  {adminInitial}
+                </div>
+              )}
+
+              <div className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
+                <div
+                  className={`w-fit min-w-[100px] max-w-[70%] md:max-w-[60%] p-3 text-sm rounded-lg ${
+                    msg.pending
+                      ? "bg-yellow-100 text-[#023E8A]"
+                      : isUser
+                      ? "bg-[#023E8A] text-white"
+                      : "bg-gray-200 text-black"
+                  }`}
+                >
+                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                </div>
+
+                {!isUser && (
+                  <small className="text-gray-500 text-xs mt-1">
+                    {displayName}
+                    <span className="mx-1">·</span>
+                    {msg.pending
+                      ? "Pending..."
+                      : new Date(msg.timestamp).toLocaleString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                  </small>
+                )}
+
+              </div>
+            </div>
+            <div ref={bottomRef} />
           </div>
-        </div>
-      ))}
-      <div ref={bottomRef} />
+        );
+      })}
     </div>
   );
 };

@@ -1,5 +1,6 @@
 // src/features/chat/ChatInput.tsx
 import { useState } from "react";
+import { MdOutlineImage } from "react-icons/md";
 
 const ChatInput = ({ onSend }: { onSend: (text: string) => void }) => {
   const [message, setMessage] = useState("");
@@ -16,7 +17,7 @@ const ChatInput = ({ onSend }: { onSend: (text: string) => void }) => {
       
       <div className="flex items-center px-2 py-3 md:p-5 rounded-md border border-gray-300">
       <button className="mr-2 text-xl">
-        📷 {/* Image upload icon (can later connect file upload) */}
+      <MdOutlineImage size={34} />
       </button>
       <input
         type="text"

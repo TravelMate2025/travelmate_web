@@ -46,8 +46,8 @@ export const sendChatMessage = async (chatId: number, text: string, senderId: nu
     console.log(`[API] Sending message to chat ${chatId}...`);
 
     const payload = {
-      session: chatId,       // Required by backend
-      sender: senderId,        // Or "admin" depending on current user
+      session: chatId,      
+      sender: senderId,      
       content: text,
     };
 

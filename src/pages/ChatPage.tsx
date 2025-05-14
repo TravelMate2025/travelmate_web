@@ -1,5 +1,5 @@
-// src/pages/ChatPage.tsx
 import { useEffect, useRef, useState } from "react";
+import { format } from "date-fns";
 import {
   createChat,
   fetchChat,
@@ -12,7 +12,8 @@ import ChatMessages from "../features/chat/ChatMessages";
 import { RootState } from "../store";
 import { useSelector } from "react-redux";
 import { ChatWebSocket } from "../utils/websocket";
-import ChatList from "./ChatList";
+import { Chat } from "../types/chat";
+
 
 interface Message {
   id?: number;
@@ -20,15 +21,9 @@ interface Message {
   sender: string;
   timestamp: string;
   pending?: boolean;
-  clientId?: string;
+  first_name?: string;
 }
 
-interface Chat {
-  id: number;
-  title: string;
-  status: string;
-  messages: Message[];
-}
 
 const ChatPage = () => {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -37,6 +32,8 @@ const ChatPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [loadingNewChat, setLoadingNewChat] = useState(false);
   const [wsConnected, setWsConnected] = useState(false);
+  const [activeTab, setActiveTab] = useState<"active" | "history">("active");
+
   const { user, accessToken } = useSelector((state: RootState) => state.auth);
   const wsRef = useRef<ChatWebSocket | null>(null);
 
@@ -44,28 +41,14 @@ const ChatPage = () => {
 
   const initializeWebSocket = (chatId: number) => {
     if (!accessToken || !user) return;
-  
-    // If already connected to the same session, skip
-    if (wsRef.current && wsRef.current.sessionId === chatId) {
-      console.log("WebSocket already connected to this chat. Skipping reconnection.");
-      return;
-    }
-  
-    // Clean up old socket before making a new one
+
+    if (wsRef.current && wsRef.current.sessionId === chatId) return;
+
     wsRef.current?.close();
-  
     const ws = new ChatWebSocket(chatId, accessToken);
-  
-    ws.onOpen(() => {
-      console.log("WebSocket opened ✅");
-      setWsConnected(true);
-    });
-  
-    ws.onClose(() => {
-      console.log("WebSocket closed ❌");
-      setWsConnected(false);
-    });
-  
+
+    ws.onOpen(() => setWsConnected(true));
+    ws.onClose(() => setWsConnected(false));
     ws.onMessage((msg: any) => {
       const normalizedMessage: Message = {
         id: msg.id,
@@ -73,206 +56,305 @@ const ChatPage = () => {
         sender: msg.sender_id === user.id ? "user" : "admin",
         timestamp: msg.created_at ?? new Date().toISOString(),
         pending: false,
+        first_name: msg.sender_info?.first_name || "Admin",
       };
-    
+
       setActiveChat((prev) => {
         if (!prev) return prev;
-    
-        // Check for duplicate
-        const exists = prev.messages.some(
+        const newMessages = [...prev.messages];
+        const matchIdx = newMessages.findIndex(
           (m) =>
-            m.id === normalizedMessage.id ||
-            (m.pending &&
-              m.content === normalizedMessage.content &&
-              m.sender === "user")
+            m.pending &&
+            m.content === normalizedMessage.content &&
+            Math.abs(
+              new Date(m.timestamp).getTime() -
+                new Date(normalizedMessage.timestamp).getTime()
+            ) < 3000
         );
-    
-        if (exists) return prev;
-    
+
+        if (matchIdx !== -1) {
+          newMessages[matchIdx] = normalizedMessage;
+        } else {
+          const exists = newMessages.some((m) => m.id === normalizedMessage.id);
+          if (!exists) newMessages.push(normalizedMessage);
+        }
+
         return {
           ...prev,
-          messages: [...prev.messages, normalizedMessage],
+          messages: newMessages,
         };
       });
     });
-    
-  
+
     ws.connect();
     wsRef.current = ws;
   };
-  
-
 
   useEffect(() => {
     const loadChats = async () => {
       try {
         const data = await fetchUserChats();
         setChats(data);
-  
+
         if (data.length > 0) {
           const chat = await fetchChat(data[0].id);
-  
-          // ✅ Normalize messages from backend
           const normalizedMessages = chat.messages.map((msg: any) => ({
             id: msg.id,
             content: msg.content ?? msg.message,
             sender: msg.sender === user?.id ? "user" : "admin",
             timestamp: msg.created_at ?? msg.timestamp,
             pending: false,
+            first_name: msg.sender_info?.first_name || "Admin",
           }));
-  
-          setActiveChat({
-            ...chat,
-            messages: normalizedMessages,
-          });
-  
+
+          setActiveChat({ ...chat, messages: normalizedMessages });
           initializeWebSocket(chat.id);
         }
-  
       } catch (err: any) {
         setError(err.message || "Error fetching chats");
       } finally {
         setLoading(false);
       }
     };
-  
+
     loadChats();
-  
-    return () => {
-      wsRef.current?.close();
-    };
+    return () => wsRef.current?.close();
   }, []);
-  
 
   const handleSelectChat = async (chatId: number) => {
     try {
-      const chat = await fetchChat(chatId);
+      setLoading(true);
+      setActiveChat(null); // Clear old chat to trigger loading state
+      setActiveTab("active");
 
+      const chat = await fetchChat(chatId);
       const normalizedMessages = chat.messages.map((msg: any) => ({
         id: msg.id,
         content: msg.content ?? msg.message,
         sender: msg.sender === user?.id ? "user" : "admin",
         timestamp: msg.created_at ?? msg.timestamp,
         pending: false,
+        first_name: msg.sender_info?.first_name || "Admin",
       }));
 
       setActiveChat({ ...chat, messages: normalizedMessages });
       initializeWebSocket(chatId);
     } catch (err) {
       console.error("Error switching chat:", err);
+    } finally {
+      setLoading(false); 
     }
   };
-
-
 
   const handleSendMessage = async (message: string) => {
     if (!activeChat || !user || !wsRef.current || activeChat.status === "closed") return;
 
-    const clientId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
     const pendingMsg: Message = {
-      clientId,
       content: message,
       sender: "user",
       timestamp: new Date().toISOString(),
       pending: true,
     };
-    
 
     setActiveChat((prev) =>
       prev ? { ...prev, messages: [...prev.messages, pendingMsg] } : prev
     );
 
-    wsRef.current.sendMessage(message, clientId);
+    wsRef.current.sendMessage(message);
   };
 
-  const handleNewConversation = async (customTitle?: string) => {
-    if (!user) return;
 
-    try {
-      setLoadingNewChat(true);
-      setActiveChat(null);
-      const newChat = await createChat(user.id, customTitle || "Let's Start a New Chat");
-      const chatData = await fetchChat(newChat.id);
-      setChats((prev) => [chatData, ...prev]);
-      setActiveChat(chatData);
-      initializeWebSocket(chatData.id);
-    } catch (err) {
-      console.error("Error starting new chat", err);
-    } finally {
-      setLoadingNewChat(false);
-    }
-  };
+const handleNewConversation = async (customTitle?: string) => {
+  if (!user) return;
+  try {
+    setLoadingNewChat(true);
+    setActiveChat(null);
 
-  if (error)
+    // Generate a dynamic default title with the month in words and a nice format
+    const fallbackTitle = `Conversation on ${format(new Date(), "d MMMM yyyy 'at' h:mm a")}`;
+    
+    const newChat = await createChat(user.id, customTitle || fallbackTitle);
+
+    const chatData = await fetchChat(newChat.id);
+    setChats((prev) => [chatData, ...prev]);
+    setActiveChat(chatData);
+    initializeWebSocket(chatData.id);
+    setActiveTab("active");
+  } catch (err) {
+    console.error("Error starting new chat", err);
+  } finally {
+    setLoadingNewChat(false);
+  }
+};
+
+
+const renderChatHistory = () => (
+  <div className="flex flex-col flex-1 overflow-auto">
+    <div className="flex flex-col gap-4 flex-1 pt-4">
+      {chats.map((chat) => {
+        const preview = chat.last_message?.content
+          ? chat.last_message.content.slice(0, 80)
+          : "No message yet";
+
+        const adminInitial =
+          chat.admin_info?.first_name?.trim()
+            ? chat.admin_info.first_name.trim().charAt(0).toUpperCase()
+            : chat.admin_info?.email?.charAt(0).toUpperCase() || "?";
+
+        return (
+          <div
+            key={chat.id}
+            onClick={() => handleSelectChat(chat.id)}
+            className="cursor-pointer flex items-start p-4 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+          >
+            <div className="w-10 h-10 rounded-full bg-[#023E8A] text-white flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">
+              {adminInitial}
+            </div>
+
+            <div className="flex flex-col">
+              <h3 className="font-semibold">{chat.title}</h3>
+              <p className="text-sm text-gray-600 mt-1">{preview}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+
+    {/* Button stays pinned to bottom */}
+  <div className="absolute bottom-2 right-0 left-0 flex justify-center p-4 border-t bg-white">
+    <button
+      onClick={() => handleNewConversation()}
+      className="w-full max-w-[100%] md:max-w-[500px] bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"
+    >
+      Start New Conversation
+    </button>
+  </div>
+
+  </div>
+);
+
+  
+
+  if (error) {
     return (
       <div className="flex justify-center items-center h-screen">
         <p className="text-red-500">Error loading chat: {error}</p>
       </div>
     );
+  }
 
   return (
     <div className="flex flex-col min-h-screen sm:max-w-[93%] mx-auto p-4">
       <Navbar />
-      <div className="my-10"></div>
-      <div className="text-left">
-        <h1 className="text-xl font-bold mb-2 text-center sm:text-left">Chat with Us</h1>
+      <div className="my-10" />
+      <h1 className="text-xl font-bold text-center sm:text-left mb-4">Chat with Us</h1>
+
+      {/* Tab Buttons */}
+      <div className="flex w-full mb-4 border-b border-gray-300">
+        <button
+          onClick={() => setActiveTab("active")}
+          className={`w-1/2 text-center py-2 ${
+            activeTab === "active"
+              ? "border-b-2 border-orange-500 font-semibold"
+              : "text-gray-600"
+          }`}
+        >
+          Active Chat
+        </button>
+        <button
+          onClick={() => setActiveTab("history")}
+          className={`w-1/2 text-center py-2 ${
+            activeTab === "history"
+              ? "border-b-2 border-orange-500 font-semibold"
+              : "text-gray-600"
+          }`}
+        >
+          Chat History
+        </button>
       </div>
+
+
       <div className="flex-1 overflow-y-auto">
-        <AgentList />
-        <p className="text-gray-600 text-center">
-          Hello {user?.name?.split(" ")[0] || "User"}, We usually respond within 2 minutes.
-        </p>
-        <p className="text-gray-400 text-center mt-1 mb-4">
-          Ask us anything or share your feedback with us.
-        </p>
-
-        <ChatList
-          chats={chats}
-          activeChatId={activeChat?.id ?? null}
-          onSelectChat={handleSelectChat}
-        />
-
-
-        {loading ? (
-          <div className="text-center mt-10 text-gray-500">Loading conversation...</div>
-        ) : chats.length === 0 ? (
-          <div className="text-center mt-10">
-            <p>You have no conversations yet.</p>
-            <button
-              onClick={() => handleNewConversation()}
-              className="mt-2 bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"
-              disabled={loadingNewChat}
-            >
-              {loadingNewChat ? "Starting..." : "Start New Conversation"}
-            </button>
-          </div>
-        ) : (
-          <ChatMessages activeChat={activeChat} />
-        )}
-      </div>
-
-      {!loading && activeChat && activeChat.status !== "closed" ? (
-        <>
-          {!wsConnected && (
-            <p className="text-red-500 text-center text-sm mt-2">
-              Connecting to server...
+        {activeTab === "active" ? (
+          <>
+            <AgentList />
+            <p className="text-gray-600 text-center">
+              Hello {user?.name?.split(" ")[0] || "User"}, We usually respond within 2 minutes.
             </p>
-          )}
-          <ChatInput onSend={handleSendMessage} />
-        </>
-      ) : !loading && chats.length > 0 ? (
-        <div className="text-center mt-4">
-          <p>This conversation has been closed.</p>
-          <button
-            onClick={() => handleNewConversation()}
-            className="mt-2 bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"
-            disabled={loadingNewChat}
-          >
-            {loadingNewChat ? "Starting..." : "Start New Conversation"}
-          </button>
-        </div>
-      ) : null}
+            <p className="text-gray-400 text-center mt-1 mb-4">
+              Ask us anything or share your feedback with us.
+            </p>
+
+            {loading ? (
+              <div className="space-y-4 p-4">
+                <div className="animate-pulse flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </div>
+                <div className="animate-pulse flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-300 rounded w-2/3"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                  </div>
+                </div>
+                <div className="animate-pulse flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-300 rounded w-2/3"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                  </div>
+                </div>
+              </div>
+
+            ) : chats.length === 0 ? (
+              <div className="text-center mt-10">
+                <p>You have no conversations yet.</p>
+                <button
+                  onClick={() => handleNewConversation()}
+                  className="mt-2 bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"
+                  disabled={loadingNewChat}
+                >
+                  {loadingNewChat ? "Starting..." : "Start New Conversation"}
+                </button>
+              </div>
+            ) : (
+              <ChatMessages activeChat={activeChat} />
+            )}
+
+            {!loading && activeChat && activeChat.status !== "closed" ? (
+              <>
+                {!wsConnected && (
+                  <p className="text-red-500 text-center text-sm mt-2">
+                    Connecting to server...
+                  </p>
+                )}
+                <ChatInput onSend={handleSendMessage} />
+              </>
+            ) : !loading && chats.length > 0 ? (
+              <div className="text-center mt-4">
+                <p>This conversation has been closed.</p>
+                <button
+                  onClick={() => handleNewConversation()}
+                  className="mt-2 bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"
+                  disabled={loadingNewChat}
+                >
+                  {loadingNewChat ? "Starting..." : "Start New Conversation"}
+                </button>
+              </div>
+            ) : null}
+          </>
+        ) : (
+      
+            renderChatHistory()
+
+        )
+        
+        }
+      </div>
     </div>
   );
 };

@@ -16,7 +16,7 @@ const FaqAccordion: React.FC<Props> = ({ faqs }) => {
   };
 
   return (
-    <div className="w-full md:w-2/3 py-5 pl-4 border-r pr-4 border border-gray-300 rounded-lg">
+    <div className="w-full md:w-2/3 py-5 pl-4 md:border-r md:border-l pr-4 border-y border-gray-300 md:rounded-lg">
       {faqs.map((faq, index) => {
         const isLast = index === faqs.length - 1;
         const isOpen = openId === faq.id;
