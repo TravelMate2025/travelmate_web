@@ -13,6 +13,9 @@ import { RootState } from "../store";
 import { useSelector } from "react-redux";
 import { ChatWebSocket } from "../utils/websocket";
 import { Chat } from "../types/chat";
+import { IoChevronBack } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
+import Breadcrumbs from '../components/Breadcrumbs';
 
 
 interface Message {
@@ -33,6 +36,12 @@ const ChatPage = () => {
   const [loadingNewChat, setLoadingNewChat] = useState(false);
   const [wsConnected, setWsConnected] = useState(false);
   const [activeTab, setActiveTab] = useState<"active" | "history">("active");
+  const navigate = useNavigate();
+
+  const breadcrumbs = [
+    { name: "Home", link: "/" },
+    { name: "Chat with us" },
+  ];
 
   const { user, accessToken } = useSelector((state: RootState) => state.auth);
   const wsRef = useRef<ChatWebSocket | null>(null);
@@ -246,8 +255,23 @@ const renderChatHistory = () => (
   return (
     <div className="flex flex-col min-h-screen sm:max-w-[93%] mx-auto p-4">
       <Navbar />
-      <div className="my-10" />
-      <h1 className="text-xl font-bold text-center sm:text-left mb-4">Chat with Us</h1>
+      
+
+      <div className="my-10 md:mt-6" />
+      <div className='hidden md:ml-[-40px] md:block '>
+        <Breadcrumbs items={breadcrumbs} />
+      </div>
+      <div className="flex items-center md:hidden py-2 mb-2">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md p-2"
+        >
+          <IoChevronBack size={24} />
+        </button>
+  
+        <h1 className="text-2xl font-bold ml-16">Chat with Us</h1>
+      </div>
+      <h1 className="text-xl font-bold text-center hidden md:block sm:text-left mb-4">Chat with Us</h1>
 
       {/* Tab Buttons */}
       <div className="flex w-full mb-4 border-b border-gray-300">
@@ -277,7 +301,7 @@ const renderChatHistory = () => (
       <div className="flex-1 overflow-y-auto">
         {activeTab === "active" ? (
           <>
-            <AgentList />
+            <AgentList activeChat={activeChat} />
             <p className="text-gray-600 text-center">
               Hello {user?.name?.split(" ")[0] || "User"}, We usually respond within 2 minutes.
             </p>
@@ -348,9 +372,7 @@ const renderChatHistory = () => (
             ) : null}
           </>
         ) : (
-      
-            renderChatHistory()
-
+          renderChatHistory()
         )
         
         }

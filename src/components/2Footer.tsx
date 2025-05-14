@@ -7,9 +7,9 @@ export default function Footer() {
         <div>
           <h3 className="text-lg font-bold mb-3">Our Product</h3>
           <ul className="space-y-2">
-            <li><a href="#" className="hover:underline">Stays</a></li>
-            <li><a href="#" className="hover:underline">Flight</a></li>
-            <li><a href="#" className="hover:underline">Airport Taxi</a></li>
+            <li><a href="/stays-search-result" className="hover:underline">Stays</a></li>
+            <li><a href="/departure-flight" className="hover:underline">Flight</a></li>
+            <li><a href="/display-cars" className="hover:underline">Airport Taxi</a></li>
           </ul>
         </div>
 
@@ -17,9 +17,9 @@ export default function Footer() {
         <div>
           <h3 className="text-lg font-bold mb-3">Support</h3>
           <ul className="space-y-2">
-            <li><a href="#" className="hover:underline">FAQ</a></li>
-            <li><a href="#" className="hover:underline">Raise a Ticket</a></li>
-            <li><a href="#" className="hover:underline">Chat with Us</a></li>
+            <li><a href="/faqs" className="hover:underline">FAQ</a></li>
+            <li><a href="/tickets" className="hover:underline">Raise a Ticket</a></li>
+            <li><a href="/chat-with-us" className="hover:underline">Chat with Us</a></li>
           </ul>
         </div>
 

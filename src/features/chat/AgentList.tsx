@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
+import { Chat } from "../../types/chat";
 
 const API_BASE_URL = 'https://travelmate-backend-0suw.onrender.com/api';
 
@@ -12,6 +13,10 @@ interface CircleAvatarProps {
 interface Agent {
   id: number;
   displayName: string;
+}
+
+interface AgentListProps {
+  activeChat: Chat | null;
 }
 
 const CircleAvatar: React.FC<CircleAvatarProps> = ({ text, size = 40 }) => {
@@ -38,8 +43,7 @@ const CircleAvatar: React.FC<CircleAvatarProps> = ({ text, size = 40 }) => {
   );
 };
 
-
-const AgentList: React.FC = () => {
+const AgentList: React.FC<AgentListProps> = ({ activeChat }) => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [, setError] = useState<string | null>(null);
@@ -48,15 +52,12 @@ const AgentList: React.FC = () => {
   useEffect(() => {
     const fetchAvailableAgents = async () => {
       try {
-        const token = accessToken
-        if (!token) {
-          throw new Error("Access token not found");
-        }
+        if (!accessToken) throw new Error("Access token not found");
 
         const response = await fetch(`${API_BASE_URL}/chat/admins`, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         });
 
@@ -82,9 +83,37 @@ const AgentList: React.FC = () => {
     };
 
     fetchAvailableAgents();
-  }, []);
+  }, [accessToken]);
 
-  const displayedAgents = agents.slice(0, 3);
+
+  let displayedAgents: Agent[] = [];
+
+const adminMessage = activeChat?.messages?.find(msg => msg.sender !== "user");
+
+if (adminMessage && activeChat?.admin_info) {
+  const sender = activeChat.admin_info;
+
+    sender.first_name?.trim() ||
+    sender.email?.split("@")[0] ||
+    "Admin";
+
+  const adminInitial =
+    sender.first_name?.charAt(0).toUpperCase() ||
+    sender.email?.charAt(0).toUpperCase() ||
+    "A";
+
+  displayedAgents = [
+    {
+      id: sender.id || 1,
+      displayName: adminInitial,
+    },
+  ];
+} else {
+  // Admin hasn't responded — show fallback avatars
+  displayedAgents = agents.slice(0, 3);
+}
+
+  
 
   return (
     <div className="flex justify-center my-4">

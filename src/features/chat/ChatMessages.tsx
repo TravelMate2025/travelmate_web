@@ -2,27 +2,6 @@ import { useEffect, useRef } from "react";
 import { Chat } from "../../types/chat";
 
 
-// interface Message {
-//   id?: number;
-//   content: string;
-//   sender: string;
-//   timestamp: string;
-//   pending?: boolean;
-//   first_name?: string;
-// }
-
-// interface UserInfo {
-//   first_name?: string;
-//   email?: string;
-// }
-
-// interface Chat {
-//   messages: Message[];
-//   admin_info: UserInfo;
-//   user_info: UserInfo;
-// }
-
-
 const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -56,11 +35,12 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
           >
             <div className={`flex ${isUser ? "flex-row-reverse items-end" : "gap-2 items-center"}`}>
 
-              {!isUser && (
-                <div className="w-8 h-8 rounded-full bg-[#023E8A] text-white flex items-center justify-center text-sm font-semibold">
-                  {adminInitial}
-                </div>
-              )}
+            {!isUser && (
+              <div className="w-8 h-8 rounded-full bg-[#023E8A] text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                {adminInitial}
+              </div>
+            )}
+
 
               <div className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
                 <div
@@ -75,20 +55,30 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
                   <p className="whitespace-pre-wrap">{msg.content}</p>
                 </div>
 
-                {!isUser && (
-                  <small className="text-gray-500 text-xs mt-1">
-                    {displayName}
-                    <span className="mx-1">·</span>
-                    {msg.pending
+                <small className="text-gray-500 text-xs mt-1">
+                  {isUser ? (
+                    msg.pending
                       ? "Pending..."
-                      : new Date(msg.timestamp).toLocaleString(undefined, {
-                          month: "short",
-                          day: "numeric",
+                      : new Date(msg.timestamp).toLocaleTimeString(undefined, {
                           hour: "numeric",
                           minute: "2-digit",
-                        })}
-                  </small>
-                )}
+                        })
+                  ) : (
+                    <>
+                      {displayName}
+                      <span className="mx-1">·</span>
+                      {msg.pending
+                        ? "Pending..."
+                        : new Date(msg.timestamp).toLocaleString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                    </>
+                  )}
+                </small>
+
 
               </div>
             </div>
