@@ -16,6 +16,7 @@ import { Chat } from "../types/chat";
 import { IoChevronBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import Breadcrumbs from '../components/Breadcrumbs';
+import ChatHistory from "../components/ChatHistory"
 
 
 interface Message {
@@ -37,6 +38,9 @@ const ChatPage = () => {
   const [wsConnected, setWsConnected] = useState(false);
   const [activeTab, setActiveTab] = useState<"active" | "history">("active");
   const navigate = useNavigate();
+  // Keep chats in local state for temporary frontend deletion
+  const [localChats, setLocalChats] = useState(chats);
+
 
   const breadcrumbs = [
     { name: "Home", link: "/" },
@@ -104,6 +108,7 @@ const ChatPage = () => {
       try {
         const data = await fetchUserChats();
         setChats(data);
+        setLocalChats(data); 
 
         if (data.length > 0) {
           const chat = await fetchChat(data[0].id);
@@ -197,50 +202,9 @@ const handleNewConversation = async (customTitle?: string) => {
 };
 
 
-const renderChatHistory = () => (
-  <div className="flex flex-col flex-1 overflow-auto">
-    <div className="flex flex-col gap-4 flex-1 pt-4">
-      {chats.map((chat) => {
-        const preview = chat.last_message?.content
-          ? chat.last_message.content.slice(0, 80)
-          : "No message yet";
 
-        const adminInitial =
-          chat.admin_info?.first_name?.trim()
-            ? chat.admin_info.first_name.trim().charAt(0).toUpperCase()
-            : chat.admin_info?.email?.charAt(0).toUpperCase() || "?";
 
-        return (
-          <div
-            key={chat.id}
-            onClick={() => handleSelectChat(chat.id)}
-            className="cursor-pointer flex items-start p-4 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
-          >
-            <div className="w-10 h-10 rounded-full bg-[#023E8A] text-white flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">
-              {adminInitial}
-            </div>
 
-            <div className="flex flex-col">
-              <h3 className="font-semibold">{chat.title}</h3>
-              <p className="text-sm text-gray-600 mt-1">{preview}</p>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-
-    {/* Button stays pinned to bottom */}
-  <div className="absolute bottom-2 right-0 left-0 flex justify-center p-4 border-t bg-white">
-    <button
-      onClick={() => handleNewConversation()}
-      className="w-full max-w-[100%] md:max-w-[500px] bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"
-    >
-      Start New Conversation
-    </button>
-  </div>
-
-  </div>
-);
 
   
 
@@ -372,7 +336,11 @@ const renderChatHistory = () => (
             ) : null}
           </>
         ) : (
-          renderChatHistory()
+          <ChatHistory
+            chats={localChats}
+            onSelectChat={handleSelectChat}
+            onNewConversation={() => handleNewConversation()}
+          />
         )
         
         }
