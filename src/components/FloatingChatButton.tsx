@@ -33,18 +33,26 @@ const FloatingChatButton = () => {
     },
   ];
 
-  const handleStart = () => {
-    wasDragged.current = false;
-  };
+  const dragStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+const handleStart = (_e: any, data: any) => {
+  wasDragged.current = false;
+  dragStartPos.current = { x: data.x, y: data.y };
+};
+
+const handleStop = (_e: any, data: any) => {
+  const dx = data.x - dragStartPos.current.x;
+  const dy = data.y - dragStartPos.current.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  if (distance < 5) {
+    setOpen(true);
+  }
+};
+
 
   const handleDrag = () => {
     wasDragged.current = true;
-  };
-
-  const handleStop = () => {
-    if (!wasDragged.current) {
-      setOpen(true);
-    }
   };
 
   const handleNavigate = (path: string) => {
@@ -79,7 +87,7 @@ const FloatingChatButton = () => {
         onDrag={handleDrag}
         onStop={handleStop}
       >
-        <div ref={draggableRef} className="fixed bottom-10 right-4 z-50 touch-none">
+        <div ref={draggableRef} className="fixed bottom-10 right-4 z-50">
           <button
             className="w-14 h-14 bg-[#023E8A] text-white rounded-lg flex items-center justify-center shadow-lg cursor-pointer"
           >
