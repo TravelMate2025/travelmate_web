@@ -42,60 +42,83 @@ const TicketDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const [ticket, setTicket] = useState<TicketDetail | null>(null);
   const [newMessage, setNewMessage] = useState('');
+  const [attachment, setAttachment] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
-  
+  const [messageSentTrigger, setMessageSentTrigger] = useState(0);
+  const [attachmentLoading, setAttachmentLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+
   useEffect(() => {
-    if (!accessToken || !id) {
-      setError('No access token or ticket ID provided');
+  if (!accessToken || !id) {
+    setError('No access token or ticket ID provided');
+    setLoading(false);
+    return;
+  }
+
+  let intervalId: ReturnType<typeof setInterval>;
+  let runCount = 0;
+
+  const fetchTicket = async () => {
+    try {
+      const data = await getTicketById(id, accessToken);
+      setTicket((prev) => {
+        if (!prev || JSON.stringify(prev.messages) !== JSON.stringify(data.messages)) {
+          return data;
+        }
+        return prev;
+      });
+    } catch (err) {
+      console.error('Failed to fetch ticket');
+    } finally {
       setLoading(false);
+    }
+  };
+
+  fetchTicket(); // initial fetch
+
+  // Poll 3 times then stop
+  intervalId = setInterval(() => {
+    if (runCount >= 5) {
+      clearInterval(intervalId);
       return;
     }
-  
-    let intervalId: ReturnType<typeof setTimeout>;
+    runCount++;
+    fetchTicket();
+  }, 10000); // every 10 seconds
 
-  
-    const fetchTicket = async () => {
-      try {
-        const data = await getTicketById(id, accessToken);
-        setTicket((prev) => {
-          if (!prev || JSON.stringify(prev.messages) !== JSON.stringify(data.messages)) {
-            return data;
-          }
-          return prev; // avoid rerender if nothing changed
-        });
-      } catch (err) {
-        console.error('Failed to fetch ticket');
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    fetchTicket(); // initial fetch
-  
-    // Set up polling
-    intervalId = setInterval(fetchTicket, 5000); // every 5 seconds
-  
-    return () => clearInterval(intervalId); // clean up
-  }, [id, accessToken]);
-  
+  return () => clearInterval(intervalId);
+}, [id, accessToken, messageSentTrigger]);
+
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [ticket?.messages?.length]);
+
+
   const handleSend = async () => {
-    if (!newMessage.trim() || !accessToken || !id) return;
+    if (!accessToken || !id) return;
   
+    // Fallback message if only attachment is present
+    const messageToSend = newMessage.trim() || (attachment ? "Sent an attachment" : "");
+  
+    // Don't proceed if both message and attachment are empty
+    if (!messageToSend && !attachment) return;
+  
+    setSending(true);
     try {
-      const response = await replyToTicket(id, newMessage, accessToken);
+      const response = await replyToTicket(id, messageToSend, accessToken, attachment);
   
       const correctedMessage: Message = {
         ...response,
         sender: { email: ticket!.user.email },
-        created_at: new Date().toISOString(), // fallback to current time
+        created_at: new Date().toISOString(),
       };
   
       setTicket((prev) =>
@@ -103,10 +126,15 @@ const TicketDetailPage = () => {
       );
   
       setNewMessage('');
+      setAttachment(null);
+      setMessageSentTrigger(prev => prev + 1);
     } catch (err) {
       console.error('Reply failed:', err);
+    } finally {
+      setSending(false);
     }
   };
+  
   
   const breadcrumbs = [
     { name: "Home", link: "/" },
@@ -239,17 +267,23 @@ const TicketDetailPage = () => {
               >
                 <p className="whitespace-pre-wrap">{msg.content}</p>
                 {msg.attachment && (
-                  <p className="mt-1">
+                  <div className="mt-2 space-y-1">
+                    <img
+                      src={msg.attachment}
+                      alt="Attachment"
+                      className="rounded-md max-h-48 object-contain border"
+                    />
                     <a
                       href={msg.attachment}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 underline text-xs"
                     >
-                      View Attachment
+                      View Full Image
                     </a>
-                  </p>
+                  </div>
                 )}
+
               </div>
             </div>
 
@@ -276,26 +310,82 @@ const TicketDetailPage = () => {
           Ticket successfully resolved. If you need further assistance, please create a new ticket or contact our support team.
         </div>
       ) : (
-        <div className="flex items-center gap-2 border rounded px-2 py-2 fixed bottom-2 left-2 right-2 bg-white shadow-md border-t border-gray-200">
-          <button className="text-gray-500">
-            <MdOutlineImage size={30} />
-          </button>
+        <>
+         {attachmentLoading ? (
+            <div className="fixed bottom-20 left-2 right-2 flex items-center justify-center p-2 mb-2">
+              <div className="h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : attachment && (
+            <div className="fixed bottom-20 left-2 right-2 bg-white border border-gray-200 rounded-md p-2 mb-2 shadow-md flex items-center gap-4">
+              <img
+                src={URL.createObjectURL(attachment)}
+                alt="Preview"
+                className="h-16 w-16 object-cover rounded-md"
+              />
+              <span className="text-sm text-gray-700 truncate">{attachment.name}</span>
+              <button
+                onClick={() => {
+                   setAttachment(null);
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                  }
+                }}
+                
+                className="ml-auto text-red-500 text-xs hover:underline"
+              >
+                Remove
+              </button>
+            </div>
+          )}
 
-          <input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            className="flex-1 outline-none text-sm border border-gray-300 p-2 rounded-md"
-            placeholder="Write a reply..."
-          />
 
-          <button
-            onClick={handleSend}
-            className="bg-[#023E8A] text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
-          >
-            Send
-          </button>
-        </div>
+          {/* Reply Input Box */}
+          <div className="flex items-center gap-2 border rounded px-2 py-2 fixed bottom-2 left-2 right-2 bg-white shadow-md border-t border-gray-200">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setAttachmentLoading(true);
+                  setTimeout(() => {
+                    setAttachment(file);
+                    setAttachmentLoading(false);
+                  }, 500);
+                }
+              }}
+              className="hidden"
+              id="file-upload"
+              ref={fileInputRef}
+            />
+
+            <label htmlFor="file-upload" className="cursor-pointer text-gray-500">
+              <MdOutlineImage size={30} />
+            </label>
+
+            <input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              className="flex-1 outline-none text-sm border border-gray-300 p-2 rounded-md"
+              placeholder="Write a reply..."
+            />
+
+            <button
+              onClick={handleSend}
+              disabled={sending}
+              className="bg-[#023E8A] text-white px-4 py-2 rounded text-sm hover:bg-blue-700 flex items-center justify-center min-w-[70px]"
+            >
+              {sending ? (
+                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                "Send"
+              )}
+            </button>
+
+          </div>
+        </>
       )}
+
       <div ref={messagesEndRef} />
 
     </div>    

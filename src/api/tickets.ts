@@ -64,23 +64,35 @@ export const getTicketById = async (id: number | string, accessToken: string) =>
 export const replyToTicket = async (
   ticketId: number | string,
   message: string,
-  accessToken: string
+  accessToken: string,
+  attachment?: File | null
 ) => {
   try {
+    const formData = new FormData();
+    formData.append("content", message);
+    if (attachment) {
+      formData.append("attachment", attachment);
+    }
+
     const response = await axios.post(
-      `${API_BASE_URL}/tickets/${ticketId}/messages/`,  // Corrected endpoint
-      { content: message },
+      `${API_BASE_URL}/tickets/${ticketId}/messages/`,
+      formData,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "multipart/form-data",
         },
       }
     );
     console.log(`[REPLY TICKET ${ticketId}] Success:`, response.data);
-    return response.data;  // Returning the entire response for message update
+    return response.data;
   } catch (error: any) {
-    console.error(`[REPLY TICKET ${ticketId}] Error:`, error.response?.data || error.message);
+    console.error(
+      `[REPLY TICKET ${ticketId}] Error:`,
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
+
 
