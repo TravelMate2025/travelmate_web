@@ -261,7 +261,7 @@ const TicketDetailPage = () => {
               )}
 
               <div
-                className={` w-fit min-w-[70px] max-w-[70%] md:max-w-[60%] p-3 rounded-md text-sm ${
+                className={` w-fit min-w-[70px] max-w-[70%] md:max-w-[60%] p-3 text-sm rounded-md ${
                   isUser ? 'bg-[#023E8A] text-white' : 'bg-gray-100'
                 }`}
               >
