@@ -21,12 +21,15 @@ export interface UserInfo {
   }
   
   export interface Message {
+    file_type: any;
     id?: number;
     content: string;
     sender: string;
     timestamp: string;
     pending?: boolean;
     first_name?: string;
+    file_url?: string; 
+    file_name?: string;
   }
   
   export interface Chat {

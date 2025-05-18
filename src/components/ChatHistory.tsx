@@ -2,16 +2,16 @@ import React, { useRef, useState } from "react";
 import { Chat } from "../types/chat";
 import { MdDeleteOutline } from "react-icons/md";
 import toast from "react-hot-toast";
-// import axios from "axios";
-
+import { deleteUserChat } from "../api/chat"
 
 interface ChatHistoryProps {
   chats: Chat[];
   onSelectChat: (id: number) => void;
   onNewConversation: () => void;
+  refreshChats: () => void;
 }
 
-const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, onSelectChat, onNewConversation }) => {
+const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, onSelectChat, onNewConversation, refreshChats }) => {
   const dragData = useRef<{ [key: string]: { startX: number; currentX: number } }>({});
   const [deletedChatIds, setDeletedChatIds] = useState<number[]>([]);
 
@@ -32,7 +32,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, onSelectChat, onNewCon
     }
   };
 
-  const handleDragEnd = (_e: React.TouchEvent | React.MouseEvent, id: number) => {
+  const handleDragEnd = async (_e: React.TouchEvent | React.MouseEvent, id: number) => {
     if (!dragData.current[id]) return;
     const { startX, currentX } = dragData.current[id];
     const deltaX = currentX - startX;
@@ -40,27 +40,19 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, onSelectChat, onNewCon
     const el = document.getElementById(`chat-card-${id}`);
     if (el) {
       if (deltaX < -100) {
-        // Temporarily remove from UI by adding to deletedChatIds state
-        setDeletedChatIds((prev) => [...prev, id]);
-        toast.success("Chat Deleted Successfully!");
-        // Uncomment and replace with your actual delete API call when available:
-        /*
-
-        axios.delete(`/api/chats/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-          .then(() => {
-            // Optionally confirm deletion success or refresh list
-            toast.success("Chat Deleted Successfully!");
-          })
-          .catch(() => {
-            // Optionally rollback deletion if needed
-            toast.error("Failed to delete chat");
-          });
-        */
-
+        try {
+          await deleteUserChat(id);
+          toast.success("Chat Deleted Successfully!");
+          setDeletedChatIds((prev) => [...prev, id]);
+          refreshChats();
+        } catch {
+          toast.error("Failed to delete chat");
+          el.style.transition = "transform 0.3s ease";
+          el.style.transform = "translateX(0)";
+          setTimeout(() => {
+            if (el) el.style.transition = "";
+          }, 300);
+        }
       } else {
         el.style.transition = "transform 0.3s ease";
         el.style.transform = "translateX(0)";
@@ -72,6 +64,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, onSelectChat, onNewCon
   
     delete dragData.current[id];
   };
+  
   
 
   return (

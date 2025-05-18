@@ -26,7 +26,15 @@ interface Message {
   timestamp: string;
   pending?: boolean;
   first_name?: string;
+  file_url?: string; 
+  file_name?: string;
+  file_type: any;
 }
+
+const breadcrumbs = [
+  { name: "Home", link: "/" },
+  { name: "Chat with us" },
+];
 
 
 const ChatPage = () => {
@@ -38,14 +46,23 @@ const ChatPage = () => {
   const [wsConnected, setWsConnected] = useState(false);
   const [activeTab, setActiveTab] = useState<"active" | "history">("active");
   const navigate = useNavigate();
-  // Keep chats in local state for temporary frontend deletion
   const [localChats, setLocalChats] = useState(chats);
 
 
-  const breadcrumbs = [
-    { name: "Home", link: "/" },
-    { name: "Chat with us" },
-  ];
+  const refreshChats = async () => {
+    try {
+      const updatedChats = await fetchUserChats();
+      setChats(updatedChats);
+    }  catch (err) {
+    console.error("Failed to refresh chats", err);
+    }
+  };
+
+  useEffect(() => {
+    refreshChats();
+  }, []);
+
+ 
 
   const { user, accessToken } = useSelector((state: RootState) => state.auth);
   const wsRef = useRef<ChatWebSocket | null>(null);
@@ -65,25 +82,31 @@ const ChatPage = () => {
     ws.onMessage((msg: any) => {
       const normalizedMessage: Message = {
         id: msg.id,
-        content: msg.message ?? msg.content,
+        content: msg.message ?? msg.content ?? "",
         sender: msg.sender_id === user.id ? "user" : "admin",
         timestamp: msg.created_at ?? new Date().toISOString(),
         pending: false,
         first_name: msg.sender_info?.first_name || "Admin",
+        file_url: msg.file_url || msg.attachment || undefined,
+        file_type: undefined
       };
 
       setActiveChat((prev) => {
         if (!prev) return prev;
         const newMessages = [...prev.messages];
-        const matchIdx = newMessages.findIndex(
-          (m) =>
+        const matchIdx = newMessages.findIndex((m) => {
+          const timeDiff = Math.abs(
+            new Date(m.timestamp).getTime() -
+            new Date(normalizedMessage.timestamp).getTime()
+          );
+        
+          return (
             m.pending &&
-            m.content === normalizedMessage.content &&
-            Math.abs(
-              new Date(m.timestamp).getTime() -
-                new Date(normalizedMessage.timestamp).getTime()
-            ) < 3000
-        );
+            (m.content === normalizedMessage.content || (m.file_name && normalizedMessage.file_url)) &&
+            timeDiff < 3000
+          );
+        });
+        
 
         if (matchIdx !== -1) {
           newMessages[matchIdx] = normalizedMessage;
@@ -133,7 +156,13 @@ const ChatPage = () => {
 
     loadChats();
     return () => wsRef.current?.close();
-  }, []);
+  }, [user]);
+
+
+  useEffect(() => {
+    setLocalChats(chats);
+  }, [chats]);
+  
 
   const handleSelectChat = async (chatId: number) => {
     try {
@@ -160,46 +189,58 @@ const ChatPage = () => {
     }
   };
 
-  const handleSendMessage = async (message: string) => {
+  const handleSendMessage = (message: string, file?: File) => {
     if (!activeChat || !user || !wsRef.current || activeChat.status === "closed") return;
+  
+    const timestamp = new Date().toISOString();
+  
+    // Automatically generate a caption if none is provided with a file
+    const autoCaption = file && (!message || message.trim() === "")
+      ? `Sent an attachment: ${file.name}`
+      : message;
 
     const pendingMsg: Message = {
-      content: message,
+      content: autoCaption,
       sender: "user",
-      timestamp: new Date().toISOString(),
+      timestamp,
       pending: true,
+      file_name: file?.name,
+      file_type: file?.type,
     };
-
+  
     setActiveChat((prev) =>
       prev ? { ...prev, messages: [...prev.messages, pendingMsg] } : prev
     );
+  
+    wsRef.current.sendMessage(autoCaption, file);
 
-    wsRef.current.sendMessage(message);
   };
+  
+  
 
 
-const handleNewConversation = async (customTitle?: string) => {
-  if (!user) return;
-  try {
-    setLoadingNewChat(true);
-    setActiveChat(null);
+  const handleNewConversation = async (customTitle?: string) => {
+    if (!user) return;
+    try {
+      setLoadingNewChat(true);
+      setActiveChat(null);
 
-    // Generate a dynamic default title with the month in words and a nice format
-    const fallbackTitle = `Conversation on ${format(new Date(), "d MMMM yyyy 'at' h:mm a")}`;
-    
-    const newChat = await createChat(user.id, customTitle || fallbackTitle);
+      // Generate a dynamic default title with the month in words and a nice format
+      const fallbackTitle = `Conversation on ${format(new Date(), "d MMMM yyyy 'at' h:mm a")}`;
+      
+      const newChat = await createChat(user.id, customTitle || fallbackTitle);
 
-    const chatData = await fetchChat(newChat.id);
-    setChats((prev) => [chatData, ...prev]);
-    setActiveChat(chatData);
-    initializeWebSocket(chatData.id);
-    setActiveTab("active");
-  } catch (err) {
-    console.error("Error starting new chat", err);
-  } finally {
-    setLoadingNewChat(false);
-  }
-};
+      const chatData = await fetchChat(newChat.id);
+      setChats((prev) => [chatData, ...prev]);
+      setActiveChat(chatData);
+      initializeWebSocket(chatData.id);
+      setActiveTab("active");
+    } catch (err) {
+      console.error("Error starting new chat", err);
+    } finally {
+      setLoadingNewChat(false);
+    }
+  };
 
 
 
@@ -267,8 +308,9 @@ const handleNewConversation = async (customTitle?: string) => {
           <>
             <AgentList activeChat={activeChat} />
             <p className="text-gray-600 text-center">
-              Hello {user?.name?.split(" ")[0] || "User"}, We usually respond within 2 minutes.
+              Hello {user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "User"}, We usually respond within 2 minutes.
             </p>
+
             <p className="text-gray-400 text-center mt-1 mb-4">
               Ask us anything or share your feedback with us.
             </p>
@@ -340,6 +382,7 @@ const handleNewConversation = async (customTitle?: string) => {
             chats={localChats}
             onSelectChat={handleSelectChat}
             onNewConversation={() => handleNewConversation()}
+            refreshChats={refreshChats}
           />
         )
         

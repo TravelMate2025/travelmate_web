@@ -4,6 +4,8 @@ import api from "../../src/api/services/api";
 export const createChat = async (userId: number, title: string) => {
   try {
     console.log(`[API] Creating chat for user ${userId}...`);
+    console.log("Sent payload:", { user: userId, title });
+
     const response = await api.post("/user/chats/", { user: userId, title });
     console.log("[API] Chat created:", response.data);
     return response.data;
@@ -71,6 +73,18 @@ export const markChatAsRead = async (chatId: number) => {
     return response.data;
   } catch (error: any) {
     console.error("[API] Failed to mark chat as read:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
+export const deleteUserChat = async (id: number) => {
+  try {
+    console.log(`[API] Deleting chat session with ID: ${id}`);
+    await api.delete(`/user/chats/${id}/delete_session/`);
+    console.log("[API] Chat session deleted successfully");
+  } catch (error: any) {
+    console.error("[API] Failed to delete chat:", error.response?.data || error.message);
     throw error;
   }
 };

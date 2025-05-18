@@ -41,16 +41,29 @@ export class ChatWebSocket {
       };
     }
   
-    sendMessage(message: string, clientId?: string) {
+    sendMessage(message: string, file?: File) {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
         const payload: any = { message };
-        if (clientId) payload.clientId = clientId;
-        console.log("[WebSocket] 🚀 Sending:", payload);
-        this.socket.send(JSON.stringify(payload));
+    
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+           payload.attachment = reader.result;
+
+            console.log("[WebSocket] 🚀 Sending with file:", payload);
+            this.socket!.send(JSON.stringify(payload));
+          };
+          reader.readAsDataURL(file); // base64 encode
+        } else {
+          
+          console.log("[WebSocket] 🚀 Sending:", payload);
+          this.socket.send(JSON.stringify(payload));
+        }
       } else {
         console.error("[WebSocket] ❌ Cannot send: socket not open.");
       }
     }
+    
   
     onMessage(callback: (message: any) => void) {
       this.onMessageCallback = callback;

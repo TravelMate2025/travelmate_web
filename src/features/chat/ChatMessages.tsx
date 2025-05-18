@@ -7,7 +7,7 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeChat?.messages.length]);
+  }, [activeChat?.messages]);
 
   if (!activeChat) {
     console.log("no active chat");
@@ -53,6 +53,16 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
                   }`}
                 >
                   <p className="whitespace-pre-wrap">{msg.content}</p>
+                  {msg.file_url && msg.file_type?.startsWith("image/") && (
+                    <div className="mt-2">
+                      <img
+                        src={msg.file_url}
+                        alt={msg.file_name || "uploaded file"}
+                        className="max-w-xs rounded"
+                      />
+                    </div>
+                  )}
+
                 </div>
 
                 <small className="text-gray-500 text-xs mt-1">
