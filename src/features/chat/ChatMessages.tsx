@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Chat } from "../../types/chat";
+import { FiFileText } from "react-icons/fi";
+
 
 
 const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
@@ -52,16 +54,52 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
                       : "bg-gray-200 text-black"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
-                  {msg.file_url && msg.file_type?.startsWith("image/") && (
+                 <p className="whitespace-pre-wrap">{msg.content}</p>
+
+                  {msg.file_url && (
                     <div className="mt-2">
-                      <img
-                        src={msg.file_url}
-                        alt={msg.file_name || "uploaded file"}
-                        className="max-w-xs rounded"
-                      />
+                      {msg.file_type?.startsWith("image/") ? (
+                        <>
+                        <div className="border border-gray-300 rounded overflow-hidden max-w-xs">
+                          <img
+                            src={msg.file_url}
+                            alt={msg.file_name || "uploaded file"}
+                            className="w-full h-auto object-contain rounded"
+                          />
+                          
+                        </div>
+                        <a
+                            href={msg.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                           className={`underline text-sm mt-2 inline-block ${isUser ? "text-gray-100" : "text-blue-600"}`}
+                           >
+                            View file
+                            
+                          </a>
+                          </>
+                        
+                      ) : (
+                        <div className="bg-white border border-gray-300 p-3 rounded text-sm max-w-xs">
+                          <div className="flex items-center gap-2">
+                            <FiFileText className="w-14 h-10 text-gray-500" />
+
+                            <p className="font-medium truncate">{msg.file_name}</p>
+                          </div>
+                          <a
+                            href={msg.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline text-xs mt-2 inline-block"
+                          >
+                            View file
+                          </a>
+                        </div>
+                      )}
                     </div>
                   )}
+
+
 
                 </div>
 

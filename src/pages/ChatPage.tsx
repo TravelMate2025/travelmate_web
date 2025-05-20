@@ -80,6 +80,23 @@ const ChatPage = () => {
     ws.onOpen(() => setWsConnected(true));
     ws.onClose(() => setWsConnected(false));
     ws.onMessage((msg: any) => {
+      const rawFileName = msg.message?.replace("Sent an attachment: ", "").trim() || "";
+      const extension = rawFileName.split(".").pop()?.toLowerCase();
+
+      const mimeMap: Record<string, string> = {
+        jpg: "image/jpeg",
+        jpeg: "image/jpeg",
+        png: "image/png",
+        gif: "image/gif",
+        bmp: "image/bmp",
+        webp: "image/webp",
+        pdf: "application/pdf",
+        docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        doc: "application/msword",
+      };
+
+      const fileType = extension && mimeMap[extension] ? mimeMap[extension] : "application/octet-stream";
+
       const normalizedMessage: Message = {
         id: msg.id,
         content: msg.message ?? msg.content ?? "",
@@ -88,7 +105,8 @@ const ChatPage = () => {
         pending: false,
         first_name: msg.sender_info?.first_name || "Admin",
         file_url: msg.file_url || msg.attachment || undefined,
-        file_type: undefined
+        file_name: rawFileName || "attachment",
+        file_type: fileType,
       };
 
       setActiveChat((prev) => {
@@ -135,14 +153,38 @@ const ChatPage = () => {
 
         if (data.length > 0) {
           const chat = await fetchChat(data[0].id);
-          const normalizedMessages = chat.messages.map((msg: any) => ({
+          const normalizedMessages = chat.messages.map((msg: any) => {
+          const rawFileName = msg.content?.replace("Sent an attachment: ", "").trim() || "";
+          const extension = rawFileName.split(".").pop()?.toLowerCase();
+
+          const mimeMap: Record<string, string> = {
+            jpg: "image/jpeg",
+            jpeg: "image/jpeg",
+            png: "image/png",
+            gif: "image/gif",
+            bmp: "image/bmp",
+            webp: "image/webp",
+            pdf: "application/pdf",
+            docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            doc: "application/msword",
+          };
+
+          const fileType = extension && mimeMap[extension] ? mimeMap[extension] : "application/octet-stream";
+
+          return {
             id: msg.id,
             content: msg.content ?? msg.message,
             sender: msg.sender === user?.id ? "user" : "admin",
             timestamp: msg.created_at ?? msg.timestamp,
             pending: false,
             first_name: msg.sender_info?.first_name || "Admin",
-          }));
+            file_url: msg.file_url || msg.attachment || undefined,
+            file_name: rawFileName || "attachment",
+            file_type: fileType,
+          };
+          
+          });
+
 
           setActiveChat({ ...chat, messages: normalizedMessages });
           initializeWebSocket(chat.id);
@@ -153,6 +195,7 @@ const ChatPage = () => {
         setLoading(false);
       }
     };
+    
 
     loadChats();
     return () => wsRef.current?.close();
@@ -171,14 +214,37 @@ const ChatPage = () => {
       setActiveTab("active");
 
       const chat = await fetchChat(chatId);
-      const normalizedMessages = chat.messages.map((msg: any) => ({
+      const normalizedMessages = chat.messages.map((msg: any) => {
+      const rawFileName = msg.content?.replace("Sent an attachment: ", "").trim() || "";
+      const extension = rawFileName.split(".").pop()?.toLowerCase();
+
+      const mimeMap: Record<string, string> = {
+        jpg: "image/jpeg",
+        jpeg: "image/jpeg",
+        png: "image/png",
+        gif: "image/gif",
+        bmp: "image/bmp",
+        webp: "image/webp",
+        pdf: "application/pdf",
+        docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        doc: "application/msword",
+      };
+
+      const fileType = extension && mimeMap[extension] ? mimeMap[extension] : "application/octet-stream";
+
+      return {
         id: msg.id,
         content: msg.content ?? msg.message,
         sender: msg.sender === user?.id ? "user" : "admin",
         timestamp: msg.created_at ?? msg.timestamp,
         pending: false,
         first_name: msg.sender_info?.first_name || "Admin",
-      }));
+        file_url: msg.file_url || msg.attachment || undefined,
+        file_name: rawFileName || "attachment",
+        file_type: fileType,
+        };
+      });
+
 
       setActiveChat({ ...chat, messages: normalizedMessages });
       initializeWebSocket(chatId);

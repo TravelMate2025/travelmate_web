@@ -41,29 +41,38 @@ export class ChatWebSocket {
       };
     }
   
-    sendMessage(message: string, file?: File) {
-      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-        const payload: any = { message };
-    
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = () => {
-           payload.attachment = reader.result;
-
-            console.log("[WebSocket] 🚀 Sending with file:", payload);
-            this.socket!.send(JSON.stringify(payload));
-          };
-          reader.readAsDataURL(file); // base64 encode
-        } else {
-          
-          console.log("[WebSocket] 🚀 Sending:", payload);
-          this.socket.send(JSON.stringify(payload));
-        }
-      } else {
-        console.error("[WebSocket] ❌ Cannot send: socket not open.");
-      }
+    sendMessage(message: string, file?: File): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      return reject(new Error("WebSocket not open"));
     }
-    
+
+    const payload: any = { message };
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        payload.attachment = reader.result;
+        console.log("[WebSocket] 🚀 File read complete. Sending:", payload);
+        this.socket!.send(JSON.stringify(payload));
+        resolve();
+      };
+
+      reader.onerror = () => {
+        console.error("❌ FileReader failed");
+        reject(new Error("File reading failed"));
+      };
+
+      reader.readAsDataURL(file);
+    } else {
+      console.log("[WebSocket] 🚀 Sending:", payload);
+      this.socket.send(JSON.stringify(payload));
+      resolve();
+    }
+  });
+}
+
   
     onMessage(callback: (message: any) => void) {
       this.onMessageCallback = callback;
