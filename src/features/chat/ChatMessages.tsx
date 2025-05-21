@@ -17,11 +17,10 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
   }
 
   return (
-    <div className="flex flex-col gap-2 py-2 mb-20">
+    <div className="flex flex-col gap-2 py-2 mb-20 overflow-x-hidden">
       {activeChat.messages.map((msg, idx) => {
         const isUser = msg.sender === "user";
-        const sender = isUser ? activeChat.user_info : activeChat.admin_info;
-        
+        const sender = msg.sender_info;
         const displayName =
           sender?.first_name?.trim() ||
           sender?.email?.split("@")[0] ||
@@ -60,7 +59,7 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
                     <div className="mt-2">
                       {msg.file_type?.startsWith("image/") ? (
                         <>
-                        <div className="border border-gray-300 rounded overflow-hidden max-w-xs">
+                        <div className="border border-gray-300 rounded overflow-hidden max-w-full sm:max-w-xs break-words">
                           <img
                             src={msg.file_url}
                             alt={msg.file_name || "uploaded file"}
@@ -80,7 +79,7 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
                           </>
                         
                       ) : (
-                        <div className="bg-white border border-gray-300 p-3 rounded text-sm max-w-xs">
+                        <div className="bg-white border border-gray-300 p-3 rounded text-sm max-w-full sm:max-w-xs break-words">
                           <div className="flex items-center gap-2">
                             <FiFileText className="w-14 h-10 text-gray-500" />
 

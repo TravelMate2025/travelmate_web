@@ -18,8 +18,16 @@ import { useNavigate } from "react-router-dom";
 import Breadcrumbs from '../components/Breadcrumbs';
 import ChatHistory from "../components/ChatHistory"
 
+export interface SenderInfo {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name?: string;
+  profile_pics?: string;
+}
 
 interface Message {
+  sender_info?: SenderInfo;
   id?: number;
   content: string;
   sender: string;
@@ -107,6 +115,7 @@ const ChatPage = () => {
         file_url: msg.file_url || msg.attachment || undefined,
         file_name: rawFileName || "attachment",
         file_type: fileType,
+        sender_info: undefined
       };
 
       setActiveChat((prev) => {
@@ -177,6 +186,7 @@ const ChatPage = () => {
             sender: msg.sender === user?.id ? "user" : "admin",
             timestamp: msg.created_at ?? msg.timestamp,
             pending: false,
+            sender_info: msg.sender_info || null,
             first_name: msg.sender_info?.first_name || "Admin",
             file_url: msg.file_url || msg.attachment || undefined,
             file_name: rawFileName || "attachment",
@@ -238,6 +248,7 @@ const ChatPage = () => {
         sender: msg.sender === user?.id ? "user" : "admin",
         timestamp: msg.created_at ?? msg.timestamp,
         pending: false,
+        sender_info: msg.sender_info || null,
         first_name: msg.sender_info?.first_name || "Admin",
         file_url: msg.file_url || msg.attachment || undefined,
         file_name: rawFileName || "attachment",
@@ -272,6 +283,7 @@ const ChatPage = () => {
       pending: true,
       file_name: file?.name,
       file_type: file?.type,
+      sender_info: undefined
     };
   
     setActiveChat((prev) =>

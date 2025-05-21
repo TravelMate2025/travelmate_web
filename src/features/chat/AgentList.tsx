@@ -60,17 +60,17 @@ const AgentList: React.FC<AgentListProps> = ({ activeChat }) => {
             Authorization: `Bearer ${accessToken}`,
           },
         });
-
+        
         const contentType = response.headers.get("content-type");
         if (!response.ok || !contentType?.includes("application/json")) {
           throw new Error("Invalid response from server");
         }
 
         const data = await response.json();
+        console.log("agents list:", data)
         const extractedAgents = data.results.map((agent: any) => ({
           id: agent.id,
-          displayName:
-            agent.first_name?.trim() || agent.email?.split("@")[0] || "A",
+          displayName: agent.first_name?.trim() || agent.email?.split("@")[0] || "A",
         }));
 
         setAgents(extractedAgents);
@@ -90,8 +90,8 @@ const AgentList: React.FC<AgentListProps> = ({ activeChat }) => {
 
 const adminMessage = activeChat?.messages?.find(msg => msg.sender !== "user");
 
-if (adminMessage && activeChat?.admin_info) {
-  const sender = activeChat.admin_info;
+if (adminMessage && activeChat?.assigned_admin_info) {
+  const sender = activeChat.assigned_admin_info;
 
     sender.first_name?.trim() ||
     sender.email?.split("@")[0] ||

@@ -363,12 +363,15 @@ const TicketDetailPage = () => {
               <MdOutlineImage size={30} />
             </label>
 
-            <input
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              className="flex-1 outline-none text-sm border border-gray-300 p-2 rounded-md"
-              placeholder="Write a reply..."
-            />
+            <div className="flex-1">
+              <input 
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className="w-full outline-none text-sm border border-gray-300 p-2 rounded-md"
+                placeholder="Write a reply..."
+              />
+            </div>
+              
 
             <button
               onClick={handleSend}

@@ -78,9 +78,9 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, onSelectChat, onNewCon
             : "No message yet";
 
           const adminInitial =
-            chat.admin_info?.first_name?.trim()
-              ? chat.admin_info.first_name.trim().charAt(0).toUpperCase()
-              : chat.admin_info?.email?.charAt(0).toUpperCase() || "?";
+            chat.assigned_admin_info?.first_name?.trim()
+              ? chat.assigned_admin_info.first_name.trim().charAt(0).toUpperCase()
+              : chat.assigned_admin_info?.email?.charAt(0).toUpperCase() || "?";
 
           return (
             <div key={chat.id} className="relative">
