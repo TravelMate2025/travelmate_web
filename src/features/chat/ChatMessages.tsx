@@ -9,7 +9,7 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeChat?.messages]);
+  }, [activeChat]);
 
   if (!activeChat) {
     console.log("no active chat");
@@ -18,7 +18,9 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
 
   return (
     <div className="flex flex-col gap-2 py-2 mb-20 overflow-x-hidden">
-      {activeChat.messages.map((msg, idx) => {
+      {activeChat.messages
+      .filter((msg) => msg.content.trim() !== "" || msg.file_url)
+      .map((msg, idx) => {
         const isUser = msg.sender === "user";
         const sender = msg.sender_info;
         const displayName =

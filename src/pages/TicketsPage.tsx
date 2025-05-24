@@ -47,9 +47,11 @@ const TicketsPage = () => {
 
     getTickets(accessToken)
       .then((data) => {
-        const filtered = data.results.filter((ticket: Ticket) =>
-          activeTab === 'all' ? true : ticket.status === activeTab
-        );
+        const filtered = data.results.filter((ticket: Ticket) => {
+  const normalizedStatus = ticket.status === 'resolved' ? 'resolved' : 'pending';
+  return activeTab === 'all' ? true : normalizedStatus === activeTab;
+});
+
         setTickets(filtered);
       })
       .catch(() => setError('Failed to load tickets'))
@@ -59,7 +61,9 @@ const TicketsPage = () => {
   return (
     <>
       <Navbar />
-      <div className="p-4 sm:p-8 mt-12 sm:mt-10">
+      <div className="min-h-100vh flex flex-col justify-between">
+
+          <div className="p-4 sm:p-8 mt-12 sm:mt-10">
         <div className='hidden md:ml-[-40px] md:block '>
           <Breadcrumbs items={breadcrumbs} />
         </div>
@@ -151,7 +155,7 @@ const TicketsPage = () => {
                         : 'text-yellow-400 border-yellow-400'
                     )}
                   >
-                    {ticket.status}
+                    {ticket.status === 'resolved' ? 'resolved' : 'pending'}
                   </span>
                 </div>
                 <hr className="border-gray-200" />
@@ -166,7 +170,24 @@ const TicketsPage = () => {
           onClose={() => setShowModal(false)}
           onTicketRaised={() => setActiveTab('all')}
         />
+
+       
       </div>
+
+        
+      </div>
+       {/* Conditionally show Raise a Ticket button at the bottom */}
+        {tickets.length > 0 && (
+          <div className="md:hidden mt-8 mb-6 px-4">
+            <button
+              onClick={() => setShowModal(true)}
+              className="w-full bg-[#023E8A] hover:bg-blue-800 text-white px-4 py-3 rounded shadow-lg"
+            >
+              Raise a ticket
+            </button>
+          </div>
+        )}
+
       <Footer />
     </>
   );

@@ -39,6 +39,12 @@ const ChatInput = ({ onSend }: { onSend: (text: string, file?: File) => void }) 
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
           placeholder="Type your message..."
           className="flex-grow min-w-[120px] border rounded px-3 py-2 md:px-4 md:py-2 text-sm md:text-base max-w-full"
         />

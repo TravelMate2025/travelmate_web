@@ -51,6 +51,8 @@ export default function DeleteAccountModal({ isOpen, onClose }: DeleteAccountMod
     try {
       await deleteUserAccount(accessToken, reason, feedback);
 
+      localStorage.setItem("logout_reason", "account_deleted");
+      
       dispatch(logout());
       localStorage.removeItem("access");
       localStorage.removeItem("refresh");

@@ -9,7 +9,6 @@ import Navbar from './homePage/Navbar';
 import { MdOutlineImage } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { IoChevronBack } from 'react-icons/io5';
-// import Footer from '../components/2Footer';
 
 
 interface Message {
@@ -21,13 +20,54 @@ interface Message {
   timestamp?: string;
 }
 
+interface EscalationRole {
+  id: number;
+  name: string;
+  description: string;
+}
+
+interface ClaimHistoryEntry {
+  id: number;
+  claimed_admin: {
+    id: number;
+    email: string;
+    first_name: string;
+    last_name: string;
+  };
+  timestamp: string;
+  claim_note_text: string;
+}
+
+interface EscalationHistoryEntry {
+  id: number;
+  escalated_by: {
+    id: number;
+    email: string;
+    first_name: string;
+    last_name: string;
+    mobile_number: string;
+  };
+  escalation_note_text: string;
+  escalation_role: {
+    id: number;
+    name: string;
+    description: string;
+  };
+  reason: string;
+  note: string;
+  timestamp: string;
+}
+
+
 
 interface TicketDetail {
   ticket_id: number;
   title: string;
   category: string;
+  description: string;
   status: 'pending' | 'resolved';
   created_at: string;
+  updated_at: string;
   messages: Message[];
   user: {
     id: number;
@@ -35,6 +75,23 @@ interface TicketDetail {
     first_name: string | null;
     last_name: string | null;
   };
+  // Escalation-related fields
+  escalated: boolean;
+  escalated_at: string | null;
+  escalated_by: string | null;
+  escalation_note: string;
+  escalation_note_text: string;
+  escalation_reason: string;
+  escalation_response_time: string;
+  escalation_role: EscalationRole;
+
+  // ✅ Claim-related fields
+  claimed_admin: string | null;
+  claim_timestamp: string | null;
+  claim_note_text: string | null;
+
+  claim_history: ClaimHistoryEntry[];
+  escalation_history: EscalationHistoryEntry[];
 }
 
 
@@ -190,12 +247,19 @@ const TicketDetailPage = () => {
   if (error) return <div className="text-red-500 p-4">{error}</div>;
   if (!ticket) return null;
 
+  const combinedTimeline = [
+  ...(ticket.messages || []).map(msg => ({ type: 'message', data: msg, timestamp: new Date(msg.timestamp || msg.created_at) })),
+  ...(ticket.claim_history || []).map(claim => ({ type: 'claim', data: claim, timestamp: new Date(claim.timestamp) })),
+  ...(ticket.escalation_history || []).map(esc => ({ type: 'escalation', data: esc, timestamp: new Date(esc.timestamp) })),
+].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
+
   return (
-      <>
-      <Navbar />
-      <div className="p-4 sm:p-8 mt-12 sm:mt-10">
+  <>
+    <Navbar />
+    <div className="p-4 sm:p-8 mt-12 sm:mt-10">
       <div className='hidden md:ml-[-40px] md:block '>
-      <Breadcrumbs items={breadcrumbs} />
+        <Breadcrumbs items={breadcrumbs} />
       </div>
       <hr className="mb-4 text-gray-300" />
 
@@ -206,10 +270,8 @@ const TicketDetailPage = () => {
         >
           <IoChevronBack size={24} />
         </button>
-  
         <h1 className="text-2xl font-bold ml-16">Tickets Details</h1>
       </div>
-      
 
       <h1 className="text-xl font-bold mb-4 hidden md:block">Ticket Details</h1>
 
@@ -228,173 +290,197 @@ const TicketDetailPage = () => {
               : 'text-yellow-400 border-yellow-400'
           )}
         >
-          {ticket.status}
+          {ticket.status === 'resolved' ? 'resolved' : 'pending'}
         </span>
       </div>
 
       {/* Messages */}
       <div className="space-y-4 mb-16">
-      {ticket.messages?.length > 0 ? (
-          ticket.messages.map((msg, index) => {
-            const isUser = msg.sender?.email?.toLowerCase() === ticket.user.email.toLowerCase();
-            const isAdmin = !isUser;
-            const date = new Date(msg.created_at ?? msg.timestamp ?? '').toLocaleString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: 'numeric',
-              hour12: true,
-            });
-            const adminName = msg.sender?.email?.split('@')[0] || 'Admin';
-            const firstLetter = adminName.charAt(0).toUpperCase();
+        {combinedTimeline.length > 0 ? (
+          combinedTimeline.map((item, index) => {
+            if (item.type === 'message') {
+              const msg = item.data as Message;
+              const isUser = msg.sender?.email?.toLowerCase() === ticket.user.email.toLowerCase();
+              const isAdmin = !isUser;
+              const adminName = msg.sender?.email?.split('@')[0] || 'Admin';
+              const firstLetter = adminName.charAt(0).toUpperCase();
 
-            return (
-              <div
-            key={`${msg.id}-${msg.created_at || index}`}
-            className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} gap-1`}
-          >
-            <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} items-start gap-2`}>
-              {isAdmin && (
-                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#023E8A] text-white font-semibold text-sm mt-1">
-                  {firstLetter}
-                </div>
-              )}
+              return (
+                <div key={`msg-${msg.id}-${msg.created_at || index}`}>
+                  <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} gap-1`}>
+                    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} items-start gap-2`}>
+                      {isAdmin && (
+                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#023E8A] text-white font-semibold text-sm mt-1">
+                          {firstLetter}
+                        </div>
+                      )}
 
-              <div
-                className={` w-fit min-w-[70px] max-w-[70%] md:max-w-[60%] p-3 text-sm rounded-md ${
-                  isUser ? 'bg-[#023E8A] text-white' : 'bg-gray-100'
-                }`}
-              >
-                <p className="whitespace-pre-wrap">{msg.content}</p>
-                {msg.attachment && (
-                  <div className="mt-2 space-y-1">
-                    <img
-                      src={msg.attachment}
-                      alt="Attachment"
-                      className="rounded-md max-h-48 object-contain border"
-                    />
-                    <a
-                      href={msg.attachment}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 underline text-xs"
-                    >
-                      View Full Image
-                    </a>
+                      <div className={`w-fit min-w-[70px] max-w-[70%] md:max-w-[60%] p-3 text-sm rounded-md ${
+                        isUser ? 'bg-[#023E8A] text-white' : 'bg-gray-100'
+                      }`}>
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                        {msg.attachment && (
+                          <div className="mt-2 space-y-1">
+                            <img
+                              src={msg.attachment}
+                              alt="Attachment"
+                              className="rounded-md max-h-48 object-contain border"
+                            />
+                            <a
+                              href={msg.attachment}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 underline text-xs"
+                            >
+                              View Full Image
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {isUser
+                        ? new Date(msg.created_at || msg.timestamp || "").toLocaleString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })
+                        : `${adminName.charAt(0).toUpperCase()}${adminName.slice(1)} • ${new Date(
+                            msg.created_at || msg.timestamp || ""
+                          ).toLocaleString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}`}
+                    </div>
                   </div>
-                )}
+                </div>
+              );
+            }
 
-              </div>
-            </div>
+            if (item.type === 'claim' && 'claim_note_text' in item.data) {
+              const { claim_note_text } = item.data;
+              return (
+                <div
+                  key={`claim-${index}`}
+                  className="text-sm md:text-base text-blue-800 bg-blue-50 text-center border border-blue-200 p-2 rounded-md my-2 max-w-[95%] md:max-w-[80%] mx-auto"
+                >
+                  {claim_note_text}
+                </div>
+              );
+            }
 
-            <div
-              className={`text-xs text-gray-500 mt-1 ${
-                isUser ? 'text-right pr-1' : 'text-left pl-10'
-              }`}
-            >
-              {isUser ? date : `${adminName} • ${date}`}
-            </div>
-          </div>
+            if (item.type === 'escalation' && 'escalation_note_text' in item.data) {
+              const { escalation_note_text } = item.data;
+              return (
+                <div
+                  key={`escalation-${index}`}
+                  className="text-sm md:text-base text-blue-800 bg-blue-50 text-center border border-blue-200 p-2 rounded-md my-2 max-w-[95%] md:max-w-[80%] mx-auto"
+                >
+                  {escalation_note_text}
+                </div>
+              );
+            }
 
-            );
+            return null;
           })
         ) : (
-          <p className="text-gray-500">No messages yet.</p>
+          <p className="text-sm text-gray-500">No messages yet.</p>
         )}
 
-      </div>
+        {/* Reply Box */}
+        {ticket.status === 'resolved' ? (
+          <div className="bg-blue-50 text-gray-700 p-3 rounded-md text-sm border border-[#023E8A]">
+            Ticket successfully resolved. If you need further assistance, please create a new ticket or contact our support team.
+          </div>
+        ) : (
+          <>
+            {attachmentLoading ? (
+              <div className="fixed bottom-20 left-2 right-2 flex items-center justify-center p-2 mb-2">
+                <div className="h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : attachment && (
+              <div className="fixed bottom-20 left-2 right-2 bg-white border border-gray-200 rounded-md p-2 mb-2 shadow-md flex items-center gap-4">
+                <img
+                  src={URL.createObjectURL(attachment)}
+                  alt="Preview"
+                  className="h-16 w-16 object-cover rounded-md"
+                />
+                <span className="text-sm text-gray-700 truncate">{attachment.name}</span>
+                <button
+                  onClick={() => {
+                    setAttachment(null);
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = '';
+                    }
+                  }}
+                  className="ml-auto text-red-500 text-xs hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
 
-      {/* Reply Box */}
-      {ticket.status === 'resolved' ? (
-        <div className="bg-blue-50 text-gray-700 p-3 rounded-md text-sm border border-[#023E8A]">
-          Ticket successfully resolved. If you need further assistance, please create a new ticket or contact our support team.
-        </div>
-      ) : (
-        <>
-         {attachmentLoading ? (
-            <div className="fixed bottom-20 left-2 right-2 flex items-center justify-center p-2 mb-2">
-              <div className="h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          ) : attachment && (
-            <div className="fixed bottom-20 left-2 right-2 bg-white border border-gray-200 rounded-md p-2 mb-2 shadow-md flex items-center gap-4">
-              <img
-                src={URL.createObjectURL(attachment)}
-                alt="Preview"
-                className="h-16 w-16 object-cover rounded-md"
-              />
-              <span className="text-sm text-gray-700 truncate">{attachment.name}</span>
-              <button
-                onClick={() => {
-                   setAttachment(null);
-                  if (fileInputRef.current) {
-                    fileInputRef.current.value = '';
+            {/* Reply Input Box */}
+            <div className="flex items-center gap-2 border rounded px-2 py-2 fixed bottom-2 left-2 right-2 bg-white shadow-md border-t border-gray-200">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setAttachmentLoading(true);
+                    setTimeout(() => {
+                      setAttachment(file);
+                      setAttachmentLoading(false);
+                    }, 500);
                   }
                 }}
-                
-                className="ml-auto text-red-500 text-xs hover:underline"
+                className="hidden"
+                id="file-upload"
+                ref={fileInputRef}
+              />
+              <label htmlFor="file-upload" className="cursor-pointer text-gray-500">
+                <MdOutlineImage size={30} />
+              </label>
+              <div className="flex-1">
+                <input 
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                  className="w-full outline-none text-sm border border-gray-300 p-2 rounded-md"
+                  placeholder="Write a reply..."
+                />
+              </div>
+              <button
+                onClick={handleSend}
+                disabled={sending}
+                className="bg-[#023E8A] text-white px-4 py-2 rounded text-sm hover:bg-blue-700 flex items-center justify-center min-w-[70px]"
               >
-                Remove
+                {sending ? (
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  "Send"
+                )}
               </button>
             </div>
-          )}
+          </>
+        )}
+      </div>
+    </div>
 
+    <div ref={messagesEndRef} />
+  </>
+);
 
-          {/* Reply Input Box */}
-          <div className="flex items-center gap-2 border rounded px-2 py-2 fixed bottom-2 left-2 right-2 bg-white shadow-md border-t border-gray-200">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setAttachmentLoading(true);
-                  setTimeout(() => {
-                    setAttachment(file);
-                    setAttachmentLoading(false);
-                  }, 500);
-                }
-              }}
-              className="hidden"
-              id="file-upload"
-              ref={fileInputRef}
-            />
-
-            <label htmlFor="file-upload" className="cursor-pointer text-gray-500">
-              <MdOutlineImage size={30} />
-            </label>
-
-            <div className="flex-1">
-              <input 
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                className="w-full outline-none text-sm border border-gray-300 p-2 rounded-md"
-                placeholder="Write a reply..."
-              />
-            </div>
-              
-
-            <button
-              onClick={handleSend}
-              disabled={sending}
-              className="bg-[#023E8A] text-white px-4 py-2 rounded text-sm hover:bg-blue-700 flex items-center justify-center min-w-[70px]"
-            >
-              {sending ? (
-                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                "Send"
-              )}
-            </button>
-
-          </div>
-        </>
-      )}
-
-      <div ref={messagesEndRef} />
-
-    </div>    
-      </>
-    
-  );
+      
+ 
 };
-
 export default TicketDetailPage;

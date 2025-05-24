@@ -80,8 +80,10 @@ const Navbar = () => {
     setLogoutLoading(true);
     try {
       await logoutUser(accessToken);
-      dispatch(navlogout());
+
       localStorage.clear();
+      localStorage.setItem("logout_reason", "account_deleted");
+      dispatch(navlogout());
       navigate("/create-account");
     } catch (error) {
       console.error("Logout failed", error);

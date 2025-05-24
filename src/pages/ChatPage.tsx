@@ -220,7 +220,7 @@ const ChatPage = () => {
   const handleSelectChat = async (chatId: number) => {
     try {
       setLoading(true);
-      setActiveChat(null); // Clear old chat to trigger loading state
+      setActiveChat(null); 
       setActiveTab("active");
 
       const chat = await fetchChat(chatId);
