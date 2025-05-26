@@ -434,7 +434,8 @@ const ChatPage = () => {
                 </h2>
                   <InlineChatDisplay activeChat={activeChat} />
                   {activeChat.status === "closed" && (
-                    <p className="text-center mt-4 text-gray-500">This chat is closed.</p>
+                    <p className="text-center mt-4 p-4 text-gray-500 bg-gray-100 border border-gray-500 rounded-md"
+                    >This conversation has been closed.</p>
                   )}
                 </div>
               </div>

@@ -12,7 +12,7 @@ interface ChatHistoryProps {
   refreshChats: () => void;
 }
 
-const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, onSelectChat, onNewConversation, refreshChats }) => {
+const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, onSelectChat, refreshChats }) => {
   const dragData = useRef<{ [key: string]: { startX: number; currentX: number } }>({});
   const [deletedChatIds, setDeletedChatIds] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -138,14 +138,14 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, onSelectChat, onNewCon
         })}
       </div>
 
-      <div className="border-t bg-white p-4 flex justify-center">
+      {/* <div className="border-t bg-white p-4 flex justify-center">
         <button
           onClick={onNewConversation}
           className="w-full max-w-[100%] md:max-w-[500px] bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"
         >
           Start New Conversation
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };
