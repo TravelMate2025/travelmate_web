@@ -206,7 +206,7 @@ const TicketsPage = () => {
                       onClick={(e) => e.stopPropagation()}
                       className="text-gray-500 hover:text-gray-700 focus:outline-none"
                     >
-                      <HiOutlineDotsVertical className="w-5 h-5" />
+                      <HiOutlineDotsVertical className="w-5 h-5 ml-10" />
                     </Menu.Button>
                     <Menu.Items className="absolute right-0 mt-2 w-28 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none">
                       <div className="px-1 py-1">
