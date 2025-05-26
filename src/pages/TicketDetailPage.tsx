@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getTicketById, replyToTicket } from '../api/tickets';
+import { getTicketById, replyToTicket, deleteTicket } from '../api/tickets';
+import { FiMoreVertical } from 'react-icons/fi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import clsx from 'clsx';
@@ -108,6 +109,8 @@ const TicketDetailPage = () => {
   const [messageSentTrigger, setMessageSentTrigger] = useState(0);
   const [attachmentLoading, setAttachmentLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -192,6 +195,17 @@ const TicketDetailPage = () => {
     }
   };
   
+
+  const handleDeleteTicket = async () => {
+  if (!accessToken || !id) return;
+  try {
+    await deleteTicket(id, accessToken);
+    navigate('/tickets'); // redirect after deletion
+  } catch (err) {
+    console.error('Failed to delete ticket:', err);
+  }
+};
+
   
   const breadcrumbs = [
     { name: "Home", link: "/" },
@@ -292,6 +306,24 @@ const TicketDetailPage = () => {
         >
           {ticket.status === 'resolved' ? 'resolved' : 'pending'}
         </span>
+
+        <button
+            onClick={() => setShowOptions(prev => !prev)}
+            className="ml-2 text-gray-500 hover:text-gray-700"
+          >
+            <FiMoreVertical size={20} />
+          </button>
+
+          {showOptions && (
+            <div className="absolute right-0 mt-1 bg-white border rounded shadow-md z-10">
+              <button
+                onClick={handleDeleteTicket}
+                className="block w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              >
+                Delete Ticket
+              </button>
+            </div>
+          )}
       </div>
 
       {/* Messages */}

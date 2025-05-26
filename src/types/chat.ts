@@ -35,9 +35,16 @@ export interface UserInfo {
     file_url?: string; 
     file_name?: string;
   }
+
+  export interface ClaimHistoryItem {
+  note: string;
+  id: number | string;
+  claim_note_text: string;
+  timestamp: string; 
+}
+
   
   export interface Chat {
-    // assigned_admin_info: any;
     id: number;
     title?: string;
     status?: string;
@@ -46,5 +53,6 @@ export interface UserInfo {
     user_info?: UserInfo | null;
     admin_name?: string;
     last_message?: LastMessage | null;
+    claim_history?: ClaimHistoryItem[];
   }
   

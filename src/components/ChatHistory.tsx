@@ -1,8 +1,9 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import { Chat } from "../types/chat";
 import { MdDeleteOutline } from "react-icons/md";
 import toast from "react-hot-toast";
 import { deleteUserChat } from "../api/chat"
+import { FiSearch } from "react-icons/fi";
 
 interface ChatHistoryProps {
   chats: Chat[];
@@ -14,6 +15,15 @@ interface ChatHistoryProps {
 const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, onSelectChat, onNewConversation, refreshChats }) => {
   const dragData = useRef<{ [key: string]: { startX: number; currentX: number } }>({});
   const [deletedChatIds, setDeletedChatIds] = useState<number[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredChats = useMemo(() => {
+    return chats.filter(chat =>
+      (chat.title || "").toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, chats]);
+
+
 
   const handleDragStart = (e: React.TouchEvent | React.MouseEvent, id: string | number) => {
     const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
@@ -70,7 +80,20 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, onSelectChat, onNewCon
   return (
     <div className="flex flex-col flex-1 relative">
       <div className="flex flex-col gap-4 flex-1 pt-4 overflow-auto">
-        {chats
+        <div className="pb-2">
+          <div className="relative">
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search chats..."
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded"
+            />
+          </div>
+        </div>
+
+        {filteredChats
         .filter((chat) => !deletedChatIds.includes(chat.id))
         .map((chat) => {
           const preview = chat.last_message?.content

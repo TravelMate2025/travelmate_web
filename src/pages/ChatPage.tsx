@@ -17,6 +17,8 @@ import { IoChevronBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import Breadcrumbs from '../components/Breadcrumbs';
 import ChatHistory from "../components/ChatHistory"
+import InlineChatDisplay from "../features/chat/InlineChatDisplay";
+
 
 export interface SenderInfo {
   id: number;
@@ -39,6 +41,7 @@ interface Message {
   file_type: any;
 }
 
+
 const breadcrumbs = [
   { name: "Home", link: "/" },
   { name: "Chat with us" },
@@ -55,6 +58,8 @@ const ChatPage = () => {
   const [activeTab, setActiveTab] = useState<"active" | "history">("active");
   const navigate = useNavigate();
   const [localChats, setLocalChats] = useState(chats);
+  const { user, accessToken } = useSelector((state: RootState) => state.auth);
+  const wsRef = useRef<ChatWebSocket | null>(null);
 
 
   const refreshChats = async () => {
@@ -70,10 +75,40 @@ const ChatPage = () => {
     refreshChats();
   }, []);
 
- 
 
-  const { user, accessToken } = useSelector((state: RootState) => state.auth);
-  const wsRef = useRef<ChatWebSocket | null>(null);
+    const normalizeMessage = (msg: any, currentUserId: number): Message => {
+    const rawFileName = msg.content?.replace("Sent an attachment: ", "").trim() || "";
+    const extension = rawFileName.split(".").pop()?.toLowerCase();
+
+    const mimeMap: Record<string, string> = {
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      gif: "image/gif",
+      bmp: "image/bmp",
+      webp: "image/webp",
+      pdf: "application/pdf",
+      docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      doc: "application/msword",
+    };
+
+    const fileType = extension && mimeMap[extension] ? mimeMap[extension] : "application/octet-stream";
+
+    return {
+      id: msg.id,
+      content: msg.content ?? msg.message ?? "",
+      sender: msg.sender_id === currentUserId || msg.sender === currentUserId ? "user" : "admin",
+      timestamp: msg.created_at ?? msg.timestamp ?? new Date().toISOString(),
+      pending: false,
+      sender_info: msg.sender_info || undefined,
+      first_name: msg.sender_info?.first_name || "Admin",
+      file_url: msg.file_url || msg.attachment || undefined,
+      file_name: rawFileName || "attachment",
+      file_type: fileType,
+    };
+  };
+
+
 
   if (!accessToken) return null;
 
@@ -86,38 +121,18 @@ const ChatPage = () => {
     const ws = new ChatWebSocket(chatId, accessToken);
 
     ws.onOpen(() => setWsConnected(true));
-    ws.onClose(() => setWsConnected(false));
+    ws.onClose(() => {
+      setWsConnected(false);
+      // When the WebSocket closes, update the activeChat status to 'closed'
+      setActiveChat((prev) => {
+        if (prev) {
+          return { ...prev, status: "closed" };
+        }
+        return prev;
+      });
+    });
     ws.onMessage((msg: any) => {
-      const rawFileName = msg.message?.replace("Sent an attachment: ", "").trim() || "";
-      const extension = rawFileName.split(".").pop()?.toLowerCase();
-
-      const mimeMap: Record<string, string> = {
-        jpg: "image/jpeg",
-        jpeg: "image/jpeg",
-        png: "image/png",
-        gif: "image/gif",
-        bmp: "image/bmp",
-        webp: "image/webp",
-        pdf: "application/pdf",
-        docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        doc: "application/msword",
-      };
-
-      const fileType = extension && mimeMap[extension] ? mimeMap[extension] : "application/octet-stream";
-
-      const normalizedMessage: Message = {
-        id: msg.id,
-        content: msg.message ?? msg.content ?? "",
-        sender: msg.sender_id === user.id ? "user" : "admin",
-        timestamp: msg.created_at ?? new Date().toISOString(),
-        pending: false,
-        first_name: msg.sender_info?.first_name || "Admin",
-        file_url: msg.file_url || msg.attachment || undefined,
-        file_name: rawFileName || "attachment",
-        file_type: fileType,
-        sender_info: undefined
-      };
-
+      const normalizedMessage = normalizeMessage(msg, user.id);
       setActiveChat((prev) => {
         if (!prev) return prev;
         const newMessages = [...prev.messages];
@@ -162,38 +177,11 @@ const ChatPage = () => {
 
         if (data.length > 0) {
           const chat = await fetchChat(data[0].id);
-          const normalizedMessages = chat.messages.map((msg: any) => {
-          const rawFileName = msg.content?.replace("Sent an attachment: ", "").trim() || "";
-          const extension = rawFileName.split(".").pop()?.toLowerCase();
+          const normalizedMessages = user
+            ? chat.messages.map((msg: any) => normalizeMessage(msg, user.id))
+            : [];
 
-          const mimeMap: Record<string, string> = {
-            jpg: "image/jpeg",
-            jpeg: "image/jpeg",
-            png: "image/png",
-            gif: "image/gif",
-            bmp: "image/bmp",
-            webp: "image/webp",
-            pdf: "application/pdf",
-            docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            doc: "application/msword",
-          };
 
-          const fileType = extension && mimeMap[extension] ? mimeMap[extension] : "application/octet-stream";
-
-          return {
-            id: msg.id,
-            content: msg.content ?? msg.message,
-            sender: msg.sender === user?.id ? "user" : "admin",
-            timestamp: msg.created_at ?? msg.timestamp,
-            pending: false,
-            sender_info: msg.sender_info || null,
-            first_name: msg.sender_info?.first_name || "Admin",
-            file_url: msg.file_url || msg.attachment || undefined,
-            file_name: rawFileName || "attachment",
-            file_type: fileType,
-          };
-          
-          });
 
 
           setActiveChat({ ...chat, messages: normalizedMessages });
@@ -224,38 +212,9 @@ const ChatPage = () => {
       setActiveTab("active");
 
       const chat = await fetchChat(chatId);
-      const normalizedMessages = chat.messages.map((msg: any) => {
-      const rawFileName = msg.content?.replace("Sent an attachment: ", "").trim() || "";
-      const extension = rawFileName.split(".").pop()?.toLowerCase();
-
-      const mimeMap: Record<string, string> = {
-        jpg: "image/jpeg",
-        jpeg: "image/jpeg",
-        png: "image/png",
-        gif: "image/gif",
-        bmp: "image/bmp",
-        webp: "image/webp",
-        pdf: "application/pdf",
-        docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        doc: "application/msword",
-      };
-
-      const fileType = extension && mimeMap[extension] ? mimeMap[extension] : "application/octet-stream";
-
-      return {
-        id: msg.id,
-        content: msg.content ?? msg.message,
-        sender: msg.sender === user?.id ? "user" : "admin",
-        timestamp: msg.created_at ?? msg.timestamp,
-        pending: false,
-        sender_info: msg.sender_info || null,
-        first_name: msg.sender_info?.first_name || "Admin",
-        file_url: msg.file_url || msg.attachment || undefined,
-        file_name: rawFileName || "attachment",
-        file_type: fileType,
-        };
-      });
-
+      const normalizedMessages = user
+        ? chat.messages.map((msg: any) => normalizeMessage(msg, user.id))
+        : [];
 
       setActiveChat({ ...chat, messages: normalizedMessages });
       initializeWebSocket(chatId);
@@ -322,7 +281,7 @@ const ChatPage = () => {
 
 
 
-
+    const isDesktop = () => window.innerWidth >= 768;
 
 
   
@@ -456,15 +415,37 @@ const ChatPage = () => {
             ) : null}
           </>
         ) : (
-          <ChatHistory
-            chats={localChats}
-            onSelectChat={handleSelectChat}
-            onNewConversation={() => handleNewConversation()}
-            refreshChats={refreshChats}
-          />
-        )
-        
-        }
+          <div className="flex flex-col md:flex-row">
+            <div className="md:w-1/2">
+              <ChatHistory
+                chats={localChats}
+                onSelectChat={handleSelectChat}
+                onNewConversation={() => handleNewConversation()}
+                refreshChats={refreshChats}
+              />
+            </div>
+            {isDesktop() && activeChat && activeChat.assigned_admin_info && (
+              <div className="hidden md:block md:w-1/2 border border-gray-300 rounded-md ml-2">
+                <div className="p-4">
+                  <h2 className="font-semibold mb-2">
+                  {activeChat.assigned_admin_info.first_name?.trim() ||
+                   activeChat.assigned_admin_info.email?.split("@")[0] ||
+                   "Chat with Agent"}
+                </h2>
+                  <InlineChatDisplay activeChat={activeChat} />
+                  {activeChat.status === "closed" && (
+                    <p className="text-center mt-4 text-gray-500">This chat is closed.</p>
+                  )}
+                </div>
+              </div>
+            )}
+            {!isDesktop() && (
+              <div className="w-full">
+                {/* On mobile, ChatHistory takes the full width */}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

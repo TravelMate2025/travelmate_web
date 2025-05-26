@@ -96,3 +96,14 @@ export const replyToTicket = async (
 };
 
 
+
+
+export const deleteTicket = async (id: string, accessToken: string) => {
+  const response = await axios.delete(`/api/tickets/${id}/`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return response.data;
+};
+

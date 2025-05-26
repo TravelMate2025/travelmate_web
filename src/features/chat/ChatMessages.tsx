@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Chat } from "../../types/chat";
 import { FiFileText } from "react-icons/fi";
-
-
+import { parseISO } from "date-fns";
 
 const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -16,34 +15,99 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
     return null;
   }
 
+  // Combine messages and claim_history into one sorted array
+  const combinedItems: Array<
+    | {
+        type: "message";
+        data: typeof activeChat.messages[0];
+      }
+    | {
+        type: "claim";
+        data: {
+          id: string | number;
+          claim_note_text: string;
+          timestamp: string;
+        };
+      }
+  > = [];
+
+  // Add claim history entries first
+  if (activeChat.claim_history && activeChat.claim_history.length > 0) {
+    activeChat.claim_history.forEach((claim) => {
+      const noteText =
+        claim.claim_note_text || claim.note || "Chat claim note unavailable.";
+      combinedItems.push({
+        type: "claim",
+        data: {
+          id: claim.id,
+          timestamp: claim.timestamp,
+          claim_note_text: noteText,
+        },
+      });
+    });
+  }
+
+
+  // Add messages
+  activeChat.messages.forEach((msg) => {
+    combinedItems.push({ type: "message", data: msg });
+  });
+
+  // Sort combined items by timestamp ascending
+  combinedItems.sort((a, b) => {
+    const dateA = parseISO(a.data.timestamp);
+    const dateB = parseISO(b.data.timestamp);
+    return dateA.getTime() - dateB.getTime();
+  });
+
   return (
     <div className="flex flex-col gap-2 py-2 mb-20 overflow-x-hidden">
-      {activeChat.messages
-      .filter((msg) => msg.content.trim() !== "" || msg.file_url)
-      .map((msg, idx) => {
+      {combinedItems.map((item, idx) => {
+        if (item.type === "claim") {
+          // Render centered claim history note
+          return (
+            <div
+              key={`claim-${item.data.id}`}
+              className="text-sm md:text-base text-blue-800 bg-blue-50 text-center border border-blue-200 p-2 rounded-md my-5 max-w-[95%] w-full md:w-[80%] mx-auto"
+            >
+              {item.data.claim_note_text}
+            </div>
+          );
+        }
+
+        const msg = item.data;
         const isUser = msg.sender === "user";
         const sender = msg.sender_info;
         const displayName =
           sender?.first_name?.trim() ||
           sender?.email?.split("@")[0] ||
           (isUser ? "User" : "Admin");
-        
-        const adminInitial = sender?.first_name?.charAt(0).toUpperCase() || sender?.email?.charAt(0).toUpperCase() || "A";
-        
+
+        const adminInitial =
+          sender?.first_name?.charAt(0).toUpperCase() ||
+          sender?.email?.charAt(0).toUpperCase() ||
+          "A";
+
+        // Filter out empty messages with no file
+        if (msg.content.trim() === "" && !msg.file_url) {
+          return null;
+        }
 
         return (
           <div
             key={`${msg.id ?? idx}-${msg.timestamp}`}
             className={`flex mb-2 ${isUser ? "justify-end" : "justify-start"}`}
           >
-            <div className={`flex ${isUser ? "flex-row-reverse items-end" : "gap-2 items-center"}`}>
-
-            {!isUser && (
-              <div className="w-8 h-8 rounded-full bg-[#023E8A] text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                {adminInitial}
-              </div>
-            )}
-
+            <div
+              className={`flex ${
+                isUser ? "flex-row-reverse items-end" : "gap-2 items-center"
+              }`}
+            >
+              {!isUser && (
+                <div className="w-8 h-8 rounded-full bg-[#023E8A] text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                  {adminInitial}
+                </div>
+              )}
 
               <div className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
                 <div
@@ -55,31 +119,30 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
                       : "bg-gray-200 text-black"
                   }`}
                 >
-                 <p className="whitespace-pre-wrap">{msg.content}</p>
+                  <p className="whitespace-pre-wrap">{msg.content}</p>
 
                   {msg.file_url && (
                     <div className="mt-2">
                       {msg.file_type?.startsWith("image/") ? (
                         <>
-                        <div className="border border-gray-300 rounded overflow-hidden max-w-full sm:max-w-xs break-words">
-                          <img
-                            src={msg.file_url}
-                            alt={msg.file_name || "uploaded file"}
-                            className="w-full h-auto object-contain rounded"
-                          />
-                          
-                        </div>
-                        <a
+                          <div className="border border-gray-300 rounded overflow-hidden max-w-full sm:max-w-xs break-words">
+                            <img
+                              src={msg.file_url}
+                              alt={msg.file_name || "uploaded file"}
+                              className="w-full h-auto object-contain rounded"
+                            />
+                          </div>
+                          <a
                             href={msg.file_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                           className={`underline text-sm mt-2 inline-block ${isUser ? "text-gray-100" : "text-blue-600"}`}
-                           >
+                            className={`underline text-sm mt-2 inline-block ${
+                              isUser ? "text-gray-100" : "text-blue-600"
+                            }`}
+                          >
                             View file
-                            
                           </a>
-                          </>
-                        
+                        </>
                       ) : (
                         <div className="bg-white border border-gray-300 p-3 rounded text-sm max-w-full sm:max-w-xs break-words">
                           <div className="flex items-center gap-2">
@@ -99,9 +162,6 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
                       )}
                     </div>
                   )}
-
-
-
                 </div>
 
                 <small className="text-gray-500 text-xs mt-1">
@@ -127,8 +187,6 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
                     </>
                   )}
                 </small>
-
-
               </div>
             </div>
             <div ref={bottomRef} />
