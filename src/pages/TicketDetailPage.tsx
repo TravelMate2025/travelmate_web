@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getTicketById, replyToTicket, deleteTicket } from '../api/tickets';
-import { FiMoreVertical } from 'react-icons/fi';
+import { getTicketById, replyToTicket } from '../api/tickets';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import clsx from 'clsx';
@@ -109,8 +108,6 @@ const TicketDetailPage = () => {
   const [messageSentTrigger, setMessageSentTrigger] = useState(0);
   const [attachmentLoading, setAttachmentLoading] = useState(false);
   const [sending, setSending] = useState(false);
-  const [showOptions, setShowOptions] = useState(false);
-
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -195,16 +192,6 @@ const TicketDetailPage = () => {
     }
   };
   
-
-  const handleDeleteTicket = async () => {
-  if (!accessToken || !id) return;
-  try {
-    await deleteTicket(id, accessToken);
-    navigate('/tickets'); // redirect after deletion
-  } catch (err) {
-    console.error('Failed to delete ticket:', err);
-  }
-};
 
   
   const breadcrumbs = [
@@ -307,23 +294,6 @@ const TicketDetailPage = () => {
           {ticket.status === 'resolved' ? 'resolved' : 'pending'}
         </span>
 
-        <button
-            onClick={() => setShowOptions(prev => !prev)}
-            className="ml-2 text-gray-500 hover:text-gray-700"
-          >
-            <FiMoreVertical size={20} />
-          </button>
-
-          {showOptions && (
-            <div className="absolute right-0 mt-1 bg-white border rounded shadow-md z-10">
-              <button
-                onClick={handleDeleteTicket}
-                className="block w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-              >
-                Delete Ticket
-              </button>
-            </div>
-          )}
       </div>
 
       {/* Messages */}
@@ -493,8 +463,11 @@ const TicketDetailPage = () => {
               </div>
               <button
                 onClick={handleSend}
-                disabled={sending}
-                className="bg-[#023E8A] text-white px-4 py-2 rounded text-sm hover:bg-blue-700 flex items-center justify-center min-w-[70px]"
+                disabled={(!newMessage.trim() && !attachment) || sending}
+                 className={clsx(
+                    'bg-[#023E8A] text-white px-4 py-2 rounded text-sm hover:bg-blue-700 flex items-center justify-center min-w-[70px]"',
+                    ((!newMessage.trim() && !attachment) || sending) && 'opacity-50'
+                  )}
               >
                 {sending ? (
                   <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

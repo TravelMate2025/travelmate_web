@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import RaiseTicketModal from '../components/modals/RaiseTicketModal';
-import { getTickets } from '../api/tickets';
+import { deleteTicket, getTickets } from '../api/tickets';
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import { FaRegEnvelope } from 'react-icons/fa';
@@ -10,6 +10,11 @@ import Navbar from './homePage/Navbar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import Footer from '../components/2Footer';
 import { IoChevronBack } from 'react-icons/io5';
+import toast from 'react-hot-toast';
+import ConfirmDeleteModal from '../components/modals/ConfirmDeleteModal';
+import { Menu } from '@headlessui/react';
+import { HiOutlineDotsVertical } from 'react-icons/hi';
+
 
 interface Ticket {
   id: number;
@@ -29,6 +34,9 @@ const TicketsPage = () => {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const { accessToken } = useSelector((state: RootState) => state.auth);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
 
   const breadcrumbs = [
     { name: "Home", link: "/" },
@@ -57,6 +65,29 @@ const TicketsPage = () => {
       .catch(() => setError('Failed to load tickets'))
       .finally(() => setLoading(false));
   }, [activeTab, accessToken]);
+
+  const handleDeleteRequest = (id: number) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!accessToken || deleteId === null) return;
+
+    setIsDeleting(true);
+
+    try {
+      await deleteTicket(deleteId, accessToken);
+      setTickets((prev) => prev.filter((ticket) => ticket.id !== deleteId));
+      toast.success('Ticket deleted successfully');
+    } catch (err) {
+      toast.error('Failed to delete ticket');
+    } finally {
+      setIsDeleting(false);
+      setDeleteId(null);
+    }
+  };
+
+
 
   return (
     <>
@@ -136,10 +167,13 @@ const TicketsPage = () => {
             {tickets.map((ticket) => (
               <div
                 key={ticket.id}
-                onClick={() => navigate(`/tickets/${ticket.id}`)}
-                className="bg-white rounded-lg shadow border border-gray-200 cursor-pointer hover:shadow-md transition"
+                className="bg-white rounded-lg shadow border border-gray-200 hover:shadow-md transition"
               >
-                <div className="p-4 flex justify-between items-start">
+                {/* Top clickable section */}
+                <div
+                  onClick={() => navigate(`/tickets/${ticket.id}`)}
+                  className="p-4 flex justify-between items-start cursor-pointer"
+                >
                   <div>
                     <h2 className="font-semibold text-lg">{ticket.title}</h2>
                     <p className="text-sm text-gray-500">Category: {ticket.category}</p>
@@ -147,6 +181,7 @@ const TicketsPage = () => {
                       Ticket ID: {ticket.ticket_id} • {new Date(ticket.created_at).toLocaleString()}
                     </p>
                   </div>
+
                   <span
                     className={clsx(
                       'text-sm font-medium px-3 py-1 rounded-lg border',
@@ -158,9 +193,44 @@ const TicketsPage = () => {
                     {ticket.status === 'resolved' ? 'resolved' : 'pending'}
                   </span>
                 </div>
+
                 <hr className="border-gray-200" />
-                <div className="p-4 text-sm text-gray-600 truncate">{ticket.description}</div>
+
+                {/* Bottom section - NOT clickable */}
+                <div className="p-4 flex justify-between items-start">
+                  <div className="text-sm text-gray-600 truncate w-full pr-2">{ticket.description}</div>
+
+                  {/* Vertical dots menu */}
+                  <Menu as="div" className="relative inline-block text-left z-10">
+                    <Menu.Button
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                    >
+                      <HiOutlineDotsVertical className="w-5 h-5" />
+                    </Menu.Button>
+                    <Menu.Items className="absolute right-0 mt-2 w-28 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none">
+                      <div className="px-1 py-1">
+                        <Menu.Item>
+                          {({ active }) => (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteRequest(ticket.id);
+                              }}
+                              className={`${
+                                active ? 'bg-red-100 text-red-700' : 'text-red-600'
+                              } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </Menu.Item>
+                      </div>
+                    </Menu.Items>
+                  </Menu>
+                </div>
               </div>
+
             ))}
           </div>
         )}
@@ -169,6 +239,13 @@ const TicketsPage = () => {
           isOpen={showModal}
           onClose={() => setShowModal(false)}
           onTicketRaised={() => setActiveTab('all')}
+        />
+
+        <ConfirmDeleteModal
+          isOpen={deleteId !== null}
+          onClose={() => setDeleteId(null)}
+          onConfirm={confirmDelete}
+          loading={isDeleting}
         />
 
        

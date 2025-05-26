@@ -98,12 +98,17 @@ export const replyToTicket = async (
 
 
 
-export const deleteTicket = async (id: string, accessToken: string) => {
-  const response = await axios.delete(`/api/tickets/${id}/`, {
-    headers: {
+export const deleteTicket = async (id: number, accessToken: string) => {
+  try {
+    const res = await axios.delete(`${API_BASE_URL}/tickets/${id}/`, {
+      headers: {
       Authorization: `Bearer ${accessToken}`,
     },
-  });
-  return response.data;
+    });
+    return res.data;
+  } catch (error) {
+    console.error('Failed to delete ticket:', error);
+    throw error;
+  }
 };
 

@@ -5,8 +5,10 @@ const ChatInput = ({ onSend }: { onSend: (text: string, file?: File) => void }) 
   const [message, setMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const isDisabled = message.trim() === "";
+
   const handleSend = () => {
-    if (message.trim() !== "") {
+    if (!isDisabled) {
       onSend(message);
       setMessage("");
     }
@@ -50,7 +52,12 @@ const ChatInput = ({ onSend }: { onSend: (text: string, file?: File) => void }) 
         />
         <button
           onClick={handleSend}
-          className="ml-2 bg-[#023E8A] text-white px-4 py-2 rounded text-sm md:text-base cursor-pointer"
+          disabled={isDisabled}
+          className={`ml-2 px-4 py-2 rounded text-sm md:text-base ${
+            isDisabled
+              ? "bg-gray-300 text-white cursor-not-allowed"
+              : "bg-[#023E8A] text-white cursor-pointer"
+          }`}
         >
           Send
         </button>
