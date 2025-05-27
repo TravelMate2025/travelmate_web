@@ -121,16 +121,7 @@ const ChatPage = () => {
     const ws = new ChatWebSocket(chatId, accessToken);
 
     ws.onOpen(() => setWsConnected(true));
-    ws.onClose(() => {
-      setWsConnected(false);
-      // When the WebSocket closes, update the activeChat status to 'closed'
-      setActiveChat((prev) => {
-        if (prev) {
-          return { ...prev, status: "closed" };
-        }
-        return prev;
-      });
-    });
+    ws.onClose(() => setWsConnected(false));
     ws.onMessage((msg: any) => {
       const normalizedMessage = normalizeMessage(msg, user.id);
       setActiveChat((prev) => {
