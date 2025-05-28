@@ -383,18 +383,31 @@ const ChatPage = () => {
               <ChatMessages activeChat={activeChat} />
             )}
 
-            {!loading && activeChat && activeChat.status !== "closed" ? (
-              <>
-                {!wsConnected && (
-                  <p className="text-red-500 text-center text-sm mt-2">
-                    Connecting to server...
-                  </p>
-                )}
-                <ChatInput onSend={handleSendMessage} />
-              </>
+          {!loading && activeChat ? (
+              activeChat.status !== "CLOSED" ? (
+                <>
+                  {!wsConnected && (
+                    <p className="text-red-500 text-center text-sm mt-2">
+                      Connecting to server...
+                    </p>
+                  )}
+                  <ChatInput onSend={handleSendMessage} />
+                </>
+              ) : (
+                <div className="text-center mt-4">
+                  <p>This conversation has been closed.</p>
+                  <button
+                    onClick={() => handleNewConversation()}
+                    className="mt-2 bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"
+                    disabled={loadingNewChat}
+                  >
+                    {loadingNewChat ? "Starting..." : "Start New Conversation"}
+                  </button>
+                </div>
+              )
             ) : !loading && chats.length > 0 ? (
               <div className="text-center mt-4">
-                <p>This conversation has been closed.</p>
+                <p>Select a chat to view messages.</p>
                 <button
                   onClick={() => handleNewConversation()}
                   className="mt-2 bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"

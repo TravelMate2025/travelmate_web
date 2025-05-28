@@ -29,6 +29,10 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
           timestamp: string;
         };
       }
+    | {
+        type: "system";
+        message: string;
+      }
   > = [];
 
   // Add claim history entries first
@@ -47,6 +51,13 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
     });
   }
 
+  // Add the "chat closed" system message if the chat is closed
+  if (activeChat.status === "CLOSED") {
+    combinedItems.push({
+      type: "system",
+      message: "This chat is closed. No further messages can be sent.",
+    });
+  }
 
   // Add messages
   activeChat.messages.forEach((msg) => {
@@ -55,8 +66,25 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
 
   // Sort combined items by timestamp ascending
   combinedItems.sort((a, b) => {
-    const dateA = parseISO(a.data.timestamp);
-    const dateB = parseISO(b.data.timestamp);
+    let dateA: Date;
+    let dateB: Date;
+
+    if (a.type === "message") {
+      dateA = parseISO(a.data.timestamp);
+    } else if (a.type === "claim") {
+      dateA = parseISO(a.data.timestamp);
+    } else {
+      dateA = new Date(); // Or handle system message timestamp if available
+    }
+
+    if (b.type === "message") {
+      dateB = parseISO(b.data.timestamp);
+    } else if (b.type === "claim") {
+      dateB = parseISO(b.data.timestamp);
+    } else {
+      dateB = new Date(); // Or handle system message timestamp if available
+    }
+
     return dateA.getTime() - dateB.getTime();
   });
 
@@ -71,6 +99,17 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
               className="text-sm md:text-base text-blue-800 bg-blue-50 text-center border border-blue-200 p-2 rounded-md my-5 max-w-[95%] w-full md:w-[80%] mx-auto"
             >
               {item.data.claim_note_text}
+            </div>
+          );
+        }
+
+        if (item.type === "system") {
+          return (
+            <div
+              key={`system-${idx}`}
+              className="text-sm md:text-base text-gray-800 bg-gray-100 text-center border border-gray-300 p-2 rounded-md my-5 max-w-[95%] w-full md:w-[80%] mx-auto"
+            >
+              {item.message}
             </div>
           );
         }
