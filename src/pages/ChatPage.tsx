@@ -55,11 +55,15 @@ const ChatPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [loadingNewChat, setLoadingNewChat] = useState(false);
   const [wsConnected, setWsConnected] = useState(false);
-  const [activeTab, setActiveTab] = useState<"active" | "history">("active");
+  const [activeTab, setActiveTab] = useState<"active" | "history">(
+    localStorage.getItem("activeChatTab") as "active" | "history" | null || "active"
+  );
   const navigate = useNavigate();
   const [localChats, setLocalChats] = useState(chats);
   const { user, accessToken } = useSelector((state: RootState) => state.auth);
   const wsRef = useRef<ChatWebSocket | null>(null);
+  const [isCurrentlyDesktop, setIsCurrentlyDesktop] = useState(window.innerWidth >= 768);
+
 
 
   const refreshChats = async () => {
@@ -273,12 +277,27 @@ const ChatPage = () => {
       setLoadingNewChat(false);
     }
   };
+  
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsCurrentlyDesktop(window.innerWidth >= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("activeChatTab", activeTab);
+  }, [activeTab]);
 
 
+  const isDesktop = () => isCurrentlyDesktop;
 
-    const isDesktop = () => window.innerWidth >= 768;
-
-
+  const handleTabChange = (tab: "active" | "history") => {
+    setActiveTab(tab);
+  };
   
 
   if (error) {
@@ -313,7 +332,7 @@ const ChatPage = () => {
       {/* Tab Buttons */}
       <div className="flex w-full mb-4 border-b border-gray-300">
         <button
-          onClick={() => setActiveTab("active")}
+          onClick={() => handleTabChange("active")}
           className={`w-1/2 text-center py-2 ${
             activeTab === "active"
               ? "border-b-2 border-orange-500 font-semibold"
@@ -323,7 +342,7 @@ const ChatPage = () => {
           Active Chat
         </button>
         <button
-          onClick={() => setActiveTab("history")}
+          onClick={() => handleTabChange("history")}
           className={`w-1/2 text-center py-2 ${
             activeTab === "history"
               ? "border-b-2 border-orange-500 font-semibold"
@@ -430,6 +449,7 @@ const ChatPage = () => {
                 onSelectChat={handleSelectChat}
                 onNewConversation={() => handleNewConversation()}
                 refreshChats={refreshChats}
+                loading={loading}
               />
             </div>
             {isDesktop() && activeChat ? (
@@ -447,6 +467,11 @@ const ChatPage = () => {
                   )}
                 </div>
               </div>
+            ) : isDesktop() && !activeChat ? (
+              <div className="md:block md:w-1/2 border border-gray-300 rounded-md ml-2 p-4">
+                <p className="text-gray-500 italic">Select a chat from history to view details.</p>
+              </div>
+            
             ) : null }
             {!isDesktop() && (
               <div className="w-full">
