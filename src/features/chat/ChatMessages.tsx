@@ -74,7 +74,7 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
     } else if (a.type === "claim") {
       dateA = parseISO(a.data.timestamp);
     } else {
-      dateA = new Date(); // Or handle system message timestamp if available
+      dateA = new Date(); 
     }
 
     if (b.type === "message") {
@@ -82,7 +82,7 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
     } else if (b.type === "claim") {
       dateB = parseISO(b.data.timestamp);
     } else {
-      dateB = new Date(); // Or handle system message timestamp if available
+      dateB = new Date();
     }
 
     return dateA.getTime() - dateB.getTime();

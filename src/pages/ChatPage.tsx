@@ -135,25 +135,23 @@ const ChatPage = () => {
       setActiveChat((prev) => {
         if (!prev) return prev;
         const newMessages = [...prev.messages];
-        const matchIdx = newMessages.findIndex((m) => {
-          const timeDiff = Math.abs(
-            new Date(m.timestamp).getTime() -
-            new Date(normalizedMessage.timestamp).getTime()
-          );
-        
-          return (
-            m.pending &&
-            (m.content === normalizedMessage.content || (m.file_name && normalizedMessage.file_url)) &&
-            timeDiff < 3000
-          );
-        });
-        
+
+        const matchIdx = newMessages.findIndex((m) =>
+          m.pending && // Look for a message that is currently pending
+          m.sender === "user" && // Ensure it's a pending message sent by the current user
+          m.content === normalizedMessage.content // Match by the message content (which includes file name for attachments)
+        );
 
         if (matchIdx !== -1) {
-          newMessages[matchIdx] = normalizedMessage;
+          // If a matching pending message is found, update it with the server's full message
+          newMessages[matchIdx] = { ...normalizedMessage, pending: false };
         } else {
+          // If no pending message found (e.g., a new incoming message from admin, or a very delayed user message), add it
+          // Also, ensure we don't add duplicates if the server sends the same message twice for some reason
           const exists = newMessages.some((m) => m.id === normalizedMessage.id);
-          if (!exists) newMessages.push(normalizedMessage);
+          if (!exists) {
+            newMessages.push(normalizedMessage);
+          }
         }
 
         return {
@@ -162,7 +160,6 @@ const ChatPage = () => {
         };
       });
     });
-
     ws.connect();
     wsRef.current = ws;
   };
