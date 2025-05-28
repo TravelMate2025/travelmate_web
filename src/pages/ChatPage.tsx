@@ -126,7 +126,7 @@ const ChatPage = () => {
       if (msg?.type === 'error' && msg?.message === 'This chat is closed. No further messages can be sent.') {
         return;
       }
-      
+
       const normalizedMessage = normalizeMessage(msg, user.id);
       setActiveChat((prev) => {
         if (!prev) return prev;
@@ -432,14 +432,14 @@ const ChatPage = () => {
                 refreshChats={refreshChats}
               />
             </div>
-            {isDesktop() && activeChat && activeChat.assigned_admin_info && (
+            {isDesktop() && activeChat ? (
               <div className="hidden md:block md:w-1/2 border border-gray-300 rounded-md ml-2">
                 <div className="p-4">
                   <h2 className="font-semibold mb-2">
-                  {activeChat.assigned_admin_info.first_name?.trim() ||
-                   activeChat.assigned_admin_info.email?.split("@")[0] ||
-                   "Chat with Agent"}
-                </h2>
+                    {activeChat.assigned_admin_info?.first_name?.trim() ||
+                    activeChat.assigned_admin_info?.email?.split("@")[0] ||
+                    "Chat with Agent"}
+                  </h2>
                   <InlineChatDisplay activeChat={activeChat} />
                   {activeChat.status === "closed" && (
                     <p className="text-center mt-4 p-4 text-gray-500 bg-gray-100 border border-gray-500 rounded-md"
@@ -447,7 +447,7 @@ const ChatPage = () => {
                   )}
                 </div>
               </div>
-            )}
+            ) : null }
             {!isDesktop() && (
               <div className="w-full">
                 {/* On mobile, ChatHistory takes the full width */}
