@@ -123,6 +123,10 @@ const ChatPage = () => {
     ws.onOpen(() => setWsConnected(true));
     ws.onClose(() => setWsConnected(false));
     ws.onMessage((msg: any) => {
+      if (msg?.type === 'error' && msg?.message === 'This chat is closed. No further messages can be sent.') {
+        return;
+      }
+      
       const normalizedMessage = normalizeMessage(msg, user.id);
       setActiveChat((prev) => {
         if (!prev) return prev;

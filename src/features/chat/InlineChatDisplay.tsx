@@ -8,7 +8,6 @@ interface InlineChatDisplayProps {
 }
 
 const InlineChatDisplay: React.FC<InlineChatDisplayProps> = ({ activeChat }) => {
-
   if (!activeChat) {
     return <div className="text-gray-500 italic">No chat selected.</div>;
   }
@@ -26,6 +25,10 @@ const InlineChatDisplay: React.FC<InlineChatDisplayProps> = ({ activeChat }) => 
           claim_note_text: string;
           timestamp: string;
         };
+      }
+    | {
+        type: "system";
+        message: string;
       }
   > = [];
 
@@ -45,6 +48,14 @@ const InlineChatDisplay: React.FC<InlineChatDisplayProps> = ({ activeChat }) => 
     });
   }
 
+  // Add the "chat closed" system message if the chat is closed
+  if (activeChat.status === "CLOSED") {
+    combinedItems.push({
+      type: "system",
+      message: "This chat is closed. No further messages can be sent.",
+    });
+  }
+
   // Add messages
   if (activeChat.messages) {
     activeChat.messages.forEach((msg) => {
@@ -54,8 +65,25 @@ const InlineChatDisplay: React.FC<InlineChatDisplayProps> = ({ activeChat }) => 
 
   // Sort combined items by timestamp ascending
   combinedItems.sort((a, b) => {
-    const dateA = parseISO(a.data.timestamp);
-    const dateB = parseISO(b.data.timestamp);
+    let dateA: Date;
+    let dateB: Date;
+
+    if (a.type === "message") {
+      dateA = parseISO(a.data.timestamp);
+    } else if (a.type === "claim") {
+      dateA = parseISO(a.data.timestamp);
+    } else {
+      dateA = new Date(); // Or handle system message timestamp if available
+    }
+
+    if (b.type === "message") {
+      dateB = parseISO(b.data.timestamp);
+    } else if (b.type === "claim") {
+      dateB = parseISO(b.data.timestamp);
+    } else {
+      dateB = new Date();
+    }
+
     return dateA.getTime() - dateB.getTime();
   });
 
@@ -70,6 +98,17 @@ const InlineChatDisplay: React.FC<InlineChatDisplayProps> = ({ activeChat }) => 
               className="text-sm md:text-base text-blue-800 bg-blue-50 text-center border border-blue-200 p-2 rounded-md my-2 max-w-full w-full mx-auto"
             >
               {item.data.claim_note_text}
+            </div>
+          );
+        }
+
+        if (item.type === "system") {
+          return (
+            <div
+              key={`system-${idx}`}
+              className="text-sm md:text-base text-gray-800 bg-gray-100 text-center border border-gray-300 p-2 rounded-md my-2 max-w-full w-full mx-auto"
+            >
+              {item.message}
             </div>
           );
         }
@@ -162,6 +201,7 @@ const InlineChatDisplay: React.FC<InlineChatDisplayProps> = ({ activeChat }) => 
                     </div>
                   )}
                 </div>
+
                 <small className="text-gray-500 text-xs mt-1">
                   {isUser ? (
                     msg.pending
