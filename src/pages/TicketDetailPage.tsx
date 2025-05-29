@@ -124,7 +124,7 @@ const TicketDetailPage = () => {
 
   const fetchTicket = async () => {
     try {
-      const data = await getTicketById(id, accessToken);
+      const data = await getTicketById(id);
       setTicket((prev) => {
         if (!prev || JSON.stringify(prev.messages) !== JSON.stringify(data.messages)) {
           return data;
