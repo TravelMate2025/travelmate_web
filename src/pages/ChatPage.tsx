@@ -81,7 +81,8 @@ const ChatPage = () => {
 
 
     const normalizeMessage = (msg: any, currentUserId: number): Message => {
-    const rawFileName = msg.content?.replace("Sent an attachment: ", "").trim() || "";
+    const textForFilename = msg.content ?? msg.message ?? "";
+    const rawFileName = textForFilename.replace("Sent an attachment: ", "").trim() || "";
     const extension = rawFileName.split(".").pop()?.toLowerCase();
 
     const mimeMap: Record<string, string> = {
@@ -127,38 +128,45 @@ const ChatPage = () => {
     ws.onOpen(() => setWsConnected(true));
     ws.onClose(() => setWsConnected(false));
     ws.onMessage((msg: any) => {
-      if (msg?.type === 'error' && msg?.message === 'This chat is closed. No further messages can be sent.') {
-        return;
-      }
-
-      const normalizedMessage = normalizeMessage(msg, user.id);
-      setActiveChat((prev) => {
-        if (!prev) return prev;
-        const newMessages = [...prev.messages];
-
-        const matchIdx = newMessages.findIndex((m) =>
-          m.pending && // Look for a message that is currently pending
-          m.sender === "user" && // Ensure it's a pending message sent by the current user
-          m.content === normalizedMessage.content // Match by the message content (which includes file name for attachments)
-        );
-
-        if (matchIdx !== -1) {
-          // If a matching pending message is found, update it with the server's full message
-          newMessages[matchIdx] = { ...normalizedMessage, pending: false };
-        } else {
-          // If no pending message found (e.g., a new incoming message from admin, or a very delayed user message), add it
-          // Also, ensure we don't add duplicates if the server sends the same message twice for some reason
-          const exists = newMessages.some((m) => m.id === normalizedMessage.id);
-          if (!exists) {
-            newMessages.push(normalizedMessage);
-          }
+        // console.log("WebSocket raw message received:", msg);
+        if (msg?.type === 'session_update' && msg?.status === 'CLOSED') {
+          console.log("Chat closed by admin via WebSocket");
+          setActiveChat((prev) => {
+            if (prev) {
+              return { ...prev, status: 'CLOSED' };
+            }
+            return prev;
+          });
+          return;
         }
 
-        return {
-          ...prev,
-          messages: newMessages,
-        };
-      });
+        if (msg?.type === 'error' && msg?.message === 'This chat is closed. No further messages can be sent.') {
+          return;
+        }
+
+        const normalizedMessage = normalizeMessage(msg, user.id);
+        // console.log("Normalized message:", normalizedMessage); 
+        setActiveChat((prev) => {
+          if (!prev) return prev;
+          const newMessages = [...prev.messages];
+          const matchIdx = newMessages.findIndex((m) =>
+            m.pending && 
+            m.sender === "user" && 
+            m.content === normalizedMessage.content  
+          );
+          if (matchIdx !== -1) {
+            newMessages[matchIdx] = { ...normalizedMessage, pending: false };
+          } else {
+            const exists = newMessages.some((m) => m.id === normalizedMessage.id);
+            if (!exists) {
+              newMessages.push(normalizedMessage);
+            }
+          }
+          return {
+            ...prev,
+            messages: newMessages,
+          };
+        });
     });
     ws.connect();
     wsRef.current = ws;
@@ -176,10 +184,6 @@ const ChatPage = () => {
           const normalizedMessages = user
             ? chat.messages.map((msg: any) => normalizeMessage(msg, user.id))
             : [];
-
-
-
-
           setActiveChat({ ...chat, messages: normalizedMessages });
           initializeWebSocket(chat.id);
         }
@@ -222,8 +226,11 @@ const ChatPage = () => {
   };
 
   const handleSendMessage = (message: string, file?: File) => {
-    if (!activeChat || !user || !wsRef.current || activeChat.status === "closed") return;
-  
+    if (!activeChat || !user || !wsRef.current || activeChat.status === "closed" || !wsConnected) {
+      console.warn("Cannot send message: WebSocket not connected or chat closed.");
+      return;
+    }
+
     const timestamp = new Date().toISOString();
   
     // Automatically generate a caption if none is provided with a file
@@ -244,9 +251,7 @@ const ChatPage = () => {
     setActiveChat((prev) =>
       prev ? { ...prev, messages: [...prev.messages, pendingMsg] } : prev
     );
-  
     wsRef.current.sendMessage(autoCaption, file);
-
   };
   
   
