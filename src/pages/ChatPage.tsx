@@ -257,6 +257,20 @@ const ChatPage = () => {
   
 
 
+  const handleDeleteChat = (chatId: number) => {
+    // Remove from list
+    setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
+
+    // Clear active chat and close WebSocket if it's the deleted one
+    if (activeChat?.id === chatId) {
+      setActiveChat(null);
+      wsRef.current?.close(); // Close WebSocket for deleted chat
+    }
+  };
+
+
+
+
   const handleNewConversation = async (customTitle?: string) => {
     if (!user) return;
     try {
@@ -393,7 +407,7 @@ const ChatPage = () => {
                 </div>
               </div>
 
-            ) : chats.length === 0 ? (
+            ) : !activeChat && chats.length === 0 ? (
               <div className="text-center mt-10">
                 <p>You have no conversations yet.</p>
                 <button
@@ -430,7 +444,7 @@ const ChatPage = () => {
                   </button>
                 </div>
               )
-            ) : !loading && chats.length > 0 ? (
+            ) : !loading && chats.length > 0 && !activeChat ? (
               <div className="text-center mt-4">
                 <p>Select a chat to view messages.</p>
                 <button
@@ -452,6 +466,7 @@ const ChatPage = () => {
                 onNewConversation={() => handleNewConversation()}
                 refreshChats={refreshChats}
                 loading={loading}
+                onDeleteChat={handleDeleteChat}
               />
             </div>
             {isDesktop() && activeChat ? (

@@ -3,14 +3,15 @@ import { Chat } from "../types/chat";
 import { MdDeleteOutline } from "react-icons/md";
 import toast from "react-hot-toast";
 import { deleteUserChat } from "../api/chat";
-import { FiSearch } from "react-icons/fi";
+import { FiMessageSquare, FiSearch } from "react-icons/fi";
 
 interface ChatHistoryProps {
   chats: Chat[];
   onSelectChat: (id: number) => void;
   onNewConversation: () => void;
   refreshChats: () => void;
-  loading: boolean; // Add loading prop
+  loading: boolean; 
+  onDeleteChat: (id: number) => void;
 }
 
 const ChatHistory: React.FC<ChatHistoryProps> = ({
@@ -19,6 +20,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
   onNewConversation,
   refreshChats,
   loading,
+  onDeleteChat,
 }) => {
   const dragData = useRef<{ [key: string]: { startX: number; currentX: number } }>({});
   const [deletedChatIds, setDeletedChatIds] = useState<number[]>([]);
@@ -69,6 +71,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
           toast.success("Chat Deleted Successfully!");
           setDeletedChatIds((prev) => [...prev, id]);
           refreshChats();
+          onDeleteChat(id);
         } catch {
           toast.error("Failed to delete chat");
           el.style.transition = "transform 0.3s ease";
@@ -121,6 +124,15 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
             {renderSkeletonItem(2)}
             {renderSkeletonItem(3)}
           </>
+         ) : filteredChats.filter((chat) => !deletedChatIds.includes(chat.id)).length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-center py-20 text-gray-600">
+            <div className="border border-gray-300 rounded-full bg-gray-100 p-4 mb-4">
+              <FiMessageSquare className="w-14 h-14 text-gray-400" />
+            </div>
+            
+            <h2 className="text-xl font-semibold">No Chats Yet</h2>
+            <p className="text-sm text-gray-500 mt-1">When you start a new conversation with our team, it will appear hear.</p>
+          </div>
         ) : (
           filteredChats
             .filter((chat) => !deletedChatIds.includes(chat.id))
@@ -170,7 +182,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
       <div className="border-t bg-white p-4 flex justify-center">
         <button
           onClick={onNewConversation}
-          className="w-full max-w-[100%] md:max-w-[500px] bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"
+          className="w-full max-w-[100%] md:max-w-[500px] bg-[#023E8A] text-white px-4 py-2 rounded cursor-pointer disabled:opacity-50"
         >
           Start New Conversation
         </button>

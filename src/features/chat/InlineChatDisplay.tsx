@@ -49,12 +49,17 @@ const InlineChatDisplay: React.FC<InlineChatDisplayProps> = ({ activeChat }) => 
   }
 
   // Add the "chat closed" system message if the chat is closed
-  if (activeChat.status === "CLOSED") {
+  if (
+    activeChat.status === "CLOSED" &&
+    ((activeChat.messages && activeChat.messages.length > 0) ||
+      (activeChat.claim_history && activeChat.claim_history.length > 0))
+  ) {
     combinedItems.push({
       type: "system",
       message: "This chat is closed. No further messages can be sent.",
     });
   }
+
 
   // Add messages
   if (activeChat.messages) {
@@ -86,6 +91,14 @@ const InlineChatDisplay: React.FC<InlineChatDisplayProps> = ({ activeChat }) => 
 
     return dateA.getTime() - dateB.getTime();
   });
+
+  if (combinedItems.length === 0) {
+    return (
+      <div className="text-gray-500 italic py-4 mt-10 text-center">
+        No messages or notes available!
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-2 py-2 overflow-y-auto">
