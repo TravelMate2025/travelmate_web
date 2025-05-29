@@ -43,32 +43,42 @@ const TicketsPage = () => {
     { name: "Tickets" },
   ];
 
+  const fetchTickets = async () => {
+  if (!accessToken) {
+    setError('Access token not found');
+    setLoading(false);
+    return;
+  }
+
+  setLoading(true);
+  setError(null);
+
+  try {
+    const data = await getTickets();
+    const filtered = data.results.filter((ticket: Ticket) => {
+      const normalizedStatus = ticket.status === 'resolved' ? 'resolved' : 'pending';
+      return activeTab === 'all' ? true : normalizedStatus === activeTab;
+    });
+    setTickets(filtered);
+  } catch {
+    setError('Failed to load tickets');
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   useEffect(() => {
-    if (!accessToken) {
-      setError('Access token not found');
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    getTickets(accessToken)
-      .then((data) => {
-        const filtered = data.results.filter((ticket: Ticket) => {
-  const normalizedStatus = ticket.status === 'resolved' ? 'resolved' : 'pending';
-  return activeTab === 'all' ? true : normalizedStatus === activeTab;
-});
-
-        setTickets(filtered);
-      })
-      .catch(() => setError('Failed to load tickets'))
-      .finally(() => setLoading(false));
+    fetchTickets();
   }, [activeTab, accessToken]);
+
+  
 
   const handleDeleteRequest = (id: number) => {
     setDeleteId(id);
   };
+
+
 
   const confirmDelete = async () => {
     if (!accessToken || deleteId === null) return;
@@ -76,7 +86,7 @@ const TicketsPage = () => {
     setIsDeleting(true);
 
     try {
-      await deleteTicket(deleteId, accessToken);
+      await deleteTicket(deleteId);
       setTickets((prev) => prev.filter((ticket) => ticket.id !== deleteId));
       toast.success('Ticket deleted successfully');
     } catch (err) {
@@ -238,7 +248,10 @@ const TicketsPage = () => {
         <RaiseTicketModal
           isOpen={showModal}
           onClose={() => setShowModal(false)}
-          onTicketRaised={() => setActiveTab('all')}
+          onTicketRaised={() => {
+            setActiveTab('all');
+            fetchTickets(); // 👈 manually trigger refetch
+          }}
         />
 
         <ConfirmDeleteModal

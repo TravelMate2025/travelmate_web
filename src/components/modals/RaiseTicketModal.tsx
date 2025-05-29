@@ -41,7 +41,7 @@ const CreateTicketModal: React.FC<Props> = ({ isOpen, onClose, onTicketRaised })
 
     setLoading(true);
     try {
-      await createTicket(formData, accessToken);
+      await createTicket(formData);
       setShowSuccess(true);
       onTicketRaised?.();
       onClose();

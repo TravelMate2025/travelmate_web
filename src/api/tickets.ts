@@ -1,4 +1,5 @@
 // src/api/getTickets.ts
+import api from "../../src/api/services/api";
 import axios from 'axios';
 
 const API_BASE_URL = 'https://travelmate-backend-0suw.onrender.com/api';
@@ -10,14 +11,9 @@ interface TicketData {
   priority?: string;
 }
 
-
-export const getTickets = async (accessToken: string) => {
+export const getTickets = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/tickets/`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await api.get('/tickets/');
     console.log('[GET TICKETS] Success:', response.data);
     return response.data;
   } catch (error: any) {
@@ -26,14 +22,9 @@ export const getTickets = async (accessToken: string) => {
   }
 };
 
-
-export const createTicket = async (ticketData: TicketData, accessToken: string) => {
+export const createTicket = async (ticketData: TicketData) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/tickets/`, ticketData, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await api.post('/tickets/', ticketData);
     console.log('[CREATE TICKET] Success:', response.data);
     return response.data;
   } catch (error: any) {
@@ -42,15 +33,9 @@ export const createTicket = async (ticketData: TicketData, accessToken: string) 
   }
 };
 
-
-
-export const getTicketById = async (id: number | string, accessToken: string) => {
+export const getTicketById = async (id: number | string) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/tickets/${id}/`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await api.get(`/tickets/${id}/`);
     console.log(`[GET TICKET ${id}] Success:`, response.data);
     return response.data;
   } catch (error: any) {
@@ -58,8 +43,6 @@ export const getTicketById = async (id: number | string, accessToken: string) =>
     throw error;
   }
 };
-
-
 
 export const replyToTicket = async (
   ticketId: number | string,
@@ -96,19 +79,12 @@ export const replyToTicket = async (
 };
 
 
-
-
-export const deleteTicket = async (id: number, accessToken: string) => {
+export const deleteTicket = async (id: number) => {
   try {
-    const res = await axios.delete(`${API_BASE_URL}/tickets/${id}/`, {
-      headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-    });
+    const res = await api.delete(`/tickets/${id}/`);
     return res.data;
   } catch (error) {
     console.error('Failed to delete ticket:', error);
     throw error;
   }
 };
-

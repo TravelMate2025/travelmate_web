@@ -1,3 +1,4 @@
+// src/api/api.ts
 import axios from 'axios';
 import { getAccessToken } from '../../utils/authUtils';
 
@@ -10,7 +11,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to automatically add the access token
+// Automatically attach the access token
 api.interceptors.request.use(
   (config) => {
     const accessToken = getAccessToken();
@@ -19,7 +20,21 @@ api.interceptors.request.use(
     }
     return config;
   },
+  (error) => Promise.reject(error)
+);
+
+// Redirect to login on token expiration
+api.interceptors.response.use(
+  (response) => response,
   (error) => {
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      typeof window !== 'undefined'
+    ) {
+      console.warn('[AUTH] Access token expired. Redirecting...');
+      window.location.href = '/login'; // Or your login route
+    }
     return Promise.reject(error);
   }
 );

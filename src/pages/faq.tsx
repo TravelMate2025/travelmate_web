@@ -86,7 +86,14 @@ const FaqPage = () => {
           </div>
         ) : error ? (
           <p className="text-red-600">{error}</p>
+         ) : categories.length === 0 ? (
+          <div className="text-center w-full py-12">
+            <h2 className="text-xl font-semibold text-gray-700">No FAQs available</h2>
+            <p className="text-gray-500 mt-2">We couldn’t find any FAQ categories at the moment. Please check back later.</p>
+          </div>
         ) : (
+
+
           <div className="flex flex-col md:flex-row items-start gap-6">
             <FaqTabs
               categories={categories}
