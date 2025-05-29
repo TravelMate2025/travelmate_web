@@ -33,7 +33,7 @@ api.interceptors.response.use(
       typeof window !== 'undefined'
     ) {
       console.warn('[AUTH] Access token expired. Redirecting...');
-      window.location.href = '/login'; // Or your login route
+      window.location.href = '/create-account';
     }
     return Promise.reject(error);
   }

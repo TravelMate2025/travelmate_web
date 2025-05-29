@@ -95,7 +95,14 @@ const ChatPage = () => {
       pdf: "application/pdf",
       docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       doc: "application/msword",
+      xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      xls: "application/vnd.ms-excel",
+      ppt: "application/vnd.ms-powerpoint",
+      pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      csv: "text/csv",
+      txt: "text/plain",
     };
+
 
     const fileType = extension && mimeMap[extension] ? mimeMap[extension] : "application/octet-stream";
 
