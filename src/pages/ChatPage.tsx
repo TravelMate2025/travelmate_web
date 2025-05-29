@@ -261,10 +261,10 @@ const ChatPage = () => {
     // Remove from list
     setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
 
-    // Clear active chat and close WebSocket if it's the deleted one
+    // Clear active chat and close WebSocket
     if (activeChat?.id === chatId) {
       setActiveChat(null);
-      wsRef.current?.close(); // Close WebSocket for deleted chat
+      wsRef.current?.close(); 
     }
   };
 
@@ -412,7 +412,7 @@ const ChatPage = () => {
                 <p>You have no conversations yet.</p>
                 <button
                   onClick={() => handleNewConversation()}
-                  className="mt-2 bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"
+                  className="mt-2 bg-[#023E8A] text-white px-4 py-2 rounded cursor-pointer disabled:opacity-50"
                   disabled={loadingNewChat}
                 >
                   {loadingNewChat ? "Starting..." : "Start New Conversation"}
@@ -437,7 +437,7 @@ const ChatPage = () => {
                   <p>This conversation has been closed.</p>
                   <button
                     onClick={() => handleNewConversation()}
-                    className="mt-2 bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"
+                    className="mt-2 bg-[#023E8A] text-white px-4 py-2 rounded cursor-pointer disabled:opacity-50"
                     disabled={loadingNewChat}
                   >
                     {loadingNewChat ? "Starting..." : "Start New Conversation"}
@@ -449,7 +449,7 @@ const ChatPage = () => {
                 <p>Select a chat to view messages.</p>
                 <button
                   onClick={() => handleNewConversation()}
-                  className="mt-2 bg-[#023E8A] text-white px-4 py-2 rounded disabled:opacity-50"
+                  className="mt-2 bg-[#023E8A] text-white px-4 py-2 rounded cursor-pointer disabled:opacity-50"
                   disabled={loadingNewChat}
                 >
                   {loadingNewChat ? "Starting..." : "Start New Conversation"}
