@@ -37,6 +37,14 @@ import { logout as navlogout } from "../../features/auth/authSlice";
 import toast from "react-hot-toast";
 import Spinner from "../../components/Spinner";
 
+import { FaBell } from 'react-icons/fa';
+
+interface NavbarProps {
+  hasNewNotification: boolean;
+  notificationMessage: string;
+  onNotificationClick: () => void;
+}
+
 
 const navItems = [
   { name: "Home", path: "/" },
@@ -59,7 +67,11 @@ const logout = [
   { text: "Log out", icon: <LoginOutlinedIcon /> }
 ];
 
-const Navbar = () => {
+const Navbar: React.FC<NavbarProps> = ({
+  hasNewNotification,
+  notificationMessage,
+  onNotificationClick,
+}) => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const { user, accessToken } = useSelector((state: RootState) => state.auth);
@@ -164,6 +176,32 @@ const Navbar = () => {
                   </div>
                 </div>
 
+                {/* MODIFIED: Bell icon for mobile view */}
+                {isLoggedIn && (
+                  <div className="relative ml-4">
+                    <IconButton
+                      size="large"
+                      aria-label="notifications"
+                      onClick={onNotificationClick} // Direct click handles notification in mobile
+                      sx={{ color: "black", mt: 1 }}
+                    >
+                      <FaBell className="h-6 w-6" />
+                      {hasNewNotification && (
+                        <span className="absolute top-1 right-1 block h-3 w-3 rounded-full ring-2 ring-white bg-red-700"></span>
+                      )}
+                    </IconButton>
+                    {hasNewNotification && (
+                      <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-800 animate-fadeIn z-50">
+                        <p className="font-semibold mb-1">New Notification!</p>
+                        <p>{notificationMessage}</p>
+                        <button onClick={onNotificationClick} className="mt-2 text-blue-600 hover:underline">
+                          Dismiss
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Hamburger Icon */}
                 <IconButton size="large" aria-label="menu" onClick={toggleDrawer} sx={{ color: "black" }}>
                   <MenuIcon />
@@ -257,8 +295,21 @@ const Navbar = () => {
                             onClick={() => handleNavItemClick(path)}
                             sx={{ cursor: "pointer", display: "flex", alignItems: "center" }}
                           >
+                          {/* MODIFIED: Add a special check for notifications to route directly */}
+                          {text === "Notifications" ? (
+                            <Link to="/notifications" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+                              <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
+                              <ListItemText primary={text} />
+                              {hasNewNotification && (
+                                <span className="ml-2 h-2.5 w-2.5 rounded-full bg-red-700 block"></span>
+                              )}
+                            </Link>
+                          ) : (
+                            <>
                             <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
                             <ListItemText primary={text} />
+                            </>
+                          )}
                           </ListItem>
                         ))}
 
@@ -356,13 +407,28 @@ const Navbar = () => {
                 </div>
               ) : (
                 <>
-                  <Tooltip title="Notifications">
-                    <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, mr: 3 }}>
-                      <div className="bg-[#CCD8E81A] w-[40px] h-[40px] rounded-full border border-[#023E8A] text-center">
-                        <NotificationsNoneOutlinedIcon />
+                  {/* NEW JSX: Notification Bell for Desktop */}
+                  <div className="relative mr-4"> {/* MODIFIED: Added relative position */}
+                    <Tooltip title="Notifications">
+                      <IconButton onClick={onNotificationClick} sx={{ p: 0 }}>
+                        <div className="bg-[#CCD8E81A] w-[40px] h-[40px] rounded-full border border-[#023E8A] text-center flex items-center justify-center relative"> {/* MODIFIED: Added flex, items-center, justify-center, relative */}
+                          <FaBell className="h-6 w-6 text-[#023E8A]" />
+                          {hasNewNotification && (
+                            <span className="absolute top-0 right-0 block h-3 w-3 rounded-full ring-2 ring-white bg-red-700"></span>
+                          )}
+                        </div>
+                      </IconButton>
+                    </Tooltip>
+                    {hasNewNotification && (
+                      <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-800 animate-fadeIn z-50">
+                        <p className="font-semibold mb-1">New Notification!</p>
+                        <p>{notificationMessage}</p>
+                        <button onClick={onNotificationClick} className="mt-2 text-blue-600 hover:underline">
+                          Dismiss
+                        </button>
                       </div>
-                    </IconButton>
-                  </Tooltip>
+                    )}
+                  </div>
 
                   <Tooltip title="Open settings">
                     <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, display: "flex", alignItems: "center" }}>

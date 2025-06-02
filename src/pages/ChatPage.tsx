@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { format } from "date-fns";
+import { Howl } from 'howler';
+
 import {
   createChat,
   fetchChat,
@@ -47,6 +49,10 @@ const breadcrumbs = [
   { name: "Chat with us" },
 ];
 
+const notificationSound = new Howl({
+  src: ['/sounds/mixkit-bell-notification-933.wav'],
+  volume: 1.0,
+});
 
 const ChatPage = () => {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -63,6 +69,39 @@ const ChatPage = () => {
   const { user, accessToken } = useSelector((state: RootState) => state.auth);
   const wsRef = useRef<ChatWebSocket | null>(null);
   const [isCurrentlyDesktop, setIsCurrentlyDesktop] = useState(window.innerWidth >= 768);
+
+  const [userHasInteracted, setUserHasInteracted] = useState(false);
+
+  // useEffect(() => {
+  //   if (notificationSoundRef.current) {
+  //     notificationSoundRef.current.load();
+  //   }
+  // }, []);
+
+
+  useEffect(() => {
+    const handleInteraction = () => {
+      setUserHasInteracted(true);
+      document.removeEventListener("click", handleInteraction);
+    };
+
+    document.addEventListener("click", handleInteraction);
+    return () => document.removeEventListener("click", handleInteraction);
+  }, []);
+
+
+  
+  const [hasNewNotification, setHasNewNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
+
+  // play notification sound
+  const playNotificationSound = useCallback(() => {
+    if (userHasInteracted) {
+      notificationSound.play();
+    }
+  }, [userHasInteracted]);
+
+
 
 
 
@@ -144,6 +183,13 @@ const ChatPage = () => {
             }
             return prev;
           });
+          // Notification for Chat Closed
+          if (activeChat?.id === chatId) {
+            // Only notify if it's the currently active chat
+            setHasNewNotification(true);
+            setNotificationMessage("Your chat has been closed by an admin.");
+            playNotificationSound();
+          }
           return;
         }
 
@@ -167,6 +213,21 @@ const ChatPage = () => {
             const exists = newMessages.some((m) => m.id === normalizedMessage.id);
             if (!exists) {
               newMessages.push(normalizedMessage);
+
+              // Notification for Admin Message
+              // Check if the message is from an admin AND it's not the currently active chat
+              // OR if it's the active chat but the user isn't currently looking at it (e.g., tab is in background)
+              if (normalizedMessage.sender === "admin" && activeChat?.id === chatId) {
+                // This is a new message in the currently active chat, sent by admin
+                setHasNewNotification(true);
+                setNotificationMessage(`New message from Admin: ${normalizedMessage.content.substring(0, 50)}...`);
+                playNotificationSound();
+              } else if (normalizedMessage.sender === "admin" && activeChat?.id !== chatId) {
+                // This is a new message in a different chat, sent by admin
+                setHasNewNotification(true);
+                setNotificationMessage(`You have a new message: ${normalizedMessage.content.substring(0, 50)}...`);
+                playNotificationSound();
+              }
             }
           }
           return {
@@ -287,7 +348,7 @@ const ChatPage = () => {
       // Generate a dynamic default title with the month in words and a nice format
       const fallbackTitle = `Conversation on ${format(new Date(), "d MMMM yyyy 'at' h:mm a")}`;
       
-      const newChat = await createChat(user.id, customTitle || fallbackTitle);
+      const newChat = await createChat(user.id, (customTitle?.trim() || fallbackTitle));
 
       const chatData = await fetchChat(newChat.id);
       setChats((prev) => [chatData, ...prev]);
@@ -333,7 +394,15 @@ const ChatPage = () => {
 
   return (
     <div className="flex flex-col min-h-screen sm:max-w-[93%] mx-auto p-4">
-      <Navbar />
+      <Navbar
+        hasNewNotification={hasNewNotification}
+        notificationMessage={notificationMessage}
+        onNotificationClick={() => {
+          setHasNewNotification(false);
+          setNotificationMessage("");
+        }}
+      />
+
       
 
       <div className="my-10 md:mt-6" />

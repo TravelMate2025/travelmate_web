@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL = 'https://travelmate-backend-0suw.onrender.com'
+// const API_BASE_URL = 'http://127.0.0.1:8000';
 
 export const submitEmail = async (email: string) => {
   try {
