@@ -40,9 +40,9 @@ import Spinner from "../../components/Spinner";
 import { FaBell } from 'react-icons/fa';
 
 interface NavbarProps {
-  hasNewNotification: boolean;
-  notificationMessage: string;
-  onNotificationClick: () => void;
+  hasNewNotification?: boolean;
+  notificationMessage?: string;
+  onNotificationClick?: () => void;
 }
 
 
@@ -68,9 +68,9 @@ const logout = [
 ];
 
 const Navbar: React.FC<NavbarProps> = ({
-  hasNewNotification,
-  notificationMessage,
-  onNotificationClick,
+  hasNewNotification = false,
+  notificationMessage = "",
+  onNotificationClick = () => {},
 }) => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
