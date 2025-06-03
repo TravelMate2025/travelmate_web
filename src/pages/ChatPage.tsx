@@ -183,13 +183,11 @@ const ChatPage = () => {
             }
             return prev;
           });
-          // Notification for Chat Closed
-          if (activeChat?.id === chatId) {
-            // Only notify if it's the currently active chat
+          // Notification for Chat Closed 
             setHasNewNotification(true);
             setNotificationMessage("Your chat has been closed by an admin.");
             playNotificationSound();
-          }
+          
           return;
         }
 
@@ -215,18 +213,13 @@ const ChatPage = () => {
               newMessages.push(normalizedMessage);
 
               // Notification for Admin Message
-              // Check if the message is from an admin AND it's not the currently active chat
-              // OR if it's the active chat but the user isn't currently looking at it (e.g., tab is in background)
-              if (normalizedMessage.sender === "admin" && activeChat?.id === chatId) {
-                // This is a new message in the currently active chat, sent by admin
-                setHasNewNotification(true);
-                setNotificationMessage(`New message from Admin: ${normalizedMessage.content.substring(0, 50)}...`);
-                playNotificationSound();
-              } else if (normalizedMessage.sender === "admin" && activeChat?.id !== chatId) {
-                // This is a new message in a different chat, sent by admin
-                setHasNewNotification(true);
-                setNotificationMessage(`You have a new message: ${normalizedMessage.content.substring(0, 50)}...`);
-                playNotificationSound();
+              if (normalizedMessage.sender === "admin") {
+                if (normalizedMessage.content === "") {
+                  } else {
+                      setHasNewNotification(true);
+                      setNotificationMessage(`New message from Admin: ${normalizedMessage.content.substring(0, 50)}...`);
+                      playNotificationSound();
+                  }
               }
             }
           }
