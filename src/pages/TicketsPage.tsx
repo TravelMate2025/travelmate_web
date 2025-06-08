@@ -156,10 +156,10 @@ const TicketsPage = () => {
                 <div className="text-4xl mb-2">⚠️</div>
                 <h2 className="text-lg font-bold mb-1">Something went wrong</h2>
                 <p className="text-sm mb-2">
-                  An error occurred while fetching your tickets. 
+                  An error occurred while fetching your tickets.  We are attending to it now.
                 </p>
                 <p className="text-sm mb-4">
-                  We are attending to it now. Please try again later.
+                  Please try again later.
                 </p>
                 {/* <p className="text-xs text-red-400 break-words mb-4">{error}</p> */}
                 {/* <button
