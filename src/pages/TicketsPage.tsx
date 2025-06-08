@@ -151,7 +151,7 @@ const TicketsPage = () => {
 
         {/* Content */}
         {error ? (
-            <div className="flex flex-col items-center justify-center text-center mt-20 space-y-4 px-4">
+            <div className="flex flex-col items-center justify-center text-center mt-10 mb-5 space-y-4 px-2">
               <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-6 max-w-md w-full shadow-sm">
                 <div className="text-4xl mb-2">⚠️</div>
                 <h2 className="text-lg font-bold mb-1">Something went wrong</h2>
