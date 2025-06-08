@@ -151,8 +151,27 @@ const TicketsPage = () => {
 
         {/* Content */}
         {error ? (
-          <div className="text-red-500 text-center">{error}</div>
-        ) : loading ? (
+            <div className="flex flex-col items-center justify-center text-center mt-20 space-y-4 px-4">
+              <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-6 max-w-md w-full shadow-sm">
+                <div className="text-4xl mb-2">⚠️</div>
+                <h2 className="text-lg font-bold mb-1">Something went wrong</h2>
+                <p className="text-sm mb-2">
+                  An error occurred while fetching your tickets. 
+                </p>
+                <p className="text-sm mb-4">
+                  We are attending to it now. Please try again later.
+                </p>
+                {/* <p className="text-xs text-red-400 break-words mb-4">{error}</p> */}
+                {/* <button
+                  onClick={() => fetchTickets()}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
+                >
+                  Retry
+                </button> */}
+              </div>
+            </div>
+          ) : loading ? (
+
           <div className="space-y-4 animate-pulse">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="bg-gray-200 h-32 rounded-lg w-full" />
