@@ -17,32 +17,35 @@ const FaqPage = () => {
 
   const preferredOrder = ["Stays", "Flights", "Car Rentals", "Account"];
 
+  const fetchFaqs = async () => {
+    setLoading(true);
+    setError(null); // clear previous error
+    try {
+      const data = await getFaqCategories();
+      const transformed = data.map((cat: any) => ({
+        ...cat,
+        short_name: cat.name_display.split(" ")[0],
+      }));
+
+      const sorted = transformed.sort(
+        (a: any, b: any) =>
+          preferredOrder.indexOf(a.name_display) -
+          preferredOrder.indexOf(b.name_display)
+      );
+
+      setCategories(sorted);
+      if (sorted.length > 0) setSelectedCategoryId(sorted[0].id);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchFaqs = async () => {
-      try {
-        const data = await getFaqCategories();
-        const transformed = data.map((cat: any) => ({
-          ...cat,
-          short_name: cat.name_display.split(" ")[0],
-        }));
-
-        const sorted = transformed.sort(
-          (a: any, b: any) =>
-            preferredOrder.indexOf(a.name_display) -
-            preferredOrder.indexOf(b.name_display)
-        );
-
-        setCategories(sorted);
-        if (sorted.length > 0) setSelectedCategoryId(sorted[0].id);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchFaqs();
   }, []);
+
 
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
@@ -85,8 +88,22 @@ const FaqPage = () => {
             </div>
           </div>
         ) : error ? (
-          <p className="text-red-600">{error}</p>
-         ) : categories.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-center bg-red-50 border border-red-200 rounded-lg p-6 mt-6 mx-4 shadow-sm max-w-md md:mx-auto">
+            <div className="text-4xl mb-3 text-red-500">⚠️</div>
+            <h2 className="text-lg font-semibold text-red-700 mb-1">Something went wrong</h2>
+            <p className="text-sm text-red-600 mb-4">
+              We couldn’t load this content. Please check your connection and try again.
+            </p>
+            {/* <p className="text-xs text-red-400 italic break-all mb-4">{error}</p> */}
+            <button
+              onClick={fetchFaqs} 
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2 rounded cursor-pointer"
+            >
+              Retry
+            </button>
+          </div>
+        ) : categories.length === 0 ? (
+
           <div className="text-center w-full py-12">
             <h2 className="text-xl font-semibold text-gray-700">No FAQs available</h2>
             <p className="text-gray-500 mt-2">We couldn’t find any FAQ categories at the moment. Please check back later.</p>
