@@ -391,7 +391,7 @@ const ChatPage = () => {
         <div className="bg-red-50 border border-red-300 text-red-700 rounded-xl max-w-md w-full p-6 shadow-sm text-center">
           <div className="text-4xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
-          <p className="mb-4">We couldn’t load your chat. Please try again later.</p>
+          <p className="mb-4">We couldn’t load your chat now. Please try again later.</p>
           <p className="text-sm text-red-500 mb-6 break-words">
             Error: {error}
           </p>
