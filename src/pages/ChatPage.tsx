@@ -378,12 +378,35 @@ const ChatPage = () => {
   
 
   if (error) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-red-500">Error loading chat: {error}</p>
+  return (
+    <>
+      <div className="my-10 md:mt-6" />
+      <Navbar />
+
+      <div className="hidden md:ml-[-40px] md:block">
+        <Breadcrumbs items={breadcrumbs} />
       </div>
-    );
-  }
+
+      <div className="flex flex-col items-center justify-center mt-24 px-4">
+        <div className="bg-red-50 border border-red-300 text-red-700 rounded-xl max-w-md w-full p-6 shadow-sm text-center">
+          <div className="text-4xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
+          <p className="mb-4">We couldn’t load your chat. Please try again later.</p>
+          <p className="text-sm text-red-500 mb-6 break-words">
+            Error: {error}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-10 py-2 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 
   return (
     <div className="flex flex-col min-h-screen sm:max-w-[93%] mx-auto p-4">
