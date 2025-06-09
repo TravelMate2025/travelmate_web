@@ -55,7 +55,7 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
   if (activeChat.status === "CLOSED") {
     combinedItems.push({
       type: "system",
-      message: "This chat is closed. No further messages can be sent.",
+      message: activeChat.systemMessageText || "This chat is closed. No further messages can be sent.",
     });
   }
 

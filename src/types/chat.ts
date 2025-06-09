@@ -54,5 +54,6 @@ export interface UserInfo {
     admin_name?: string;
     last_message?: LastMessage | null;
     claim_history?: ClaimHistoryItem[];
+    systemMessageText?: string; 
   }
   

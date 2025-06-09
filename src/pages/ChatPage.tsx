@@ -179,7 +179,7 @@ const ChatPage = () => {
           console.log("Chat closed by admin via WebSocket");
           setActiveChat((prev) => {
             if (prev) {
-              return { ...prev, status: 'CLOSED' };
+              return { ...prev, status: 'CLOSED', systemMessageText: "Your chat has been closed by an admin." };
             }
             return prev;
           });
@@ -191,9 +191,25 @@ const ChatPage = () => {
           return;
         }
 
-        if (msg?.type === 'error' && msg?.message === 'This chat is closed. No further messages can be sent.') {
-          return;
-        }
+        // Add this new block to handle 'error' messages that should be system notices
+        if (msg?.type === 'error') {
+            const errorMessage = msg.message;
+            if (errorMessage === 'This chat has been automatically closed due to inactivity.' || 
+                errorMessage === 'This chat is closed. No further messages can be sent.') {
+                
+                setActiveChat((prev) => {
+                    if (prev) {
+                        return { ...prev, status: 'CLOSED', systemMessageText: errorMessage };
+                    }
+                    return prev;
+                });
+                setHasNewNotification(true);
+                setNotificationMessage(errorMessage);
+                playNotificationSound();
+                return; // Prevent these error messages from becoming regular chat messages
+            }
+          }
+
 
         const normalizedMessage = normalizeMessage(msg, user.id);
         // console.log("Normalized message:", normalizedMessage); 
