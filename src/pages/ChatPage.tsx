@@ -153,7 +153,7 @@ const ChatPage = () => {
       pending: false,
       sender_info: msg.sender_info || undefined,
       first_name: msg.sender_info?.first_name || "Admin",
-      file_url: msg.file_url || msg.attachment || undefined,
+      file_url: msg.attachment_url || msg.attachment || undefined,
       file_name: rawFileName || "attachment",
       file_type: fileType,
     };
