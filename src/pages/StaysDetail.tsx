@@ -8,6 +8,11 @@ import { FaImages,FaMapMarkerAlt, FaCheckCircle,FaHeart, FaShareAlt,
 import { FaArrowLeft } from 'react-icons/fa';
 import AmenitiesModal from "../components/modals/AmenitiesModal"
 
+import StayImage from "../assets/images/StayImage.png";
+import StayImage2 from "../assets/images/StayImage2.png";
+import StayImageCopy from "../assets/images/StayImageCopy.png"; 
+
+
 import Navbar from "./homePage/Navbar";
 import TravelmateApp from "./homePage/TravelmateApp";
 import Footer from "../components/2Footer";
@@ -121,22 +126,23 @@ const StaysDetail: React.FC<StaysDetailProps> = ({ hotel }) => {
     ];
     
     const roomImages = [
-        "src/assets/images/StayImage.png",
-        "src/assets/images/StayImage2.png",
-        "src/assets/images/StayImage.png",
-        "src/assets/images/StayImage.png",
-        "src/assets/images/StayImage2.png",
-        "src/assets/images/StayImageCopy.png",
+        StayImage,
+        StayImage2,
+        StayImage,
+        StayImage,
+        StayImage2,
+        StayImageCopy,
     ];
 
 
+
     const rooms = [
-        { image: "src/assets/images/StayImage2.png", title: "King Size Room", size: 32, bedType: "King Size Bed", pricePerNight: "10,000", pricePerWeek: "70,000" },
-        { image: "src/assets/images/StayImage2.png", title: "Deluxe Room", size: 28, bedType: "Queen Size Bed", pricePerNight: "12,000", pricePerWeek: "84,000" },
-        { image: "src/assets/images/StayImage2.png", title: "Executive Suite", size: 40, bedType: "King Size Bed", pricePerNight: "15,000", pricePerWeek: "105,000" },
-        { image: "src/assets/images/StayImage2.png", title: "Standard Room", size: 25, bedType: "Double Bed", pricePerNight: "8,000", pricePerWeek: "56,000" },
-        { image: "src/assets/images/StayImage2.png", title: "Family Suite", size: 45, bedType: "2 Queen Beds", pricePerNight: "18,000", pricePerWeek: "126,000" },
-        { image: "src/assets/images/StayImage2.png", title: "Penthouse Suite", size: 50, bedType: "King Size Bed", pricePerNight: "25,000", pricePerWeek: "175,000" },
+        { image: StayImage2, title: "King Size Room", size: 32, bedType: "King Size Bed", pricePerNight: "10,000", pricePerWeek: "70,000" },
+        { image: StayImage2, title: "Deluxe Room", size: 28, bedType: "Queen Size Bed", pricePerNight: "12,000", pricePerWeek: "84,000" },
+        { image: StayImage2, title: "Executive Suite", size: 40, bedType: "King Size Bed", pricePerNight: "15,000", pricePerWeek: "105,000" },
+        { image: StayImage2, title: "Standard Room", size: 25, bedType: "Double Bed", pricePerNight: "8,000", pricePerWeek: "56,000" },
+        { image: StayImage2, title: "Family Suite", size: 45, bedType: "2 Queen Beds", pricePerNight: "18,000", pricePerWeek: "126,000" },
+        { image: StayImage2, title: "Penthouse Suite", size: 50, bedType: "King Size Bed", pricePerNight: "25,000", pricePerWeek: "175,000" },
     ];
       
 
