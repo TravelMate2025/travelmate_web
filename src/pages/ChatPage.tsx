@@ -51,7 +51,7 @@ const breadcrumbs = [
 
 const notificationSound = new Howl({
   src: ['/sounds/mixkit-bell-notification-933.wav'],
-  volume: 1.0,
+  volume: 0.5,
 });
 
 const ChatPage = () => {
