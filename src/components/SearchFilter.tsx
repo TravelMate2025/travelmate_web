@@ -4,7 +4,12 @@ import ReusableDateSelector from "../components/ReusableDateSelector";
 import LocationDropdown from './booking-progress/LocationDropdown';
 import HotelGuestSelector from './HotelGuestSelector';
 
-// We will use localStorage to pass the search parameters to the results page
+import { useDispatch } from "react-redux";
+import { setSearchParams } from "../features/stay/staysSlice";
+import { AppDispatch } from "../store";
+
+
+// We will use Redux to store the search parameters
 interface SearchParams {
     destination: string;
     checkIn: string;
@@ -15,28 +20,42 @@ interface SearchParams {
 
 const SearchFilter: React.FC = () => {
     const [destination, setDestination] = useState("");
-    const [locations] = useState(["Lagos", "Abuja", "Kano"]); // Static locations for dropdown
+    const [locations, setLocations] = useState(["Lagos", "Abuja", "Kano"]); // Static locations for dropdown
     const [checkIn, setCheckIn] = useState('');
     const [checkOut, setCheckOut] = useState('');
-
+    
     const [anchor, setAnchor] = useState<HTMLElement | null>(null);
     const [guestText, setGuestText] = useState("1 Room, 2 Guests");
     const [counts, setCounts] = useState({ rooms: 1, adults: 2, children: 0, infants: 0 });
+    
 
     const navigate = useNavigate();
+    const dispatch = useDispatch<AppDispatch>();
+
+    const mapCityToIATACode = (city: string): string => {
+    const cityToIATA: Record<string, string> = {
+        "Lagos": "LOS",  // Murtala Muhammed Int'l Airport
+        "Abuja": "ABV",  // Nnamdi Azikiwe Int'l Airport
+        "Kano": "KAN",   // Mallam Aminu Kano Int'l Airport
+        // Add more mappings as needed
+    };
+
+    return cityToIATA[city] || city.toUpperCase();  // fallback to original (safe default)
+};
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
 
         // Store the search parameters in localStorage to be retrieved by StaysSearchResults
         const searchParams: SearchParams = {
-            destination: destination,
+            destination: mapCityToIATACode(destination),
             checkIn: checkIn,
             checkOut: checkOut,
             adults: counts.adults,
             children: counts.children,
         };
-        localStorage.setItem('hotelSearchParams', JSON.stringify(searchParams));
+        // localStorage.setItem('hotelSearchParams', JSON.stringify(searchParams));
+        dispatch(setSearchParams(searchParams));
 
         navigate('/stays-search-result');
     };

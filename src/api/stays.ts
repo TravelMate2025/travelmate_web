@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+// Base URL for the API
+const BASE_URL = 'http://127.0.0.1:8000/api';
+
 // Function to format dates as YYYY-MM-DD
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -21,7 +24,8 @@ export const searchHotels = async (
     checkOut: string,
     adults: number,
     children: number,
-    filters?: SearchFilters
+    filters?: SearchFilters,
+    token?: string // Optional authorization token
 ) => {
     try {
         const checkInFormatted = formatDate(checkIn);
@@ -35,19 +39,22 @@ export const searchHotels = async (
             children,
             min_price: filters?.min_price,
             max_price: filters?.max_price,
-            amenities: filters?.amenities ? filters.amenities.join(',') : undefined,
+            amenities: filters?.amenities?.length ? filters.amenities.join(',') : undefined,
+
         };
 
-        // Filter out undefined values from params
+        // Remove undefined values from the query parameters
         const cleanedParams = Object.fromEntries(
             Object.entries(params).filter(([_, value]) => value !== undefined)
         );
 
-        const response = await axios.get('http://127.0.0.1:8000/api/stay/hotels/search/', {
+        const response = await axios.get(`${BASE_URL}/hotels/search/`, {
             params: cleanedParams,
+            headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+            }
         });
-        
-        // Log the successful API response
+
         console.log("API Response Data:", response.data); 
         return response.data;
     } catch (error) {

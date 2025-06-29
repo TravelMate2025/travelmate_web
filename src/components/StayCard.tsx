@@ -7,11 +7,11 @@ import {
   FaHeart,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-// import { toggleFavorite } from "../api/favorites";
+// import { toggleFavorite } from "../api/favorites"; // Keep this commented out until you provide the API logic
 import toast from "react-hot-toast";
 
 interface StayCardProps {
-  id: number;
+  id: string; // Changed from number to string to match hotel code
   image: string;
   name: string;
   rating: number;
@@ -24,7 +24,7 @@ interface StayCardProps {
 }
 
 const StayCard: React.FC<StayCardProps> = ({
-  // id,
+  id,
   image,
   name,
   rating,
@@ -38,11 +38,13 @@ const StayCard: React.FC<StayCardProps> = ({
   const navigate = useNavigate();
   const [favorite, setFavorite] = useState(isFavorited);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     try {
+      // You will need to uncomment and implement this once you have a favorites API endpoint.
       // await toggleFavorite(id, favorite);
       const newFavorite = !favorite;
       setFavorite(newFavorite);
@@ -70,15 +72,21 @@ const StayCard: React.FC<StayCardProps> = ({
         </div>
       )}
 
-
-
       {/* Image Section */}
       <div className="relative">
-        <img
-          src={image}
-          alt={name}
-          className="w-full h-[200px] sm:h-[210px] md:h-[224px] rounded-lg object-cover"
-        />
+        <div className="w-full h-[200px] sm:h-[210px] md:h-[224px] rounded-lg bg-gray-200 flex items-center justify-center relative overflow-hidden">
+          {image && !imageError ? (
+            <img
+              src={image}
+              alt={name}
+                onError={() => setImageError(true)}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-gray-600 text-sm font-medium">No Image Available</span>
+          )}
+        </div>
+
         <button
           onClick={handleFavoriteClick}
           onMouseEnter={() => setShowTooltip(true)}
@@ -112,7 +120,12 @@ const StayCard: React.FC<StayCardProps> = ({
 
         <div className="flex items-center text-green-600 mt-1">
           <FaCheckCircle className="mr-2" />
-          <span className="text-sm">Fully Refundable before {refundableUntil}</span>
+          <span className="text-sm">
+            {refundableUntil.startsWith("for")
+              ? `Fully Refundable ${refundableUntil}`
+              : refundableUntil}
+          </span>
+
         </div>
 
         <div className="flex w-full justify-between items-end mt-4">

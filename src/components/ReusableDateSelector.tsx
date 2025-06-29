@@ -17,7 +17,8 @@ interface DateRangeType {
 
 interface ReusableDateSelectorProps {
   initialValue?: string;
-  onDateChange: (date: string) => void;
+  // MODIFICATION 1: Change the onDateChange signature to return two separate dates
+  onDateChange: (startDate: string, endDate: string) => void;
   isOneWay?: boolean;
   borderColor?: string;
 }
@@ -38,7 +39,7 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedDate, setSelectedDate] = useState<string>(initialValue);
   const [monthsToShow, setMonthsToShow] = useState(2);
-  const [, setOpened] = useState(false); 
+  const [, setOpened] = useState(false);
 
   useEffect(() => {
     const updateMonths = () => {
@@ -51,21 +52,23 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
-    setOpened((prevOpen) => !prevOpen); // Toggle opened state
+    setOpened((prevOpen) => !prevOpen);
   };
 
   const handleClose = () => {
     setAnchorEl(null);
-    setOpened(false); // Close the popper
+    setOpened(false);
   };
 
-  const formatDate = (date: Date) => format(date, "dd MMM yyyy");
+  // MODIFICATION 2: Change the date format to YYYY-MM-DD for the API
+  const formatDateForDisplay = (date: Date) => format(date, "dd MMM yyyy");
+  const formatDateForApi = (date: Date) => format(date, "yyyy-MM-dd");
 
   const handleSelectDate = () => {
     if (dateRange[0].startDate) {
-      const startDateFormatted = formatDate(dateRange[0].startDate);
+      const startDateFormatted = formatDateForDisplay(dateRange[0].startDate);
       const endDateFormatted = dateRange[0].endDate
-        ? formatDate(dateRange[0].endDate)
+        ? formatDateForDisplay(dateRange[0].endDate)
         : startDateFormatted;
 
       const displayText =
@@ -74,8 +77,14 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
           : `${startDateFormatted} - ${endDateFormatted}`;
 
       setSelectedDate(displayText);
-      onDateChange(displayText);
-      setOpened(false); // Close the popper
+
+      // MODIFICATION 3: Call onDateChange with two separate date strings in the required API format
+      onDateChange(
+        formatDateForApi(dateRange[0].startDate),
+        formatDateForApi(dateRange[0].endDate)
+      );
+
+      setOpened(false);
       handleClose();
     }
   };
@@ -117,7 +126,7 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
               boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
               overflow: "hidden",
               display: "flex",
-              flexDirection: "column", // Arrange children vertically
+              flexDirection: "column",
               alignItems: "center",
               paddingBottom: "20px",
             }}
@@ -125,11 +134,8 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
             <Box sx={{ p: 2, width: '100%', textAlign: 'center' }}>
               <Typography sx={{ color: "#1A1A1A", fontWeight: 500 }}>
                 {dateRange[0].startDate && dateRange[0].endDate
-                  ? `${format(dateRange[0].startDate, "dd MMM")} - ${format(
-                      dateRange[0].endDate,
-                      "dd MMM"
-                    )}`
-                  : format(dateRange[0].startDate, "dd MMM")}
+                  ? `${formatDateForDisplay(dateRange[0].startDate)} - ${formatDateForDisplay(dateRange[0].endDate)}`
+                  : formatDateForDisplay(dateRange[0].startDate)}
               </Typography>
             </Box>
             <div style={{ width: "100%", height: "100%" }}>
@@ -154,9 +160,9 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
               />
 
               <div className="w-[96%] m-auto mt-2">
-              <p className="text-center mb-[20px] font-bold font-inter">
-                {dateRange[0].startDate ? formatDate(dateRange[0].startDate) + (dateRange[0].endDate ? ` - ${formatDate(dateRange[0].endDate)}` : "") : "Pick a date"}
-              </p>
+                <p className="text-center mb-[20px] font-bold font-inter">
+                  {dateRange[0].startDate ? formatDateForDisplay(dateRange[0].startDate) + (dateRange[0].endDate && dateRange[0].endDate !== dateRange[0].startDate ? ` - ${formatDateForDisplay(dateRange[0].endDate)}` : "") : "Pick a date"}
+                </p>
                 <button
                   className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"
                   style={{

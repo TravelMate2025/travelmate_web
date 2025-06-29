@@ -1,38 +1,80 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import StayCard from "./StayCard";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import StayImage from "../assets/images/StayImage.png";
+import { Hotel } from "../pages/StaysSearchResults"; // Import the Hotel type
 
-// Sample Data
-const stays = Array.from({ length: 100 }, (_, i) => ({
-  id: i + 1,
-  image: StayImage,
-  name: "Maison Fahrenheit Hotel",
-  rating: 4.5,
-  reviews: 180,
-  location: "80 Adetokunbo Ademola Street, Victoria Island, Lagos",
-  pricePerNight: "5,000",
-  totalPrice: "60,000",
-  refundableUntil: "Feb 9",
-}));
+interface StayListProps {
+  hotels: Hotel[]; // Now accepts a prop for the list of hotels
+}
 
-const StayList: React.FC = () => {
+
+
+const StayList: React.FC<StayListProps> = ({ hotels }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const staysPerPage = 9;
-  const totalPages = Math.ceil(stays.length / staysPerPage);
+  const totalPages = Math.ceil(hotels.length / staysPerPage);
 
-  // Get stays for current page
+  // Get stays for current page from the fetched data
   const indexOfLastStay = currentPage * staysPerPage;
   const indexOfFirstStay = indexOfLastStay - staysPerPage;
-  const currentStays = stays.slice(indexOfFirstStay, indexOfLastStay);
+  const currentStays = hotels.slice(indexOfFirstStay, indexOfLastStay);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [hotels]);
+
+  useEffect(() => {
+    console.log("Current stays on page:", currentStays);
+  }, [currentStays]);
+
+
 
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Stays Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {currentStays.map((stay) => (
-          <StayCard key={stay.id} {...stay} />
-        ))}
+        {currentStays.map((stay) => {
+          const firstRoom = stay.rooms?.[0];
+          const firstRate = firstRoom?.rates?.[0];
+          const firstImage = stay.image?.trim() || "";
+          const rating = Number(stay.category?.split(" ")[0]) || 1;
+
+
+          
+          return (
+            <StayCard
+              key={stay.id}
+              id={stay.id.toString()}
+              image={firstImage} 
+              name={stay.name}
+              rating={rating}
+              reviews={100} // You can update this if reviews become available
+              location={stay.destination || stay.zone || "Not Specified"}
+              pricePerNight={firstRate?.price ? String(firstRate.price) : "N/A"}
+              totalPrice={firstRate?.price ? String(firstRate.price) : "N/A"}
+              refundableUntil={
+                (() => {
+                  const from = firstRate?.cancellationPolicies?.[0]?.from;
+                  if (!from) return "Refund policy unavailable";
+
+                  const fromDate = new Date(from);
+                  const now = new Date();
+                  const timeDiff = fromDate.getTime() - now.getTime();
+
+                  if (timeDiff <= 0) {
+                    return "Cancellation no longer allowed";
+                  }
+
+                  const hoursLeft = Math.ceil(timeDiff / (1000 * 60 * 60));
+                  return `for ${hoursLeft} more hour${hoursLeft === 1 ? "" : "s"}`;
+                })()
+              }
+
+
+            />
+          );
+        })}
+
       </div>
 
       {/* Pagination */}
@@ -86,7 +128,6 @@ const StayList: React.FC = () => {
                 currentPage === page ? "bg-blue-500 text-white" : "text-black"
               } ${page === "..." ? "cursor-default opacity-50" : ""}`}
               disabled={page === "..."}
-
             >
               {page}
             </button>

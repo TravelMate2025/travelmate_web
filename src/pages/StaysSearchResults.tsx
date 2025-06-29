@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { FaSortAmountDown, FaPencilAlt } from "react-icons/fa";
 import { HiAdjustmentsHorizontal } from "react-icons/hi2";
 import Breadcrumbs from "../components/Breadcrumbs";
@@ -9,86 +9,124 @@ import SortModal from "../components/modals/SortModal";
 import FilterModal from "../components/modals/FilterModal";
 import UpdateSearchFilter from "../components/UpdateSearchFilter";
 import Navbar from "./homePage/Navbar";
-import { searchHotels } from '../api/stays'; // Import the API function
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "../store";
+import { fetchHotelsAsync } from "../features/stay/staysSlice";
 
 // Define the type for a hotel object based on the API response structure
 export interface Hotel {
-  code: string;
+  image: string;
+  id: number;
   name: string;
-  minRate: number;
-  maxRate: number;
-  // Add other properties from your API response here (e.g., images, location, reviews)
-  // For now, we'll use a placeholder structure based on StayCard props.
-  reviews?: number; // Placeholder
-  location?: string; // Placeholder
-  image?: string; // Placeholder
-  rating?: number; // Placeholder
-  refundableUntil?: string; // Placeholder
+  category?: string;
+  latitude?: string;
+  longitude?: string;
+  destination?: string;
+  zone?: string;
+  rooms: Room[];
+}
+
+interface Room {
+  name: string;
+  code: string;
+  rates: Rate[];
+}
+
+interface Rate {
+  rateKey: string;
+  price: string;
+  boardName: string;
+  cancellationPolicies: {
+    amount: string;
+    from: string;
+  }[];
+  rateClass: string;
+  rateType: string;
+  paymentType: string;
+}
+
+// Define the type for the filter state
+interface FilterState {
+  priceRange: number[];
+  selectedStars: number | null;
+  amenities: string[];
+  propertyTypes: string[];
 }
 
 export default function StaysSearchResults() {
+  // Use Redux hooks to access state and dispatch actions
+  const dispatch = useDispatch<AppDispatch>();
+  const { hotels, loading, error, searchParams } = useSelector((state: RootState) => state.stays);
+  const { accessToken } = useSelector((state: RootState) => state.auth);
+
+  // State for modals and visibility
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
-  const [selectedSort, setSelectedSort] = useState("Recommended");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
   const [showUpdateSearch, setShowUpdateSearch] = useState(false);
 
-  // New state to hold the fetched hotel data and loading/error states
-  const [hotels, setHotels] = useState<Hotel[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // State for sorting and filtering
+  const [selectedSort, setSelectedSort] = useState("Recommended");
+  const [filters, setFilters] = useState<FilterState>({
+    priceRange: [0, 1000000],
+    selectedStars: null,
+    amenities: [],
+    propertyTypes: [],
+  });
 
+  // Use a memoized value for the sorted hotels to avoid re-sorting on every render
+  const sortedHotels = useMemo(() => {
+    let sorted = [...hotels]; // Create a shallow copy to avoid mutating state
+    if (selectedSort === "Price: low to high") {
+      sorted.sort((a, b) => {
+        const aPrice = parseFloat(a.rooms?.[0]?.rates?.[0]?.price || "0");
+        const bPrice = parseFloat(b.rooms?.[0]?.rates?.[0]?.price || "0");
+        return aPrice - bPrice;
+      });
+    } else if (selectedSort === "Price: high to low") {
+      sorted.sort((a, b) => {
+        const aPrice = parseFloat(a.rooms?.[0]?.rates?.[0]?.price || "0");
+        const bPrice = parseFloat(b.rooms?.[0]?.rates?.[0]?.price || "0");
+        return bPrice - aPrice;
+      });
+    }
+    // "Recommended" sort can be handled by the backend's default order
+    return sorted;
+  }, [hotels, selectedSort]);
+
+  // Effect to handle window resize
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
     window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Effect to fetch hotel data based on filters and search parameters from Redux
   useEffect(() => {
-    // Function to fetch data from the backend
-    const fetchHotels = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const searchParamsString = localStorage.getItem('hotelSearchParams');
-        if (!searchParamsString) {
-          setError("No search parameters found. Please go back and search for a hotel.");
-          setLoading(false);
-          return;
-        }
+    // Check if we already have hotels and are not currently loading
+    if (hotels.length > 0 && !loading) {
+        console.log("Loading stays from cache.");
+        // No need to fetch again if data is already present and not loading.
+        return; 
+    }
 
-        const searchParams = JSON.parse(searchParamsString);
-        
-        const response = await searchHotels(
-          searchParams.destination,
-          searchParams.checkIn,
-          searchParams.checkOut,
-          searchParams.adults,
-          searchParams.children
-        );
-        
-        // Assuming your backend returns a 'hotels' array.
-        // You may need to adjust this based on the actual API response structure.
-        if (response && response.hotels) {
-             setHotels(response.hotels);
-        } else {
-             setHotels([]);
-        }
-       
-      } catch (err: any) {
-        setError(err.message);
-        console.error("Failed to fetch hotels:", err);
-      } finally {
-        setLoading(false);
+    // Check if searchParams and accessToken are available in the Redux store
+    if (searchParams && accessToken) {
+      dispatch(fetchHotelsAsync({ searchParams, filters, token: accessToken }));
+    } else {
+      // Set an error if searchParams are missing. You can add a check for accessToken as well.
+      // The thunk already handles the missing token, but this can be a user-friendly message.
+      if (!searchParams) {
+        console.error("No search parameters found. add search parameters");
       }
-    };
+    }
+  }, [searchParams, filters, accessToken, dispatch, hotels.length, loading]); // Added hotels.length and loading to the dependency array
 
-    fetchHotels();
-  }, []); // The empty dependency array ensures this effect runs only once on mount.
+  // Handler for applying filters from the modal
+  const handleApplyFilter = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    // The useEffect hook will automatically re-fetch hotels with the new filters
+  };
 
   const breadcrumbs = [
     { name: "Home", link: "/" },
@@ -103,9 +141,7 @@ export default function StaysSearchResults() {
     roomsGuests: "1 Room, 1 Guest",
   };
 
-  const handleEditClick = () => {
-    setShowUpdateSearch(!showUpdateSearch);
-  };
+  const handleEditClick = () => setShowUpdateSearch(!showUpdateSearch);
 
   return (
     <div className="h-screen flex flex-col mt-20">
@@ -149,6 +185,7 @@ export default function StaysSearchResults() {
               <FilterModal
                 isOpen={isFilterModalOpen}
                 onClose={() => setIsFilterModalOpen(false)}
+                onApplyFilter={handleApplyFilter} // Pass the new handler
               />
               <button
                 className="w-25 sm:w-[275px] h-[44px] flex items-center justify-between px-4 border border-gray-300 rounded-lg shadow-sm"
@@ -174,7 +211,8 @@ export default function StaysSearchResults() {
         {loading && <div className="text-center py-10">Loading hotels...</div>}
         {error && <div className="text-center py-10 text-red-600">{error}</div>}
         {!loading && !error && (
-            <StayList hotels={hotels} />
+            // Pass the sorted list to StayList
+            <StayList hotels={sortedHotels} />
         )}
 
         <div className="py-10 bg-gray-100">
@@ -187,7 +225,7 @@ export default function StaysSearchResults() {
         <SortModal
           selectedSort={selectedSort}
           onClose={() => setIsSortModalOpen(false)}
-          onSelect={(option) => setSelectedSort(option)}
+          onSelect={(option) => setSelectedSort(option)} // Update sort state
         />
       )}
     </div>
