@@ -2,8 +2,8 @@
 import axios from 'axios';
 import { getAccessToken } from '../../utils/authUtils';
 
-// const API_BASE_URL = 'https://travelmate-backend-0suw.onrender.com/api';
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = 'https://travelmate-backend-0suw.onrender.com/api';
+// const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

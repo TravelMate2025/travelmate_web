@@ -1,12 +1,6 @@
 // types/chat.ts
 
-export interface UserInfo {
-    id?: number;
-    first_name?: string;
-    last_name?: string;
-    profile_pics?: string;
-    email?: string;
-  }
+  export type UserInfo = SenderInfo;
   
   
   export interface LastMessage {
@@ -19,8 +13,8 @@ export interface UserInfo {
     id: number;
     email: string;
     first_name: string;
-    last_name?: string;
-    profile_pics?: string;
+    last_name?: string | null;
+    profileImage?: string | null;
   }
   
   export interface Message {
@@ -35,6 +29,7 @@ export interface UserInfo {
     file_url?: string; 
     file_name?: string;
   }
+  
 
   export interface ClaimHistoryItem {
   note: string;
@@ -49,8 +44,8 @@ export interface UserInfo {
     title?: string;
     status?: string;
     messages: Message[];
-    assigned_admin_info?: UserInfo | null;
-    user_info?: UserInfo | null;
+    assigned_admin_info?: UserInfo;
+    user_info?: UserInfo;
     admin_name?: string;
     last_message?: LastMessage | null;
     claim_history?: ClaimHistoryItem[];

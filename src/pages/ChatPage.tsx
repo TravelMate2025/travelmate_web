@@ -14,7 +14,7 @@ import ChatMessages from "../features/chat/ChatMessages";
 import { RootState } from "../store";
 import { useSelector } from "react-redux";
 import { ChatWebSocket } from "../utils/websocket";
-import { Chat } from "../types/chat";
+import { Chat, Message } from "../types/chat";
 import { IoChevronBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -22,26 +22,6 @@ import ChatHistory from "../components/ChatHistory"
 import InlineChatDisplay from "../features/chat/InlineChatDisplay";
 
 
-export interface SenderInfo {
-  id: number;
-  email: string;
-  first_name: string;
-  last_name?: string;
-  profile_pics?: string;
-}
-
-interface Message {
-  sender_info?: SenderInfo;
-  id?: number;
-  content: string;
-  sender: string;
-  timestamp: string;
-  pending?: boolean;
-  first_name?: string;
-  file_url?: string; 
-  file_name?: string;
-  file_type: any;
-}
 
 
 const breadcrumbs = [
@@ -119,7 +99,7 @@ const ChatPage = () => {
   }, []);
 
 
-    const normalizeMessage = (msg: any, currentUserId: number): Message => {
+    const normalizeMessage = (msg: any, currentUserId: number, currentUserEmail: string | undefined): Message => {
     const textForFilename = msg.content ?? msg.message ?? "";
     const rawFileName = textForFilename.replace("Sent an attachment: ", "").trim() || "";
     const extension = rawFileName.split(".").pop()?.toLowerCase();
@@ -145,10 +125,18 @@ const ChatPage = () => {
 
     const fileType = extension && mimeMap[extension] ? mimeMap[extension] : "application/octet-stream";
 
+    // Determine if the sender is the current user using ID preference, then email fallback
+    let isCurrentUserMessage = false;
+    if (currentUserId && currentUserId !== 0) { // Prioritize ID if valid
+      isCurrentUserMessage = (msg.sender_id === currentUserId || msg.sender === currentUserId);
+    } else if (currentUserEmail) { // Fallback to email if ID is missing or 0
+      isCurrentUserMessage = (msg.sender_info?.email === currentUserEmail);
+    }
+
     return {
       id: msg.id,
       content: msg.content ?? msg.message ?? "",
-      sender: msg.sender_id === currentUserId || msg.sender === currentUserId ? "user" : "admin",
+      sender: isCurrentUserMessage ? "user" : "admin",
       timestamp: msg.created_at ?? msg.timestamp ?? new Date().toISOString(),
       pending: false,
       sender_info: msg.sender_info || undefined,
@@ -211,7 +199,7 @@ const ChatPage = () => {
           }
 
 
-        const normalizedMessage = normalizeMessage(msg, user.id);
+        const normalizedMessage = normalizeMessage(msg, user.id, user.email);
         // console.log("Normalized message:", normalizedMessage); 
         setActiveChat((prev) => {
           if (!prev) return prev;
@@ -259,7 +247,7 @@ const ChatPage = () => {
         if (data.length > 0) {
           const chat = await fetchChat(data[0].id);
           const normalizedMessages = user
-            ? chat.messages.map((msg: any) => normalizeMessage(msg, user.id))
+            ? chat.messages.map((msg: any) => normalizeMessage(msg, user.id, user.email))
             : [];
           setActiveChat({ ...chat, messages: normalizedMessages });
           initializeWebSocket(chat.id);
@@ -290,7 +278,7 @@ const ChatPage = () => {
 
       const chat = await fetchChat(chatId);
       const normalizedMessages = user
-        ? chat.messages.map((msg: any) => normalizeMessage(msg, user.id))
+        ? chat.messages.map((msg: any) => normalizeMessage(msg, user.id, user.email))
         : [];
 
       setActiveChat({ ...chat, messages: normalizedMessages });
@@ -527,6 +515,8 @@ const ChatPage = () => {
                 </button>
               </div>
             ) : (
+              // console.log("ChatPage - activeChat.messages:", activeChat?.messages),
+              // console.log("ChatPage - Redux User email:", user?.email),
               <ChatMessages activeChat={activeChat} />
             )}
 
