@@ -5,7 +5,7 @@ import LocationDropdown from './booking-progress/LocationDropdown';
 import HotelGuestSelector from './HotelGuestSelector';
 
 import { useDispatch } from "react-redux";
-import { setSearchParams } from "../features/stay/staysSlice";
+import { clearStaysCache, setSearchParams } from "../features/stay/staysSlice";
 import { AppDispatch } from "../store";
 
 
@@ -45,6 +45,9 @@ const SearchFilter: React.FC = () => {
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
+
+        // Clear the existing hotel cache before a new search
+        dispatch(clearStaysCache());
 
         // Store the search parameters in localStorage to be retrieved by StaysSearchResults
         const searchParams: SearchParams = {

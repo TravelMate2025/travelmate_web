@@ -120,7 +120,7 @@ export default function StaysSearchResults() {
         console.error("No search parameters found. add search parameters");
       }
     }
-  }, [searchParams, filters, accessToken, dispatch, hotels.length, loading]); // Added hotels.length and loading to the dependency array
+  }, [searchParams, filters, accessToken, dispatch]);
 
   // Handler for applying filters from the modal
   const handleApplyFilter = (newFilters: FilterState) => {

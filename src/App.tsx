@@ -53,7 +53,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/stays-search-result" element={<StaysSearchResults />} />
         <Route path="/booking-progress" element={<BookingProgress />} />
-        <Route path="/stays-detail" element={<StaysDetail hotel={{ images: [], shareLink: "" }} />} />
+        <Route path="/stays-detail/:hotelId" element={<StaysDetail />} />
         <Route path="/faqs" element={<FaqPage />} />
         <Route path="/chat-with-us" element={<ChatPage /> } />
 

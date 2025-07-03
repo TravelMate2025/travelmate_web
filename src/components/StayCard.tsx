@@ -59,8 +59,10 @@ const StayCard: React.FC<StayCardProps> = ({
       className="w-full sm:w-[380px] md:w-[410px] bg-white rounded-lg border border-gray-300 shadow-lg p-4 cursor-pointer relative"
       onClick={(e) => {
         const target = e.target as HTMLElement;
+        // Ensure the click is not on a button (like favorite button)
         if (!target.closest("button")) {
-          navigate(`/stays-detail`);
+          // MODIFIED: Navigate to /stays-detail/ followed by the hotel ID
+          navigate(`/stays-detail/${id}`);
         }
       }}
     >
@@ -79,7 +81,7 @@ const StayCard: React.FC<StayCardProps> = ({
             <img
               src={image}
               alt={name}
-                onError={() => setImageError(true)}
+              onError={() => setImageError(true)}
               className="w-full h-full object-cover"
             />
           ) : (
