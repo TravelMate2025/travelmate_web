@@ -47,8 +47,9 @@ const StaysDetail: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
 
     // Get hotel details and loading/error states from Redux store
-    const { selectedHotel, detailsLoading, detailsError } = useSelector((state: RootState) => state.stays);
+    const { selectedHotel, detailsLoading, detailsError, searchParams } = useSelector((state: RootState) => state.stays);
     const { accessToken } = useSelector((state: RootState) => state.auth);
+
 
     const [activeTab, setActiveTab] = useState("Overview");
     const [openModal, setOpenModal] = useState(false);
@@ -71,20 +72,30 @@ const StaysDetail: React.FC = () => {
 
     // Effect to fetch hotel details when component mounts or hotelId/accessToken changes
     useEffect(() => {
-        if (hotelId && accessToken) {
-            // Dispatch action to clear previous hotel details before fetching new ones
-            dispatch(clearSelectedHotel());
-            dispatch(fetchHotelDetailsAsync({ hotelId, token: accessToken }));
+        if (hotelId && accessToken && searchParams) {
+            dispatch(clearSelectedHotel()); // Clear previous details
+            dispatch(fetchHotelDetailsAsync({
+                hotelId,
+                checkIn: searchParams.checkIn,
+                checkOut: searchParams.checkOut,
+                adults: searchParams.adults,
+                children: searchParams.children,
+                rooms: searchParams.rooms,
+                token: accessToken
+            }));
+            console.log("Search parameters:", searchParams)
         } else if (!hotelId) {
-            // Handle case where hotelId is missing (e.g., direct navigation without ID)
             console.error("Hotel ID is missing in URL parameters.");
-            // Optionally navigate back or show an error message
-            navigate('/stays-search-result'); // Redirect to search results
+            navigate('/stays-search-result');
         } else if (!accessToken) {
-            console.error("Authentication token missing.");
+            console.error("Authentication token missing. Please login again.");
             // Optionally redirect to login or show a message
+        } else if (!searchParams) {
+            console.error("Search parameters missing. Cannot fetch hotel details without them.");
+            navigate('/stays-search-result'); // Redirect if search params are missing
         }
-    }, [hotelId, accessToken, dispatch, navigate]);
+    }, [hotelId, accessToken, searchParams, dispatch, navigate]);
+
 
 
     // Sync the carousel with the current index when a navigation dot is clicked

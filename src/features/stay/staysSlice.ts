@@ -9,6 +9,7 @@ interface SearchParams {
   checkOut: string;
   adults: number;
   children: number;
+  rooms: number;
   filters?: {
     min_price?: number;
     max_price?: number;
@@ -64,12 +65,14 @@ export const fetchHotelsAsync = createAsyncThunk(
 // NEW ASYNC THUNK: Fetch details for a specific hotel by ID
 export const fetchHotelDetailsAsync = createAsyncThunk(
   'stays/fetchHotelDetails',
-  async ({ hotelId, token }: { hotelId: string; token: string | undefined }, { rejectWithValue }) => {
+  async ({ hotelId, checkIn, checkOut, adults, children, rooms, token }: 
+    { hotelId: string; checkIn: string; checkOut: string; adults: number; children: number; 
+      rooms: number; token: string | undefined }, { rejectWithValue }) => {
     try {
       if (!token) {
         return rejectWithValue("Authentication token missing.");
       }
-      const response = await getHotelDetails(hotelId, token);
+      const response = await getHotelDetails({ hotelId, checkIn, checkOut, adults, children, rooms, token });
       return response;
     } catch (error: any) {
       return rejectWithValue(error.message);

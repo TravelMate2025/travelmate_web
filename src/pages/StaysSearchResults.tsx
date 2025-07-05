@@ -13,7 +13,21 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../store";
 import { fetchHotelsAsync } from "../features/stay/staysSlice";
 
-// Define the type for a hotel object based on the API response structure
+
+interface SearchParams {
+  destination: string;
+  checkIn: string;
+  checkOut: string;
+  adults: number;
+  children: number;
+  rooms: number;
+  filters?: {
+    min_price?: number;
+    max_price?: number;
+    amenities?: string[];
+  };
+}
+
 export interface Hotel {
   image: string;
   id: number;

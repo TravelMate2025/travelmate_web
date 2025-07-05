@@ -12,6 +12,16 @@ const formatDate = (dateString: string): string => {
     return `${year}-${month}-${day}`;
 };
 
+interface GetHotelDetailsParams {
+    hotelId: string;
+    checkIn: string;
+    checkOut: string;
+    adults: number;
+    children: number;
+    rooms: number;
+    token?: string;
+}
+
 interface SearchFilters {
     min_price?: number;
     max_price?: number;
@@ -91,10 +101,18 @@ export const searchHotels = async (
     }
 };
 
-// NEW FUNCTION: Fetch details for a specific hotel
-export const getHotelDetails = async (hotelId: string, token?: string): Promise<HotelDetail> => {
+// Fetch details for a specific hotel
+export const getHotelDetails = async ({ hotelId, checkIn, checkOut, adults, children, rooms, token }: GetHotelDetailsParams): Promise<HotelDetail> => {
     try {
+        const params = {
+            checkIn,
+            checkOut,
+            adults,
+            children,
+            rooms,
+        };
         const response = await axios.get(`${BASE_URL}/hotels/${hotelId}/details/`, {
+            params: params,
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {})
             }

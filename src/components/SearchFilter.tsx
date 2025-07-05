@@ -16,6 +16,7 @@ interface SearchParams {
     checkOut: string;
     adults: number;
     children: number;
+    rooms: number; 
 }
 
 const SearchFilter: React.FC = () => {
@@ -31,6 +32,15 @@ const SearchFilter: React.FC = () => {
 
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
+
+    // function to format dates to YYYY-MM-DD
+    const formatDate = (dateString: string): string => {
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
 
     const mapCityToIATACode = (city: string): string => {
     const cityToIATA: Record<string, string> = {
@@ -49,13 +59,18 @@ const SearchFilter: React.FC = () => {
         // Clear the existing hotel cache before a new search
         dispatch(clearStaysCache());
 
+        // Calculate total children (combining children and infants for the backend)
+        const totalChildren = counts.children + counts.infants;
+
+
         // Store the search parameters in localStorage to be retrieved by StaysSearchResults
         const searchParams: SearchParams = {
             destination: mapCityToIATACode(destination),
             checkIn: checkIn,
             checkOut: checkOut,
             adults: counts.adults,
-            children: counts.children,
+            children: totalChildren,
+            rooms: counts.rooms,
         };
         // localStorage.setItem('hotelSearchParams', JSON.stringify(searchParams));
         dispatch(setSearchParams(searchParams));
@@ -63,9 +78,10 @@ const SearchFilter: React.FC = () => {
         navigate('/stays-search-result');
     };
 
+    // Ensure dates are formatted when received from ReusableDateSelector
     const handleDateChange = (startDate: string, endDate: string) => {
-        setCheckIn(startDate);
-        setCheckOut(endDate);
+        setCheckIn(formatDate(startDate)); // MODIFIED
+        setCheckOut(formatDate(endDate)); // MODIFIED
     };
 
     const handleRemoveLocation = (loc: string) => {
