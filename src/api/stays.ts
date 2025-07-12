@@ -1,131 +1,98 @@
 import axios from 'axios';
+import { Hotel, HotelSearchResponse } from '../types/stays';
 
-// Base URL for the API
 const BASE_URL = 'http://127.0.0.1:8000/api';
 
-// Function to format dates as YYYY-MM-DD
-const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
-};
 
-interface GetHotelDetailsParams {
-    hotelId: string;
-    checkIn: string;
-    checkOut: string;
-    adults: number;
-    children: number;
-    rooms: number;
+export interface Destination {
+    code: string;
+    name: string;
+    country_code: string;
+    city_name?: string;
     token?: string;
 }
 
-interface SearchFilters {
-    min_price?: number;
-    max_price?: number;
-    amenities?: string[];
-}
-
-// Define types for the hotel details response from the backend
-export interface RoomDetail {
-    code: string;
-    name: string;
-    pricePerNight: number;
-    pricePerWeek: number;
-    image?: string; // Optional as backend might send empty string
-    size?: number;
-    bedType?: string;
-    // Add other fields if available in backend's RoomSerializer
-}
-
-export interface HotelDetail {
-    id: string; // Hotel ID from backend
-    name: string;
-    description?: string;
-    address: string;
-    images: string[]; // Array of image URLs
-    availability: RoomDetail[]; // Array of available rooms
-    // Add other top-level fields if available in backend's HotelDetailSerializer
-}
-
-
-export const searchHotels = async (
-    destination: string,
-    checkIn: string,
-    checkOut: string,
-    adults: number,
-    children: number,
-    filters?: SearchFilters,
-    token?: string // Optional authorization token
-) => {
+export const fetchDestinations = async (search?: string, token?: string | null): Promise<Destination[]> => {
     try {
-        const checkInFormatted = formatDate(checkIn);
-        const checkOutFormatted = formatDate(checkOut);
-
-        const params = {
-            destination,
-            check_in: checkInFormatted,
-            check_out: checkOutFormatted,
-            adults,
-            children,
-            min_price: filters?.min_price,
-            max_price: filters?.max_price,
-            amenities: filters?.amenities?.length ? filters.amenities.join(',') : undefined,
-
-        };
-
-        // Remove undefined values from the query parameters
-        const cleanedParams = Object.fromEntries(
-            Object.entries(params).filter(([_, value]) => value !== undefined)
-        );
-
-        const response = await axios.get(`${BASE_URL}/hotels/search/`, {
-            params: cleanedParams,
-            headers: {
-                ...(token ? { Authorization: `Bearer ${token}` } : {})
-            }
+        const params = search ? { search } : {};
+        const response = await axios.get(`${BASE_URL}/hotels/destinations/`, {
+            params,
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
-
-        console.log("API Response Data:", response.data);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            console.error('Error fetching hotels:', error.response?.data || error.message);
-            throw new Error(error.response?.data?.error || 'Failed to fetch hotel data.');
+            const errorMessage = error.response?.data?.error || error.message;
+            console.error('Error fetching destinations:', errorMessage);
         } else {
-            console.error('An unexpected error occurred:', error);
-            throw new Error('An unexpected error occurred.');
+            console.error('Error fetching destinations:', error);
         }
+        return [];
     }
 };
 
-// Fetch details for a specific hotel
-export const getHotelDetails = async ({ hotelId, checkIn, checkOut, adults, children, rooms, token }: GetHotelDetailsParams): Promise<HotelDetail> => {
-    try {
-        const params = {
-            checkIn,
-            checkOut,
-            adults,
-            children,
-            rooms,
-        };
-        const response = await axios.get(`${BASE_URL}/hotels/${hotelId}/details/`, {
-            params: params,
-            headers: {
-                ...(token ? { Authorization: `Bearer ${token}` } : {})
-            }
-        });
-        console.log("Hotel Details API Response:", response.data);
-        return response.data;
-    } catch (error) {
-        if (axios.isAxiosError(error)) {
-            console.error(`Error fetching hotel details for ID ${hotelId}:`, error.response?.data || error.message);
-            throw new Error(error.response?.data?.error || `Failed to fetch details for hotel ${hotelId}.`);
-        } else {
-            console.error('An unexpected error occurred:', error);
-            throw new Error('An unexpected error occurred.');
-        }
+
+export const searchHotels = async (
+  destination: string,
+  checkIn: string,
+  checkOut: string,
+  adults: number = 2,
+  children: number = 0,
+  rooms: number = 1,
+  token?: string
+): Promise<HotelSearchResponse> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/hotels/search/`, {
+      params: {
+        destination,
+        check_in: checkIn,
+        check_out: checkOut,
+        adults,
+        children,
+        rooms
+      },
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    console.log('Search Result:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.error || error.message;
+      console.error('Search error:', errorMessage);
+      throw new Error(errorMessage);
     }
+    throw new Error('Failed to search hotels');
+  }
+};
+
+export const getHotelDetails = async (
+  hotelId: string,
+  checkIn: string,
+  checkOut: string,
+  adults: number = 2,
+  children: number = 0,
+  rooms: number = 1,
+  token?: string
+): Promise<Hotel> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/hotels/${hotelId}/details/`, {
+      params: {
+        check_in: checkIn,
+        check_out: checkOut,
+        adults,
+        children,
+        rooms
+      },
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    console.log('Hotel Details Result:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.error || `Failed to get details for hotel ${hotelId}`;
+      console.error('Details error:', errorMessage);
+      throw new Error(errorMessage);
+    }
+    throw new Error('Failed to fetch hotel details');
+  }
 };

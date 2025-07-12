@@ -166,18 +166,20 @@ const StaysDetail: React.FC = () => {
     ];
 
     // Use actual images from selectedHotel or placeholders
-    const hotelImages = selectedHotel?.images && selectedHotel.images.length > 0
-        ? selectedHotel.images
-        : [StayImagePlaceholder, StayImage2Placeholder, StayImageCopyPlaceholder]; // Fallback placeholders
+    const hotelImages = selectedHotel?.images?.map(img => img.url) || 
+        [StayImagePlaceholder, StayImage2Placeholder, StayImageCopyPlaceholder]; // Fallback placeholders
 
     // Use actual rooms from selectedHotel or empty array
-    const availableRooms = selectedHotel?.availability || [];
+    const availableRooms = selectedHotel?.rooms || [];
 
 
     // Breadcrumb Navigation - dynamically set hotel name
     const breadcrumbs = [
         { name: "Home", link: "/" },
-        { name: "Ikeja", link: "/locations/ikeja" }, // This might need to be dynamic based on hotel location
+        { 
+            name: selectedHotel?.destination?.name || "Location", 
+            link: `/locations/${selectedHotel?.destination?.code || ''}` 
+        },
         { name: "Search Results", link: "/stays-search-result" },
         { name: selectedHotel?.name || "Hotel Details" }, // Use hotel name if available
     ];
@@ -330,7 +332,7 @@ const StaysDetail: React.FC = () => {
                 </div>
 
                 {showPhotosModal && <AllPhotosModal onClose={() => setShowPhotosModal(false)} images={hotelImages} />}
-                {showShareModal && selectedHotel && <ShareModal onClose={() => setShowShareModal(false)} shareLink={`/stays-detail/${selectedHotel.id}`} />}
+                {showShareModal && selectedHotel && <ShareModal onClose={() => setShowShareModal(false)} shareLink={`/stays-detail/${selectedHotel.code}`} />}
             </div>
 
 
@@ -378,7 +380,8 @@ const StaysDetail: React.FC = () => {
                     {/* Rating and Reviews - Assuming these are static for now or fetched separately */}
                     <div className="flex items-center gap-2 mt-2">
                     <span className="text-yellow-500 flex items-center gap-1">
-                        <FaStar /> 4.5
+                        <FaStar />
+                        {selectedHotel && parseInt(selectedHotel.category?.match(/\d+/)?.[0] || '0')}
                     </span>
                     <span className="text-gray-600">(180)</span>
                     <button className="text-blue-600 underline cursor-pointer"
@@ -432,59 +435,49 @@ const StaysDetail: React.FC = () => {
                 <h3 className="font-semibold mx-1 my-2 text-xl">Select a room</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {availableRooms.length > 0 ? (
-                        availableRooms.map((room, index) => (
-                            <div
-                                key={room.code || index} // Use room.code as key if unique, else index
-                                className="w-full sm:w-[411px] h-auto bg-white shadow-lg rounded-lg p-4"
-                            >
-                                {/* Room Image */}
-                                <img
-                                    src={room.image || StayImage2Placeholder} // Use room image or placeholder
-                                    alt={room.name}
-                                    className="w-full h-[234px] object-cover rounded-lg"
-                                    onError={(e) => (e.currentTarget.src = StayImage2Placeholder)} // Fallback on error
-                                />
+                        availableRooms.map((room) => (
+                        <div key={room.code} className="w-full sm:w-[411px] h-auto bg-white shadow-lg rounded-lg p-4">
+                            {/* Room Image - use first room image or placeholder */}
+                            <img
+                            src={room.images?.[0]?.url || StayImage2Placeholder}
+                            alt={room.name}
+                            className="w-full h-[234px] object-cover rounded-lg"
+                            onError={(e) => (e.currentTarget.src = StayImage2Placeholder)}
+                            />
 
-                                {/* Room Details */}
-                                <h3 className="mt-3 text-lg font-bold">{room.name}</h3>
+                            <h3 className="mt-3 text-lg font-bold">{room.name}</h3>
 
-                                <div className="flex items-center gap-2 text-gray-600 text-sm mt-2">
-                                    <FaExpandArrowsAlt />
-                                    <span>Room size: {room.size || "N/A"}m²</span>
-                                </div>
-
-                                <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
-                                    <FaBed />
-                                    <span>{room.bedType || "Not Specified"}</span>
-                                </div>
-
-                                <div className="flex items-center gap-2 text-green-600 text-sm mt-2">
-                                    <FaCheckCircle />
-                                    <span>Fully Refundable before Feb 9</span> {/* This might need dynamic logic */}
-                                </div>
-
-                                {/* Pricing */}
-                                <div className="flex justify-between items-end mt-4">
-                                    <div>
-                                        <p className="text-xl font-bold">N{room.pricePerNight.toLocaleString()}</p>
-                                        <span className="text-gray-500 text-sm">per Night</span>
-                                    </div>
-                                    <div>
-                                        <p className="text-xl font-bold">N{room.pricePerWeek.toLocaleString()}</p>
-                                        <span className="text-gray-500 text-sm pl-7">7 Nights</span>
-                                    </div>
-                                </div>
-
-                                {/* Availability Notice - this might need dynamic logic from backend */}
-                                <p className="text-red-600 text-sm mt-2">2 left at this price</p>
-
-                                {/* Select Button */}
-                                <button className="mt-3 w-full bg-[#023E8A] text-white py-2 rounded-lg cursor-pointer hover:bg-[#023E9E]"
-                                onClick={() => navigate("/booking-progress")}
-                                >
-                                Select
-                                </button>
+                            <div className="flex items-center gap-2 text-gray-600 text-sm mt-2">
+                            <FaExpandArrowsAlt />
+                            <span>Room size: {room.size_sqm ? `${room.size_sqm}m²` : "N/A"}</span>
                             </div>
+
+                            {room.bedType && (
+                            <div className="flex items-center gap-2 text-gray-600 text-sm mt-1">
+                                <FaBed />
+                                <span>{room.bedType}</span>
+                            </div>
+                            )}
+
+                            {/* Pricing - show first rate's price */}
+                            {room.rates?.[0]?.price && (
+                            <div className="flex justify-between items-end mt-4">
+                                <div>
+                                <p className="text-xl font-bold">
+                                    {room.rates[0].price.currency} {room.rates[0].price.amount.toLocaleString()}
+                                </p>
+                                <span className="text-gray-500 text-sm">per Night</span>
+                                </div>
+                            </div>
+                            )}
+
+                            <button 
+                            className="mt-3 w-full bg-[#023E8A] text-white py-2 rounded-lg hover:bg-[#023E9E]"
+                            onClick={() => navigate("/booking-progress")}
+                            >
+                            Select
+                            </button>
+                        </div>
                         ))
                     ) : (
                         <div className="col-span-full text-center text-gray-600 py-10">

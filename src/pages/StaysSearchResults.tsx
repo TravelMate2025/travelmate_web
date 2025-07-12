@@ -14,50 +14,6 @@ import { RootState, AppDispatch } from "../store";
 import { fetchHotelsAsync } from "../features/stay/staysSlice";
 
 
-interface SearchParams {
-  destination: string;
-  checkIn: string;
-  checkOut: string;
-  adults: number;
-  children: number;
-  rooms: number;
-  filters?: {
-    min_price?: number;
-    max_price?: number;
-    amenities?: string[];
-  };
-}
-
-export interface Hotel {
-  image: string;
-  id: number;
-  name: string;
-  category?: string;
-  latitude?: string;
-  longitude?: string;
-  destination?: string;
-  zone?: string;
-  rooms: Room[];
-}
-
-interface Room {
-  name: string;
-  code: string;
-  rates: Rate[];
-}
-
-interface Rate {
-  rateKey: string;
-  price: string;
-  boardName: string;
-  cancellationPolicies: {
-    amount: string;
-    from: string;
-  }[];
-  rateClass: string;
-  rateType: string;
-  paymentType: string;
-}
 
 // Define the type for the filter state
 interface FilterState {
@@ -72,6 +28,8 @@ export default function StaysSearchResults() {
   const dispatch = useDispatch<AppDispatch>();
   const { hotels, loading, error, searchParams } = useSelector((state: RootState) => state.stays);
   const { accessToken } = useSelector((state: RootState) => state.auth);
+
+  
 
   // State for modals and visibility
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
@@ -90,21 +48,21 @@ export default function StaysSearchResults() {
 
   // Use a memoized value for the sorted hotels to avoid re-sorting on every render
   const sortedHotels = useMemo(() => {
-    let sorted = [...hotels]; // Create a shallow copy to avoid mutating state
+    let sorted = [...hotels];
     if (selectedSort === "Price: low to high") {
       sorted.sort((a, b) => {
-        const aPrice = parseFloat(a.rooms?.[0]?.rates?.[0]?.price || "0");
-        const bPrice = parseFloat(b.rooms?.[0]?.rates?.[0]?.price || "0");
+        // Assuming first room's first rate's price is the base price
+        const aPrice = a.rooms?.[0]?.rates?.[0]?.price?.amount || 0;
+        const bPrice = b.rooms?.[0]?.rates?.[0]?.price?.amount || 0;
         return aPrice - bPrice;
       });
     } else if (selectedSort === "Price: high to low") {
       sorted.sort((a, b) => {
-        const aPrice = parseFloat(a.rooms?.[0]?.rates?.[0]?.price || "0");
-        const bPrice = parseFloat(b.rooms?.[0]?.rates?.[0]?.price || "0");
+        const aPrice = a.rooms?.[0]?.rates?.[0]?.price?.amount || 0;
+        const bPrice = b.rooms?.[0]?.rates?.[0]?.price?.amount || 0;
         return bPrice - aPrice;
       });
     }
-    // "Recommended" sort can be handled by the backend's default order
     return sorted;
   }, [hotels, selectedSort]);
 
@@ -126,7 +84,7 @@ export default function StaysSearchResults() {
 
     // Check if searchParams and accessToken are available in the Redux store
     if (searchParams && accessToken) {
-      dispatch(fetchHotelsAsync({ searchParams, filters, token: accessToken }));
+      dispatch(fetchHotelsAsync({ ...searchParams, ...filters, token: accessToken }));
     } else {
       // Set an error if searchParams are missing. You can add a check for accessToken as well.
       // The thunk already handles the missing token, but this can be a user-friendly message.
@@ -144,7 +102,10 @@ export default function StaysSearchResults() {
 
   const breadcrumbs = [
     { name: "Home", link: "/" },
-    { name: "Ikeja", link: "/locations/ikeja" },
+    { 
+      name: searchParams?.destination || "Search", 
+      link: `/locations/${searchParams?.destination || ''}` 
+    },
     { name: "Search Results" },
   ];
 

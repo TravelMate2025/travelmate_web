@@ -42,36 +42,36 @@ export class ChatWebSocket {
     }
   
     sendMessage(message: string, file?: File): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      return reject(new Error("WebSocket not open"));
-    }
+      return new Promise((resolve, reject) => {
+        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+          return reject(new Error("WebSocket not open"));
+        }
 
-    const payload: any = { message };
+        const payload: any = { message };
 
-    if (file) {
-      const reader = new FileReader();
+        if (file) {
+          const reader = new FileReader();
 
-      reader.onload = () => {
-        payload.attachment = reader.result;
-        console.log("[WebSocket] 🚀 File read complete. Sending:", payload);
-        this.socket!.send(JSON.stringify(payload));
-        resolve();
-      };
+          reader.onload = () => {
+            payload.attachment = reader.result;
+            console.log("[WebSocket] 🚀 File read complete. Sending:", payload);
+            this.socket!.send(JSON.stringify(payload));
+            resolve();
+          };
 
-      reader.onerror = () => {
-        console.error("❌ FileReader failed");
-        reject(new Error("File reading failed"));
-      };
+          reader.onerror = () => {
+            console.error("❌ FileReader failed");
+            reject(new Error("File reading failed"));
+          };
 
-      reader.readAsDataURL(file);
-    } else {
-      console.log("[WebSocket] 🚀 Sending:", payload);
-      this.socket.send(JSON.stringify(payload));
-      resolve();
-    }
-  });
-}
+          reader.readAsDataURL(file);
+        } else {
+          console.log("[WebSocket] 🚀 Sending:", payload);
+          this.socket.send(JSON.stringify(payload));
+          resolve();
+        }
+    });
+  }
 
   
     onMessage(callback: (message: any) => void) {
