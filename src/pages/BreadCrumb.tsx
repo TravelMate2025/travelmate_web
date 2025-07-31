@@ -23,7 +23,7 @@ const breadcrumbMap: { [key: string]: { label: string; path?: string }[] } = {
     { label: "Departure Flight 2" },
   ],
 
-   "/display-cars": [{ label: "Search Results" }],
+   "/cars-searchResults": [{ label: "Search Results" }],
   "/offer-accepted-page": [
     { label: "Search Results", path: "/display-cars" },
     { label: "SUV( Ford Eco sport or Similar)" },
