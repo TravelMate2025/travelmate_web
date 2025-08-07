@@ -1,12 +1,10 @@
 import {
   FormControl,
   FormControlLabel,
-  FormLabel,
   Radio,
   RadioGroup,
 } from "@mui/material";
 import { X } from "lucide-react";
-import React from "react";
 
 type Props = {
   closeDialog: () => void;

@@ -5,7 +5,7 @@ import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 // import TuneIcon from '@mui/icons-material/Tune';
 // import SortIcon from '@mui/icons-material/Sort';
 import Breadcrumb from "../../pages/BreadCrumb";
-import Rating from "@mui/material/Rating";
+// import Rating from "@mui/material/Rating";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import {
 import { useMediaQuery } from "react-responsive";
 import Card from "@mui/material/Card";
 // import CardMedia from '@mui/material/CardMedia';
-import Typography from "@mui/material/Typography";
+// import Typography from "@mui/material/Typography";
 // import CardActions from '@mui/material/CardActions';
 import carImage from "../../assets/carImage.svg";
 // import carLogo from "../../../assets/carLogo.png"
@@ -27,11 +27,11 @@ import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatRecline
 // import AcUnitIcon from '@mui/icons-material/AcUnit';
 import SpeedIcon from "@mui/icons-material/Speed";
 import CircleIcon from "@mui/icons-material/Circle";
-import CheckIcon from "@mui/icons-material/Check";
+// import CheckIcon from "@mui/icons-material/Check";
 import { Stack, Pagination } from "@mui/material";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
-import circle from "../../assets/circle.svg";
+// import circle from "../../assets/circle.svg";
 import LuggageOutlinedIcon from "@mui/icons-material/LuggageOutlined";
 // import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { useNavigate } from "react-router-dom";
@@ -351,7 +351,7 @@ const CarList: React.FC<CarListProps> = ({ departureInfo, OpenForm }) => {
     setOpenNoModal(false);
   };
 
-  const value = 4.5;
+  // const value = 4.5;
 
   return (
     <div>

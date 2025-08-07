@@ -9,7 +9,6 @@ import {
   TextField,
   FormControlLabel,
 } from "@mui/material";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import DateRangeOutlinedIcon from "@mui/icons-material/DateRangeOutlined";
 import Switch from "@mui/material/Switch";
@@ -63,7 +62,7 @@ const MobilePage = ({
     }));
   };
   const [showAllModal, setShowAllModal] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn] = useState(false);
   return (
     <div>
       {showAllModal && <Complete closeDialog={() => setShowAllModal(false)} />}

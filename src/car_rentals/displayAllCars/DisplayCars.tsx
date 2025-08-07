@@ -22,8 +22,7 @@ import RideType from "../carsFirstScreen/modals/RideType";
 import CarList from "./CarList";
 import Navbar from "../../pages/homePage/Navbar";
 import SearchLocation from "../carsFirstScreen/modals/SearchLoaction";
-import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
-import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+
 
 import { useMediaQuery } from "react-responsive";
 import EmptyState from "./EmptyState";
@@ -100,15 +99,15 @@ const DisplayCars = () => {
   const [searchPickOrDrop, setSearchPickOrDrop] = useState(false);
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
 
-  const [locations, setLocations] = useState([
-    "Ibadan, Oyo",
-    "Abuja",
-    "Port Harcourt",
-  ]);
+  // const [locations, setLocations] = useState([
+  //   "Ibadan, Oyo",
+  //   "Abuja",
+  //   "Port Harcourt",
+  // ]);
 
-  const handleRemoveOption = (locationToRemove: string) => {
-    setLocations(locations.filter((location) => location !== locationToRemove));
-  };
+  // const handleRemoveOption = (locationToRemove: string) => {
+  //   setLocations(locations.filter((location) => location !== locationToRemove));
+  // };
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [dateRange, setDateRange] = useState<DateRangeType[]>([

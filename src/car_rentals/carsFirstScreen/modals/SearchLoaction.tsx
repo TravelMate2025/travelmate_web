@@ -1,5 +1,4 @@
 import { InputAdornment, TextField } from "@mui/material";
-import { useState } from "react";
 import { SearchIcon, X } from "lucide-react";
 type Props = {
   searchPickOrDrop: boolean;

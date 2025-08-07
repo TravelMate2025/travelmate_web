@@ -205,7 +205,7 @@ const Page = () => {
   };
 
   const handleSearch = () => {
-    const priceRange = `${miniprice} - ${maxprice}`;
+    // const priceRange = `${miniprice} - ${maxprice}`;
     const numericMinPrice = parseInt(miniprice.replace(/,/g, ""), 10) || 0;
     const numericMaxPrice = parseInt(maxprice.replace(/,/g, ""), 10) || 0;
 

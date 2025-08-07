@@ -5,17 +5,13 @@ import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatRecline
 import SpeedIcon from "@mui/icons-material/Speed";
 import carImage from "../../assets/carImage.svg";
 import LuggageOutlinedIcon from "@mui/icons-material/LuggageOutlined";
-import { useMediaQuery } from "react-responsive";
-
-
-import DeskWeb from "./Desk-Web";
 import MobilePage from "./MobilePage";
 import { useNavigate } from "react-router";
 import Footer from "../../components/2Footer";
 
 const Page = () => {
         const navigate = useNavigate()
-  const isMobile = useMediaQuery({ maxWidth: 768 });
+
   const steps = [
     "Booking Overview",
     "Passenger Information",

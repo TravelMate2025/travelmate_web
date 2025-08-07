@@ -74,6 +74,7 @@ export type DeskProps = {
     email: string;
     phoneNumber: string;
     dateOfBirth: string;
+    [key: string]: any;
   }) => void;
   isTheFormValid: boolean;
   setIsTheFormValid: (isTheFormValid: boolean) => void;
