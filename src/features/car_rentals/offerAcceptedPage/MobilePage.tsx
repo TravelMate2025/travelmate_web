@@ -1,7 +1,7 @@
 import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
 import { Box, Stepper, Step, StepLabel, StepConnector } from "@mui/material";
 import { Rating, Stack, Typography } from "@mui/material";
-import circle from "../../assets/circle.svg";
+import circle from "../../../assets/circle.svg";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import {
   Divider,

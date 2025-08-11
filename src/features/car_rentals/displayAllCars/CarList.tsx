@@ -21,7 +21,7 @@ import Card from "@mui/material/Card";
 // import CardMedia from '@mui/material/CardMedia';
 // import Typography from "@mui/material/Typography";
 // import CardActions from '@mui/material/CardActions';
-import carImage from "../../assets/carImage.svg";
+import carImage from "../../../assets/carImage.svg";
 // import carLogo from "../../../assets/carLogo.png"
 import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatReclineNormal";
 // import AcUnitIcon from '@mui/icons-material/AcUnit';
@@ -35,7 +35,7 @@ import "react-date-range/dist/theme/default.css";
 import LuggageOutlinedIcon from "@mui/icons-material/LuggageOutlined";
 // import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { useNavigate } from "react-router-dom";
-import offerNot from "../../assets/offerNot.svg";
+import offerNot from "../../../assets/offerNot.svg";
 import { Clock, Edit3Icon } from "lucide-react";
 import { MdOutlineSort } from "react-icons/md";
 import SortOverlay from "./SortOverlay";

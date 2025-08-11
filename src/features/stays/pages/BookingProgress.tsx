@@ -16,7 +16,7 @@ import { FaCheck } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
 import { createBookingAsync } from '../slice';
 import { RootState, AppDispatch } from '../../../store';
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Room } from "../types";
 
 

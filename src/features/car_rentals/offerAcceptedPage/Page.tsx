@@ -3,7 +3,7 @@ import Navbar from "../../../pages/homePage/Navbar";
 
 import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatReclineNormal";
 import SpeedIcon from "@mui/icons-material/Speed";
-import carImage from "../../assets/carImage.svg";
+import carImage from "../../../assets/carImage.svg";
 import LuggageOutlinedIcon from "@mui/icons-material/LuggageOutlined";
 import MobilePage from "./MobilePage";
 import { useNavigate } from "react-router";
