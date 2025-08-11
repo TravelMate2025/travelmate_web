@@ -11,7 +11,7 @@ import plane from "../../assets/plane.svg";
 import car from "../../assets/car.svg";
 import stay from "../../assets/stay.svg";
 import RoundTrip from "./RoundTrip";
-import SearchFilter from '../../components/SearchFilter';
+import SearchFilter from '../../features/stays/components/SearchFilter';
 import Page from '../carsTab/carsFirstScreen/Page';
 import { useMediaQuery } from "react-responsive";
 

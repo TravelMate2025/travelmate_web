@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store/";
-import { refreshToken } from "../api/auth";
-import { updateToken, logout } from "../features/auth/authSlice";
+import { refreshToken } from "../features/account/api/auth";
+import { updateToken, logout } from "../features/account/slices/authSlice";
 
 const useTokenRefresh = () => {
   const { refreshToken: refresh } = useSelector((state: RootState) => state.auth);
