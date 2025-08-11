@@ -26,10 +26,10 @@ import StaysDetail from "./features/stays/pages/StaysDetail";
 import BookingConfirmationPage from "./features/stays/pages/BookingConfirmationPage";
 import BookingProgress from "./features/stays/pages/BookingProgress";
 
-import Page from "./car_rentals/carsFirstScreen/Page";
-import DisplayCars from "./car_rentals/displayAllCars/DisplayCars";
-import Pages from "./car_rentals/offerAcceptedPage/Page";
-import CarPaidForPage from "./car_rentals/carPaidFor/CarPaidForPage";
+import Page from "./features/car_rentals/carsFirstScreen/Page";
+import DisplayCars from "./features/car_rentals/displayAllCars/DisplayCars";
+import Pages from "./features/car_rentals/offerAcceptedPage/Page";
+import CarPaidForPage from "./features/car_rentals/carPaidFor/CarPaidForPage";
 import AirportTaxi from './pages/AirportTaxi';
 import Flight from "./pages/Flight";
 import FaqPage from "./features/customer-management/pages/faq";

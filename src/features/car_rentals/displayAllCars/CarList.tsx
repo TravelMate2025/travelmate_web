@@ -4,7 +4,7 @@ import "react-date-range/dist/theme/default.css";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 // import TuneIcon from '@mui/icons-material/Tune';
 // import SortIcon from '@mui/icons-material/Sort';
-import Breadcrumb from "../../pages/BreadCrumb";
+import Breadcrumb from "../../../pages/BreadCrumb";
 // import Rating from "@mui/material/Rating";
 import {
   Dialog,

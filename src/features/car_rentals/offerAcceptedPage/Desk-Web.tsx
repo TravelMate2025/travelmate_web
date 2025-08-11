@@ -18,7 +18,7 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import master from "../../assets/master.svg";
 import visa from "../../assets/visa.svg";
 import { Link } from "react-router-dom";
-import Footer from "../../components/2Footer";
+import Footer from "../../../components/2Footer";
 import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
 import { Box, Stepper, Step, StepLabel } from "@mui/material";
 import { CheckCircleIcon, Phone } from "lucide-react";

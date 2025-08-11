@@ -1,6 +1,4 @@
 
-
-
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -12,7 +10,7 @@ import car from "../../assets/car.svg";
 import stay from "../../assets/stay.svg";
 import RoundTrip from "./RoundTrip";
 import SearchFilter from '../../features/stays/components/SearchFilter';
-import Page from '../../car_rentals/carsFirstScreen/Page';
+import Page from '../../features/car_rentals/carsFirstScreen/Page';
 import { useMediaQuery } from "react-responsive";
 
 const WelcomePage = () => {
@@ -24,10 +22,6 @@ const WelcomePage = () => {
     const handleChange = (_event: React.SyntheticEvent, newValue: string) => {
         setValue(newValue);
         localStorage.setItem('selectedTab', newValue);
-    };
-
-    const handleSearchSubmit = (destination: string, roomGuest: string, date: string) => {
-        console.log("Search Submitted:", { destination, roomGuest, date });
     };
 
     return (
@@ -92,7 +86,7 @@ const WelcomePage = () => {
       </TabList>
     </Box>
     <TabPanel value="1">
-      <SearchFilter onSubmit={handleSearchSubmit} />
+      <SearchFilter />
     </TabPanel>
     <TabPanel value="2">
       <RoundTrip />
@@ -148,7 +142,7 @@ const WelcomePage = () => {
                                 </TabList>
                             </Box>
                             <TabPanel value="1">
-                                <SearchFilter onSubmit={handleSearchSubmit} />
+                                <SearchFilter />
                             </TabPanel>
                             <TabPanel value="2"><RoundTrip /></TabPanel>
                             <TabPanel value="3"><Page /></TabPanel>

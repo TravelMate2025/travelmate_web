@@ -20,7 +20,7 @@ import Passengers from "../carsFirstScreen/modals/Passengers";
 import PriceRange from "../carsFirstScreen/modals/PriceRange";
 import RideType from "../carsFirstScreen/modals/RideType";
 import CarList from "./CarList";
-import Navbar from "../../pages/homePage/Navbar";
+import Navbar from "../../../pages/homePage/Navbar";
 import SearchLocation from "../carsFirstScreen/modals/SearchLoaction";
 
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../../pages/homePage/Navbar";
+import Navbar from "../../../pages/homePage/Navbar";
 
 import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatReclineNormal";
 import SpeedIcon from "@mui/icons-material/Speed";
@@ -7,7 +7,7 @@ import carImage from "../../assets/carImage.svg";
 import LuggageOutlinedIcon from "@mui/icons-material/LuggageOutlined";
 import MobilePage from "./MobilePage";
 import { useNavigate } from "react-router";
-import Footer from "../../components/2Footer";
+import Footer from "../../../components/2Footer";
 
 const Page = () => {
         const navigate = useNavigate()

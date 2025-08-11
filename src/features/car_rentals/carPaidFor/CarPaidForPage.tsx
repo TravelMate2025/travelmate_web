@@ -1,12 +1,12 @@
 import { Divider, Rating, Stack, Typography } from "@mui/material";
-import Navbar from "../../pages/homePage/Navbar";
+import Navbar from "../../../pages/homePage/Navbar";
 import KeyboardArrowLeftOutlinedIcon from "@mui/icons-material/KeyboardArrowLeftOutlined";
 import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import CheckIcon from "@mui/icons-material/Check";
 import { Link } from "react-router-dom";
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
-import Footer from "../../components/2Footer";
+import Footer from "../../../components/2Footer";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import { useMediaQuery } from "react-responsive";
 
