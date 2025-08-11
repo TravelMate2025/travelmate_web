@@ -1,6 +1,7 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import authReducer from "../features/auth/authSlice";
-import profileReducer from "../features/reduxslices/profileSlice";
+import authReducer from "../features/account/slices/authSlice";
+import profileReducer from "../features/account/slices/profileSlice";
+import staysReducer from "../features/stays/slice"; 
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { PersistPartial } from "redux-persist/es/persistReducer";
@@ -9,13 +10,14 @@ import { PersistPartial } from "redux-persist/es/persistReducer";
 const rootReducer = combineReducers({
   auth: authReducer,
   profile: profileReducer,
+  stays: staysReducer,
 });
 
 // 2. Persist config
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth", "profile"],
+  whitelist: ["auth", "profile", "stays"],
 };
 
 // 3. Persisted reducer

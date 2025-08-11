@@ -1,13 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 import './App.css';
 import { Toaster } from "react-hot-toast";
-import CreateAccount from "./pages/CreateAccount";
-import VerifyPage from "./pages/VerifyPage";
+import CreateAccount from "./features/account/pages/CreateAccount";
+import VerifyPage from "./features/account/pages/VerifyPage";
 import Home from "./pages/Home";
-import CreatePassword from "./pages/CreatePassword";
-import ResetPassword from "./pages/ResetPassword";
-import Login from "./pages/Login";
-import StaysSearchResults from "./pages/StaysSearchResults";
+import CreatePassword from "./features/account/pages/CreatePassword";
+import ResetPassword from "./features/account/pages/ResetPassword";
+import Login from "./features/account/pages/Login";
+import StaysSearchResults from "./features/stays/pages/StaysSearchResults";
 import DeparturePage from "./pages/round-trip-container/departureFlight/DeparturePage";
 import ReturnPage from "./pages/round-trip-container/returnFlight/ReturnPage";
 import FlightInfoPage from "./pages/round-trip-container/flightInfo-review/FlightInfoPage";
@@ -19,23 +19,25 @@ import DeparturePageMultiWay from "./pages/muti-flight-container/departureFlight
 import SecondDepartureFlightPage from "./pages/muti-flight-container/secondDepartureFlight/SecondDepartureFlightPage";
 import FlightInfoPageMultiWay from "./pages/muti-flight-container/flightInfo-review-multiway/FlightInfoPageMultiWay";
 import FlightConfirmPageMultiWay from "./pages/muti-flight-container/flightConfirmationMultiWay/FlightConfirmPageMultiWay";
-import ProfileInfo from "./pages/ProfileInfo";
-import Profile from "./pages/Account";
-import Page from "./car_rentals/carsFirstScreen/Page";
-import DisplayCars from "./car_rentals/displayAllCars/DisplayCars";
-import Pages from "./car_rentals/offerAcceptedPage/Page";
-import CarPaidForPage from "./car_rentals/carPaidFor/CarPaidForPage";
-import StaysDetail from "./pages/StaysDetail";
-import BookingConfirmationPage from "./pages/BookingConfirmationPage";
-import BookingProgress from "./pages/BookingProgress";
+
+import ProfileInfo from "./features/account/pages/ProfileInfo";
+import Profile from "./features/account/pages/Account";
+import StaysDetail from "./features/stays/pages/StaysDetail";
+import BookingConfirmationPage from "./features/stays/pages/BookingConfirmationPage";
+import BookingProgress from "./features/stays/pages/BookingProgress";
+
+import Page from "./features/car_rentals/carsFirstScreen/Page";
+import DisplayCars from "./features/car_rentals/displayAllCars/DisplayCars";
+import Pages from "./features/car_rentals/offerAcceptedPage/Page";
+import CarPaidForPage from "./features/car_rentals/carPaidFor/CarPaidForPage";
 import AirportTaxi from './pages/AirportTaxi';
 import Flight from "./pages/Flight";
-import FaqPage from "./pages/faq";
-import ChatPage from "./pages/ChatPage";
-import TicketsPage from "./pages/TicketsPage";
-import TicketDetailPage from "./pages/TicketDetailPage";
-import CreateNewPassword from "./pages/CreateNewPassword";
-import VerifyEmailForPasswordReset from "./pages/VerifyEmailForPasswordReset";
+import FaqPage from "./features/customer-management/pages/faq";
+import ChatPage from "./features/customer-management/pages/ChatPage";
+import TicketsPage from "./features/customer-management/pages/TicketsPage";
+import TicketDetailPage from "./features/customer-management/pages/TicketDetailPage";
+import CreateNewPassword from "./features/account/pages/CreateNewPassword";
+import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailForPasswordReset";
 import PrivateRoute from "../src/routes/PrivateRoute";
 
 function App() {
@@ -53,7 +55,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/stays-search-result" element={<StaysSearchResults />} />
         <Route path="/booking-progress" element={<BookingProgress />} />
-        <Route path="/stays-detail" element={<StaysDetail hotel={{ images: [], shareLink: "" }} />} />
+        <Route path="/stays-detail/:hotelId" element={<StaysDetail />} />
         <Route path="/faqs" element={<FaqPage />} />
         <Route path="/chat-with-us" element={<ChatPage /> } />
 

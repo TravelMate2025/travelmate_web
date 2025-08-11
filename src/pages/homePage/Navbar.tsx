@@ -32,10 +32,10 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 
 import { useDispatch } from "react-redux";
-import { logoutUser } from "../../api/auth";
-import { logout as navlogout } from "../../features/auth/authSlice";
+import { logoutUser } from "../../features/account/api/auth";
+import { logout as navlogout } from "../../features/account/slices/authSlice";
 import toast from "react-hot-toast";
-import Spinner from "../../components/Spinner";
+import Spinner from "../../features/account/components/Spinner";
 
 import { FaBell } from 'react-icons/fa';
 

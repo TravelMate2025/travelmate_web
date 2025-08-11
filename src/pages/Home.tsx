@@ -7,7 +7,7 @@ import TravelmateApp from "./homePage/TravelmateApp";
 import Destination from "./homePage/Destination";
 import Footer from "../components/2Footer";
 
-import FloatingChatButton from '../components/FloatingChatButton';
+import FloatingChatButton from '../features/customer-management/components/FloatingChatButton';
 
 
 export default function Home() {
