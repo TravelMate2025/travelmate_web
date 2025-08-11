@@ -12,7 +12,7 @@ import car from "../../assets/car.svg";
 import stay from "../../assets/stay.svg";
 import RoundTrip from "./RoundTrip";
 import SearchFilter from '../../components/SearchFilter';
-import Page from '../carsTab/carsFirstScreen/Page';
+import Page from '../../car_rentals/carsFirstScreen/Page';
 import { useMediaQuery } from "react-responsive";
 
 const WelcomePage = () => {
