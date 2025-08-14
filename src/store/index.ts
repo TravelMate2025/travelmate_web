@@ -2,6 +2,7 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import authReducer from "../features/account/slices/authSlice";
 import profileReducer from "../features/account/slices/profileSlice";
 import staysReducer from "../features/stays/slice"; 
+import carsReducer from "../features/car_rentals/carPaymentSlice"
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { PersistPartial } from "redux-persist/es/persistReducer";
@@ -11,6 +12,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   profile: profileReducer,
   stays: staysReducer,
+  cars: carsReducer
 });
 
 // 2. Persist config

@@ -18,66 +18,88 @@ import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "../../../store";
+import { setCarInfo } from "../carPaymentSlice";
+import { MdArrowDropDown } from "react-icons/md";
+import { Info } from "lucide-react";
 
+// Import components
+import SearchLoaction from "./modals/SearchLoaction";
+import Passengers from "./modals/Passengers";
+import PriceRange from "./modals/PriceRange";
+import RideType from "./modals/RideType";
+
+// Interfaces
 interface DateRangeType {
   startDate: Date;
   endDate: Date;
   key: string;
 }
 
-import SearchLoaction from "./modals/SearchLoaction";
-import Passengers from "./modals/Passengers";
-import PriceRange from "./modals/PriceRange";
-import { MdArrowDropDown } from "react-icons/md";
-import RideType from "./modals/RideType";
-import { Info } from "lucide-react";
-const Page = () => {
+interface LocationOption {
+  label: string;
+  value: string;
+}
+
+interface TimeInfo {
+  pickUpTime: string;
+  dropOffTime?: string;
+}
+
+interface PassengerCounts {
+  adults: number;
+  children: number;
+  infant: number;
+}
+
+interface PriceRangeType {
+  min: number;
+  max: number;
+}
+
+const Page: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const carInfo = useSelector((state: RootState) => state.cars.carInfo);
 
-  const [, setSelectedValue] = useState<string>(() => {
-    return localStorage.getItem("tripType") || "round-trip";
-  });
-  const [FromClick, setFromClick] = useState<HTMLElement | null>(null);
-  const [ToClick, setToClick] = useState<HTMLElement | null>(null);
+  // Location states
+  const [fromClick, setFromClick] = useState<HTMLElement | null>(null);
+  const [toClick, setToClick] = useState<HTMLElement | null>(null);
+  const [selectedFrom, setSelectedFrom] = useState<string>("");
+  const [selectedTo, setSelectedTo] = useState<string>("");
+  const [openFrom, setOpenFrom] = useState<boolean>(false);
+  const [openTo, setOpenTo] = useState<boolean>(false);
 
-  const [selectedFrom, setSelectedFrom] = useState("");
-  const [selectedTo, setSelectedTo] = useState("");
-
-  const [openFrom, setOpenFrom] = useState(false);
-  const [openTo, setOpenTo] = useState(false);
-
+  // Date and ride states
   const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedRide, setSelectedRide] = useState("");
-  // const [selected]
+  const [selectedRide, setSelectedRide] = useState<string>("");
 
-  const [maxprice, setMaxPrice] = useState("");
-  const [miniprice, setMiniPrice] = useState("");
-  const [priceRange, setPriceRange] = useState("");
-  // const [rideOptions, setRideOptions]
+  // Price states
+  const [maxPrice, setMaxPrice] = useState<string>("");
+  const [minPrice, setMinPrice] = useState<string>("");
+  const [priceRange, setPriceRange] = useState<string>("");
 
-  const [searchPickOrDrop, setSearchPickOrDrop] = useState(false);
-  const [openPassengerModal, setOpenPassengerModal] = useState(false);
-  const [rideTypeModal, setRideTypeModal] = useState(false);
-
+  // Modal states
+  const [searchPickOrDrop, setSearchPickOrDrop] = useState<boolean>(false);
+  const [openPassengerModal, setOpenPassengerModal] = useState<boolean>(false);
+  const [rideTypeModal, setRideTypeModal] = useState<boolean>(false);
   const [openClick, setOpenClick] = useState<boolean>(false);
-  const [openNoModal, setOpenNoModal] = useState(false);
+  const [openNoModal, setOpenNoModal] = useState<boolean>(false);
 
-  const [times, setTimes] = useState({
+  // Time and passenger states
+  const [times, setTimes] = useState<TimeInfo>({
     pickUpTime: "",
     dropOffTime: "",
   });
-  const [passengerCounts, setPassengerCounts] = useState({
+
+  const [passengerCounts, setPassengerCounts] = useState<PassengerCounts>({
     adults: 0,
     children: 0,
     infant: 0,
   });
-  useEffect(() => {
-    const savedValue = localStorage.getItem("tripType");
-    if (savedValue) {
-      setSelectedValue(savedValue);
-    }
-  }, []);
 
+  // Date range state
   const [dateRange, setDateRange] = useState<DateRangeType[]>([
     {
       startDate: new Date(),
@@ -86,8 +108,99 @@ const Page = () => {
     },
   ]);
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  // Popper states
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
+
+  // Locations array
+  const [locations, setLocations] = useState<string[]>([
+    "Ibadan, Oyo",
+    "Abuja",
+    "Port Harcourt",
+  ]);
+
+  useEffect(() => {
+    // First, try to load from Redux state
+    if (carInfo && (carInfo.from || carInfo.to || carInfo.departureDate)) {
+      setSelectedFrom(carInfo.from?.label || "");
+      setSelectedTo(carInfo.to?.label || "");
+      setSelectedDate(carInfo.departureDate || "");
+      setSelectedRide(carInfo.selectedRide || "");
+      setPriceRange(carInfo.priceRange || "");
+      setTimes(carInfo.times || { pickUpTime: "", dropOffTime: "" });
+      setPassengerCounts(
+        carInfo.passengerCounts || { adults: 0, children: 0, infant: 0 }
+      );
+    } else {
+      // If no Redux data, load from localStorage
+      const savedForm = localStorage.getItem("carSearchForm");
+      if (savedForm) {
+        try {
+          const parsedForm = JSON.parse(savedForm);
+          setSelectedFrom(parsedForm.from || "");
+          setSelectedTo(parsedForm.to || "");
+          setSelectedDate(parsedForm.departureDate || "");
+          setSelectedRide(parsedForm.selectedRide || "");
+          setPriceRange(parsedForm.priceRange || "");
+          setTimes(parsedForm.times || { pickUpTime: "", dropOffTime: "" });
+          setPassengerCounts(
+            parsedForm.passengerCounts || { adults: 0, children: 0, infant: 0 }
+          );
+        } catch (error) {
+          console.error("Error parsing saved form data:", error);
+        }
+      }
+    }
+  }, []); // Remove dependencies, run only on mount
+
+  // 2. Update Redux whenever form state changes
+  useEffect(() => {
+    const formData = {
+      from: selectedFrom ? { label: selectedFrom, value: selectedFrom } : null,
+      to: selectedTo ? { label: selectedTo, value: selectedTo } : null,
+      departureDate: selectedDate || null,
+      times: { pickUpTime: times.pickUpTime },
+      priceRange: priceRange || "",
+      selectedRide: selectedRide || null,
+      passengerCounts,
+      searchResults: carInfo?.searchResults || [],
+    };
+
+    dispatch(setCarInfo(formData));
+  }, [
+    selectedFrom,
+    selectedTo,
+    selectedDate,
+    times.pickUpTime,
+    priceRange,
+    selectedRide,
+    passengerCounts,
+    dispatch,
+    carInfo?.searchResults,
+  ]);
+
+  // 3. Save to localStorage - remove the duplicate one
+  useEffect(() => {
+    const formData = {
+      from: selectedFrom,
+      to: selectedTo,
+      departureDate: selectedDate,
+      times,
+      priceRange,
+      selectedRide,
+      passengerCounts,
+    };
+    localStorage.setItem("carSearchForm", JSON.stringify(formData));
+  }, [
+    selectedFrom,
+    selectedTo,
+    selectedDate,
+    times,
+    priceRange,
+    selectedRide,
+    passengerCounts,
+  ]);
+  // Event handlers
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
   };
@@ -124,25 +237,15 @@ const Page = () => {
     setOpenFrom(false);
   };
 
-  const open = Boolean(anchorEl);
-  const id = open ? "date-range-popper" : undefined;
-
-  const [locations, setLocations] = useState([
-    "Ibadan, Oyo",
-    "Abuja",
-    "Port Harcourt",
-  ]);
-
   const handleRemoveOption = (locationToRemove: string) => {
     setLocations(locations.filter((location) => location !== locationToRemove));
   };
+
   const handleSelectRide = (value: string) => {
     setSelectedRide(value);
   };
 
   const formatDate = (date: Date) => format(date, "dd MMM yyyy");
-
-  const [, setOpens] = useState(false);
 
   const handleSelectDate = () => {
     if (dateRange[0].startDate) {
@@ -157,7 +260,6 @@ const Page = () => {
           : `${startDateFormatted} - ${endDateFormatted}`;
 
       setSelectedDate(displayText);
-      setOpens(false);
       handleClose();
     }
   };
@@ -170,9 +272,9 @@ const Page = () => {
     const value = event.target.value.replace(/,/g, "");
     if (!isNaN(Number(value)) && value !== "") {
       const formattedValue = new Intl.NumberFormat().format(Number(value));
-      setMiniPrice(formattedValue);
+      setMinPrice(formattedValue);
     } else {
-      setMiniPrice("");
+      setMinPrice("");
     }
   };
 
@@ -189,9 +291,10 @@ const Page = () => {
   const handleCloseNoModal = () => {
     setOpenNoModal(false);
   };
+
   const handleSubmitOffer = () => {
-    const numericMinPrice = parseInt(miniprice.replace(/,/g, ""), 10) || 0;
-    const numericMaxPrice = parseInt(maxprice.replace(/,/g, ""), 10) || 0;
+    const numericMinPrice = parseInt(minPrice.replace(/,/g, ""), 10) || 0;
+    const numericMaxPrice = parseInt(maxPrice.replace(/,/g, ""), 10) || 0;
 
     if (numericMinPrice < 6000 || numericMaxPrice < 6000) {
       setOpenNoModal(true);
@@ -205,14 +308,44 @@ const Page = () => {
   };
 
   const handleSearch = () => {
-    // const priceRange = `${miniprice} - ${maxprice}`;
-    const numericMinPrice = parseInt(miniprice.replace(/,/g, ""), 10) || 0;
-    const numericMaxPrice = parseInt(maxprice.replace(/,/g, ""), 10) || 0;
+    const numericMinPrice = parseInt(minPrice.replace(/,/g, ""), 10) || 0;
+    const numericMaxPrice = parseInt(maxPrice.replace(/,/g, ""), 10) || 0;
 
     const formattedPriceRange = {
-      miniprice: numericMinPrice,
-      maxprice: numericMaxPrice,
+      minPrice: numericMinPrice,
+      maxPrice: numericMaxPrice,
     };
+
+    const searchData = {
+      from: selectedFrom,
+      to: selectedTo,
+      departureDate: selectedDate,
+      times,
+      priceRange: {
+        minPrice: numericMinPrice,
+        maxPrice: numericMaxPrice,
+      },
+      selectedRide,
+      passengerCounts,
+    };
+
+    // Dispatch to Redux store
+    dispatch(
+      setCarInfo({
+        from: selectedFrom
+          ? { label: selectedFrom, value: selectedFrom }
+          : null,
+        to: selectedTo ? { label: selectedTo, value: selectedTo } : null,
+        departureDate: selectedDate || null,
+        times: { pickUpTime: times.pickUpTime },
+        priceRange: `${numericMinPrice} - ${numericMaxPrice}`,
+        selectedRide: selectedRide || null,
+        passengerCounts,
+        searchResults: [],
+      })
+    );
+
+    // Navigate to search results
     navigate("/cars-searchResults", {
       state: {
         from: selectedFrom,
@@ -225,20 +358,8 @@ const Page = () => {
       },
     });
   };
-  const formData=  {
-        from: selectedFrom,
-        to: selectedTo,
-        departureDate: selectedDate,
-        times,
-        priceRange,
-        selectedRide,
-        passengerCounts,
-      }
-useEffect(()=> {
- localStorage.setItem( 'form', JSON.stringify(formData))
-})
+
   const handleOpen = () => {
-    // setSelectedCarId(car.id);
     setOpenClick(true);
   };
 
@@ -246,13 +367,9 @@ useEffect(()=> {
     setOpenClick(false);
   };
 
-  const formatPassengerCount = (counts: {
-    adults: number;
-    children: number;
-    infant: number;
-  }) => {
+  const formatPassengerCount = (counts: PassengerCounts): string => {
     const { adults, children, infant } = counts;
-    const parts = [];
+    const parts: string[] = [];
 
     if (adults > 0) parts.push(`${adults} adult${adults > 1 ? "s" : ""}`);
     if (children > 0)
@@ -262,20 +379,25 @@ useEffect(()=> {
     return parts.length > 0 ? parts.join(", ") : "Select Passengers";
   };
 
-  const formFilled =
-    (!!selectedFrom &&
-      !!selectedTo &&
-      !!selectedDate &&
-      !!times.pickUpTime &&
-      !!priceRange &&
-      !!selectedRide &&
-      passengerCounts.adults > 0) ||
-    passengerCounts.children > 0 ||
-    passengerCounts.infant > 0;
+  // Form validation
+  const formFilled = !!(
+    selectedFrom &&
+    selectedTo &&
+    selectedDate &&
+    times.pickUpTime &&
+    priceRange &&
+    selectedRide &&
+    (passengerCounts.adults > 0 ||
+      passengerCounts.children > 0 ||
+      passengerCounts.infant > 0)
+  );
 
-  console.log(formFilled);
+  const open = Boolean(anchorEl);
+  const id = open ? "date-range-popper" : undefined;
+
   return (
     <div>
+      {/* Modals */}
       {searchPickOrDrop && (
         <SearchLoaction
           searchPickOrDrop={searchPickOrDrop}
@@ -286,6 +408,7 @@ useEffect(()=> {
           setValue={pickOrDrop === "pick" ? setSelectedFrom : setSelectedTo}
         />
       )}
+
       {openPassengerModal && (
         <Passengers
           openPassengerModal={openPassengerModal}
@@ -294,6 +417,7 @@ useEffect(()=> {
           handlePassengersUpdate={(newValues) => setPassengerCounts(newValues)}
         />
       )}
+
       {rideTypeModal && (
         <RideType
           rideTypeModal={rideTypeModal}
@@ -302,30 +426,32 @@ useEffect(()=> {
           handleSelectRide={handleSelectRide}
         />
       )}
+
+      {/* Shared Ride Info */}
       {selectedRide === "Shared Ride" && (
         <div className="flex items-center gap-3 bg-[#CCD8E880] p-2 rounded-md m-2">
           <Info />
           <p className="text-[#181818] text-xs font-sans">
-            Kindly note Shared rides don’t go to private addresses. You’ll be
+            Kindly note Shared rides don't go to private addresses. You'll be
             dropped at a nearby landmark.
           </p>
         </div>
       )}
+
       <div className="flex lg:flex-row flex-col justify-normal lg:items-center gap-8">
         <div className="flex flex-col">
-          {/* <-------------------------------------top inputs------------------------------------> */}
+          {/* Top inputs */}
           <div className="flex lg:flex-row flex-col justify-between lg:items-center gap-4">
-            <div className="flex flex-col gap-2 ">
+            {/* Ride Type */}
+            <div className="flex flex-col gap-2">
               <label htmlFor="Ride Type">Ride Type</label>
               <TextField
-                id="from"
+                id="ride-type"
                 className="capitalize cursor-pointer"
                 variant="outlined"
                 size="small"
                 value={selectedRide}
-                onChange={(e) => {
-                  setSelectedRide(e.target.value);
-                }}
+                onChange={(e) => setSelectedRide(e.target.value)}
                 onClick={() => setRideTypeModal(true)}
                 InputProps={{
                   startAdornment: (
@@ -344,6 +470,7 @@ useEffect(()=> {
               />
             </div>
 
+            {/* Pick Up Location */}
             <div className="flex flex-col gap-2">
               <label htmlFor="from" className="mb-1">
                 Pick Up
@@ -354,9 +481,7 @@ useEffect(()=> {
                 size="small"
                 placeholder="Search Pick up Location"
                 value={selectedFrom}
-                onChange={(e) => {
-                  setSelectedFrom(e.target.value);
-                }}
+                onChange={(e) => setSelectedFrom(e.target.value)}
                 onClick={(e) => {
                   handleFromClick(e);
                   setSearchPickOrDrop(true);
@@ -369,7 +494,6 @@ useEffect(()=> {
                     </InputAdornment>
                   ),
                 }}
-                // className="md:w-[23vw] lg:w-[23vw] w-full"
                 sx={{
                   "& .MuiInputBase-root": {
                     height: "44px",
@@ -378,10 +502,11 @@ useEffect(()=> {
                 }}
               />
 
+              {/* From Location Popper */}
               <Popper
                 id="from-popper"
                 open={openFrom}
-                anchorEl={FromClick}
+                anchorEl={fromClick}
                 placement="bottom-start"
                 className="hidden md:block"
               >
@@ -452,6 +577,7 @@ useEffect(()=> {
               </Popper>
             </div>
 
+            {/* Drop Off Location */}
             <div className="flex flex-col gap-2">
               <label htmlFor="to" className="mb-1">
                 Drop Off
@@ -460,7 +586,6 @@ useEffect(()=> {
                 id="to"
                 variant="outlined"
                 size="small"
-                //  onClick={}
                 value={selectedTo}
                 onChange={(e) => setSelectedTo(e.target.value)}
                 onClick={(e) => {
@@ -476,7 +601,6 @@ useEffect(()=> {
                     </InputAdornment>
                   ),
                 }}
-                // className="md:w-[23vw] lg:w-[23vw] w-full"
                 sx={{
                   "& .MuiInputBase-root": {
                     height: "44px",
@@ -485,10 +609,11 @@ useEffect(()=> {
                 }}
               />
 
+              {/* To Location Popper */}
               <Popper
-                id="from-popper"
+                id="to-popper"
                 open={openTo}
-                anchorEl={ToClick}
+                anchorEl={toClick}
                 placement="bottom-start"
               >
                 <ClickAwayListener onClickAway={handleCloseTo}>
@@ -558,6 +683,7 @@ useEffect(()=> {
               </Popper>
             </div>
 
+            {/* Pick Up Date */}
             <div className="flex flex-col gap-2">
               <label htmlFor="departure-date" className="mb-1">
                 Pick Up Date
@@ -576,7 +702,6 @@ useEffect(()=> {
                     </InputAdornment>
                   ),
                 }}
-                // className="md:w-[23vw] lg:w-[23vw] w-full"
                 sx={{
                   "& .MuiInputBase-root": {
                     height: "44px",
@@ -589,6 +714,7 @@ useEffect(()=> {
                 }}
               />
 
+              {/* Date Range Popper */}
               <Popper
                 id={id}
                 open={open}
@@ -609,10 +735,10 @@ useEffect(()=> {
                     sx={{
                       boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
                       width: {
-                        xs: "90vw", // Small screens
-                        sm: "500px", // Tablets
-                        md: "650px", // Medium screens
-                        lg: "850px", // Large screens
+                        xs: "90vw",
+                        sm: "500px",
+                        md: "650px",
+                        lg: "850px",
                       },
                       maxWidth: "95vw",
                       overflow: "hidden",
@@ -637,7 +763,7 @@ useEffect(()=> {
                         moveRangeOnFirstSelection={false}
                         ranges={dateRange}
                         rangeColors={["#FF6F1E"]}
-                        months={window.innerWidth < 768 ? 1 : 2} // 1 month on small screens
+                        months={window.innerWidth < 768 ? 1 : 2}
                         direction={
                           window.innerWidth < 768 ? "vertical" : "horizontal"
                         }
@@ -680,8 +806,9 @@ useEffect(()=> {
             </div>
           </div>
 
-          {/* <-----------------Second inputs ------------------------> */}
+          {/* Second row inputs */}
           <div className="flex lg:flex-row flex-col justify-between items-center w-full gap-4 mt-5">
+            {/* Pick Up Time */}
             <div className="flex flex-col gap-2 w-full">
               <label htmlFor="pick-up-time" className="mb-1">
                 Pick Up Time
@@ -695,7 +822,7 @@ useEffect(()=> {
                 value={times.pickUpTime}
                 onChange={handleTimeChange}
                 placeholder="00 : 00"
-                className=" w-full"
+                className="w-full"
                 sx={{
                   "& .MuiInputBase-root": {
                     height: "44px",
@@ -705,6 +832,7 @@ useEffect(()=> {
               />
             </div>
 
+            {/* Passengers */}
             <div className="flex flex-col gap-2 w-full">
               <label
                 htmlFor="passenger-count"
@@ -712,7 +840,6 @@ useEffect(()=> {
               >
                 Passengers
               </label>
-
               <TextField
                 id="passenger-count"
                 name="passengerCount"
@@ -723,7 +850,7 @@ useEffect(()=> {
                 onClick={() => setOpenPassengerModal(true)}
                 placeholder="Select Passengers"
                 InputProps={{
-                  readOnly: true, // Prevent manual edits
+                  readOnly: true,
                 }}
                 sx={{
                   "& .MuiInputBase-root": {
@@ -736,17 +863,17 @@ useEffect(()=> {
               />
             </div>
 
+            {/* Price Range */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="departure-date" className="mb-1">
+              <label htmlFor="price-range" className="mb-1">
                 Price Range
               </label>
               <TextField
-                id="price"
+                id="price-range"
                 variant="outlined"
                 size="small"
                 placeholder="Enter Minimum - Maximum Price"
                 value={priceRange}
-                // onClick={() => setOpenNoModal(true)}
                 onClick={handleOpen}
                 className="w-full"
                 sx={{
@@ -768,17 +895,18 @@ useEffect(()=> {
                 openNoModal={openNoModal}
                 handleCloseNoModal={handleCloseNoModal}
                 handleMaxPriceChange={handleMaxPriceChange}
-                miniprice={miniprice}
-                maxprice={maxprice}
+                miniprice={minPrice}
+                maxprice={maxPrice}
                 handleSubmitOffer={handleSubmitOffer}
               />
             </div>
           </div>
         </div>
 
+        {/* Search Button */}
         <div>
           <button
-            className="bg-[#023E8A]  lg:w-[120px]  w-full text-center text-white font-inter text-base rounded-md py-3 lg:mt-14 cursor-pointer disabled:bg-gray-400 disabled:cursor-auto"
+            className="bg-[#023E8A] lg:w-[120px] w-full text-center text-white font-inter text-base rounded-md py-3 lg:mt-14 cursor-pointer disabled:bg-gray-400 disabled:cursor-auto"
             onClick={handleSearch}
             disabled={!formFilled}
           >
