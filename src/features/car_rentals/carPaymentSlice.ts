@@ -1,5 +1,31 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+export interface CarInfo {
+    // Form fields that match the booking form structure
+    pickupLocation: string;
+    dropoffLocation: string;
+    pickupDate: string;
+    pickupTime: string;
+    selectedRide: string;
+    priceRange: {
+        min: number;
+        max: number;
+    };
+    passengerCounts: {
+        adults: number;
+        children: number;
+        infant: number;
+    };
+    
+    // Additional fields for API compatibility
+    endCity?: string;
+    endCountry?: string;
+    endGeoLat?: number;
+    endGeoLong?: number;
+
+    searchResults: any[];
+}
+
 interface CardInfo {
     cardNumber: string;
     cardHolder: string;
@@ -15,33 +41,6 @@ interface PersonalDetails {
     phoneNumber: string;
     dateOfBirth: string;
 }
-
-interface LocationOption {
-    label: string;
-    value: string;
-}
-
-interface TimeInfo {
-    pickUpTime: string;
-}
-
-interface PassengerCounts {
-    adults: number;
-    children: number;
-    infant: number;
-}
-
-interface CarInfo {
-    from: LocationOption | null;
-    to: LocationOption | null;
-    departureDate: string | null;
-    times: TimeInfo;
-    priceRange: string;
-    selectedRide: string | null;
-    passengerCounts: PassengerCounts;
-    searchResults: any[];
-}
-
 
 interface FormState {
     cardinfo: CardInfo | null;
@@ -73,11 +72,23 @@ const carPaymentSlice = createSlice({
                 state.carInfo.searchResults = action.payload;
             }
         },
+        // Add helper action to update specific car info fields
+        updateCarInfoField: (state, action: PayloadAction<{field: keyof CarInfo, value: any}>) => {
+            if (state.carInfo) {
+                (state.carInfo as any)[action.payload.field] = action.payload.value;
+            }
+        },
         resetForm: () => initialState,
     },
 });
 
-export const { setCardInfo, setPersonalDetails, setCarInfo, setSearchResults, resetForm } =
-    carPaymentSlice.actions;
+export const { 
+    setCardInfo, 
+    setPersonalDetails, 
+    setCarInfo, 
+    setSearchResults, 
+    updateCarInfoField,
+    resetForm 
+} = carPaymentSlice.actions;
 
 export default carPaymentSlice.reducer;

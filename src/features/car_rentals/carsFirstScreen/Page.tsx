@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   TextField,
   InputAdornment,
@@ -6,429 +6,333 @@ import {
   ClickAwayListener,
   Paper,
   Typography,
-  Divider,
   Box,
 } from "@mui/material";
-import { DateRange, RangeKeyDict } from "react-date-range";
-import "react-date-range/dist/styles.css";
-import "react-date-range/dist/theme/default.css";
-import { addDays, format } from "date-fns";
+import { DateRange } from "react-date-range";
 import { useNavigate } from "react-router-dom";
-import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
-import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../../store";
 import { setCarInfo } from "../carPaymentSlice";
+
+// Icons
+import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import { MdArrowDropDown } from "react-icons/md";
 import { Info } from "lucide-react";
 
-// Import components
-import SearchLoaction from "./modals/SearchLoaction";
+// Custom hooks and utilities
+import { useBookingForm } from "../hooks/useBookingForm";
+import { useFormPersistence } from "../hooks/useFormPersistence";
+import { useDateSelection } from "../hooks/useDateSelection";
+import { useLocationSearch } from "../hooks/useLocationSearch";
+import { useModalState } from "../hooks/useModalState";
+import {
+  formatPassengerCount,
+  formatPriceRange,
+} from "../utilities/formatting";
+import { BookingFormData } from "../types/booking";
+
+// Components
 import Passengers from "./modals/Passengers";
 import PriceRange from "./modals/PriceRange";
 import RideType from "./modals/RideType";
+import RecentSearch from "./RecentSearch";
+import { PassengerCounts } from "../types/booking";
+import { transferService } from "./services/transferService";
+import { formatDate } from "../utilities/formatting";
+import SearchPickUpLocation from "./modals/searchPickUp";
+import SearchDropOffLocation from "./modals/searchDropOff";
 
-// Interfaces
-interface DateRangeType {
-  startDate: Date;
-  endDate: Date;
-  key: string;
-}
-
-interface LocationOption {
-  label: string;
-  value: string;
-}
-
-interface TimeInfo {
-  pickUpTime: string;
-  dropOffTime?: string;
-}
-
-interface PassengerCounts {
-  adults: number;
-  children: number;
-  infant: number;
-}
-
-interface PriceRangeType {
-  min: number;
-  max: number;
-}
-
-const Page: React.FC = () => {
+const CarBookingFirstScreen: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const carInfo = useSelector((state: RootState) => state.cars.carInfo);
+  const collectFrom = (data: string) => {
+    setFormData((prev) => ({ ...prev, pickupLocation: data }));
+  };
 
-  // Location states
-  const [fromClick, setFromClick] = useState<HTMLElement | null>(null);
-  const [toClick, setToClick] = useState<HTMLElement | null>(null);
-  const [selectedFrom, setSelectedFrom] = useState<string>("");
-  const [selectedTo, setSelectedTo] = useState<string>("");
-  const [openFrom, setOpenFrom] = useState<boolean>(false);
-  const [openTo, setOpenTo] = useState<boolean>(false);
-
-  // Date and ride states
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedRide, setSelectedRide] = useState<string>("");
-
-  // Price states
-  const [maxPrice, setMaxPrice] = useState<string>("");
-  const [minPrice, setMinPrice] = useState<string>("");
-  const [priceRange, setPriceRange] = useState<string>("");
-
-  // Modal states
-  const [searchPickOrDrop, setSearchPickOrDrop] = useState<boolean>(false);
-  const [openPassengerModal, setOpenPassengerModal] = useState<boolean>(false);
-  const [rideTypeModal, setRideTypeModal] = useState<boolean>(false);
-  const [openClick, setOpenClick] = useState<boolean>(false);
-  const [openNoModal, setOpenNoModal] = useState<boolean>(false);
-
-  // Time and passenger states
-  const [times, setTimes] = useState<TimeInfo>({
-    pickUpTime: "",
-    dropOffTime: "",
-  });
-
-  const [passengerCounts, setPassengerCounts] = useState<PassengerCounts>({
-    adults: 0,
-    children: 0,
-    infant: 0,
-  });
-
-  // Date range state
-  const [dateRange, setDateRange] = useState<DateRangeType[]>([
-    {
-      startDate: new Date(),
-      endDate: addDays(new Date(), 0),
-      key: "selection",
-    },
-  ]);
-
-  // Popper states
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
-
-  // Locations array
-  const [locations, setLocations] = useState<string[]>([
-    "Ibadan, Oyo",
-    "Abuja",
-    "Port Harcourt",
-  ]);
-
-  useEffect(() => {
-    // First, try to load from Redux state
-    if (carInfo && (carInfo.from || carInfo.to || carInfo.departureDate)) {
-      setSelectedFrom(carInfo.from?.label || "");
-      setSelectedTo(carInfo.to?.label || "");
-      setSelectedDate(carInfo.departureDate || "");
-      setSelectedRide(carInfo.selectedRide || "");
-      setPriceRange(carInfo.priceRange || "");
-      setTimes(carInfo.times || { pickUpTime: "", dropOffTime: "" });
-      setPassengerCounts(
-        carInfo.passengerCounts || { adults: 0, children: 0, infant: 0 }
-      );
-    } else {
-      // If no Redux data, load from localStorage
-      const savedForm = localStorage.getItem("carSearchForm");
-      if (savedForm) {
-        try {
-          const parsedForm = JSON.parse(savedForm);
-          setSelectedFrom(parsedForm.from || "");
-          setSelectedTo(parsedForm.to || "");
-          setSelectedDate(parsedForm.departureDate || "");
-          setSelectedRide(parsedForm.selectedRide || "");
-          setPriceRange(parsedForm.priceRange || "");
-          setTimes(parsedForm.times || { pickUpTime: "", dropOffTime: "" });
-          setPassengerCounts(
-            parsedForm.passengerCounts || { adults: 0, children: 0, infant: 0 }
-          );
-        } catch (error) {
-          console.error("Error parsing saved form data:", error);
-        }
-      }
+  // Initialize form with Redux data or saved data
+  const { loadSavedData } = useFormPersistence({} as BookingFormData);
+  const initialData = useMemo(() => {
+    if (carInfo) {
+      return {
+        pickupLocation: carInfo.pickupLocation || "",
+        dropoffLocation: carInfo.dropoffLocation || "",
+        pickupDate: carInfo.pickupDate || "",
+        pickupTime: carInfo.pickupTime || "",
+        selectedRide: carInfo.selectedRide || "",
+        priceRange: carInfo.priceRange || { min: 0, max: 0 },
+        passengerCounts: carInfo.passengerCounts || {
+          adults: 0,
+          children: 0,
+          infant: 0,
+        },
+      };
     }
-  }, []); // Remove dependencies, run only on mount
+    return (
+      loadSavedData() || {
+        pickupLocation: "",
+        dropoffLocation: "",
+        pickupDate: "",
+        pickupTime: "",
+        selectedRide: "",
+        priceRange: { min: 0, max: 0 },
+        passengerCounts: {
+          adults: 0,
+          children: 0,
+          infant: 0,
+        },
+      }
+    );
+  }, [carInfo, loadSavedData]);
 
-  // 2. Update Redux whenever form state changes
+  const {
+    formData,
+    setFormData,
+    errors,
+    isValid,
+    loading,
+    updateField,
+    setLoading,
+    setSubmitError,
+  } = useBookingForm(initialData);
+
+  // Persist form data
+  useFormPersistence(formData);
+
+  // Date selection
+  const {
+    anchorEl,
+    dateRange,
+    open: datePickerOpen,
+    handleClick: handleDateClick,
+    handleClose: handleDateClose,
+    handleSelectDate,
+    updateDateRange,
+  } = useDateSelection((apiDate, displayDate) => {
+    updateField("pickupDate", displayDate);
+  });
+
+  // Location search
+  const { locations, removeLocation } = useLocationSearch();
+
+  // Modal management
+  const { modals, openModal, closeModal } = useModalState();
+
+  // Location picker state
+  const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
+  const [locationPopper, setLocationPopper] = useState<{
+    from: { open: boolean; anchor: HTMLElement | null };
+    to: { open: boolean; anchor: HTMLElement | null };
+  }>({
+    from: { open: false, anchor: null },
+    to: { open: false, anchor: null },
+  });
+
+  // Sync with Redux store whenever formData changes
   useEffect(() => {
-    const formData = {
-      from: selectedFrom ? { label: selectedFrom, value: selectedFrom } : null,
-      to: selectedTo ? { label: selectedTo, value: selectedTo } : null,
-      departureDate: selectedDate || null,
-      times: { pickUpTime: times.pickUpTime },
-      priceRange: priceRange || "",
-      selectedRide: selectedRide || null,
-      passengerCounts,
+    const reduxData = {
+      pickupLocation: formData.pickupLocation,
+      dropoffLocation: formData.dropoffLocation,
+      pickupDate: formData.pickupDate,
+      pickupTime: formData.pickupTime,
+      selectedRide: formData.selectedRide,
+      priceRange: formData.priceRange,
+      passengerCounts: formData.passengerCounts,
+      endAddress: formData.endAddress,
+      endCity: formData.endCity,
+      endCountry: formData.endCountry,
+      endGeoLat: formData.endGeoLat,
+      endGeoLong: formData.endGeoLong,
+      fromLat: formData.fromLat,
+      fromLon: formData.fromLon,
+      toLat: formData.toLat,
+      toLon: formData.toLon,
       searchResults: carInfo?.searchResults || [],
     };
 
-    dispatch(setCarInfo(formData));
-  }, [
-    selectedFrom,
-    selectedTo,
-    selectedDate,
-    times.pickUpTime,
-    priceRange,
-    selectedRide,
-    passengerCounts,
-    dispatch,
-    carInfo?.searchResults,
-  ]);
+    dispatch(setCarInfo(reduxData));
+  }, [formData, dispatch, carInfo?.searchResults]);
 
-  // 3. Save to localStorage - remove the duplicate one
-  useEffect(() => {
-    const formData = {
-      from: selectedFrom,
-      to: selectedTo,
-      departureDate: selectedDate,
-      times,
-      priceRange,
-      selectedRide,
-      passengerCounts,
-    };
-    localStorage.setItem("carSearchForm", JSON.stringify(formData));
-  }, [
-    selectedFrom,
-    selectedTo,
-    selectedDate,
-    times,
-    priceRange,
-    selectedRide,
-    passengerCounts,
-  ]);
   // Event handlers
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(anchorEl ? null : event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleToClick = (event: React.MouseEvent<HTMLElement>) => {
-    setOpenTo((prev) => !prev);
-    setToClick(event.currentTarget);
-  };
-
-  const handleCloseTo = () => {
-    setOpenTo(false);
-  };
-
-  const handleFromClick = (event: React.MouseEvent<HTMLElement>) => {
-    setOpenFrom((prev) => !prev);
-    setFromClick(event.currentTarget);
-  };
-
-  const handleFromOptionClick = (option: string) => {
-    setSelectedFrom(option);
-    setOpenFrom(false);
-  };
-
-  const handleToOptionClick = (option: string) => {
-    setSelectedTo(option);
-    setOpenTo(false);
-  };
-
-  const handleCloseFrom = () => {
-    setOpenFrom(false);
-  };
-
-  const handleRemoveOption = (locationToRemove: string) => {
-    setLocations(locations.filter((location) => location !== locationToRemove));
-  };
-
-  const handleSelectRide = (value: string) => {
-    setSelectedRide(value);
-  };
-
-  const formatDate = (date: Date) => format(date, "dd MMM yyyy");
-
-  const handleSelectDate = () => {
-    if (dateRange[0].startDate) {
-      const startDateFormatted = formatDate(dateRange[0].startDate);
-      const endDateFormatted = dateRange[0].endDate
-        ? formatDate(dateRange[0].endDate)
-        : startDateFormatted;
-
-      const displayText =
-        startDateFormatted === endDateFormatted
-          ? startDateFormatted
-          : `${startDateFormatted} - ${endDateFormatted}`;
-
-      setSelectedDate(displayText);
-      handleClose();
-    }
-  };
-
-  const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setTimes({ ...times, [event.target.name]: event.target.value });
-  };
-
-  const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value.replace(/,/g, "");
-    if (!isNaN(Number(value)) && value !== "") {
-      const formattedValue = new Intl.NumberFormat().format(Number(value));
-      setMinPrice(formattedValue);
-    } else {
-      setMinPrice("");
-    }
-  };
-
-  const handleMaxPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value.replace(/,/g, "");
-    if (!isNaN(Number(value)) && value !== "") {
-      const formattedValue = new Intl.NumberFormat().format(Number(value));
-      setMaxPrice(formattedValue);
-    } else {
-      setMaxPrice("");
-    }
-  };
-
-  const handleCloseNoModal = () => {
-    setOpenNoModal(false);
-  };
-
-  const handleSubmitOffer = () => {
-    const numericMinPrice = parseInt(minPrice.replace(/,/g, ""), 10) || 0;
-    const numericMaxPrice = parseInt(maxPrice.replace(/,/g, ""), 10) || 0;
-
-    if (numericMinPrice < 6000 || numericMaxPrice < 6000) {
-      setOpenNoModal(true);
-    } else {
-      const formattedPriceRange = `${new Intl.NumberFormat().format(
-        numericMinPrice
-      )} - ${new Intl.NumberFormat().format(numericMaxPrice)}`;
-      setPriceRange(formattedPriceRange);
-      handleCloseClick();
-    }
-  };
-
-  const handleSearch = () => {
-    const numericMinPrice = parseInt(minPrice.replace(/,/g, ""), 10) || 0;
-    const numericMaxPrice = parseInt(maxPrice.replace(/,/g, ""), 10) || 0;
-
-    const formattedPriceRange = {
-      minPrice: numericMinPrice,
-      maxPrice: numericMaxPrice,
-    };
-
-    const searchData = {
-      from: selectedFrom,
-      to: selectedTo,
-      departureDate: selectedDate,
-      times,
-      priceRange: {
-        minPrice: numericMinPrice,
-        maxPrice: numericMaxPrice,
-      },
-      selectedRide,
-      passengerCounts,
-    };
-
-    // Dispatch to Redux store
-    dispatch(
-      setCarInfo({
-        from: selectedFrom
-          ? { label: selectedFrom, value: selectedFrom }
-          : null,
-        to: selectedTo ? { label: selectedTo, value: selectedTo } : null,
-        departureDate: selectedDate || null,
-        times: { pickUpTime: times.pickUpTime },
-        priceRange: `${numericMinPrice} - ${numericMaxPrice}`,
-        selectedRide: selectedRide || null,
-        passengerCounts,
-        searchResults: [],
-      })
-    );
-
-    // Navigate to search results
-    navigate("/cars-searchResults", {
-      state: {
-        from: selectedFrom,
-        to: selectedTo,
-        departureDate: selectedDate,
-        times,
-        priceRange: formattedPriceRange,
-        selectedRide,
-        passengerCounts,
-      },
-    });
-  };
-
-  const handleOpen = () => {
-    setOpenClick(true);
-  };
-
-  const handleCloseClick = () => {
-    setOpenClick(false);
-  };
-
-  const formatPassengerCount = (counts: PassengerCounts): string => {
-    const { adults, children, infant } = counts;
-    const parts: string[] = [];
-
-    if (adults > 0) parts.push(`${adults} adult${adults > 1 ? "s" : ""}`);
-    if (children > 0)
-      parts.push(`${children} child${children > 1 ? "ren" : ""}`);
-    if (infant > 0) parts.push(`${infant} infant${infant > 1 ? "s" : ""}`);
-
-    return parts.length > 0 ? parts.join(", ") : "Select Passengers";
-  };
-
-  // Form validation
-  const formFilled = !!(
-    selectedFrom &&
-    selectedTo &&
-    selectedDate &&
-    times.pickUpTime &&
-    priceRange &&
-    selectedRide &&
-    (passengerCounts.adults > 0 ||
-      passengerCounts.children > 0 ||
-      passengerCounts.infant > 0)
+  const handleDropLocationClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>, type: "drop") => {
+      setPickOrDrop(type);
+      openModal("searchDropLocation");
+    },
+    [openModal]
+  );
+  const handlePickLocationClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>, type: "pick") => {
+      setPickOrDrop(type);
+      openModal("searchPickLocation");
+    },
+    [openModal]
   );
 
-  const open = Boolean(anchorEl);
-  const id = open ? "date-range-popper" : undefined;
+  const handleLocationSelect = useCallback(
+    (location: string) => {
+      if (pickOrDrop === "pick") {
+        updateField("pickupLocation", location);
+      } else {
+        updateField("dropoffLocation", location);
+      }
+    },
+    [pickOrDrop, updateField, closeModal]
+  );
+
+  const handleTimeChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      updateField("pickupTime", event.target.value);
+    },
+    [updateField]
+  );
+
+  const handlePriceChange = useCallback(
+    (field: "min" | "max", event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value.replace(/[^0-9]/g, "");
+      const parsedValue = value ? parseInt(value, 10) : 0;
+      updateField("priceRange", {
+        ...formData.priceRange,
+        [field]: parsedValue,
+      });
+    },
+    [updateField, formData.priceRange]
+  );
+
+  const handlePriceSubmit = useCallback(
+    (min: number, max: number) => {
+      if (min < 6000 || max < 6000) {
+        openModal("priceError");
+        return;
+      }
+      updateField("priceRange", { min, max });
+      closeModal("priceRange");
+    },
+    [updateField, openModal, closeModal]
+  );
+
+  const handlePassengerUpdate = useCallback(
+    (newCounts: PassengerCounts) => {
+      updateField("passengerCounts", newCounts);
+      closeModal("passengers");
+    },
+    [updateField, closeModal]
+  );
+
+  const handleRideSelect = useCallback(
+    (ride: string) => {
+      updateField("selectedRide", ride);
+      closeModal("rideType");
+    },
+    [updateField, closeModal]
+  );
+
+  const handleSearch = useCallback(async () => {
+    console.log(formData);
+    const errors = [];
+    if (!/^[A-Z]{3}$/.test(formData.pickupLocation)) {
+      errors.push(
+        "Pickup location must be a valid 3-letter IATA code (e.g., LOS)"
+      );
+    }
+    if (!formData.dropoffLocation) {
+      errors.push("Please enter a valid dropoff location");
+    }
+    if (
+      typeof formData.toLat !== "number" ||
+      typeof formData.toLon !== "number"
+    ) {
+      errors.push("Dropoff location must have valid GPS coordinates");
+    }
+    if (!formData.pickupDate) {
+      errors.push("Please select a pickup date");
+    }
+    if (!formData.pickupTime) {
+      errors.push("Please select a pickup time");
+    }
+    if (!isValid) {
+      errors.push("Please fill in all required fields correctly");
+    }
+
+    if (errors.length > 0) {
+      setSubmitError(errors.join(", "));
+    }
+
+    setSubmitError(null);
+    try {
+      setLoading(true);
+      const params = transferService.convertFormToApiParams({
+        ...formData,
+        toLat: formData.toLat || 0,
+        toLon: formData.toLon || 0,
+      });
+      if (!params.fcode || !/^[A-Z]{3}$/.test(params.fcode)) {
+        throw new Error("Invalid pickup location code");
+      }
+      if (!params.tcode || params.tcode === "undefined,undefined") {
+        throw new Error("Invalid destination coordinates");
+      }
+      const result = await transferService.searchTransfers(params);
+      if (!result) {
+        throw new Error("No transfer results found");
+      }
+      console.log(result);
+      navigate("/cars-searchResults", {
+        state: {
+          ...formData,
+          searchResults: result.data,
+          times: { pickUpTime: formData.pickupTime, dropOffTime: "" },
+          priceRange: {
+            minPrice: formData.priceRange.min,
+            maxPrice: formData.priceRange.max,
+          },
+        },
+      });
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Search failed");
+      console.error("Search failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    isValid,
+    formData,
+    navigate,
+    setSubmitError,
+    setLoading,
+    transferService,
+  ]);
+
+  // const handleSearch=()=>{
+  //   console.log(formData.dropoffLocation)
+  //   transferService.lookupHotel(formData.dropoffLocation,formData.endCountry)
+  // }
+  // Memoized display values
+  const displayValues = useMemo(
+    () => ({
+      passengers: formatPassengerCount(formData.passengerCounts),
+      priceRange: formatPriceRange(formData.priceRange),
+      rideType: formData.selectedRide || "Select Ride Type",
+    }),
+    [formData]
+  );
 
   return (
-    <div>
-      {/* Modals */}
-      {searchPickOrDrop && (
-        <SearchLoaction
-          searchPickOrDrop={searchPickOrDrop}
-          closeDialog={() => setSearchPickOrDrop(false)}
-          handleFromClick={handleFromClick}
-          pickOrDrop={pickOrDrop}
-          value={pickOrDrop === "pick" ? selectedFrom : selectedTo}
-          setValue={pickOrDrop === "pick" ? setSelectedFrom : setSelectedTo}
+    <div className="car-booking-first-screen">
+      {/* Error Alert */}
+      {/* {(submitError || searchError) && (
+        <ErrorAlert 
+          message={submitError || searchError || ""} 
+          onClose={() => setSubmitError(null)} 
         />
-      )}
+      )} */}
 
-      {openPassengerModal && (
-        <Passengers
-          openPassengerModal={openPassengerModal}
-          closeModal={() => setOpenPassengerModal(false)}
-          initialValues={passengerCounts}
-          handlePassengersUpdate={(newValues) => setPassengerCounts(newValues)}
-        />
-      )}
-
-      {rideTypeModal && (
-        <RideType
-          rideTypeModal={rideTypeModal}
-          closeModal={() => setRideTypeModal(false)}
-          selectedRide={selectedRide}
-          handleSelectRide={handleSelectRide}
-        />
-      )}
+      {/* Loading Spinner */}
+      {/* {loading && <LoadingSpinner />} */}
 
       {/* Shared Ride Info */}
-      {selectedRide === "Shared Ride" && (
+      {formData.selectedRide === "Shared Ride" && (
         <div className="flex items-center gap-3 bg-[#CCD8E880] p-2 rounded-md m-2">
           <Info />
           <p className="text-[#181818] text-xs font-sans">
@@ -440,31 +344,32 @@ const Page: React.FC = () => {
 
       <div className="flex lg:flex-row flex-col justify-normal lg:items-center gap-8">
         <div className="flex flex-col">
-          {/* Top inputs */}
+          {/* First Row */}
           <div className="flex lg:flex-row flex-col justify-between lg:items-center gap-4">
             {/* Ride Type */}
             <div className="flex flex-col gap-2">
-              <label htmlFor="Ride Type">Ride Type</label>
+              <label htmlFor="ride-type">Ride Type</label>
               <TextField
                 id="ride-type"
-                className="capitalize cursor-pointer"
                 variant="outlined"
                 size="small"
-                value={selectedRide}
-                onChange={(e) => setSelectedRide(e.target.value)}
-                onClick={() => setRideTypeModal(true)}
+                value={displayValues.rideType}
+                onClick={() => openModal("rideType")}
+                error={!!errors.selectedRide}
+                helperText={errors.selectedRide}
                 InputProps={{
+                  readOnly: true,
                   startAdornment: (
                     <InputAdornment position="start">
                       <MdArrowDropDown />
                     </InputAdornment>
                   ),
                 }}
-                aria-readonly
                 sx={{
                   "& .MuiInputBase-root": {
                     height: "44px",
                     borderRadius: "8px",
+                    cursor: "pointer",
                   },
                 }}
               />
@@ -472,21 +377,16 @@ const Page: React.FC = () => {
 
             {/* Pick Up Location */}
             <div className="flex flex-col gap-2">
-              <label htmlFor="from" className="mb-1">
-                Pick Up
-              </label>
+              <label htmlFor="pickup-location">Pick Up</label>
               <TextField
-                id="from"
+                id="pickup-location"
                 variant="outlined"
                 size="small"
                 placeholder="Search Pick up Location"
-                value={selectedFrom}
-                onChange={(e) => setSelectedFrom(e.target.value)}
-                onClick={(e) => {
-                  handleFromClick(e);
-                  setSearchPickOrDrop(true);
-                  setPickOrDrop("pick");
-                }}
+                value={formData.pickUpLocaDescription}
+                onClick={(e) => handlePickLocationClick(e, "pick")}
+                error={!!errors.pickupLocation}
+                helperText={errors.pickupLocation}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -501,99 +401,20 @@ const Page: React.FC = () => {
                   },
                 }}
               />
-
-              {/* From Location Popper */}
-              <Popper
-                id="from-popper"
-                open={openFrom}
-                anchorEl={fromClick}
-                placement="bottom-start"
-                className="hidden md:block"
-              >
-                <ClickAwayListener onClickAway={handleCloseFrom}>
-                  <Paper
-                    elevation={3}
-                    sx={{
-                      width: "317px",
-                      borderRadius: "6px",
-                      backgroundColor: "white",
-                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                      paddingBottom: "25px",
-                    }}
-                  >
-                    <Typography
-                      variant="subtitle1"
-                      className="font-inter text-[#343537] text-lg pl-[24px] pt-[24px] pr-[24px]"
-                    >
-                      Recent Searches
-                    </Typography>
-
-                    {locations.length === 0 ? (
-                      <Typography
-                        sx={{
-                          textAlign: "center",
-                          padding: "20px",
-                          color: "#777",
-                        }}
-                        className="font-inter"
-                      >
-                        No recent searches
-                      </Typography>
-                    ) : (
-                      locations.map((location, index) => (
-                        <React.Fragment key={location}>
-                          <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
-                            <div
-                              className="flex gap-[8px]"
-                              onClick={() => handleFromOptionClick(location)}
-                            >
-                              <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
-                                <RoomOutlinedIcon
-                                  className="text-[#FF6F1E]"
-                                  sx={{ fontSize: "16px" }}
-                                />
-                              </div>
-                              <p>{location}</p>
-                            </div>
-
-                            <CloseOutlinedIcon
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveOption(location);
-                              }}
-                              className="cursor-pointer"
-                              sx={{ color: "gray" }}
-                            />
-                          </div>
-
-                          {index !== locations.length - 1 && (
-                            <Divider sx={{ marginTop: "15px" }} />
-                          )}
-                        </React.Fragment>
-                      ))
-                    )}
-                  </Paper>
-                </ClickAwayListener>
-              </Popper>
             </div>
 
             {/* Drop Off Location */}
             <div className="flex flex-col gap-2">
-              <label htmlFor="to" className="mb-1">
-                Drop Off
-              </label>
+              <label htmlFor="dropoff-location">Drop Off</label>
               <TextField
-                id="to"
+                id="dropoff-location"
                 variant="outlined"
                 size="small"
-                value={selectedTo}
-                onChange={(e) => setSelectedTo(e.target.value)}
-                onClick={(e) => {
-                  handleToClick(e);
-                  setSearchPickOrDrop(true);
-                  setPickOrDrop("drop");
-                }}
                 placeholder="Search Destination"
+                value={formData.dropoffLocation}
+                onClick={(e) => handleDropLocationClick(e, "drop")}
+                error={!!errors.dropoffLocation}
+                helperText={errors.dropoffLocation}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -608,94 +429,22 @@ const Page: React.FC = () => {
                   },
                 }}
               />
-
-              {/* To Location Popper */}
-              <Popper
-                id="to-popper"
-                open={openTo}
-                anchorEl={toClick}
-                placement="bottom-start"
-              >
-                <ClickAwayListener onClickAway={handleCloseTo}>
-                  <Paper
-                    elevation={3}
-                    sx={{
-                      width: "317px",
-                      borderRadius: "6px",
-                      backgroundColor: "white",
-                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                      paddingBottom: "25px",
-                    }}
-                  >
-                    <Typography
-                      variant="subtitle1"
-                      className="font-inter text-[#343537] text-lg pl-[24px] pt-[24px] pr-[24px]"
-                    >
-                      Recent Searches
-                    </Typography>
-
-                    {locations.length === 0 ? (
-                      <Typography
-                        sx={{
-                          textAlign: "center",
-                          padding: "20px",
-                          color: "#777",
-                        }}
-                        className="font-inter"
-                      >
-                        No recent searches
-                      </Typography>
-                    ) : (
-                      locations.map((location, index) => (
-                        <React.Fragment key={location}>
-                          <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
-                            <div
-                              className="flex gap-[8px]"
-                              onClick={() => handleToOptionClick(location)}
-                            >
-                              <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] text-center">
-                                <RoomOutlinedIcon
-                                  className="text-[#FF6F1E]"
-                                  sx={{ fontSize: "16px" }}
-                                />
-                              </div>
-                              <p>{location}</p>
-                            </div>
-
-                            <CloseOutlinedIcon
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveOption(location);
-                              }}
-                              className="cursor-pointer"
-                              sx={{ color: "gray" }}
-                            />
-                          </div>
-
-                          {index !== locations.length - 1 && (
-                            <Divider sx={{ marginTop: "15px" }} />
-                          )}
-                        </React.Fragment>
-                      ))
-                    )}
-                  </Paper>
-                </ClickAwayListener>
-              </Popper>
             </div>
 
             {/* Pick Up Date */}
             <div className="flex flex-col gap-2">
-              <label htmlFor="departure-date" className="mb-1">
-                Pick Up Date
-              </label>
+              <label htmlFor="pickup-date">Pick Up Date</label>
               <TextField
-                id="departure-date"
+                id="pickup-date"
                 variant="outlined"
                 size="small"
                 placeholder="Select Date"
-                value={selectedDate}
-                onClick={handleClick}
+                value={formData.pickupDate || "Select Date"}
+                onClick={handleDateClick}
+                error={!!errors.pickupDate}
+                helperText={errors.pickupDate}
                 InputProps={{
+                  readOnly: true,
                   startAdornment: (
                     <InputAdornment position="start">
                       <CalendarMonthOutlinedIcon />
@@ -706,9 +455,6 @@ const Page: React.FC = () => {
                   "& .MuiInputBase-root": {
                     height: "44px",
                     borderRadius: "8px",
-                  },
-                  "& .MuiOutlinedInput-input": {
-                    padding: "8px 10px",
                     cursor: "pointer",
                   },
                 }}
@@ -716,20 +462,18 @@ const Page: React.FC = () => {
 
               {/* Date Range Popper */}
               <Popper
-                id={id}
-                open={open}
+                id="date-range-popper"
+                open={datePickerOpen}
                 anchorEl={anchorEl}
                 placement="bottom-start"
                 modifiers={[
                   {
                     name: "offset",
-                    options: {
-                      offset: [0, 10],
-                    },
+                    options: { offset: [0, 10] },
                   },
                 ]}
               >
-                <ClickAwayListener onClickAway={handleClose}>
+                <ClickAwayListener onClickAway={handleDateClose}>
                   <Paper
                     elevation={3}
                     sx={{
@@ -740,7 +484,7 @@ const Page: React.FC = () => {
                         md: "650px",
                         lg: "850px",
                       },
-                      maxWidth: "95vw",
+                      maxWidth: "95vv",
                       overflow: "hidden",
                       display: "flex",
                       flexDirection: "column",
@@ -751,15 +495,7 @@ const Page: React.FC = () => {
                     <Box sx={{ width: "100%" }}>
                       <DateRange
                         editableDateInputs={true}
-                        onChange={(item: RangeKeyDict) => {
-                          setDateRange([
-                            {
-                              startDate: item.selection.startDate ?? new Date(),
-                              endDate: item.selection.endDate ?? new Date(),
-                              key: item.selection.key ?? "selection",
-                            },
-                          ]);
-                        }}
+                        onChange={updateDateRange}
                         moveRangeOnFirstSelection={false}
                         ranges={dateRange}
                         rangeColors={["#FF6F1E"]}
@@ -806,23 +542,20 @@ const Page: React.FC = () => {
             </div>
           </div>
 
-          {/* Second row inputs */}
+          {/* Second Row */}
           <div className="flex lg:flex-row flex-col justify-between items-center w-full gap-4 mt-5">
             {/* Pick Up Time */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="pick-up-time" className="mb-1">
-                Pick Up Time
-              </label>
+              <label htmlFor="pickup-time">Pick Up Time</label>
               <TextField
-                id="pick-up-time"
-                name="pickUpTime"
+                id="pickup-time"
                 type="time"
                 variant="outlined"
                 size="small"
-                value={times.pickUpTime}
+                value={formData.pickupTime}
                 onChange={handleTimeChange}
-                placeholder="00 : 00"
-                className="w-full"
+                error={!!errors.pickupTime}
+                helperText={errors.pickupTime}
                 sx={{
                   "& .MuiInputBase-root": {
                     height: "44px",
@@ -834,30 +567,22 @@ const Page: React.FC = () => {
 
             {/* Passengers */}
             <div className="flex flex-col gap-2 w-full">
-              <label
-                htmlFor="passenger-count"
-                className="mb-1 font-medium text-sm text-gray-700"
-              >
-                Passengers
-              </label>
+              <label htmlFor="passengers">Passengers</label>
               <TextField
-                id="passenger-count"
-                name="passengerCount"
-                type="text"
+                id="passengers"
                 variant="outlined"
                 size="small"
-                value={formatPassengerCount(passengerCounts)}
-                onClick={() => setOpenPassengerModal(true)}
+                value={displayValues.passengers}
+                onClick={() => openModal("passengers")}
+                error={!!errors.passengers}
+                helperText={errors.passengers}
                 placeholder="Select Passengers"
-                InputProps={{
-                  readOnly: true,
-                }}
+                InputProps={{ readOnly: true }}
                 sx={{
                   "& .MuiInputBase-root": {
                     height: "44px",
                     borderRadius: "8px",
                     cursor: "pointer",
-                    backgroundColor: "#fff",
                   },
                 }}
               />
@@ -865,39 +590,24 @@ const Page: React.FC = () => {
 
             {/* Price Range */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="price-range" className="mb-1">
-                Price Range
-              </label>
+              <label htmlFor="price-range">Price Range</label>
               <TextField
                 id="price-range"
                 variant="outlined"
                 size="small"
                 placeholder="Enter Minimum - Maximum Price"
-                value={priceRange}
-                onClick={handleOpen}
-                className="w-full"
+                value={displayValues.priceRange}
+                onClick={() => openModal("priceRange")}
+                error={!!errors.priceRange}
+                helperText={errors.priceRange}
+                InputProps={{ readOnly: true }}
                 sx={{
                   "& .MuiInputBase-root": {
                     height: "44px",
                     borderRadius: "8px",
-                  },
-                  "& .MuiOutlinedInput-input": {
-                    padding: "8px 10px",
                     cursor: "pointer",
                   },
                 }}
-              />
-
-              <PriceRange
-                openClick={openClick}
-                handleCloseClick={handleCloseClick}
-                handlePriceChange={handlePriceChange}
-                openNoModal={openNoModal}
-                handleCloseNoModal={handleCloseNoModal}
-                handleMaxPriceChange={handleMaxPriceChange}
-                miniprice={minPrice}
-                maxprice={maxPrice}
-                handleSubmitOffer={handleSubmitOffer}
               />
             </div>
           </div>
@@ -906,16 +616,113 @@ const Page: React.FC = () => {
         {/* Search Button */}
         <div>
           <button
-            className="bg-[#023E8A] lg:w-[120px] w-full text-center text-white font-inter text-base rounded-md py-3 lg:mt-14 cursor-pointer disabled:bg-gray-400 disabled:cursor-auto"
-            onClick={handleSearch}
-            disabled={!formFilled}
+            className="bg-[#023E8A] lg:w-[120px] w-full text-center text-white font-inter text-base rounded-md py-3 lg:mt-14 cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+            onClick={() => {
+              console.log("Button clicked");
+              handleSearch();
+            }}
+            disabled={!isValid || loading}
           >
-            Search Taxi
+            {loading ? "Searching..." : "Search Taxi"}
           </button>
         </div>
       </div>
+
+      {/* Modals */}
+
+      {modals.searchPickLocation && (
+        <SearchPickUpLocation
+          closeDialog={() => closeModal("searchPickLocation")}
+          value={formData.pickupLocation}
+          setValue={handleLocationSelect}
+          collectFrom={collectFrom}
+          setExtraFields={(fields) => {
+            updateField("endAddress", fields.endAddress);
+            updateField("endCity", fields.endCity);
+            updateField("endCountry", fields.endCountry);
+            updateField("endGeoLat", fields.endGeoLat);
+            updateField("endGeoLong", fields.endGeoLong);
+            updateField("fromLat", fields.fromLat);
+            updateField("fromLon", fields.fromLon);
+            updateField("toLat", fields.toLat);
+            updateField("toLon", fields.toLon);
+          }}
+        />
+      )}
+      {modals.searchDropLocation && (
+        <SearchDropOffLocation
+          closeDialog={() => closeModal("searchDropLocation")}
+          value={formData.dropoffLocation}
+          setValue={handleLocationSelect}
+          ChangeValue={(query) =>
+            setFormData((prev) => ({
+              ...prev,
+              dropoffLocation: query,
+            }))
+          }
+          setExtraFields={(fields) => {
+            console.log("Data received from modal via setExtraFields:", fields);
+            updateField("endAddress", fields.endAddress);
+            updateField("endCity", fields.endCity);
+            updateField("endCountry", fields.endCountry);
+            updateField("endGeoLat", fields.endGeoLat);
+            updateField("endGeoLong", fields.endGeoLong);
+            updateField("fromLat", fields.fromLat);
+            updateField("fromLon", fields.fromLon);
+            updateField("toLat", fields.toLat);
+            updateField("toLon", fields.toLon);
+          }}
+        />
+      )}
+      {modals.passengers && (
+        <Passengers
+          openPassengerModal={modals.passengers}
+          closeModal={() => closeModal("passengers")}
+          initialValues={formData.passengerCounts}
+          handlePassengersUpdate={handlePassengerUpdate}
+        />
+      )}
+
+      {modals.rideType && (
+        <RideType
+          open={modals.rideType}
+          closeModal={() => closeModal("rideType")}
+          selectedRide={formData.selectedRide}
+          handleSelectRide={handleRideSelect}
+        />
+      )}
+
+      {modals.priceRange && (
+        <PriceRange
+          openClick={modals.priceRange}
+          handleCloseClick={() => closeModal("priceRange")}
+          openNoModal={modals.priceError}
+          handleCloseNoModal={() => closeModal("priceError")}
+          miniprice={formData.priceRange.min}
+          maxprice={formData.priceRange.max}
+          handleSubmitOffer={handlePriceSubmit}
+          // loading={loading}
+          handlePriceChange={handlePriceChange}
+        />
+      )}
+
+      {/* Recent Search Component */}
+      <RecentSearch
+        openFrom={locationPopper.from.open}
+        handleCloseFrom={() =>
+          setLocationPopper((prev) => ({
+            ...prev,
+            from: { ...prev.from, open: false },
+          }))
+        }
+        fromClick={locationPopper.from.anchor}
+        handleFromOptionClick={handleLocationSelect}
+        handleRemoveOption={removeLocation}
+        locations={locations}
+        // loading={searchLoading}
+      />
     </div>
   );
 };
 
-export default Page;
+export default CarBookingFirstScreen;
