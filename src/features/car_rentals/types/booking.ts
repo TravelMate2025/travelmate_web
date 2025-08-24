@@ -1,7 +1,7 @@
 export interface PassengerCounts {
-  adults: number;
-  children: number;
-  infant: number;
+  adults: string;
+  children:string;
+  infant: string;
 }
 
 export interface PriceRange {
@@ -22,8 +22,9 @@ export interface DateRangeType {
 
 export interface BookingFormData {
   pickupLocation: string;
-  pickUpLocaDescription:string;
+  pickUpLocaDescription: string;
   dropoffLocation: string;
+  dropoffLocaDescription: string
   pickupDate: string;
   pickupTime: string;
   selectedRide: string;
@@ -41,9 +42,9 @@ export interface BookingFormData {
 }
 
 export interface PassengerCounts {
-  adults: number;
-  children: number;
-  infant: number;
+  adults: string;
+  children: string;
+  infant: string;
 }
 export interface FormValidationResult {
   isValid: boolean;

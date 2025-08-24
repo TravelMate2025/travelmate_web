@@ -5,12 +5,13 @@ import {
   ListItemText,
   TextField,
 } from "@mui/material";
-import { SearchIcon, X } from "lucide-react";
+import { Loader, SearchIcon, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
   MapLocation,
   searchDetailedLocation,
 } from "../services/locationService";
+import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 
 interface DropOff {
   code: string;
@@ -26,6 +27,12 @@ export interface SearchLocationProps {
   value: string;
   setValue: (value: string) => void;
   ChangeValue: (data: string) => void;
+  collectTo: (
+    data: string,
+    data2: string,
+    latitude: number,
+    longitude: number
+  ) => void;
   setExtraFields?: (fields: {
     endAddress?: string;
     endCity?: string;
@@ -45,6 +52,7 @@ const SearchDropOffLocation = ({
   setValue,
   ChangeValue,
   setExtraFields,
+  collectTo,
 }: SearchLocationProps) => {
   const [query, setQuery] = useState(value);
   const [dropSuggestions, setDropSuggestions] = useState<MapLocation[]>([]);
@@ -61,31 +69,18 @@ const SearchDropOffLocation = ({
 
     const fetchDropoffLocations = async () => {
       try {
-        if (query.length > 2) {
-          setLoading(true);
-          const destinationResult = await searchDetailedLocation(
-            setLoading,
-            query
-          );
-          let results: MapLocation[] = [];
-          results = destinationResult
-            .filter(
-              (item: MapLocation) =>
-                !item.name.includes("CLOSED") && !item.name.includes("BLOCKED")
-            )
-            .map((item: MapLocation) => ({
-              name: item.name || "Unknown",
-              placeId: item.placeId || "",
-              latitude: Number(item.latitude) || 0,
-              longitude: Number(item.longitude) || 0,
-              city: item.name.split(",")[0],
-              country: item.country,
-              isAirport: false,
-            }));
+        setLoading(true);
+        const destinationResult = await searchDetailedLocation(
+          setLoading,
+          query
+        );
+        console.log(destinationResult);
 
-          setDropSuggestions(results);
-          setError(results.length === 0 ? "No destinations found" : null);
-        }
+        setDropSuggestions(destinationResult);
+        setError(
+          destinationResult.length === 0 ? "No destinations found" : null
+        );
+        console.log("API response:", destinationResult);
       } catch (err: any) {
         setError(err.message || "Failed to fetch destinations");
         setDropSuggestions([]);
@@ -105,6 +100,12 @@ const SearchDropOffLocation = ({
 
     setValue(location.name);
     ChangeValue(location.country);
+    collectTo(
+      location.country,
+      location.name,
+      location.latitude,
+      location.longitude
+    );
 
     if (setExtraFields) {
       setExtraFields({
@@ -113,6 +114,8 @@ const SearchDropOffLocation = ({
         endCountry: location.country,
         toLat: location.latitude,
         toLon: location.longitude,
+        endGeoLat: location.latitude,
+        endGeoLong: location.longitude,
       });
     }
     closeDialog();
@@ -140,6 +143,11 @@ const SearchDropOffLocation = ({
             startAdornment: (
               <InputAdornment position="start">
                 <SearchIcon />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <InputAdornment position="end">
+                {loading && <Loader className="animate-spin" />}
               </InputAdornment>
             ),
           }}
@@ -170,13 +178,25 @@ const SearchDropOffLocation = ({
           ) : dropSuggestions.length === 0 ? (
             <div className="text-center py-4">No items match your search</div>
           ) : (
-            dropSuggestions.map((location) => (
-              <ListItem
-                key={location.placeId}
-                onClick={() => handleSelect(location)}
+            dropSuggestions.map((location, index) => (
+              <div
+                key={index}
+                className="flex justify-between w-full items-center cursor-pointer hover:bg-gray-100 rounded mt-3 pl-3"
               >
-                <ListItemText primary={location.name} secondary="City/Hotel" />
-              </ListItem>
+                <RoomOutlinedIcon
+                  className="text-[#FF6F1E]"
+                  sx={{ fontSize: "20px" }}
+                />
+                <ListItem
+                  key={location.placeId}
+                  onClick={() => handleSelect(location)}
+                >
+                  <ListItemText
+                    primary={location.name}
+                    secondary="City/Hotel"
+                  />
+                </ListItem>
+              </div>
             ))
           )}
         </List>

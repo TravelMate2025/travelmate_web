@@ -43,6 +43,7 @@ import SearchPickUpLocation from "../carsFirstScreen/modals/searchPickUp";
 
 interface LocationState {
   pickupLocation?: string;
+  pickUpLocaDescription?: string;
   dropoffLocation?: string;
   pickupDate?: string;
   pickupTime?: string;
@@ -63,8 +64,30 @@ interface LocationState {
 
 const DisplayCars: React.FC = () => {
   const { state } = useLocation();
-  const navigate = useNavigate();
   const isMobile = useMediaQuery({ maxWidth: 768 });
+  const collectFrom = (data: string, data2: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      pickUpLocaDescription: data,
+      pickupLocation: data2,
+    }));
+  };
+  const collectTo = (
+    data: string,
+    data2: string,
+    latitude: number,
+    longitude: number
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      dropoffLocaDescription: data,
+      dropoffLocation: data2,
+      endGeoLat: latitude,
+      endGeoLong: longitude,
+      toLat: latitude,
+      toLon: longitude,
+    }));
+  };
 
   // Form visibility state
   const [form, setForm] = useState<boolean>(!isMobile);
@@ -74,19 +97,16 @@ const DisplayCars: React.FC = () => {
     const locationState = (state || {}) as LocationState;
     return {
       pickupLocation: locationState.pickupLocation || "",
+      pickUpLocaDescription: locationState.pickUpLocaDescription || "",
       dropoffLocation: locationState.dropoffLocation || "",
       pickupDate: locationState.pickupDate || "",
       pickupTime: locationState.pickupTime || "",
       selectedRide: locationState.selectedRide || "",
       priceRange: {
-        min: locationState.priceRange?.min || 100000,
-        max: locationState.priceRange?.max || 200000,
+        min: locationState.priceRange?.min,
+        max: locationState.priceRange?.max,
       },
-      passengerCounts: locationState.passengerCounts || {
-        adults: 2,
-        children: 0,
-        infant: 0,
-      },
+      passengerCounts: locationState.passengerCounts,
       endAddress: locationState.endAddress || undefined,
       endCity: locationState.endCity || undefined,
       endCountry: locationState.endCountry || undefined,
@@ -100,14 +120,12 @@ const DisplayCars: React.FC = () => {
     };
   }, [state]);
 
-  // Form management with persistence
   const { loadSavedData } = useFormPersistence(
     {} as BookingFormData,
     "displayCarsForm"
   );
 
   const initialData = useMemo(() => {
-    // Merge navigation state with persisted data
     const savedData = loadSavedData() || {};
     if (state && (stateData.pickupLocation || stateData.dropoffLocation)) {
       return { ...savedData, ...stateData };
@@ -122,7 +140,6 @@ const DisplayCars: React.FC = () => {
     isValid,
     loading,
     updateField,
-    updateFields,
     setLoading,
     submitError,
     setSubmitError,
@@ -267,45 +284,23 @@ const DisplayCars: React.FC = () => {
     setSubmitError(null);
     try {
       setLoading(true);
-      const destinationResult = await transferService.lookupHotel(
-        formData.dropoffLocation,
-        formData.endCountry
-      );
-      if (destinationResult.success && destinationResult.data?.results) {
-        const matchingResult = destinationResult.data.results.find(
-          (item: any) =>
-            item.name
-              .toLowerCase()
-              .includes(formData.dropoffLocation.toLowerCase()) &&
-            item.countryCode.toUpperCase() === formData.endCountry
-        );
-        if (matchingResult && matchingResult.coordinates) {
-          const latitude = parseFloat(matchingResult.coordinates.latitude);
-          const longitude = parseFloat(matchingResult.coordinates.longitude);
-          if (isNaN(latitude) || isNaN(longitude)) {
-            throw new Error("Invalid coordinates for dropoff location");
-          }
-          updateFields({
-            toLat: latitude,
-            toLon: longitude,
-            endGeoLat: latitude,
-            endGeoLong: longitude,
-          });
-        } else {
-          throw new Error("No matching destination found");
-        }
-      }
-
       const params = transferService.convertFormToApiParams({
         ...formData,
         toLat: formData.toLat || 0,
         toLon: formData.toLon || 0,
       });
+      if (!params.fcode || !/^[A-Z]{3}$/.test(params.fcode)) {
+        throw new Error("Invalid pickup location code");
+      }
+      if (!params.tcode || params.tcode === "undefined,undefined") {
+        throw new Error("Invalid destination coordinates");
+      }
       const result = await transferService.searchTransfers(params);
       if (!result.data) {
         throw new Error(result.error || "No transfer results found");
       }
-      console.log(result);
+      // Update formData with search results instead of navigating
+      updateField("searchResult", result.data);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Search failed");
       console.error("Search failed:", error);
@@ -316,12 +311,11 @@ const DisplayCars: React.FC = () => {
     isValid,
     formData,
     isMobile,
-    navigate,
     setLoading,
     setSubmitError,
-    updateFields,
+    updateField,
+    transferService,
   ]);
-
   // Memoized display values
   const displayValues = useMemo(
     () => ({
@@ -414,7 +408,7 @@ const DisplayCars: React.FC = () => {
                   size="small"
                   className="w-full lg:w-auto"
                   placeholder="Enter Pick Up Location"
-                  value={formData.pickupLocation}
+                  value={formData.pickUpLocaDescription}
                   onClick={(e) => handlePickLocationClick(e, "pick")}
                   error={!!errors.pickupLocation}
                   helperText={errors.pickupLocation}
@@ -666,48 +660,49 @@ const DisplayCars: React.FC = () => {
       )}
 
       {/* Modals */}
+
       {modals.searchPickLocation && (
         <SearchPickUpLocation
           closeDialog={() => closeModal("searchPickLocation")}
           value={formData.pickupLocation}
           setValue={handleLocationSelect}
-          ChangeValue={(query) =>
-            setFormData((prev) => ({
-              ...prev,
-              pickupLocation: query,
-            }))
-          }
+          collectFrom={collectFrom}
           setExtraFields={(fields) => {
-            updateFields({
-              fromLat: fields.fromLat,
-              fromLon: fields.fromLon,
-              endCountry: fields.endCountry,
-            });
+            updateField("endAddress", fields.endAddress);
+            updateField("endCity", fields.endCity);
+            updateField("endCountry", fields.endCountry);
+            updateField("endGeoLat", fields.endGeoLat);
+            updateField("endGeoLong", fields.endGeoLong);
+            updateField("fromLat", fields.fromLat);
+            updateField("fromLon", fields.fromLon);
+            updateField("toLat", fields.toLat);
+            updateField("toLon", fields.toLon);
           }}
         />
       )}
       {modals.searchDropLocation && (
         <SearchDropOffLocation
-          // pickOrDrop="pick"
-          // ChangeValue={(query) =>
-          //   setFormData((prev) => ({
-          //     ...prev,
-          //     pickupLocation: query,
-          //   }))
-          // }
           closeDialog={() => closeModal("searchDropLocation")}
           value={formData.dropoffLocation}
+          collectTo={collectTo}
           setValue={handleLocationSelect}
+          ChangeValue={(query) =>
+            setFormData((prev) => ({
+              ...prev,
+              dropoffLocation: query,
+            }))
+          }
           setExtraFields={(fields) => {
-            updateFields({
-              endAddress: fields.endAddress,
-              endCity: fields.endCity,
-              endCountry: fields.endCountry,
-              endGeoLat: fields.endGeoLat,
-              endGeoLong: fields.endGeoLong,
-              toLat: fields.toLat,
-              toLon: fields.toLon,
-            });
+            console.log("Data received from modal via setExtraFields:", fields);
+            updateField("endAddress", fields.endAddress);
+            updateField("endCity", fields.endCity);
+            updateField("endCountry", fields.endCountry);
+            updateField("endGeoLat", fields.endGeoLat);
+            updateField("endGeoLong", fields.endGeoLong);
+            updateField("fromLat", fields.fromLat);
+            updateField("fromLon", fields.fromLon);
+            updateField("toLat", fields.toLat);
+            updateField("toLon", fields.toLon);
           }}
         />
       )}
@@ -744,31 +739,32 @@ const DisplayCars: React.FC = () => {
       )}
 
       {/* Car Results or Empty State */}
-      
-        <CarList
-          departureInfo={{
-            pickupLocation: formData.pickupLocation,
-            dropoffLocation: formData.dropoffLocation,
-            pickupDate: formData.pickupDate,
-            pickupTime: formData.pickupTime,
-            priceRange: formData.priceRange,
-            selectedRide: formData.selectedRide,
-            passengerCounts: formData.passengerCounts,
-            endAddress: formData.endAddress,
-            endCity: formData.endCity,
-            endCountry: formData.endCountry,
-            endGeoLat: formData.endGeoLat,
-            endGeoLong: formData.endGeoLong,
-            fromLat: formData.fromLat,
-            fromLon: formData.fromLon,
-            toLat: formData.toLat,
-            toLon: formData.toLon,
-          }}
-          searchResults={stateData.searchResults}
-          OpenForm={() => setForm(true)}
-          loading={loading}
-        />
-     
+
+      <CarList
+        departureInfo={{
+          pickupLocation: formData.pickupLocation,
+          pickUpLocaDescription: formData.pickUpLocaDescription,
+          dropoffLocaDescription: formData.dropoffLocaDescription,
+          dropoffLocation: formData.dropoffLocation,
+          pickupDate: formData.pickupDate,
+          pickupTime: formData.pickupTime,
+          priceRange: formData.priceRange,
+          selectedRide: formData.selectedRide,
+          passengerCounts: formData.passengerCounts,
+          endAddress: formData.endAddress,
+          endCity: formData.endCity,
+          endCountry: formData.endCountry,
+          endGeoLat: formData.endGeoLat,
+          endGeoLong: formData.endGeoLong,
+          fromLat: formData.fromLat,
+          fromLon: formData.fromLon,
+          toLat: formData.toLat,
+          toLon: formData.toLon,
+        }}
+        searchResults={stateData.searchResults}
+        OpenForm={() => setForm(true)}
+        loading={loading}
+      />
     </div>
   );
 };

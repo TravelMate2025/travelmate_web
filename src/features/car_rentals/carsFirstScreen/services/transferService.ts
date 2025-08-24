@@ -2,6 +2,7 @@ import { parse, format } from 'date-fns';
 import instance from '../../../../utils/axiosConfig';
 import { BookingFormData } from '../../types/booking';
 
+
 export interface TransferSearchParams {
     adults: string;
     children: string;
@@ -16,7 +17,7 @@ export interface TransferSearchParams {
     transfer_type?: string;
     min_price?: number;
     max_price?: number;
-    radius_km?: number;
+    // radius_km?: number;
     enable_fallback?: boolean;
     fallback_mode?: string;
 }
@@ -115,8 +116,9 @@ class TransferService {
                 }
             });
 
-            console.log('Transfer API request:', `${this.baseUrl}/transfers/search-terminal-to-gps?${queryString.toString()}`);
-            const response = await instance.get(`${this.baseUrl}/transfers/search-terminal-to-gps?${queryString.toString()}`);
+            console.log('Transfer API request:', `${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
+            const response = await instance.get(`${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
+            console.log(response)
             return {
                 success: true,
                 data: response?.data?.transfers || response?.data?.data || [],
@@ -339,7 +341,7 @@ class TransferService {
         if (!formData.dropoffLocation) {
             throw new Error('Invalid dropoff location');
         }
-        if (typeof formData.toLat !== "number" || typeof formData.toLon !== "number") {
+        if (!formData.toLat || !formData.toLon) {
             throw new Error('Dropoff location must have valid GPS coordinates');
         }
 
@@ -355,13 +357,13 @@ class TransferService {
             tcode: `${formData.toLat},${formData.toLon}`,
             ttype: 'GPS',
             language: 'en',
-            direction: 'DEPARTURE',
+            direction: 'ARRIVAL',
             transfer_type: formData.selectedRide === 'Shared Ride' ? 'SHARED' : 'PRIVATE',
             min_price: formData.priceRange.min,
             max_price: formData.priceRange.max,
             enable_fallback: true,
             fallback_mode: 'fast',
-            radius_km: 10.0,
+            // radius_km: 10.0,
         };
     }
 

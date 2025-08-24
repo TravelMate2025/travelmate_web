@@ -1,4 +1,3 @@
-
 export type MapLocation = {
     name: string;
     placeId: string;
@@ -14,10 +13,6 @@ export type MapLocation = {
 
 const cache: Record<string, MapLocation[]> = {};
 
-function parseDouble(value: any): number {
-    const num = parseFloat(value);
-    return isNaN(num) ? 0 : num;
-}
 
 function extractAirportCode(displayName?: string): string | undefined {
     if (!displayName) return undefined;
@@ -28,14 +23,13 @@ function extractAirportCode(displayName?: string): string | undefined {
 export async function searchDetailedLocation(
     setLoading: (loading: boolean) => void,
     input: string,
-    countryCode?: string,
-
+    countryCode?: string
 ): Promise<MapLocation[]> {
     const key = input.trim().toLowerCase();
     if (cache[key]) return cache[key];
 
     try {
-        setLoading(true)
+        setLoading(true);
         const params = new URLSearchParams({
             q: key,
             format: "json",
@@ -43,9 +37,12 @@ export async function searchDetailedLocation(
             limit: "20",
             featuretype: "airport,settlement",
         });
-        if (countryCode) params.append("countrycodes", countryCode);
+        if (countryCode) params.append("countrycodes", countryCode.toUpperCase());
 
         const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+
+        // Add a small delay to respect Nominatim's rate limit (1 request per second)
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         const response = await fetch(url, {
             headers: {
@@ -54,15 +51,17 @@ export async function searchDetailedLocation(
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to fetch: ${response.status}`);
+            throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
         }
 
         const data: any[] = await response.json();
-        if (data.length === 0) return [];
+        if (!Array.isArray(data) || data.length === 0) {
+            return [];
+        }
 
         const locations: MapLocation[] = data.map((item) => {
-            const lat = item.lat
-            const lon = item.lon
+            const lat = item.lat;
+            const lon = item.lon;
             const address = item.address ?? {};
             const type = item.type ?? "";
             const category = item.category ?? "";
@@ -76,7 +75,8 @@ export async function searchDetailedLocation(
                 city:
                     address.city?.toString() ??
                     address.town?.toString() ??
-                    address.village?.toString(),
+                    address.village?.toString() ??
+                    "",
                 postalCode: address.postcode?.toString(),
                 country: (address.country_code?.toString() ?? "").toUpperCase(),
                 airportCode: extractAirportCode(item.display_name?.toString()),
@@ -87,8 +87,9 @@ export async function searchDetailedLocation(
         cache[key] = locations;
         return locations;
     } catch (e) {
-        setLoading(false)
         console.error("Nominatim search failed:", e);
         return [];
+    } finally {
+        setLoading(false);
     }
 }

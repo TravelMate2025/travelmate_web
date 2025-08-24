@@ -13,7 +13,7 @@ import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 interface SearchLocationProps {
   closeDialog: () => void;
   value: string;
-  collectFrom: (data: string) => void;
+  collectFrom: (data: string, data2: string) => void;
   setValue: (value: string) => void;
   setExtraFields?: (fields: {
     endAddress?: string;
@@ -25,7 +25,7 @@ interface SearchLocationProps {
     fromLon?: number;
     toLat?: number;
     toLon?: number;
-    pickUpLocaDescription:string
+    pickUpLocaDescription: string;
   }) => void;
 }
 
@@ -84,7 +84,6 @@ const SearchPickUpLocation = ({
         setSuggestions([]);
         setError("No airports found for this query");
       }
-      console.log("API response:", response);
     } catch (error: any) {
       setError(error.message || "Failed to fetch airports");
       setSuggestions([]);
@@ -104,9 +103,9 @@ const SearchPickUpLocation = ({
       return;
     }
 
-    setQuery(location.content.description); 
-    setValue(location.content.description); 
-    console.log(location.content.description)
+    setQuery(location.content.description);
+    setValue(location.content.description);
+    collectFrom(location.content.description, location.code);
     if (setExtraFields) {
       const fields: Parameters<NonNullable<typeof setExtraFields>>[0] = {
         fromLat: location.coordinates.latitude,

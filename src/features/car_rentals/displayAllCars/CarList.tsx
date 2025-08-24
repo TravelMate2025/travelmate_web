@@ -23,7 +23,7 @@ const CarList: React.FC<CarListProps> = ({ departureInfo, searchResults, loading
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">
-            Transfer from {departureInfo.pickupLocation} to {departureInfo.dropoffLocation}
+            Transfer from {departureInfo.pickUpLocaDescription} to {departureInfo.dropoffLocation}
           </h2>
           <p className="text-gray-600">
             {departureInfo.pickupDate} at {departureInfo.pickupTime} |{" "}
@@ -33,21 +33,6 @@ const CarList: React.FC<CarListProps> = ({ departureInfo, searchResults, loading
             Passengers | {departureInfo.selectedRide}
           </p>
         </div>
-        <Button
-          variant="contained"
-          onClick={OpenForm}
-          sx={{
-            backgroundColor: "#023E8A",
-            color: "white",
-            borderRadius: "8px",
-            padding: "10px 20px",
-            textTransform: "none",
-            fontWeight: 500,
-            marginTop: isMobile ? "1rem" : "0",
-          }}
-        >
-          Modify Search
-        </Button>
       </div>
 
       {/* Skeleton Loader or Results */}

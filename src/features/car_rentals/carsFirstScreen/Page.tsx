@@ -47,32 +47,56 @@ const CarBookingFirstScreen: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const carInfo = useSelector((state: RootState) => state.cars.carInfo);
-  const collectFrom = (data: string) => {
-    setFormData((prev) => ({ ...prev, pickupLocation: data }));
+  const collectFrom = (data: string, data2: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      pickUpLocaDescription: data,
+      pickupLocation: data2,
+    }));
   };
-
+  const collectTo = (
+    data: string,
+    data2: string,
+    latitude: number,
+    longitude: number
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      dropoffLocaDescription: data,
+      dropoffLocation: data2,
+      endGeoLat: latitude,
+      endGeoLong: longitude,
+      toLat: latitude,
+      toLon: longitude,
+    }));
+  };
   // Initialize form with Redux data or saved data
   const { loadSavedData } = useFormPersistence({} as BookingFormData);
   const initialData = useMemo(() => {
     if (carInfo) {
       return {
         pickupLocation: carInfo.pickupLocation || "",
+        pickUpLocaDescription: carInfo.pickupLocaDescription || "",
         dropoffLocation: carInfo.dropoffLocation || "",
         pickupDate: carInfo.pickupDate || "",
         pickupTime: carInfo.pickupTime || "",
         selectedRide: carInfo.selectedRide || "",
         priceRange: carInfo.priceRange || { min: 0, max: 0 },
         passengerCounts: carInfo.passengerCounts || {
-          adults: 0,
-          children: 0,
-          infant: 0,
+          adults: "",
+          children: "",
+          infant: "",
         },
+        endGeoLat: carInfo.endGeoLat,
+        endGeoLong: carInfo.endGeoLong,
       };
     }
     return (
       loadSavedData() || {
         pickupLocation: "",
+        pickUpLocaDescription: "",
         dropoffLocation: "",
+
         pickupDate: "",
         pickupTime: "",
         selectedRide: "",
@@ -82,6 +106,8 @@ const CarBookingFirstScreen: React.FC = () => {
           children: 0,
           infant: 0,
         },
+        endGeoLat: 0,
+        endGeoLong: 0,
       }
     );
   }, [carInfo, loadSavedData]);
@@ -133,7 +159,9 @@ const CarBookingFirstScreen: React.FC = () => {
   useEffect(() => {
     const reduxData = {
       pickupLocation: formData.pickupLocation,
+      pickupLocaDescription: formData.pickUpLocaDescription,
       dropoffLocation: formData.dropoffLocation,
+      dropoffLocaDescription: formData.dropoffLocaDescription,
       pickupDate: formData.pickupDate,
       pickupTime: formData.pickupTime,
       selectedRide: formData.selectedRide,
@@ -229,7 +257,6 @@ const CarBookingFirstScreen: React.FC = () => {
   );
 
   const handleSearch = useCallback(async () => {
-    console.log(formData);
     const errors = [];
     if (!/^[A-Z]{3}$/.test(formData.pickupLocation)) {
       errors.push(
@@ -264,8 +291,8 @@ const CarBookingFirstScreen: React.FC = () => {
       setLoading(true);
       const params = transferService.convertFormToApiParams({
         ...formData,
-        toLat: formData.toLat || 0,
-        toLon: formData.toLon || 0,
+        // toLat: formData.toLat,
+        // toLon: formData.toLon
       });
       if (!params.fcode || !/^[A-Z]{3}$/.test(params.fcode)) {
         throw new Error("Invalid pickup location code");
@@ -277,18 +304,19 @@ const CarBookingFirstScreen: React.FC = () => {
       if (!result) {
         throw new Error("No transfer results found");
       }
-      console.log(result);
       navigate("/cars-searchResults", {
         state: {
           ...formData,
           searchResults: result.data,
           times: { pickUpTime: formData.pickupTime, dropOffTime: "" },
           priceRange: {
-            minPrice: formData.priceRange.min,
-            maxPrice: formData.priceRange.max,
+            min: formData.priceRange.min,
+            max: formData.priceRange.max,
           },
         },
       });
+      {
+      }
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Search failed");
       console.error("Search failed:", error);
@@ -304,10 +332,6 @@ const CarBookingFirstScreen: React.FC = () => {
     transferService,
   ]);
 
-  // const handleSearch=()=>{
-  //   console.log(formData.dropoffLocation)
-  //   transferService.lookupHotel(formData.dropoffLocation,formData.endCountry)
-  // }
   // Memoized display values
   const displayValues = useMemo(
     () => ({
@@ -322,7 +346,7 @@ const CarBookingFirstScreen: React.FC = () => {
     <div className="car-booking-first-screen">
       {/* Error Alert */}
       {/* {(submitError || searchError) && (
-        <ErrorAlert 
+        <ErrorAlert
           message={submitError || searchError || ""} 
           onClose={() => setSubmitError(null)} 
         />
@@ -653,6 +677,7 @@ const CarBookingFirstScreen: React.FC = () => {
         <SearchDropOffLocation
           closeDialog={() => closeModal("searchDropLocation")}
           value={formData.dropoffLocation}
+          collectTo={collectTo}
           setValue={handleLocationSelect}
           ChangeValue={(query) =>
             setFormData((prev) => ({

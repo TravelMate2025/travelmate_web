@@ -3,7 +3,9 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 export interface CarInfo {
     // Form fields that match the booking form structure
     pickupLocation: string;
+    pickupLocaDescription: string
     dropoffLocation: string;
+    dropoffLocaDescription: string;
     pickupDate: string;
     pickupTime: string;
     selectedRide: string;
@@ -12,11 +14,11 @@ export interface CarInfo {
         max: number;
     };
     passengerCounts: {
-        adults: number;
-        children: number;
-        infant: number;
+        adults: string;
+        children: string;
+        infant: string;
     };
-    
+
     // Additional fields for API compatibility
     endCity?: string;
     endCountry?: string;
@@ -73,7 +75,7 @@ const carPaymentSlice = createSlice({
             }
         },
         // Add helper action to update specific car info fields
-        updateCarInfoField: (state, action: PayloadAction<{field: keyof CarInfo, value: any}>) => {
+        updateCarInfoField: (state, action: PayloadAction<{ field: keyof CarInfo, value: any }>) => {
             if (state.carInfo) {
                 (state.carInfo as any)[action.payload.field] = action.payload.value;
             }
@@ -82,13 +84,13 @@ const carPaymentSlice = createSlice({
     },
 });
 
-export const { 
-    setCardInfo, 
-    setPersonalDetails, 
-    setCarInfo, 
-    setSearchResults, 
+export const {
+    setCardInfo,
+    setPersonalDetails,
+    setCarInfo,
+    setSearchResults,
     updateCarInfoField,
-    resetForm 
+    resetForm
 } = carPaymentSlice.actions;
 
 export default carPaymentSlice.reducer;
