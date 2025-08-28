@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import { DateRange } from "react-date-range";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 
 // Icons
@@ -110,13 +110,13 @@ const DisplayCars: React.FC = () => {
       endAddress: locationState.endAddress || undefined,
       endCity: locationState.endCity || undefined,
       endCountry: locationState.endCountry || undefined,
-      endGeoLat: locationState.endGeoLat,
-      endGeoLong: locationState.endGeoLong,
+      endGeoLat: locationState.toLat,
+      endGeoLong: locationState.toLon,
       fromLat: locationState.fromLat,
       fromLon: locationState.fromLon,
       toLat: locationState.toLat,
       toLon: locationState.toLon,
-      searchResults: locationState.searchResults || [],
+      searchResults: locationState.searchResults?.results?services || [],
     };
   }, [state]);
 
@@ -161,10 +161,7 @@ const DisplayCars: React.FC = () => {
     updateField("pickupDate", displayDate);
   });
 
-  // Modal management
   const { modals, openModal, closeModal } = useModalState();
-
-  // Location picker state
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
 
   // Event handlers
@@ -216,10 +213,10 @@ const DisplayCars: React.FC = () => {
 
   const handlePriceSubmit = useCallback(
     (min: number, max: number) => {
-      if (min < 6000 || max < 6000) {
-        openModal("priceError");
-        return;
-      }
+      // if (min < 6000 || max < 6000) {
+      //   openModal("priceError");
+      //   return;
+      // }
       updateField("priceRange", { min, max });
       closeModal("priceRange");
     },
@@ -243,7 +240,6 @@ const DisplayCars: React.FC = () => {
   );
 
   const handleUpdateSearch = useCallback(async () => {
-    console.log("formData:", formData);
     const errors = [];
     if (!/^[A-Z]{3}$/.test(formData.pickupLocation)) {
       errors.push(
@@ -253,12 +249,7 @@ const DisplayCars: React.FC = () => {
     if (!formData.dropoffLocation) {
       errors.push("Please enter a valid dropoff location");
     }
-    if (
-      typeof formData.toLat !== "number" ||
-      isNaN(formData.toLat) ||
-      typeof formData.toLon !== "number" ||
-      isNaN(formData.toLon)
-    ) {
+    if (!formData.toLat || !formData.toLon) {
       errors.push("Dropoff location must have valid GPS coordinates");
     }
     if (!formData.pickupDate) {
@@ -296,11 +287,11 @@ const DisplayCars: React.FC = () => {
         throw new Error("Invalid destination coordinates");
       }
       const result = await transferService.searchTransfers(params);
-      if (!result.data) {
+      if (!result?.data?.results) {
         throw new Error(result.error || "No transfer results found");
       }
-      // Update formData with search results instead of navigating
-      updateField("searchResult", result.data);
+      updateField("searchResults", result?.data?.results || []);
+      console.log(result.data);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Search failed");
       console.error("Search failed:", error);
@@ -327,13 +318,13 @@ const DisplayCars: React.FC = () => {
   );
 
   return (
-    <div className="display-cars">
+    <div className="relative">
       <Navbar />
 
       {/* Error Alert */}
       {submitError && (
         <div
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+          className="absolute top-24 left-0 w-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded "
           role="alert"
         >
           <span className="block sm:inline">{submitError}</span>
@@ -347,16 +338,11 @@ const DisplayCars: React.FC = () => {
       )}
 
       {/* Loading Spinner */}
-      {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
-        </div>
-      )}
 
       {/* Search Form */}
       {form && (
         <div
-          className={`gap-7 lg:bg-gray-200 px-4 lg:px-24 py-16 ${
+          className={`gap-7 lg:bg-gray-200 px-4 lg:px-24 py-20 pt-24 ${
             form ? "flex" : "hidden"
           } ${
             isMobile
@@ -740,31 +726,35 @@ const DisplayCars: React.FC = () => {
 
       {/* Car Results or Empty State */}
 
-      <CarList
-        departureInfo={{
-          pickupLocation: formData.pickupLocation,
-          pickUpLocaDescription: formData.pickUpLocaDescription,
-          dropoffLocaDescription: formData.dropoffLocaDescription,
-          dropoffLocation: formData.dropoffLocation,
-          pickupDate: formData.pickupDate,
-          pickupTime: formData.pickupTime,
-          priceRange: formData.priceRange,
-          selectedRide: formData.selectedRide,
-          passengerCounts: formData.passengerCounts,
-          endAddress: formData.endAddress,
-          endCity: formData.endCity,
-          endCountry: formData.endCountry,
-          endGeoLat: formData.endGeoLat,
-          endGeoLong: formData.endGeoLong,
-          fromLat: formData.fromLat,
-          fromLon: formData.fromLon,
-          toLat: formData.toLat,
-          toLon: formData.toLon,
-        }}
-        searchResults={stateData.searchResults}
-        OpenForm={() => setForm(true)}
-        loading={loading}
-      />
+      {formData?.searchResults?.services?.length > 0 ? (
+        <CarList
+          departureInfo={{
+            pickupLocation: formData.pickupLocation,
+            pickUpLocaDescription: formData.pickUpLocaDescription,
+            dropoffLocaDescription: formData.dropoffLocaDescription,
+            dropoffLocation: formData.dropoffLocation,
+            pickupDate: formData.pickupDate,
+            pickupTime: formData.pickupTime,
+            priceRange: formData.priceRange,
+            selectedRide: formData.selectedRide,
+            passengerCounts: formData.passengerCounts,
+            endAddress: formData.endAddress,
+            endCity: formData.endCity,
+            endCountry: formData.endCountry,
+            endGeoLat: formData.endGeoLat,
+            endGeoLong: formData.endGeoLong,
+            fromLat: formData.fromLat,
+            fromLon: formData.fromLon,
+            toLat: formData.toLat,
+            toLon: formData.toLon,
+          }}
+          searchResults={formData.searchResults || stateData.searchResults}
+          OpenForm={() => setForm(true)}
+          loading={loading}
+        />
+      ) : (
+        <EmptyState />
+      )}
     </div>
   );
 };

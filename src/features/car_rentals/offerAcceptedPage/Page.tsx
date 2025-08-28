@@ -1,16 +1,72 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../../../pages/homePage/Navbar";
 
-import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatReclineNormal";
-import SpeedIcon from "@mui/icons-material/Speed";
-import carImage from "../../../assets/carImage.svg";
-import LuggageOutlinedIcon from "@mui/icons-material/LuggageOutlined";
 import MobilePage from "./MobilePage";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import Footer from "../../../components/2Footer";
+import { transferService } from "../carsFirstScreen/services/transferService";
+
+export type DeskProps = {
+  handleBack: () => void;
+  handleNext: () => void;
+  steps: any[];
+  activeStep: number;
+  formData: {
+    cardNumber: string;
+    cardHolder: string;
+    expiryDate: string;
+    cvv: string;
+    agreement: boolean;
+  };
+  errors: {
+    cardNumber: boolean;
+    cardHolder: boolean;
+    expiryDate: boolean;
+    cvv: boolean;
+  };
+  touched: {
+    cardNumber: boolean;
+    cardHolder: boolean;
+    expiryDate: boolean;
+    cvv: boolean;
+  };
+  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  state: {
+    gilad: boolean;
+    jason: boolean;
+    antoine: boolean;
+  };
+  handleChangePayment: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleBlur: (event: React.FocusEvent<HTMLInputElement>) => void;
+  handleCheckboxChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleSubmit: () => void;
+  isFormValid: boolean;
+  isFormValids: boolean | string;
+  passFormData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    dateOfBirth: string;
+    countryCode: string;
+  };
+  setPassFormData: (passFormData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    dateOfBirth: string;
+    countryCode: string;
+    [key: string]: any;
+  }) => void;
+  isTheFormValid: boolean;
+  setIsTheFormValid: (isTheFormValid: boolean) => void;
+  setState: (state: any) => void;
+};
 
 const Page = () => {
-        const navigate = useNavigate()
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const steps = [
     "Booking Overview",
@@ -18,30 +74,13 @@ const Page = () => {
     "Passenger Details",
   ];
 
-  const carList = [
-    {
-      id: 1,
-      image: carImage,
-      seatLeft: <AirlineSeatReclineNormalIcon />,
-      fuelIcon: <LuggageOutlinedIcon />,
-      speed: <SpeedIcon />,
-      spaceleft: "3 Seats",
-      full: "4 Bags",
-      refundable: "Full refund if cancelled 24 hours before pick up",
-      noShows: "Cancellation allowed 24 hours before pick up",
-      perDay: "Price",
-      price: "₦14,000",
-      button: "Select Car",
-    },
-  ];
-  const value = 4.5;
-
   const [state, setState] = useState({
     gilad: true,
     jason: false,
     antoine: true,
   });
-
+  const selectedCarFromState = location.state?.car || null;
+  const [selectedCar, setSelectedCar] = useState<any>(selectedCarFromState);
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({
       ...state,
@@ -107,11 +146,45 @@ const Page = () => {
     setIsFormValid(validateFields() && formData.agreement);
   }, [formData]);
 
-  const handleSubmit = () => {
-    if (isFormValid) {
-      console.log("Form submitted successfully!");
-    } else {
-      console.log("Form has errors, please fix them.");
+  const handleSubmit = async () => {
+    if (!isFormValid || !isTheFormValid) {
+      // Show validation error
+      return;
+    }
+
+    try {
+     
+      const search_id = selectedCar.search_id || "";
+      const rate_key = selectedCar?.rateKey || "";
+
+      const payload = {
+        search_id,
+        rate_key,
+        first_name: passFormData.firstName,
+        last_name: passFormData.lastName,
+        dob: passFormData.dateOfBirth,
+        email: passFormData.email,
+        country_code: passFormData.countryCode,
+        phone: passFormData.phoneNumber,
+        remark: selectedCar.remarks || "",
+        dropoff_name: selectedCar.dropoff_name || "",
+        dropoff_address: selectedCar.pickupInformation.to.description || "",
+        dropoff_number: selectedCar.pickupInformation.to.name || "",
+        dropoff_town: selectedCar.dropoff_town || "",
+        dropoff_country: selectedCar.dropoff_country || "",
+        dropoff_zip: selectedCar.dropoff_zip || "",
+      };
+      console.log("Booking payload:", payload);
+
+      const result = await transferService.createBookingConfirmation(payload);
+
+      if (result.success) {
+        console.log("Booking confirmed!", result.data);
+      } else {
+        console.error("Booking failed:", result.error);
+      }
+    } catch (error) {
+      console.error("Booking failed:", error);
     }
   };
 
@@ -126,8 +199,8 @@ const Page = () => {
   const handleBack = () => {
     if (activeStep > 0) {
       setActiveStep((prevStep) => prevStep - 1);
-    } else{
-      navigate('/cars-searchResults')
+    } else {
+      navigate("/cars-searchResults");
     }
   };
 
@@ -137,6 +210,7 @@ const Page = () => {
     email: "",
     phoneNumber: "",
     dateOfBirth: "",
+    countryCode: "",
   });
 
   const [isTheFormValid, setIsTheFormValid] = useState(false);
@@ -155,36 +229,34 @@ const Page = () => {
     setIsTheFormValid(isValid);
   }, [passFormData]);
 
-  const isFormValids =
-    formData.agreement
+  const isFormValids = formData.agreement;
 
   return (
     <div>
       <Navbar />
       {/* {isMobile ? ( */}
-        <MobilePage
-          handleBack={handleBack}
-          handleNext={handleNext}
-          steps={steps}
-          activeStep={activeStep}
-          carList={carList}
-          value={value}
-          formData={formData}
-          errors={errors}
-          touched={touched}
-          handleChange={handleChange}
-          handleSubmit={handleSubmit}
-          state={state}
-          isFormValids={isFormValids}
-          isFormValid={isFormValid}
-          handleChangePayment={handleChangePayment}
-          handleCheckboxChange={handleCheckboxChange}
-          handleBlur={handleBlur}
-          passFormData={passFormData}
-          setPassFormData={setPassFormData}
-          setIsTheFormValid={setIsTheFormValid}
-          isTheFormValid={isTheFormValid}
-        />
+      <MobilePage
+        setState={setState}
+        handleBack={handleBack}
+        handleNext={handleNext}
+        steps={steps}
+        activeStep={activeStep}
+        formData={formData}
+        errors={errors}
+        touched={touched}
+        handleChange={handleChange}
+        handleSubmit={handleSubmit}
+        state={state}
+        isFormValids={isFormValids}
+        isFormValid={isFormValid}
+        handleChangePayment={handleChangePayment}
+        handleCheckboxChange={handleCheckboxChange}
+        handleBlur={handleBlur}
+        passFormData={passFormData}
+        setPassFormData={setPassFormData}
+        setIsTheFormValid={setIsTheFormValid}
+        isTheFormValid={isTheFormValid}
+      />
       {/* // ) : (
       //   <DeskWeb
       //     handleNext={handleNext}
@@ -210,7 +282,7 @@ const Page = () => {
       //     isTheFormValid={isTheFormValid}
       //   />
       // )} */}
-      <Footer/>
+      <Footer />
     </div>
   );
 };

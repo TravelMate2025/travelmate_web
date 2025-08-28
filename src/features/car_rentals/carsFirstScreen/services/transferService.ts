@@ -13,13 +13,13 @@ export interface TransferSearchParams {
     tcode: string;
     ttype: string;
     language?: string;
-    direction?: string;
+    // direction?: string;
     transfer_type?: string;
     min_price?: number;
     max_price?: number;
     // radius_km?: number;
-    enable_fallback?: boolean;
-    fallback_mode?: string;
+    // enable_fallback?: boolean;
+    // fallback_mode?: string;
 }
 
 interface PostTransferSearchParams {
@@ -109,21 +109,21 @@ class TransferService {
     async searchTransfers(params: TransferSearchParams): Promise<TransferResult> {
         try {
             const queryString = new URLSearchParams();
-            console.log(queryString)
             Object.entries(params).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && value !== '') {
                     queryString.append(key, value.toString());
                 }
             });
 
-            console.log('Transfer API request:', `${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
+
             const response = await instance.get(`${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
-            console.log(response)
+            console.log(response.data)
             return {
                 success: true,
-                data: response?.data?.transfers || response?.data?.data || [],
+                data: response?.data || [],
                 fallback_info: response?.data?.fallback_info,
             };
+
         } catch (error) {
             console.error('Transfer search failed:', error);
             return {
@@ -289,45 +289,6 @@ class TransferService {
     }
 
 
-    async lookupDestination(name: string, countryCodes?: string): Promise<LookupResult> {
-        try {
-            const params = new URLSearchParams({ name });
-            if (countryCodes) params.append('countryCodes', countryCodes);
-            const response = await instance.get(`${this.baseUrl}/transfers/lookup/destination/?${params.toString()}`);
-            const result = await response?.data
-            console.log(response.data)
-            return {
-                success: true,
-                data: result,
-            };
-        } catch (error) {
-            console.error('Destination lookup failed:', error);
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Failed to lookup destination',
-            };
-        }
-    }
-
-    async lookupHotel(name: string, countryCodes?: string, destinationCodes?: string): Promise<LookupResult> {
-        try {
-            const params = new URLSearchParams({ name });
-            if (countryCodes) params.append('countryCodes', countryCodes);
-            if (destinationCodes) params.append('destinationCodes', destinationCodes);
-            const response = await instance.get(`${this.baseUrl}/transfers/lookup/terminal/?${params.toString()}`);
-            return {
-                success: true,
-                data: response.data.results,
-            };
-        } catch (error) {
-            console.error('Hotel lookup failed:', error);
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Failed to lookup hotel',
-            };
-        }
-    }
-
     convertFormToApiParams(formData: BookingFormData): TransferSearchParams {
         if (!formData.pickupDate) {
             throw new Error('Departure date is required');
@@ -357,12 +318,12 @@ class TransferService {
             tcode: `${formData.toLat},${formData.toLon}`,
             ttype: 'GPS',
             language: 'en',
-            direction: 'ARRIVAL',
+            // direction: 'ARRIVAL',
             transfer_type: formData.selectedRide === 'Shared Ride' ? 'SHARED' : 'PRIVATE',
             min_price: formData.priceRange.min,
             max_price: formData.priceRange.max,
-            enable_fallback: true,
-            fallback_mode: 'fast',
+            // enable_fallback: true,
+            // fallback_mode: 'fast',
             // radius_km: 10.0,
         };
     }

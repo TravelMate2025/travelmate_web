@@ -50,9 +50,6 @@ export const validateBookingForm = (formData: BookingFormData): FormValidationRe
     errors.selectedRide = "Ride type is required";
   }
 
-  if (formData.priceRange.min < 6000 || formData.priceRange.max < 6000) {
-    errors.priceRange = "Minimum price should be at least ₦6,000";
-  }
 
   if (formData.priceRange.min >= formData.priceRange.max && formData.priceRange.max > 0) {
     errors.priceRange = "Maximum price should be greater than minimum price";

@@ -1,7 +1,6 @@
 import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
 import { Box, Stepper, Step, StepLabel, StepConnector } from "@mui/material";
-import { Rating, Stack, Typography } from "@mui/material";
-import circle from "../../../assets/circle.svg";
+import carImage from "../../../assets/carImage.png";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import {
   Divider,
@@ -13,16 +12,15 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import DateRangeOutlinedIcon from "@mui/icons-material/DateRangeOutlined";
 import Switch from "@mui/material/Switch";
 import { Checkbox } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { styled } from "@mui/material/styles";
-import { DeskProps } from "./Desk-Web";
 import { FaRegCalendarAlt, FaRegClock } from "react-icons/fa";
 import { ArrowRight, ChevronRight, Dot, Info } from "lucide-react";
 import { useState } from "react";
 import Complete from "./Complete";
 import { MdArrowDropDown } from "react-icons/md";
 import { FiPhone } from "react-icons/fi";
-
+import { DeskProps } from "./Page";
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .MuiStepConnector-line`]: {
     borderTopWidth: 3,
@@ -43,7 +41,7 @@ const MobilePage = ({
   handleBack,
   handleNext,
   state,
-  carList,
+  setState,
   handleChange,
   formData,
   handleCheckboxChange,
@@ -52,20 +50,63 @@ const MobilePage = ({
   handleSubmit,
   passFormData,
   setPassFormData,
-  value,
 }: DeskProps) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setPassFormData((prev) => ({
-      ...prev,
+    setPassFormData({
+      ...passFormData,
       [id]: value,
-    }));
+    });
   };
   const [showAllModal, setShowAllModal] = useState(false);
-  const [loggedIn] = useState(false);
+  const loggedIn = localStorage.getItem("accessToken");
+  const location = useLocation();
+  const { car, departureInfo } = location.state || {};
+  // ...existing code...
+  const handleProfileSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    setState((prev: any) => ({ ...prev, jason: checked }));
+    handleChange(e);
+
+    const userInfo = JSON.parse(localStorage.getItem("persist:root") || "{}");
+    const profileStr = userInfo.profile || "{}";
+    type Profile = {
+      profile: any;
+    };
+    let profile: Profile = {
+      profile: {},
+    };
+    try {
+      profile = JSON.parse(profileStr);
+    } catch {
+      // keep defaults
+    }
+    if (checked) {
+      setPassFormData({
+        firstName: profile.profile.first_name || "",
+        lastName: profile.profile.last_name || "",
+        dateOfBirth: profile.profile.date_of_birth || "",
+        email: profile.profile.email || "",
+        phoneNumber: profile.profile.mobile_number || "",
+        countryCode: "",
+      });
+    } else {
+      setPassFormData({
+        firstName: "",
+        lastName: "",
+        dateOfBirth: "",
+        email: "",
+        phoneNumber: "",
+        countryCode: "",
+      });
+    }
+  };
+
   return (
     <div>
-      {showAllModal && <Complete closeDialog={() => setShowAllModal(false)} />}
+      {showAllModal && (
+        <Complete closeDialog={() => setShowAllModal(false)} car={car} />
+      )}
       <div className="mt-4">
         <div className="lg:pt-20 pt-20 mb-6 flex justify-normal items-center px-6 gap-8">
           <div className=" p-[8px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] ">
@@ -84,7 +125,7 @@ const MobilePage = ({
             alternativeLabel
             connector={<CustomConnector />}
           >
-            {steps.map((label, index) => (
+            {steps.map((label:any, index) => (
               <Step key={index}>
                 <StepLabel
                   StepIconProps={{
@@ -124,49 +165,15 @@ const MobilePage = ({
               </div>
             </div> */}
 
-            <div className="flex gap-[8px] justify-between px-6">
-              <div className="flex gap-[4px]">
-                <img src={circle} alt="" className="w-[50px] h-[50px]" />
-                <div>
-                  <div className="flex gap-[2px] mt-[4px]">
-                    <p className="mt-[2px] text-[#181818] text-[14px]">Elvis</p>
-                    <div>
-                      <Stack direction="row">
-                        <Rating
-                          value={1}
-                          max={1}
-                          readOnly
-                          sx={{ fontSize: "14px", marginTop: "5px" }}
-                        />
-                        <Typography
-                          variant="body1"
-                          sx={{ fontSize: "14px", marginTop: "2px" }}
-                        >
-                          {value}
-                        </Typography>
-                      </Stack>
-                    </div>
-                  </div>
-                  <div className="mt-[2px]">
-                    <p className="text-[#67696D] text-[14px] ">
-                      Red Toyota Corolla
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="">
-                {carList.map((car) => (
-                  <div key={car.id} className="flex justify-between gap-[8px]">
-                    <div className="">
-                      <img
-                        src={car.image}
-                        alt=""
-                        className="h-[70px] w-[50px] mt-[-8px]"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="flex items-center gap-4 p-6">
+              <img
+                src={car?.content?.images[0].url || carImage}
+                alt=""
+                className="w-28 h-28 p-2 object-contain bg-[#0000001A] rounded-lg"
+              />
+              <p className="text-[#67696D] text-[14px] ">
+                {car.vehicle.name} {car.vehicle.code}
+              </p>
             </div>
 
             <Divider
@@ -178,32 +185,34 @@ const MobilePage = ({
               <p className="text-[16px] font-inter font-medium text-[#181818]">
                 Trip Details
               </p>
-              <div className="lg:border rounded-lg p-5 mt-[10px] flex flex-col justify-normal items-start gap-4 border-[#CDCED1]">
+              <div className="lg:border rounded-lg lg:p-5 mt-[10px] flex flex-col justify-normal items-start gap-4 border-[#CDCED1]">
                 <div className="flex justify-normal gap-4 items-center">
                   <div className="w-6 h-6 bg-[#023E8A] rounded-full" />
                   <div>
-                    <p>Murtala Mohammed Airport</p>
+                    <p>{departureInfo.pickUpLocaDescription}</p>
                     <div className="flex items-center justify-normal gap-1 text-gray-500">
                       <FaRegCalendarAlt />
-                      <p>February 10, 2025</p>
+                      <p>{departureInfo.pickupDate}</p>
                       <Dot fill="#4E4F52" />
                       <FaRegClock />
-                      <p>3:30pm</p>
+                      <p>{departureInfo.pickupTime}</p>
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-5 items-center ml-3">
                   {" "}
                   <div className="border-l-2 border-l-[#4E4F52] h-16" />{" "}
-                  <p className="text-[#4E4F52]">Estimated Time: 90 minutes</p>{" "}
+                  <p className="text-[#4E4F52]">
+                    {car.content.transferDetailInfo[0].name}
+                  </p>{" "}
                 </div>
                 <div className="flex justify-normal gap-4 items-center">
                   <div className="w-6 h-6 bg-[#D72638] rounded-full" />
                   <div>
-                    <p>Murtala Mohammed Airport</p>
-                    <div className="flex items-center justify-normal gap-1 text-gray-500">
+                    <p>{departureInfo.dropoffLocation}</p>
+                    <div className="flex items-center justify-normal gap-1 text-gray-500 pt-3">
                       <FaRegCalendarAlt />
-                      <p>February 10, 2025</p>
+                      <p>February 10, 2026</p>
                       <Dot fill="#4E4F52" />
                       <FaRegClock />
                       <p>3:30pm</p>
@@ -221,124 +230,49 @@ const MobilePage = ({
               <p className="text-[16px] font-inter font-medium text-[#181818]">
                 Taxi Details
               </p>
-              <div className=" mt-[10px] lg:border rounded-lg p-5 border-[#CDCED1]">
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                        Type
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[#181818] text-[14px] font-inter">
-                        Red Toyota Corolla
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                        Seats
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[14px] text-[#181818]">3 Seats</p>
-                    </div>
-                  </div>
+              <div className="flex flex-col gap-2 items-center  mt-[10px] lg:border rounded-lg p-5 border-[#CDCED1]">
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
+                    Type
+                  </p>
 
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                        Luggages
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[#181818] text-[14px] font-inter">
-                        Up to 4 Luggages
-                      </p>
-                    </div>
-                  </div>
+                  <p className="text-[#181818] text-sm font-inter">
+                    {car.category.name} Car
+                  </p>
+                </div>
 
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                        Plate Number
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[#181818] text-[14px] font-inter">
-                        AA1234FT
-                      </p>
-                    </div>
-                  </div>
+                <div className="flex justify-between w-full items-center">
+                  <p className="text-sm font-inter font-normal text-[#4E4F52]">
+                    Seats
+                  </p>
+
+                  <p className="text-sm text-[#181818]">
+                    {car.maxPaxCapacity} Seats
+                  </p>
+                </div>
+
+                <div className="flex justify-between items-start w-full text-right">
+                  <p className="text-sm font-inter font-normal text-[#4E4F52]">
+                    Luggage
+                  </p>
+                  <p className="text-[#181818] text-sm font-inter">
+                    Up to {car.content.transferDetailInfo[3].name.slice(0, 2)}{" "}
+                    Bags + 1 hand luggage per passenger
+                  </p>
+                </div>
+
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-smfont-inter font-normal text-[#4E4F52]">
+                    Provider
+                  </p>
+
+                  <p className="text-[#181818] text-[14px] font-inter">
+                    Holiday Taxi
+                  </p>
                 </div>
               </div>
             </div>
-            <Divider
-              sx={{ marginTop: "8px", marginBottom: "8px" }}
-              className="lg:hidden"
-            />
-
-            <div className="px-6">
-              <p className="text-[16px] font-inter font-medium text-[#181818] pt-4">
-                Driver Details
-              </p>
-              <div className="lg:border rounded-lg p-5 mt-[10px] border-[#CDCED1]">
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                        Name
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[#181818] text-[14px] font-inter">
-                        Elvis Igiebor
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                        Rating
-                      </p>
-                    </div>
-                    <div>
-                      <Stack direction="row">
-                        <Rating
-                          value={1}
-                          max={1}
-                          readOnly
-                          sx={{ fontSize: "14px", marginTop: "5px" }}
-                        />
-                        <Typography
-                          variant="body1"
-                          sx={{ fontSize: "14px", marginTop: "2px" }}
-                        >
-                          {value}
-                        </Typography>
-                      </Stack>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                        Phone Number
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[#181818] text-[14px] font-inter">
-                        090123456782
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <Divider
               sx={{ marginTop: "8px", marginBottom: "8px" }}
               className="lg:hidden"
@@ -348,27 +282,21 @@ const MobilePage = ({
               <p className="text-[16px] font-inter font-medium text-[#181818] pt-4">
                 Price Summary
               </p>
-              <div className="lg:border rounded-lg p-5 mt-[10px border-[#CDCED1]]">
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                        Total
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[#181818] text-[14px] font-inter">
-                        ₦40,000
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              <div className="flex  justify-between w-full itmes-center lg:border rounded-lg p-5 mt-[10px border-[#CDCED1]]">
+                <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
+                  Total
+                </p>
+
+                <p className="text-[#181818] text-[14px] font-bold font-inter">
+                  {" "}
+                  &#8364;{car.price.totalAmount}
+                </p>
               </div>
             </div>
 
             <Divider sx={{ marginTop: "8px", marginBottom: "8px" }} />
-            <div className=" pt-4 px-6">
-              <div className="flex w-full justify-between items-center pb-4">
+            <div className="">
+              <div className="flex w-full justify-between items-center p-4">
                 <p className="text-[16px] font-inter font-bold text-[#181818]">
                   Important information
                 </p>
@@ -393,8 +321,8 @@ const MobilePage = ({
               sx={{ marginTop: "8px", marginBottom: "8px" }}
               className="lg:hidden"
             />
-            <div className="px-6">
-              <p className="text-[16px] font-inter font-bold text-[#181818] pt-4">
+            <div className="p4">
+              <p className="text-[16px] font-inter font-bold text-[#181818] p-4">
                 Refunds and Cancellations
               </p>
               <div className="lg:border rounded-lg p-5 mt-[10px] border-[#CDCED1]">
@@ -441,7 +369,7 @@ const MobilePage = ({
                             control={
                               <Switch
                                 checked={state.jason}
-                                onChange={handleChange}
+                                onChange={handleProfileSwitch}
                                 name="jason"
                               />
                             }
@@ -599,10 +527,10 @@ const MobilePage = ({
                             Country Code
                           </label>
                           <TextField
-                            id="number"
+                            id="countryCode"
                             variant="outlined"
                             size="small"
-                            value={passFormData.email}
+                            value={passFormData.countryCode}
                             onChange={handleInputChange}
                             InputProps={{
                               startAdornment: (
@@ -687,7 +615,7 @@ const MobilePage = ({
             </p>
             <div className="px-6  border-[#CDCED1] lg:border rounded-lg p-5 flex justify-between items-center w-full">
               <p className="font-bold text-[#4E4F52]">Total</p>
-              <p>#600,000</p>
+              <p>&#8364;{car.price.totalAmount}</p>
             </div>
 
             <Divider

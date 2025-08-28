@@ -39,6 +39,7 @@ export interface BookingFormData {
   fromLon?: number;
   toLat?: number;
   toLon?: number;
+  searchResults?: any[]; 
 }
 
 export interface PassengerCounts {

@@ -18,6 +18,7 @@ export const useBookingForm = (initialData?: Partial<BookingFormData>) => {
     endCountry: initialData?.endCountry || "",
     endGeoLat: initialData?.endGeoLat || 0,
     endGeoLong: initialData?.endGeoLong || 0,
+    searchResults: initialData?.searchResults || [],
     
   });
 
@@ -61,10 +62,10 @@ export const useBookingForm = (initialData?: Partial<BookingFormData>) => {
       priceRange: { min: 0, max: 0 },
       passengerCounts: { adults: "", children: "", infant: "" },
       endAddress: "",
-      endCity: "Paris",
-      endCountry: "FR",
-      endGeoLat: 48.859466,
-      endGeoLong: 2.2976965,
+      endCity: "",
+      endCountry: "",
+      endGeoLat: 0,
+      endGeoLong: 0,
     });
     setErrors({});
     setSubmitError(null);

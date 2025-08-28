@@ -193,7 +193,7 @@ const SearchDropOffLocation = ({
                 >
                   <ListItemText
                     primary={location.name}
-                    secondary="City/Hotel"
+                    
                   />
                 </ListItem>
               </div>

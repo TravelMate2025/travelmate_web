@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../../store";
 import { setCarInfo } from "../carPaymentSlice";
+import { setSearchResults } from "../carPaymentSlice";
 
 // Icons
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
@@ -170,8 +171,8 @@ const CarBookingFirstScreen: React.FC = () => {
       endAddress: formData.endAddress,
       endCity: formData.endCity,
       endCountry: formData.endCountry,
-      endGeoLat: formData.endGeoLat,
-      endGeoLong: formData.endGeoLong,
+      endGeoLat: formData.toLat,
+      endGeoLong: formData.toLon,
       fromLat: formData.fromLat,
       fromLon: formData.fromLon,
       toLat: formData.toLat,
@@ -230,10 +231,10 @@ const CarBookingFirstScreen: React.FC = () => {
 
   const handlePriceSubmit = useCallback(
     (min: number, max: number) => {
-      if (min < 6000 || max < 6000) {
-        openModal("priceError");
-        return;
-      }
+      // if (min < 6000 || max < 6000) {
+      //   openModal("priceError");
+      //   return;
+      // }
       updateField("priceRange", { min, max });
       closeModal("priceRange");
     },
@@ -266,10 +267,7 @@ const CarBookingFirstScreen: React.FC = () => {
     if (!formData.dropoffLocation) {
       errors.push("Please enter a valid dropoff location");
     }
-    if (
-      typeof formData.toLat !== "number" ||
-      typeof formData.toLon !== "number"
-    ) {
+    if (!formData.toLat || !formData.toLon) {
       errors.push("Dropoff location must have valid GPS coordinates");
     }
     if (!formData.pickupDate) {
@@ -301,13 +299,15 @@ const CarBookingFirstScreen: React.FC = () => {
         throw new Error("Invalid destination coordinates");
       }
       const result = await transferService.searchTransfers(params);
-      if (!result) {
+      if (!result?.data) {
         throw new Error("No transfer results found");
       }
+      dispatch(setSearchResults(result?.data || []));
+      console.log("Search results:", result?.data);
       navigate("/cars-searchResults", {
         state: {
           ...formData,
-          searchResults: result.data,
+          searchResults: result?.data,
           times: { pickUpTime: formData.pickupTime, dropOffTime: "" },
           priceRange: {
             min: formData.priceRange.min,
@@ -351,9 +351,6 @@ const CarBookingFirstScreen: React.FC = () => {
           onClose={() => setSubmitError(null)} 
         />
       )} */}
-
-      {/* Loading Spinner */}
-      {/* {loading && <LoadingSpinner />} */}
 
       {/* Shared Ride Info */}
       {formData.selectedRide === "Shared Ride" && (
