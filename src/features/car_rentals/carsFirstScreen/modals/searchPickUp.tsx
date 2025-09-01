@@ -6,7 +6,7 @@ import {
   TextField,
 } from "@mui/material";
 import { Loader, SearchIcon, X } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { transferService } from "../services/transferService";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 
@@ -58,11 +58,11 @@ const SearchPickUpLocation = ({
   const [loading, setLoading] = useState(false);
 
   // Debounce function to limit API calls
+  const timeoutRef = useRef<number| null>(null);
   const debounce = (func: (...args: any[]) => void, wait: number) => {
-    let timeout: NodeJS.Timeout;
     return (...args: any[]) => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func(...args), wait);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => func(...args), wait);
     };
   };
 
@@ -93,12 +93,13 @@ const SearchPickUpLocation = ({
   }, []);
 
   // Debounced fetchLocations to prevent excessive API calls
-  const debouncedFetchLocations = useCallback(debounce(fetchLocations, 300), [
-    fetchLocations,
-  ]);
+const debouncedFetchLocations = useMemo(
+  () => debounce(fetchLocations, 300),
+  [fetchLocations]
+);
 
   const handleSelect = (location: PickUp) => {
-    if (!location.code || !location.code.match(/^[A-Z]{2,3}$/)) {
+    if (!location.code || !location.code.match(/^[A-Z]{3}$/)) {
       setError("Please select a valid IATA code");
       return;
     }
@@ -129,7 +130,7 @@ const SearchPickUpLocation = ({
 
   return (
     <div className="min-w-screen min-h-screen p-8 rounded-lg bg-white shadow-2xl fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 lg:min-h-[400px] lg:min-w-[90vh] block z-[99] mt-5">
-      <div className="flex justify-normal gap-32 lg:gap-96 items-center my-5 w-full">
+      <div className="flex justify-normal gap-32 lg:gap-42 items-center my-5 w-full">
         <div className="p-[8px] bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px]">
           <X onClick={closeDialog} className="font-bold" />
         </div>

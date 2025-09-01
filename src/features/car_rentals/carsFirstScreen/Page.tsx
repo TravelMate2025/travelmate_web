@@ -256,7 +256,6 @@ const CarBookingFirstScreen: React.FC = () => {
     },
     [updateField, closeModal]
   );
-
   const handleSearch = useCallback(async () => {
     const errors = [];
     if (!/^[A-Z]{3}$/.test(formData.pickupLocation)) {
@@ -302,17 +301,18 @@ const CarBookingFirstScreen: React.FC = () => {
       if (!result?.data) {
         throw new Error("No transfer results found");
       }
-      dispatch(setSearchResults(result?.data || []));
+      dispatch(setSearchResults(result?.data?.results?.services || []));
       console.log("Search results:", result?.data);
       navigate("/cars-searchResults", {
         state: {
           ...formData,
-          searchResults: result?.data,
+          searchResults: result?.data?.results?.services || [],
           times: { pickUpTime: formData.pickupTime, dropOffTime: "" },
           priceRange: {
             min: formData.priceRange.min,
             max: formData.priceRange.max,
           },
+          search_id: result?.data?.search_id,
         },
       });
       {

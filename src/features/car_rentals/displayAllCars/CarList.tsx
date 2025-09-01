@@ -23,12 +23,13 @@ export interface CarListProps {
   searchResults: any;
   loading: boolean;
   OpenForm: () => void;
+  rate_key: string;
 }
 const CarList: React.FC<CarListProps> = ({
   departureInfo,
   searchResults,
-  // loading,
   OpenForm,
+  rate_key,
 }) => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const navigate = useNavigate();
@@ -43,13 +44,15 @@ const CarList: React.FC<CarListProps> = ({
     setPage(value);
   };
   const paginatedItems = useMemo(() => {
-    return cars.services.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+    return cars?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   }, [cars, page]);
 
   const handleSubmitOffer = (car: any) => {
     navigate("/offer-accepted-page", {
       state: {
         car,
+        search_id: departureInfo.search_id,
+        rate_key,
         departureInfo,
       },
     });

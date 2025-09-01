@@ -79,14 +79,15 @@ const Page = () => {
     jason: false,
     antoine: true,
   });
-  const selectedCarFromState = location.state?.car || null;
-  const [selectedCar, setSelectedCar] = useState<any>(selectedCarFromState);
+  const { car, search_id } = location.state;
+  const rate_key = location.state?.car?.rateKey || "";
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({
       ...state,
       [event.target.name]: event.target.checked,
     });
   };
+
 
   const [formData, setFormData] = useState({
     cardNumber: "",
@@ -140,23 +141,18 @@ const Page = () => {
     setFormData((prev) => ({ ...prev, agreement: e.target.checked }));
   };
 
-  const [isFormValid, setIsFormValid] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(true);
 
   useEffect(() => {
     setIsFormValid(validateFields() && formData.agreement);
   }, [formData]);
 
   const handleSubmit = async () => {
-    if (!isFormValid || !isTheFormValid) {
-      // Show validation error
+    if (!isTheFormValid) {
       return;
     }
 
     try {
-     
-      const search_id = selectedCar.search_id || "";
-      const rate_key = selectedCar?.rateKey || "";
-
       const payload = {
         search_id,
         rate_key,
@@ -166,19 +162,12 @@ const Page = () => {
         email: passFormData.email,
         country_code: passFormData.countryCode,
         phone: passFormData.phoneNumber,
-        remark: selectedCar.remarks || "",
-        dropoff_name: selectedCar.dropoff_name || "",
-        dropoff_address: selectedCar.pickupInformation.to.description || "",
-        dropoff_number: selectedCar.pickupInformation.to.name || "",
-        dropoff_town: selectedCar.dropoff_town || "",
-        dropoff_country: selectedCar.dropoff_country || "",
-        dropoff_zip: selectedCar.dropoff_zip || "",
       };
-      console.log("Booking payload:", payload);
 
       const result = await transferService.createBookingConfirmation(payload);
-
+      console.log(payload);
       if (result.success) {
+        navigate("/car-payment-successful");
         console.log("Booking confirmed!", result.data);
       } else {
         console.error("Booking failed:", result.error);

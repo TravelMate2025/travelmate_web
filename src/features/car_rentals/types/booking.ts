@@ -40,6 +40,8 @@ export interface BookingFormData {
   toLat?: number;
   toLon?: number;
   searchResults?: any[]; 
+  search_id?: string;
+  rate_key?: string;
 }
 
 export interface PassengerCounts {

@@ -117,7 +117,6 @@ class TransferService {
 
 
             const response = await instance.get(`${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
-            console.log(response.data)
             return {
                 success: true,
                 data: response?.data || [],
@@ -170,9 +169,9 @@ class TransferService {
 
     async createBookingConfirmation(params: BookingConfirmationParams): Promise<BookingConfirmationResult> {
         try {
-            const response = await instance.post(`${this.baseUrl}/transfers/booking/confirmation/`, {
-                body: JSON.stringify(params),
-            });
+            const response = await instance.post(`${this.baseUrl}/transfers/booking/confirmation/`,
+                JSON.stringify(params),
+            );
             return {
                 success: true,
                 data: response.data,

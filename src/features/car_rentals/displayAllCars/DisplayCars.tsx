@@ -60,6 +60,7 @@ interface LocationState {
   toLat?: number;
   toLon?: number;
   searchResults?: any[];
+  search_id?: string;
 }
 
 const DisplayCars: React.FC = () => {
@@ -116,7 +117,8 @@ const DisplayCars: React.FC = () => {
       fromLon: locationState.fromLon,
       toLat: locationState.toLat,
       toLon: locationState.toLon,
-      searchResults: locationState.searchResults?.results?services || [],
+      searchResults: locationState.searchResults || [],
+      search_id: locationState.search_id || "",
     };
   }, [state]);
 
@@ -287,11 +289,10 @@ const DisplayCars: React.FC = () => {
         throw new Error("Invalid destination coordinates");
       }
       const result = await transferService.searchTransfers(params);
-      if (!result?.data?.results) {
+      if (!result?.data?.results?.services) {
         throw new Error(result.error || "No transfer results found");
       }
-      updateField("searchResults", result?.data?.results || []);
-      console.log(result.data);
+      updateField("searchResults", result?.data?.results?.services || []);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Search failed");
       console.error("Search failed:", error);
@@ -679,7 +680,6 @@ const DisplayCars: React.FC = () => {
             }))
           }
           setExtraFields={(fields) => {
-            console.log("Data received from modal via setExtraFields:", fields);
             updateField("endAddress", fields.endAddress);
             updateField("endCity", fields.endCity);
             updateField("endCountry", fields.endCountry);
@@ -726,7 +726,7 @@ const DisplayCars: React.FC = () => {
 
       {/* Car Results or Empty State */}
 
-      {formData?.searchResults?.services?.length > 0 ? (
+      {(formData?.searchResults?.length ?? 0) > 0 ? (
         <CarList
           departureInfo={{
             pickupLocation: formData.pickupLocation,
@@ -747,6 +747,7 @@ const DisplayCars: React.FC = () => {
             fromLon: formData.fromLon,
             toLat: formData.toLat,
             toLon: formData.toLon,
+            search_id: formData.search_id,
           }}
           searchResults={formData.searchResults || stateData.searchResults}
           OpenForm={() => setForm(true)}

@@ -125,7 +125,7 @@ const MobilePage = ({
             alternativeLabel
             connector={<CustomConnector />}
           >
-            {steps.map((label:any, index) => (
+            {steps.map((label: any, index) => (
               <Step key={index}>
                 <StepLabel
                   StepIconProps={{
@@ -212,7 +212,7 @@ const MobilePage = ({
                     <p>{departureInfo.dropoffLocation}</p>
                     <div className="flex items-center justify-normal gap-1 text-gray-500 pt-3">
                       <FaRegCalendarAlt />
-                      <p>February 10, 2026</p>
+                      <p>{departureInfo.pickupDate}</p>
                       <Dot fill="#4E4F52" />
                       <FaRegClock />
                       <p>3:30pm</p>
@@ -645,7 +645,7 @@ const MobilePage = ({
           </div>
         )}
         {activeStep === 2 ? (
-          <Link to="/car-payment-successful">
+          // <Link to="/car-payment-successful">
             <div className="mx-6 my-6 flex items-center justify-center">
               <button
                 className={`w-full lg:w-96 text-white bg-[#023E8A] h-[56px] rounded-[6px] cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed
@@ -656,7 +656,7 @@ const MobilePage = ({
                 Pay with Paypal
               </button>
             </div>
-          </Link>
+          // {/* </Link> */}
         ) : (
           <div className="mx-6 mb-20 flex items-center justify-center">
             <button
