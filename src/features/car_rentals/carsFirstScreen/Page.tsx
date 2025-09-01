@@ -39,7 +39,7 @@ import PriceRange from "./modals/PriceRange";
 import RideType from "./modals/RideType";
 import RecentSearch from "./RecentSearch";
 import { PassengerCounts } from "../types/booking";
-import { transferService } from "./services/transferService";
+import { transferService } from "../services/transferService";
 import { formatDate } from "../utilities/formatting";
 import SearchPickUpLocation from "./modals/searchPickUp";
 import SearchDropOffLocation from "./modals/searchDropOff";

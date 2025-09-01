@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { debounce } from 'lodash';
-import { fetchRecentSearches } from '../carsFirstScreen/services/recentSearch';
+import { fetchRecentSearches } from '../services/recentSearch';
 import axios from 'axios';
 import { RootState } from '../../../store';
 import { useSelector } from "react-redux";

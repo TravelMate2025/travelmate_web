@@ -4,11 +4,12 @@ import Navbar from "../../../pages/homePage/Navbar";
 import MobilePage from "./MobilePage";
 import { useLocation, useNavigate } from "react-router";
 import Footer from "../../../components/2Footer";
-import { transferService } from "../carsFirstScreen/services/transferService";
+import { transferService } from "../services/transferService";
 
 export type DeskProps = {
   handleBack: () => void;
   handleNext: () => void;
+  handleConfirm: () => void;
   steps: any[];
   activeStep: number;
   formData: {
@@ -62,24 +63,23 @@ export type DeskProps = {
   isTheFormValid: boolean;
   setIsTheFormValid: (isTheFormValid: boolean) => void;
   setState: (state: any) => void;
+  loadingSubmit?: boolean;
 };
 
 const Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [confirmationId, setConfirmationId] = useState<string | undefined>("");
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
 
-  const steps = [
-    "Booking Overview",
-    "Passenger Information",
-    "Passenger Details",
-  ];
+  const steps = ["Booking Overview", "Passenger Information", "Payment"];
 
   const [state, setState] = useState({
     gilad: true,
     jason: false,
     antoine: true,
   });
-  const { car, search_id } = location.state;
+  const { search_id } = location.state;
   const rate_key = location.state?.car?.rateKey || "";
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({
@@ -87,7 +87,6 @@ const Page = () => {
       [event.target.name]: event.target.checked,
     });
   };
-
 
   const [formData, setFormData] = useState({
     cardNumber: "",
@@ -130,7 +129,14 @@ const Page = () => {
 
     return !Object.values(newErrors).includes(true);
   };
-
+  const [passFormData, setPassFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    dateOfBirth: "",
+    countryCode: "",
+  });
   const handleChangePayment = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -147,7 +153,7 @@ const Page = () => {
     setIsFormValid(validateFields() && formData.agreement);
   }, [formData]);
 
-  const handleSubmit = async () => {
+  const handleConfirm = async () => {
     if (!isTheFormValid) {
       return;
     }
@@ -165,9 +171,10 @@ const Page = () => {
       };
 
       const result = await transferService.createBookingConfirmation(payload);
+      setActiveStep(2);
       console.log(payload);
+      setConfirmationId(result?.data?.booking_id);
       if (result.success) {
-        navigate("/car-payment-successful");
         console.log("Booking confirmed!", result.data);
       } else {
         console.error("Booking failed:", result.error);
@@ -193,15 +200,6 @@ const Page = () => {
     }
   };
 
-  const [passFormData, setPassFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phoneNumber: "",
-    dateOfBirth: "",
-    countryCode: "",
-  });
-
   const [isTheFormValid, setIsTheFormValid] = useState(false);
 
   useEffect(() => {
@@ -219,7 +217,23 @@ const Page = () => {
   }, [passFormData]);
 
   const isFormValids = formData.agreement;
-
+  const handleSubmit = async () => {
+    try {
+      setLoadingSubmit(true);
+      await transferService.createCheckoutSession(confirmationId);
+      navigate("/car-payment-successful", {
+        state: {
+          confirmationId,
+          car: location.state?.car,
+          passFormData,
+        },
+      });
+    } catch (error) {
+      console.error("Error in payment:", error);
+    } finally {
+      setLoadingSubmit(false);
+    }
+  };
   return (
     <div>
       <Navbar />
@@ -228,6 +242,7 @@ const Page = () => {
         setState={setState}
         handleBack={handleBack}
         handleNext={handleNext}
+        handleConfirm={handleConfirm}
         steps={steps}
         activeStep={activeStep}
         formData={formData}
@@ -245,32 +260,9 @@ const Page = () => {
         setPassFormData={setPassFormData}
         setIsTheFormValid={setIsTheFormValid}
         isTheFormValid={isTheFormValid}
+        loadingSubmit={loadingSubmit}
       />
-      {/* // ) : (
-      //   <DeskWeb
-      //     handleNext={handleNext}
-      //     handleBack={handleBack}
-      //     steps={steps}
-      //     activeStep={activeStep}
-      //     carList={carList}
-      //     value={value}
-      //     formData={formData}
-      //     errors={errors}
-      //     touched={touched}
-      //     handleChange={handleChange}
-      //     handleSubmit={handleSubmit}
-      //     state={state}
-      //     isFormValids={isFormValids}
-      //     isFormValid={isFormValid}
-      //     handleChangePayment={handleChangePayment}
-      //     handleCheckboxChange={handleCheckboxChange}
-      //     handleBlur={handleBlur}
-      //     passFormData={passFormData}
-      //     setPassFormData={setPassFormData}
-      //     setIsTheFormValid={setIsTheFormValid}
-      //     isTheFormValid={isTheFormValid}
-      //   />
-      // )} */}
+  
       <Footer />
     </div>
   );

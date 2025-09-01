@@ -1,6 +1,6 @@
 import { parse, format } from 'date-fns';
-import instance from '../../../../utils/axiosConfig';
-import { BookingFormData } from '../../types/booking';
+import instance from '../../../utils/axiosConfig';
+import { BookingFormData } from '../types/booking';
 
 
 export interface TransferSearchParams {

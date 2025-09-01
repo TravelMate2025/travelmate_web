@@ -37,7 +37,7 @@ import Navbar from "../../../pages/homePage/Navbar";
 import EmptyState from "./EmptyState";
 import { BookingFormData, PassengerCounts } from "../types/booking";
 import { formatDate } from "../utilities/formatting";
-import { transferService } from "../carsFirstScreen/services/transferService";
+import { transferService } from "../services/transferService";
 import SearchDropOffLocation from "../carsFirstScreen/modals/searchDropOff";
 import SearchPickUpLocation from "../carsFirstScreen/modals/searchPickUp";
 

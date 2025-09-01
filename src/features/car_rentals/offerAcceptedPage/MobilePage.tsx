@@ -12,10 +12,10 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import DateRangeOutlinedIcon from "@mui/icons-material/DateRangeOutlined";
 import Switch from "@mui/material/Switch";
 import { Checkbox } from "@mui/material";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import { FaRegCalendarAlt, FaRegClock } from "react-icons/fa";
-import { ArrowRight, ChevronRight, Dot, Info } from "lucide-react";
+import { ArrowRight, ChevronRight, Dot, Info, Loader } from "lucide-react";
 import { useState } from "react";
 import Complete from "./Complete";
 import { MdArrowDropDown } from "react-icons/md";
@@ -40,6 +40,7 @@ const MobilePage = ({
   steps,
   handleBack,
   handleNext,
+  handleConfirm,
   state,
   setState,
   handleChange,
@@ -50,6 +51,7 @@ const MobilePage = ({
   handleSubmit,
   passFormData,
   setPassFormData,
+  loadingSubmit,
 }: DeskProps) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -295,7 +297,7 @@ const MobilePage = ({
             </div>
 
             <Divider sx={{ marginTop: "8px", marginBottom: "8px" }} />
-            <div className="">
+            <div className="px-5">
               <div className="flex w-full justify-between items-center p-4">
                 <p className="text-[16px] font-inter font-bold text-[#181818]">
                   Important information
@@ -321,7 +323,7 @@ const MobilePage = ({
               sx={{ marginTop: "8px", marginBottom: "8px" }}
               className="lg:hidden"
             />
-            <div className="p4">
+            <div className="px-5">
               <p className="text-[16px] font-inter font-bold text-[#181818] p-4">
                 Refunds and Cancellations
               </p>
@@ -332,8 +334,6 @@ const MobilePage = ({
                 </ul>
               </div>
             </div>
-
-            <Divider sx={{ marginTop: "8px", marginBottom: "8px" }} />
 
             <Divider sx={{ marginTop: "60px", marginBottom: "20px" }} />
           </div>
@@ -646,26 +646,28 @@ const MobilePage = ({
         )}
         {activeStep === 2 ? (
           // <Link to="/car-payment-successful">
-            <div className="mx-6 my-6 flex items-center justify-center">
-              <button
-                className={`w-full lg:w-96 text-white bg-[#023E8A] h-[56px] rounded-[6px] cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed
+          <div className="mx-6 my-6 flex items-center justify-center">
+            <button
+              className={`w-full lg:w-96 text-white bg-[#023E8A] h-[56px] rounded-[6px] cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed
                 `}
-                disabled={!isFormValids}
-                onClick={handleSubmit}
-              >
-                Pay with Paypal
-              </button>
-            </div>
-          // {/* </Link> */}
+              disabled={!isFormValids}
+              onClick={handleSubmit}
+            >
+              Pay with Paypal
+            </button>
+          </div>
         ) : (
+          // {/* </Link> */}
           <div className="mx-6 mb-20 flex items-center justify-center">
             <button
               className="w-full lg:w-96 text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]  disabled:bg-gray-400 disabled:cursor-not-allowed"
               disabled={!isFormValid && !loggedIn}
-              onClick={handleNext}
-              // disabled={activeStep === steps.length - 1}
+              onClick={() => {
+                activeStep === 0 ? handleNext() : handleConfirm();
+              }}
             >
               {activeStep === steps.length - 1 ? "Pay with Paypal" : "Continue"}
+              {loadingSubmit && <Loader className="animate-spin" />}
             </button>
           </div>
         )}

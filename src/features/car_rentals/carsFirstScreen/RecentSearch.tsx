@@ -52,7 +52,7 @@ const RecentSearch = ({
               Recent Searches
             </Typography>
 
-            {locations.length === 0 ? (
+            {locations?.length === 0 ? (
               <Typography
                 sx={{
                   textAlign: "center",
@@ -64,7 +64,7 @@ const RecentSearch = ({
                 No recent searches
               </Typography>
             ) : (
-              locations.map((location, index) => (
+              locations?.map((location, index) => (
                 <React.Fragment key={location}>
                   <div className="flex justify-between pl-[24px] pt-[24px] pr-[24px] cursor-pointer">
                     <div

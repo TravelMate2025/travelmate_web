@@ -4,15 +4,19 @@ import KeyboardArrowLeftOutlinedIcon from "@mui/icons-material/KeyboardArrowLeft
 import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import CheckIcon from "@mui/icons-material/Check";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
 import Footer from "../../../components/2Footer";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import { useMediaQuery } from "react-responsive";
+import { useDispatch } from "react-redux";
 
 const CarPaidForPage = () => {
   const value = 4.5;
   const isMobile = useMediaQuery({ maxWidth: 768 });
+  const { state } = useLocation();
+  const dispatch = useDispatch()
+  console.log(state);
   return (
     <div>
       <div>
@@ -23,6 +27,8 @@ const CarPaidForPage = () => {
         <div>
           <div className="w-[90%] m-auto mt-[90px] flex justify-between">
             <Link to="/">
+              {" "}
+              F
               <p className="text-[14px] mt-[5px] font-medium font-inter">
                 Done
               </p>
@@ -56,7 +62,7 @@ const CarPaidForPage = () => {
                 </div>
                 <div className="text-[12px]">
                   Payment Successful. Car confirmation Details will also be sent
-                  to elvis@gmail.com
+                  to
                 </div>
               </div>
             </div>
@@ -92,7 +98,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      Ikeja
+                      {state.car.pickupInformation.from.description}
                     </p>
                   </div>
                 </div>
@@ -105,7 +111,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      Feb 10, 2025
+                      {state.car.pickupInformation.date}
                     </p>
                   </div>
                 </div>
@@ -118,7 +124,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      3:30 PM
+                      {state.car.pickupInformation.time}
                     </p>
                   </div>
                 </div>
@@ -131,7 +137,19 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      Victoria Island
+                      {state.car.pickupInformation.to.description}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex justify-between w-full">
+                  <div>
+                    <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
+                      Estimated Duration
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[#181818] text-[14px] font-inter">
+                      {state.car.content.transferDetailInfo[0].name}
                     </p>
                   </div>
                 </div>
@@ -143,65 +161,7 @@ const CarPaidForPage = () => {
 
           <div className="w-[90%] m-auto">
             <p className="text-[14px] font-inter mb-4 font-medium text-[#181818]">
-              Driver Details
-            </p>
-            <div className="">
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between">
-                  <div>
-                    <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                      Name
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[#181818] text-[14px] font-inter">
-                      Elvis Igiebor
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex justify-between">
-                  <div>
-                    <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                      Rating
-                    </p>
-                  </div>
-                  <div>
-                    <Stack direction="row">
-                      <Rating
-                        value={1}
-                        max={1}
-                        readOnly
-                        sx={{ fontSize: "14px", marginTop: "3px" }}
-                      />
-                      <Typography variant="body1" sx={{ fontSize: "14px" }}>
-                        {value}
-                      </Typography>
-                    </Stack>
-                  </div>
-                </div>
-
-                <div className="flex justify-between">
-                  <div>
-                    <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                      Phone Number
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[#181818] text-[14px] font-inter">
-                      090123456782
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <Divider sx={{ marginTop: "15px", marginBottom: "15px" }} />
-
-          <div className="w-[90%] m-auto">
-            <p className="text-[14px] font-inter mb-4 font-medium text-[#181818]">
-              Car Details
+              Taxi Details
             </p>
             <div className="">
               <div className="flex flex-col gap-1">
@@ -213,7 +173,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      Red Toyota Corolla
+                      {state.car.vehicle.code} {state.car.vehicle.name}
                     </p>
                   </div>
                 </div>
@@ -226,7 +186,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                      3 Seats
+                      {state.car.maxPaxCapacity} Seats
                     </p>
                   </div>
                 </div>
@@ -239,7 +199,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      Up to 4 Luggages
+                      {state.car.content.transferDetailInfo[3].name}
                     </p>
                   </div>
                 </div>
@@ -247,12 +207,12 @@ const CarPaidForPage = () => {
                 <div className="flex justify-between">
                   <div>
                     <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                      Plate Number
+                      Provider
                     </p>
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      AA1234FT
+                      Holiday Taxis
                     </p>
                   </div>
                 </div>
@@ -272,22 +232,27 @@ const CarPaidForPage = () => {
               <div className="">
                 <div className="flex justify-between mb-[6px]">
                   <p className="text-[#4E4F52] text-[14px]">Name</p>
-                  <p className="text-[#181818] text-[14px]">Elvis Igiebor</p>
+                  <p className="text-[#181818] text-[14px]">
+                    {state.passFormData.firstName} {state.passFormData.lastName}
+                  </p>
                 </div>
-
                 <div className="flex justify-between mb-[6px]">
                   <p className="text-[#4E4F52] text-[14px]">Email Address</p>
-                  <p className="text-[#181818] text-[14px]">Elvis@gmail.com</p>
+                  <p className="text-[#181818] text-[14px]">
+                    {state.passFormData.email}
+                  </p>
                 </div>
-
                 <div className="flex justify-between mb-[6px]">
                   <p className="text-[#4E4F52] text-[14px] ">Phone Number</p>
-                  <p className="text-[#181818] text-[14px]">090123456782</p>
+                  <p className="text-[#181818] text-[14px]">
+                    {`(${state.passFormData.countryCode}) ${state.passFormData.phoneNumber}`}{" "}
+                  </p>
                 </div>
-
                 <div className="flex justify-between mb-[6px]">
                   <p className="text-[#4E4F52] text-[14px]">Date Of Birth</p>
-                  <p className="text-[#181818] text-[14px]">11/08/2024</p>
+                  <p className="text-[#181818] text-[14px]">
+                    {state.passFormData.dateOfBirth}
+                  </p>
                 </div>
               </div>
             </div>
@@ -309,7 +274,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      ₦40,000
+                      &#8364;{state.car.price.totalAmountWithFee}
                     </p>
                   </div>
                 </div>
@@ -474,7 +439,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          Ikeja
+                          {state.car.pickupInformation.from.description}
                         </p>
                       </div>
                     </div>
@@ -487,7 +452,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          Feb 10, 2025
+                          {state.car.pickupInformation.date}
                         </p>
                       </div>
                     </div>
@@ -500,7 +465,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          3:30 PM
+                          {state.car.pickupInformation.time}
                         </p>
                       </div>
                     </div>
@@ -513,7 +478,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          Victoria Island
+                          {state.car.pickupInformation.to.description}
                         </p>
                       </div>
                     </div>
@@ -523,56 +488,7 @@ const CarPaidForPage = () => {
 
               <div className="mt-[15px]">
                 <p className="text-[20px] font-inter font-medium text-[#181818]">
-                  Driver Details
-                </p>
-                <div className="border border-[#CDCED1] rounded-[10px] w-[43.6vw] p-[20px] mt-[20px]">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex justify-between">
-                      <div>
-                        <p className="text-[18px] font-inter font-normal text-[#4E4F52]">
-                          Name
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[#181818] text-[16px] font-inter">
-                          Elvis Igiebor
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <div>
-                        <p className="text-[18px] font-inter font-normal text-[#4E4F52]">
-                          Rating
-                        </p>
-                      </div>
-                      <div>
-                        <Stack direction="row">
-                          <Rating value={1} max={1} readOnly />
-                          <Typography variant="body1">{value}</Typography>
-                        </Stack>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <div>
-                        <p className="text-[18px] font-inter font-normal text-[#4E4F52]">
-                          Phone Number
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[#181818] text-[16px] font-inter">
-                          090123456782
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-[15px]">
-                <p className="text-[20px] font-inter font-medium text-[#181818]">
-                  Car Details
+                  Taxi Details
                 </p>
                 <div className="border border-[#CDCED1] rounded-[10px] w-[43.6vw] p-[20px] mt-[20px]">
                   <div className="flex flex-col gap-1">
@@ -584,7 +500,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          Red Toyota Corolla
+                          {state.car.vehicle.code} {state.car.vehicle.name}
                         </p>
                       </div>
                     </div>
@@ -596,7 +512,7 @@ const CarPaidForPage = () => {
                         </p>
                       </div>
                       <div>
-                        <p>3 Seats</p>
+                        <p>{state.car.maxPaxCapacity} Seats</p>
                       </div>
                     </div>
 
@@ -608,7 +524,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          Up to 4 Luggages
+                          {state.car.content.transferDetailInfo[3].name}
                         </p>
                       </div>
                     </div>
@@ -616,12 +532,12 @@ const CarPaidForPage = () => {
                     <div className="flex justify-between">
                       <div>
                         <p className="text-[18px] font-inter font-normal text-[#4E4F52]">
-                          Plate Number
+                          Provider
                         </p>
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          AA1234FT
+                          Holiday Taxis
                         </p>
                       </div>
                     </div>
@@ -641,7 +557,8 @@ const CarPaidForPage = () => {
                     <div className="flex justify-between mb-[10px]">
                       <p className="text-[#4E4F52] text-[18px]">Name</p>
                       <p className="text-[#181818] text-[18px]">
-                        Elvis Igiebor
+                        {state.passFormData.firstName}{" "}
+                        {state.passFormData.lastName}
                       </p>
                     </div>
 
@@ -650,7 +567,7 @@ const CarPaidForPage = () => {
                         Email Address
                       </p>
                       <p className="text-[#181818] text-[18px]">
-                        Elvis@gmail.com
+                        {state.passFormData.email}
                       </p>
                     </div>
 
@@ -658,14 +575,16 @@ const CarPaidForPage = () => {
                       <p className="text-[#4E4F52] text-[18px] ">
                         Phone Number
                       </p>
-                      <p className="text-[#181818] text-[18px]">090123456782</p>
+                      <p className="text-[#181818] text-[18px]">{`(${state.passFormData.countryCode}) ${state.passFormData.phoneNumber}`}</p>
                     </div>
 
                     <div className="flex justify-between mb-[10px]">
                       <p className="text-[#4E4F52] text-[18px]">
                         Date Of Birth
                       </p>
-                      <p className="text-[#181818] text-[18px]">11/08/2024</p>
+                      <p className="text-[#181818] text-[18px]">
+                        {state.passFormData.dateOfBirth}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -687,7 +606,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          ₦40,000
+                          &#8364;{state.car.price.totalAmountWithFee}
                         </p>
                       </div>
                     </div>
@@ -721,6 +640,7 @@ const CarPaidForPage = () => {
                 <div className="mt-[100px]">
                   <Link to="/">
                     <button
+                    onClick={()=>  dispatch({ type: 'logout/LOGOUT' })}
                       className="w-full text-white h-[56px] rounded-[6px] cursor-pointer
                                                 bg-[#023E8A]"
                     >

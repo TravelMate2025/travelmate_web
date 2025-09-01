@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { Loader, SearchIcon, X } from "lucide-react";
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import { transferService } from "../services/transferService";
+import { transferService } from "../../services/transferService";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 
 interface SearchLocationProps {

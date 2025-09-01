@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import {
   MapLocation,
   searchDetailedLocation,
-} from "../services/locationService";
+} from "../../services/locationService";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 
 
