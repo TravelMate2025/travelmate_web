@@ -91,12 +91,6 @@ interface BookingFinalizeResult {
     error?: string;
 }
 
-interface BookingsListResult {
-    success: boolean;
-    data?: any[];
-    error?: string;
-}
-
 interface LookupResult {
     success: boolean;
     data?: any[];
@@ -132,40 +126,6 @@ class TransferService {
         }
     }
 
-    async searchTransfersPost(params: PostTransferSearchParams): Promise<TransferResult> {
-        try {
-            console.log('POST Transfer API request:', JSON.stringify(params, null, 2));
-            const response = await instance.post(`${this.baseUrl}/cars/transfers/search/`, {
-                body: JSON.stringify(params),
-            });
-            return {
-                success: true,
-                data: response.data,
-            };
-        } catch (error) {
-            console.error('POST Transfer search failed:', error);
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Search failed',
-            };
-        }
-    }
-
-    async getTransferDetails(transferId: string): Promise<TransferResult> {
-        try {
-            const response = await instance.get(`${this.baseUrl}/cars/transfers/details/?id=${transferId}`);
-            return {
-                success: true,
-                data: response.data,
-            };
-        } catch (error) {
-            console.error('Get transfer details failed:', error);
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Failed to instance.get transfer details',
-            };
-        }
-    }
 
     async createBookingConfirmation(params: BookingConfirmationParams): Promise<BookingConfirmationResult> {
         try {
@@ -187,8 +147,10 @@ class TransferService {
 
     async createCheckoutSession(confirmationId: string): Promise<CheckoutSessionResult> {
         try {
-            await instance.post(`${this.baseUrl}/transfers/booking/${confirmationId}/create-checkout-session/`);
+            const response = await instance.post(`${this.baseUrl}/transfers/booking/${confirmationId}/create-checkout-session/`);
+            console.log(response)
             return {
+                checkout_url: response?.data?.checkout_url,
                 success: true,
 
             };
@@ -198,22 +160,6 @@ class TransferService {
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Failed to create checkout session',
-            };
-        }
-    }
-
-    async finalizeBooking(confirmationId: string): Promise<BookingFinalizeResult> {
-        try {
-            const response = await instance.post(`${this.baseUrl}/transfers/booking/finalize/${confirmationId}/`);
-            return {
-                success: true,
-                data: response.data,
-            };
-        } catch (error) {
-            console.error('Finalize booking failed:', error);
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Failed to finalize booking',
             };
         }
     }
@@ -252,24 +198,6 @@ class TransferService {
             };
         }
     }
-
-    async listUserBookings(): Promise<BookingsListResult> {
-        try {
-            const response = await instance.get(`${this.baseUrl}/transfers/bookings/`);
-
-            return {
-                success: true,
-                data: response.data,
-            };
-        } catch (error) {
-            console.error('List bookings failed:', error);
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Failed to list bookings',
-            };
-        }
-    }
-
     async lookupTerminal(name: string): Promise<LookupResult> {
         try {
             const response = await instance.get(`${this.baseUrl}/transfers/lookup/terminal/?name=${encodeURIComponent(name)}`);
@@ -306,7 +234,6 @@ class TransferService {
         }
 
         const { departing } = this.formatDateTime(formData.pickupDate, formData.pickupTime);
-
         return {
             adults: formData.passengerCounts.adults.toString(),
             children: formData.passengerCounts.children.toString(),
@@ -376,33 +303,25 @@ class TransferService {
 
     private formatDateTime(dateStr: string, timeStr: string): { departing: string } {
         try {
-            if (!dateStr) {
-                throw new Error('Date string is undefined or empty');
+            if (!dateStr || !timeStr) {
+                throw new Error('Date or time string is undefined or empty');
             }
-            if (!timeStr) {
-                throw new Error('Time string is undefined or empty');
-            }
-
-            let date: Date;
-            if (dateStr.includes('-')) {
-                const singleDate = dateStr.split(' - ')[0];
-                date = parse(singleDate, 'dd MMM yyyy', new Date());
-            } else {
-                date = parse(dateStr, 'dd MMM yyyy', new Date());
-            }
-
+            const datePart = dateStr.includes(' - ') ? dateStr.split(' - ')[0] : dateStr;
+            const date = parse(datePart, 'dd MMM yyyy', new Date());
             const [hours, minutes] = timeStr.split(':');
-            date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+            date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0); // Sets seconds to 00
+            const formattedDateTime = format(date, "yyyy-MM-dd'T'HH:mm:ss");
 
-            return { departing: date.toISOString().slice(0, 19) };
+            return { departing: formattedDateTime };
+
         } catch (error) {
             console.error('Date formatting error:', error);
             const fallback = new Date();
             fallback.setHours(fallback.getHours() + 1);
-            return { departing: fallback.toISOString() };
+            const formattedFallback = format(fallback, "yyyy-MM-dd'T'HH:mm:ss");
+            return { departing: formattedFallback };
         }
     }
-
     private formatDate(dateStr: string): string {
         try {
             if (!dateStr) {

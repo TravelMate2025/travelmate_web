@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { fetchRecentSearches } from '../services/recentSearch';
-import axios from 'axios';
 import { RootState } from '../../../store';
 import { useSelector } from "react-redux";
+import instance from '../../../utils/axiosConfig';
 
 
 export const useLocationSearch = () => {
@@ -21,7 +21,7 @@ export const useLocationSearch = () => {
             setSearchError(null);
 
             try {
-                const response = await axios.get(`/api/transfers/lookup/terminal/?q=${encodeURIComponent(query)}`);
+                const response = await instance.get(`/api/transfers/lookup/terminal/?q=${encodeURIComponent(query)}`);
                 setLocations(response.data || []);
             } catch (error) {
                 setSearchError(error instanceof Error ? error.message : 'Search failed');
@@ -34,21 +34,21 @@ export const useLocationSearch = () => {
     );
 
     // Load recent searches
-    useEffect(() => {
-        const loadRecentSearches = async () => {
-            try {
-                setSearchLoading(true);
-                await fetchRecentSearches(setLocations, accessToken);
-            } catch (error) {
-                console.error('Failed to load recent searches:', error);
-                setSearchError('Failed to load recent searches');
-            } finally {
-                setSearchLoading(false);
-            }
-        };
+    // useEffect(() => {
+    //     const loadRecentSearches = async () => {
+    //         try {
+    //             setSearchLoading(true);
+    //             await fetchRecentSearches(setLocations, accessToken);
+    //         } catch (error) {
+    //             console.error('Failed to load recent searches:', error);
+    //             setSearchError('Failed to load recent searches');
+    //         } finally {
+    //             setSearchLoading(false);
+    //         }
+    //     };
 
-        loadRecentSearches();
-    }, []);
+    //     loadRecentSearches();
+    // }, []);
 
     const removeLocation = useCallback((locationToRemove: string) => {
         setLocations(prev => prev.filter(location => location !== locationToRemove));

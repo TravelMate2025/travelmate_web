@@ -7,6 +7,7 @@ import {
   Paper,
   Box,
   Typography,
+  Skeleton,
 } from "@mui/material";
 import { DateRange } from "react-date-range";
 import { useLocation } from "react-router-dom";
@@ -66,6 +67,7 @@ interface LocationState {
 const DisplayCars: React.FC = () => {
   const { state } = useLocation();
   const isMobile = useMediaQuery({ maxWidth: 768 });
+  const [loadingSkeleton, setLoadingSkeleton] = useState(false);
   const collectFrom = (data: string, data2: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -277,6 +279,7 @@ const DisplayCars: React.FC = () => {
     setSubmitError(null);
     try {
       setLoading(true);
+      setLoadingSkeleton(true);
       const params = transferService.convertFormToApiParams({
         ...formData,
         toLat: formData.toLat || 0,
@@ -298,6 +301,7 @@ const DisplayCars: React.FC = () => {
       console.error("Search failed:", error);
     } finally {
       setLoading(false);
+      setLoadingSkeleton(false);
     }
   }, [
     isValid,
@@ -724,9 +728,24 @@ const DisplayCars: React.FC = () => {
         />
       )}
 
-      {/* Car Results or Empty State */}
-
-      {(formData?.searchResults?.length ?? 0) > 0 ? (
+      {loadingSkeleton ? (
+        <div className="px-4 lg:px-24 py-10 space-y-6">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="flex gap-4 items-center p-4 border rounded-lg shadow-sm bg-white"
+            >
+              <Skeleton variant="rectangular" width={120} height={80} />
+              <div className="flex-1 space-y-3">
+                <Skeleton variant="text" width="60%" height={24} />
+                <Skeleton variant="text" width="40%" height={20} />
+                <Skeleton variant="text" width="80%" height={20} />
+              </div>
+              <Skeleton variant="rectangular" width={100} height={40} />
+            </div>
+          ))}
+        </div>
+      ) : (formData?.searchResults?.length ?? 0) > 0 ? (
         <CarList
           departureInfo={{
             pickupLocation: formData.pickupLocation,
@@ -752,6 +771,7 @@ const DisplayCars: React.FC = () => {
           searchResults={formData.searchResults || stateData.searchResults}
           OpenForm={() => setForm(true)}
           loading={loading}
+          rate_key={formData.rate_key}
         />
       ) : (
         <EmptyState />

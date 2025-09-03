@@ -131,7 +131,7 @@ const debouncedFetchLocations = useMemo(
   return (
     <div className="min-w-screen min-h-screen p-8 rounded-lg bg-white shadow-2xl fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 lg:min-h-[400px] lg:min-w-[90vh] block z-[99] mt-5">
       <div className="flex justify-normal gap-32 lg:gap-42 items-center my-5 w-full">
-        <div className="p-[8px] bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px]">
+        <div className="p-[8px] bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] cursor-pointer">
           <X onClick={closeDialog} className="font-bold" />
         </div>
         <h2 className="font-bold text-lg">Pick Up</h2>
@@ -144,7 +144,7 @@ const debouncedFetchLocations = useMemo(
           value={query}
           helperText={error}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Enter airport name or IATA code (e.g., CDG, Paris)"
+          placeholder="Enter airport name or IATA code"
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">

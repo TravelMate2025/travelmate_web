@@ -5,6 +5,7 @@ import MobilePage from "./MobilePage";
 import { useLocation, useNavigate } from "react-router";
 import Footer from "../../../components/2Footer";
 import { transferService } from "../services/transferService";
+import { toast } from "react-toastify";
 
 export type DeskProps = {
   handleBack: () => void;
@@ -69,7 +70,7 @@ export type DeskProps = {
 const Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [confirmationId, setConfirmationId] = useState<string | undefined>("");
+  const [confirmationId, setConfirmationId] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   const steps = ["Booking Overview", "Passenger Information", "Payment"];
@@ -155,10 +156,12 @@ const Page = () => {
 
   const handleConfirm = async () => {
     if (!isTheFormValid) {
+      console.log("INvalid");
       return;
     }
 
     try {
+      setLoadingSubmit(true);
       const payload = {
         search_id,
         rate_key,
@@ -171,16 +174,20 @@ const Page = () => {
       };
 
       const result = await transferService.createBookingConfirmation(payload);
-      setActiveStep(2);
-      console.log(payload);
-      setConfirmationId(result?.data?.booking_id);
       if (result.success) {
         console.log("Booking confirmed!", result.data);
       } else {
+        console.log("Your search expired, please search again.");
         console.error("Booking failed:", result.error);
+        return;
       }
+      setActiveStep(2);
+      setConfirmationId(result?.data?.id);
+      console.log(result);
     } catch (error) {
       console.error("Booking failed:", error);
+    } finally {
+      setLoadingSubmit(false);
     }
   };
 
@@ -217,23 +224,33 @@ const Page = () => {
   }, [passFormData]);
 
   const isFormValids = formData.agreement;
+
   const handleSubmit = async () => {
     try {
       setLoadingSubmit(true);
-      await transferService.createCheckoutSession(confirmationId);
-      navigate("/car-payment-successful", {
-        state: {
-          confirmationId,
-          car: location.state?.car,
-          passFormData,
-        },
-      });
+      const response = await transferService.createCheckoutSession(
+        confirmationId
+      );
+      console.log(response);
+      if (response.success) {
+        // navigate("/car-payment-successful", {
+        //   state: {
+        //     confirmationId,
+        //     car: location.state?.car,
+        //     passFormData,
+        //   },
+        // });
+       window.location.href = response.checkout_url;
+      } else {
+        console.error("Payment failed or invalid response:", response);
+      }
     } catch (error) {
       console.error("Error in payment:", error);
     } finally {
       setLoadingSubmit(false);
     }
   };
+
   return (
     <div>
       <Navbar />
@@ -262,7 +279,7 @@ const Page = () => {
         isTheFormValid={isTheFormValid}
         loadingSubmit={loadingSubmit}
       />
-  
+
       <Footer />
     </div>
   );

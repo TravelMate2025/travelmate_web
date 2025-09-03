@@ -65,7 +65,6 @@ export async function searchDetailedLocation(
             const address = item.address ?? {};
             const type = item.type ?? "";
             const category = item.category ?? "";
-
             return {
                 name: item.display_name?.toString() ?? "Unknown",
                 placeId: item.osm_id?.toString() ?? "",
@@ -82,6 +81,7 @@ export async function searchDetailedLocation(
                 airportCode: extractAirportCode(item.display_name?.toString()),
                 isAirport: type === "aeroway" || category === "aerodrome",
             };
+
         });
 
         cache[key] = locations;

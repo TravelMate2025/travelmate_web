@@ -30,6 +30,7 @@ const CarList: React.FC<CarListProps> = ({
   searchResults,
   OpenForm,
   rate_key,
+  loading,
 }) => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const navigate = useNavigate();
@@ -60,6 +61,7 @@ const CarList: React.FC<CarListProps> = ({
 
   return (
     <div>
+      {loading && <div>Loaidng</div>}
       <div className="mb-4 px-6 py-4 border-[#023E8A] rounded-md lg:mt-20 border flex justify-between items-start lg:hidden mt-20 mx-4">
         <div>
           <p>

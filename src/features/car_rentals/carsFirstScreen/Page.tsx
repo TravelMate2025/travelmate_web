@@ -231,10 +231,7 @@ const CarBookingFirstScreen: React.FC = () => {
 
   const handlePriceSubmit = useCallback(
     (min: number, max: number) => {
-      // if (min < 6000 || max < 6000) {
-      //   openModal("priceError");
-      //   return;
-      // }
+
       updateField("priceRange", { min, max });
       closeModal("priceRange");
     },
@@ -257,6 +254,7 @@ const CarBookingFirstScreen: React.FC = () => {
     [updateField, closeModal]
   );
   const handleSearch = useCallback(async () => {
+    console.log(formData)
     const errors = [];
     if (!/^[A-Z]{3}$/.test(formData.pickupLocation)) {
       errors.push(
@@ -288,8 +286,6 @@ const CarBookingFirstScreen: React.FC = () => {
       setLoading(true);
       const params = transferService.convertFormToApiParams({
         ...formData,
-        // toLat: formData.toLat,
-        // toLon: formData.toLon
       });
       if (!params.fcode || !/^[A-Z]{3}$/.test(params.fcode)) {
         throw new Error("Invalid pickup location code");
@@ -376,8 +372,8 @@ const CarBookingFirstScreen: React.FC = () => {
                 size="small"
                 value={displayValues.rideType}
                 onClick={() => openModal("rideType")}
-                error={!!errors.selectedRide}
-                helperText={errors.selectedRide}
+                // error={!!errors.selectedRide}
+                // helperText={errors.selectedRide}
                 InputProps={{
                   readOnly: true,
                   startAdornment: (
@@ -406,8 +402,8 @@ const CarBookingFirstScreen: React.FC = () => {
                 placeholder="Search Pick up Location"
                 value={formData.pickUpLocaDescription}
                 onClick={(e) => handlePickLocationClick(e, "pick")}
-                error={!!errors.pickupLocation}
-                helperText={errors.pickupLocation}
+                // error={!!errors.pickupLocation}
+                // helperText={errors.pickupLocation}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -434,8 +430,8 @@ const CarBookingFirstScreen: React.FC = () => {
                 placeholder="Search Destination"
                 value={formData.dropoffLocation}
                 onClick={(e) => handleDropLocationClick(e, "drop")}
-                error={!!errors.dropoffLocation}
-                helperText={errors.dropoffLocation}
+                // error={!!errors.dropoffLocation}
+                // helperText={errors.dropoffLocation}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -462,8 +458,8 @@ const CarBookingFirstScreen: React.FC = () => {
                 placeholder="Select Date"
                 value={formData.pickupDate || "Select Date"}
                 onClick={handleDateClick}
-                error={!!errors.pickupDate}
-                helperText={errors.pickupDate}
+                // error={!!errors.pickupDate}
+                // helperText={errors.pickupDate}
                 InputProps={{
                   readOnly: true,
                   startAdornment: (
@@ -575,8 +571,8 @@ const CarBookingFirstScreen: React.FC = () => {
                 size="small"
                 value={formData.pickupTime}
                 onChange={handleTimeChange}
-                error={!!errors.pickupTime}
-                helperText={errors.pickupTime}
+                // error={!!errors.pickupTime}
+                // helperText={errors.pickupTime}
                 sx={{
                   "& .MuiInputBase-root": {
                     height: "44px",
@@ -595,8 +591,8 @@ const CarBookingFirstScreen: React.FC = () => {
                 size="small"
                 value={displayValues.passengers}
                 onClick={() => openModal("passengers")}
-                error={!!errors.passengers}
-                helperText={errors.passengers}
+                // error={!!errors.passengers}
+                // helperText={errors.passengers}
                 placeholder="Select Passengers"
                 InputProps={{ readOnly: true }}
                 sx={{
@@ -619,8 +615,8 @@ const CarBookingFirstScreen: React.FC = () => {
                 placeholder="Enter Minimum - Maximum Price"
                 value={displayValues.priceRange}
                 onClick={() => openModal("priceRange")}
-                error={!!errors.priceRange}
-                helperText={errors.priceRange}
+                // error={!!errors.priceRange}
+                // helperText={errors.priceRange}
                 InputProps={{ readOnly: true }}
                 sx={{
                   "& .MuiInputBase-root": {

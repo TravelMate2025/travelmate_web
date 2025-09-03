@@ -1,4 +1,4 @@
-import { Divider, Rating, Stack, Typography } from "@mui/material";
+import { Divider } from "@mui/material";
 import Navbar from "../../../pages/homePage/Navbar";
 import KeyboardArrowLeftOutlinedIcon from "@mui/icons-material/KeyboardArrowLeftOutlined";
 import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
@@ -10,19 +10,51 @@ import Footer from "../../../components/2Footer";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import { useMediaQuery } from "react-responsive";
 import { useDispatch } from "react-redux";
+import { resetForm } from "../carPaymentSlice";
+import { useEffect, useState } from "react";
+import { transferService } from "../services/transferService";
+import { toast, ToastContainer } from "react-toastify";
 
 const CarPaidForPage = () => {
-  const value = 4.5;
   const isMobile = useMediaQuery({ maxWidth: 768 });
-  const { state } = useLocation();
-  const dispatch = useDispatch()
-  console.log(state);
+  const location = useLocation();
+  const { state } = location; // extract state separately
+  const [loading, setLoading] = useState(false);
+  const [booking, setBooking] = useState(state);
+  const dispatch = useDispatch();
+  const searchParams = new URLSearchParams(location.search);
+  const sessionId = searchParams.get("session_id");
+
+  useEffect(() => {
+    const fetchBooking = async () => {
+      const isSuccess =
+        searchParams.has("success") || location.pathname.includes("success");
+      try {
+        setLoading(true);
+        if (isSuccess) {
+          const res = await transferService.getBookingBySession(sessionId);
+          setBooking(res.data);
+        } else {
+          toast.error("Booking falied please try again!");
+        }
+      } catch (error) {
+        console.error("Error fetching booking:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (sessionId) fetchBooking();
+  }, [sessionId]);
+
+  if (loading) return <p>Loading booking details...</p>;
+  if (!booking) return <p>No booking found for this session.</p>;
   return (
     <div>
       <div>
         <Navbar />
       </div>
-
+      <ToastContainer />
       {isMobile ? (
         <div>
           <div className="w-[90%] m-auto mt-[90px] flex justify-between">
@@ -98,7 +130,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {state.car.pickupInformation.from.description}
+                      {booking.car.pickupInformation.from.description}
                     </p>
                   </div>
                 </div>
@@ -111,7 +143,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {state.car.pickupInformation.date}
+                      {booking.car.pickupInformation.date}
                     </p>
                   </div>
                 </div>
@@ -124,7 +156,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {state.car.pickupInformation.time}
+                      {booking.car.pickupInformation.time}
                     </p>
                   </div>
                 </div>
@@ -137,7 +169,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {state.car.pickupInformation.to.description}
+                      {booking.car.pickupInformation.to.description}
                     </p>
                   </div>
                 </div>
@@ -149,7 +181,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {state.car.content.transferDetailInfo[0].name}
+                      {booking.car.content.transferDetailInfo[0].name}
                     </p>
                   </div>
                 </div>
@@ -173,7 +205,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {state.car.vehicle.code} {state.car.vehicle.name}
+                      {booking.car.vehicle.code} {booking.car.vehicle.name}
                     </p>
                   </div>
                 </div>
@@ -186,7 +218,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                      {state.car.maxPaxCapacity} Seats
+                      {booking.car.maxPaxCapacity} Seats
                     </p>
                   </div>
                 </div>
@@ -199,7 +231,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {state.car.content.transferDetailInfo[3].name}
+                      {booking.car.content.transferDetailInfo[3].name}
                     </p>
                   </div>
                 </div>
@@ -233,25 +265,25 @@ const CarPaidForPage = () => {
                 <div className="flex justify-between mb-[6px]">
                   <p className="text-[#4E4F52] text-[14px]">Name</p>
                   <p className="text-[#181818] text-[14px]">
-                    {state.passFormData.firstName} {state.passFormData.lastName}
+                    {booking.passFormData.firstName} {booking.passFormData.lastName}
                   </p>
                 </div>
                 <div className="flex justify-between mb-[6px]">
                   <p className="text-[#4E4F52] text-[14px]">Email Address</p>
                   <p className="text-[#181818] text-[14px]">
-                    {state.passFormData.email}
+                    {booking.passFormData.email}
                   </p>
                 </div>
                 <div className="flex justify-between mb-[6px]">
                   <p className="text-[#4E4F52] text-[14px] ">Phone Number</p>
                   <p className="text-[#181818] text-[14px]">
-                    {`(${state.passFormData.countryCode}) ${state.passFormData.phoneNumber}`}{" "}
+                    {`(${booking.passFormData.countryCode}) ${booking.passFormData.phoneNumber}`}{" "}
                   </p>
                 </div>
                 <div className="flex justify-between mb-[6px]">
                   <p className="text-[#4E4F52] text-[14px]">Date Of Birth</p>
                   <p className="text-[#181818] text-[14px]">
-                    {state.passFormData.dateOfBirth}
+                    {booking.passFormData.dateOfBirth}
                   </p>
                 </div>
               </div>
@@ -274,7 +306,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      &#8364;{state.car.price.totalAmountWithFee}
+                      &#8364;{booking.car.price.totalAmountWithFee}
                     </p>
                   </div>
                 </div>
@@ -336,7 +368,12 @@ const CarPaidForPage = () => {
 
           <div className="">
             <Link to="/">
-              <button className="w-full text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]">
+              <button
+                className="w-full text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]"
+                onClick={() => {
+                  dispatch(resetForm()); // clears redux
+                }}
+              >
                 Back to home
               </button>
             </Link>
@@ -352,7 +389,12 @@ const CarPaidForPage = () => {
         <div>
           <Link to="/">
             <div className="flex mt-26 mb-[24px] gap-[24px] w-[90%] m-auto cursor-pointer">
-              <div className="w-[33px] h-[33px]  cursor-pointer bg-white border border-[#EBECED] rounded-[4px] shadow-md shadow-[#00000014] flex items-center justify-center">
+              <div
+                className="w-[33px] h-[33px]  cursor-pointer bg-white border border-[#EBECED] rounded-[4px] shadow-md shadow-[#00000014] flex items-center justify-center"
+                onClick={() => {
+                  dispatch(resetForm()); // clears redux
+                }}
+              >
                 <KeyboardArrowLeftOutlinedIcon className="scale-150" />
               </div>
               <p className="mt-[5px] text-[18px]">Back to home</p>
@@ -439,7 +481,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          {state.car.pickupInformation.from.description}
+                          {booking.car.pickupInformation.from.description}
                         </p>
                       </div>
                     </div>
@@ -452,7 +494,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          {state.car.pickupInformation.date}
+                          {booking.car.pickupInformation.date}
                         </p>
                       </div>
                     </div>
@@ -465,7 +507,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          {state.car.pickupInformation.time}
+                          {booking.car.pickupInformation.time}
                         </p>
                       </div>
                     </div>
@@ -478,7 +520,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          {state.car.pickupInformation.to.description}
+                          {booking.car.pickupInformation.to.description}
                         </p>
                       </div>
                     </div>
@@ -500,7 +542,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          {state.car.vehicle.code} {state.car.vehicle.name}
+                          {booking.car.vehicle.code} {booking.car.vehicle.name}
                         </p>
                       </div>
                     </div>
@@ -512,7 +554,7 @@ const CarPaidForPage = () => {
                         </p>
                       </div>
                       <div>
-                        <p>{state.car.maxPaxCapacity} Seats</p>
+                        <p>{booking.car.maxPaxCapacity} Seats</p>
                       </div>
                     </div>
 
@@ -524,7 +566,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          {state.car.content.transferDetailInfo[3].name}
+                          {booking.car.content.transferDetailInfo[3].name}
                         </p>
                       </div>
                     </div>
@@ -557,8 +599,8 @@ const CarPaidForPage = () => {
                     <div className="flex justify-between mb-[10px]">
                       <p className="text-[#4E4F52] text-[18px]">Name</p>
                       <p className="text-[#181818] text-[18px]">
-                        {state.passFormData.firstName}{" "}
-                        {state.passFormData.lastName}
+                        {booking.passFormData.firstName}{" "}
+                        {booking.passFormData.lastName}
                       </p>
                     </div>
 
@@ -567,7 +609,7 @@ const CarPaidForPage = () => {
                         Email Address
                       </p>
                       <p className="text-[#181818] text-[18px]">
-                        {state.passFormData.email}
+                        {booking.passFormData.email}
                       </p>
                     </div>
 
@@ -575,7 +617,7 @@ const CarPaidForPage = () => {
                       <p className="text-[#4E4F52] text-[18px] ">
                         Phone Number
                       </p>
-                      <p className="text-[#181818] text-[18px]">{`(${state.passFormData.countryCode}) ${state.passFormData.phoneNumber}`}</p>
+                      <p className="text-[#181818] text-[18px]">{`(${booking.passFormData.countryCode}) ${booking.passFormData.phoneNumber}`}</p>
                     </div>
 
                     <div className="flex justify-between mb-[10px]">
@@ -583,7 +625,7 @@ const CarPaidForPage = () => {
                         Date Of Birth
                       </p>
                       <p className="text-[#181818] text-[18px]">
-                        {state.passFormData.dateOfBirth}
+                        {booking.passFormData.dateOfBirth}
                       </p>
                     </div>
                   </div>
@@ -606,7 +648,7 @@ const CarPaidForPage = () => {
                       </div>
                       <div>
                         <p className="text-[#181818] text-[16px] font-inter">
-                          &#8364;{state.car.price.totalAmountWithFee}
+                          &#8364;{booking.car.price.totalAmountWithFee}
                         </p>
                       </div>
                     </div>
@@ -640,7 +682,9 @@ const CarPaidForPage = () => {
                 <div className="mt-[100px]">
                   <Link to="/">
                     <button
-                    onClick={()=>  dispatch({ type: 'logout/LOGOUT' })}
+                      onClick={() => {
+                        dispatch(resetForm());
+                      }}
                       className="w-full text-white h-[56px] rounded-[6px] cursor-pointer
                                                 bg-[#023E8A]"
                     >

@@ -66,13 +66,11 @@ const SearchDropOffLocation = ({
           setLoading,
           query
         );
-        console.log(destinationResult);
 
         setDropSuggestions(destinationResult);
         setError(
           destinationResult.length === 0 ? "No destinations found" : null
         );
-        console.log("API response:", destinationResult);
       } catch (err: any) {
         setError(err.message || "Failed to fetch destinations");
         setDropSuggestions([]);
@@ -106,8 +104,8 @@ const SearchDropOffLocation = ({
         endCountry: location.country,
         toLat: location.latitude,
         toLon: location.longitude,
-        endGeoLat: location.latitude,
-        endGeoLong: location.longitude,
+        // endGeoLat: location.latitude,
+        // endGeoLong: location.longitude,
       });
     }
     closeDialog();

@@ -21,6 +21,8 @@ import Complete from "./Complete";
 import { MdArrowDropDown } from "react-icons/md";
 import { FiPhone } from "react-icons/fi";
 import { DeskProps } from "./Page";
+import { ToastContainer } from "react-toastify";
+
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .MuiStepConnector-line`]: {
     borderTopWidth: 3,
@@ -103,9 +105,22 @@ const MobilePage = ({
       });
     }
   };
-
+  const addDurationToTime = (pickupTime: string, durationStr: string) => {
+    const [h, m] = pickupTime.split(":").map(Number);
+    let totalMin = h * 60 + m;
+    const hourMatch = durationStr.match(/(\d+)\s*hour(s)?/i);
+    const minMatch = durationStr.match(/(\d+)\s*min/i);
+    if (hourMatch) totalMin += parseInt(hourMatch[1]) * 60;
+    if (minMatch) totalMin += parseInt(minMatch[1]);
+    const newH = Math.floor(totalMin / 60) % 24;
+    const newM = totalMin % 60;
+    return `${newH.toString().padStart(2, "0")}:${newM
+      .toString()
+      .padStart(2, "0")}`;
+  };
   return (
     <div>
+      <ToastContainer/>
       {showAllModal && (
         <Complete closeDialog={() => setShowAllModal(false)} car={car} />
       )}
@@ -217,7 +232,13 @@ const MobilePage = ({
                       <p>{departureInfo.pickupDate}</p>
                       <Dot fill="#4E4F52" />
                       <FaRegClock />
-                      <p>3:30pm</p>
+
+                      <p>
+                        {addDurationToTime(
+                          departureInfo.pickupTime,
+                          car.content.transferDetailInfo[0].name
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -291,7 +312,7 @@ const MobilePage = ({
 
                 <p className="text-[#181818] text-[14px] font-bold font-inter">
                   {" "}
-                  &#8364;{car.price.totalAmount}
+                  &#8364;{car.price.totalAmountWithFee}
                 </p>
               </div>
             </div>
@@ -600,12 +621,12 @@ const MobilePage = ({
                   alt="paypal icon"
                   className="w-24 h-10 object-cover bg-white rounded-lg p-2 border-1 border-[#CDCED1]"
                 />
-                <p className="font-bold text-lg">Paypal</p>
+                <p className="font-bold text-lg">Stripe</p>
               </div>
               <div className="flex flex-col justify-center items-center gap-4 bg-[#FAFAFA] rounded-lg lg:p-26 p-12 ">
                 <ArrowRight className="font-bold w-12 h-12" />
                 <p className="text-[#4E4F52]">
-                  You'll be redirected to PayPal to complete your secure payment
+                  You'll be redirected to Stripe to complete your secure payment
                 </p>
               </div>
             </div>
@@ -615,7 +636,7 @@ const MobilePage = ({
             </p>
             <div className="px-6  border-[#CDCED1] lg:border rounded-lg p-5 flex justify-between items-center w-full">
               <p className="font-bold text-[#4E4F52]">Total</p>
-              <p>&#8364;{car.price.totalAmount}</p>
+              <p>&#8364;{car.price.totalAmountWithFee}</p>
             </div>
 
             <Divider
@@ -648,26 +669,31 @@ const MobilePage = ({
           // <Link to="/car-payment-successful">
           <div className="mx-6 my-6 flex items-center justify-center">
             <button
-              className={`w-full lg:w-96 text-white bg-[#023E8A] h-[56px] rounded-[6px] cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed
+              className={`flex items-center justify-center gap-5 w-full lg:w-96 text-white bg-[#023E8A] h-[56px] rounded-[6px] cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed
                 `}
               disabled={!isFormValids}
               onClick={handleSubmit}
             >
-              Pay with Paypal
+              <span>Pay with Stripe</span>
+              {loadingSubmit && (
+                <Loader className="animate-spin " stroke="#ffffff" />
+              )}
             </button>
           </div>
         ) : (
           // {/* </Link> */}
           <div className="mx-6 mb-20 flex items-center justify-center">
             <button
-              className="w-full lg:w-96 text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]  disabled:bg-gray-400 disabled:cursor-not-allowed"
-              disabled={!isFormValid && !loggedIn}
+              className="flex items-center justify-center gap-5 w-full lg:w-96 text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]  disabled:bg-gray-400 disabled:cursor-not-allowed"
+              disabled={!loggedIn && loadingSubmit}
               onClick={() => {
                 activeStep === 0 ? handleNext() : handleConfirm();
               }}
             >
-              {activeStep === steps.length - 1 ? "Pay with Paypal" : "Continue"}
-              {loadingSubmit && <Loader className="animate-spin" />}
+              <span>Continue</span>
+              {loadingSubmit && (
+                <Loader className="animate-spin " stroke="#ffffff" />
+              )}
             </button>
           </div>
         )}
