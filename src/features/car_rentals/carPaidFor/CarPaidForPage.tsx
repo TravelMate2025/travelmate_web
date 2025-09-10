@@ -14,6 +14,8 @@ import { resetForm } from "../carPaymentSlice";
 import { useEffect, useState } from "react";
 import { transferService } from "../services/transferService";
 import { toast, ToastContainer } from "react-toastify";
+import { useFormPersistence } from "../hooks/useFormPersistence";
+import { BookingFormData } from "../types/booking";
 
 const CarPaidForPage = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -22,6 +24,7 @@ const CarPaidForPage = () => {
   const [loading, setLoading] = useState(false);
   const [booking, setBooking] = useState(state);
   const dispatch = useDispatch();
+  const { clearSavedData } = useFormPersistence({} as BookingFormData);
   const searchParams = new URLSearchParams(location.search);
   const sessionId = searchParams.get("session_id");
 
@@ -371,7 +374,8 @@ const CarPaidForPage = () => {
               <button
                 className="w-full text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]"
                 onClick={() => {
-                  dispatch(resetForm()); // clears redux
+                  dispatch(resetForm()); 
+                  clearSavedData()
                 }}
               >
                 Back to home
@@ -392,7 +396,8 @@ const CarPaidForPage = () => {
               <div
                 className="w-[33px] h-[33px]  cursor-pointer bg-white border border-[#EBECED] rounded-[4px] shadow-md shadow-[#00000014] flex items-center justify-center"
                 onClick={() => {
-                  dispatch(resetForm()); // clears redux
+                  dispatch(resetForm()); 
+                  clearSavedData()
                 }}
               >
                 <KeyboardArrowLeftOutlinedIcon className="scale-150" />
@@ -684,6 +689,7 @@ const CarPaidForPage = () => {
                     <button
                       onClick={() => {
                         dispatch(resetForm());
+                        clearSavedData()
                       }}
                       className="w-full text-white h-[56px] rounded-[6px] cursor-pointer
                                                 bg-[#023E8A]"

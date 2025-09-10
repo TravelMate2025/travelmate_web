@@ -13,7 +13,6 @@ import {
 } from "../../services/locationService";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 
-
 export interface SearchLocationProps {
   closeDialog: () => void;
   value: string;
@@ -52,7 +51,7 @@ const SearchDropOffLocation = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (query.length < 2) {
+    if (query.length < 3) {
       setDropSuggestions([]);
       setError(null);
       setLoading(false);
@@ -61,16 +60,19 @@ const SearchDropOffLocation = ({
 
     const fetchDropoffLocations = async () => {
       try {
-        setLoading(true);
-        const destinationResult = await searchDetailedLocation(
-          setLoading,
-          query
-        );
+        if (query.length > 2) {
+          setLoading(true);
+          const destinationResult = await searchDetailedLocation(
+            setLoading,
+            query
+          );
 
-        setDropSuggestions(destinationResult);
-        setError(
-          destinationResult.length === 0 ? "No destinations found" : null
-        );
+          setDropSuggestions(destinationResult);
+          setError(
+            destinationResult.length === 0 ? "No destinations found" : null
+          );
+          return;
+        }
       } catch (err: any) {
         setError(err.message || "Failed to fetch destinations");
         setDropSuggestions([]);
@@ -181,10 +183,7 @@ const SearchDropOffLocation = ({
                   key={location.placeId}
                   onClick={() => handleSelect(location)}
                 >
-                  <ListItemText
-                    primary={location.name}
-                    
-                  />
+                  <ListItemText primary={location.name} />
                 </ListItem>
               </div>
             ))

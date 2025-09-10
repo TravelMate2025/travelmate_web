@@ -19,14 +19,12 @@ export const useFormPersistence = (
     [storageKey]
   );
 
-  // Save form data whenever it changes
   useEffect(() => {
-    if (formData.pickupLocation || formData.dropoffLocation || formData.pickupDate) {
+    if (formData.pickupLocation || formData.dropoffLocation || formData.pickupDate ) {
       debouncedSave(formData);
     }
   }, [formData, debouncedSave]);
 
-  // Load saved form data
   const loadSavedData = useCallback((): Partial<BookingFormData> | null => {
     try {
       const saved = localStorage.getItem(storageKey);
@@ -37,7 +35,13 @@ export const useFormPersistence = (
     }
   }, [storageKey]);
 
-  return { loadSavedData };
-};
+   const clearSavedData = useCallback(() => {
+    try {
+      localStorage.removeItem(storageKey);
+    } catch (error) {
+      console.error('Failed to clear saved form data:', error);
+    }
+  }, [storageKey]);
 
-// hooks/useBookingForm.ts
+  return { loadSavedData, clearSavedData };
+};

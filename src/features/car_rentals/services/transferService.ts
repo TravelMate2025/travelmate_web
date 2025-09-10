@@ -1,6 +1,7 @@
 import { parse, format } from 'date-fns';
-import instance from '../../../utils/axiosConfig';
 import { BookingFormData } from '../types/booking';
+import axios from 'axios';
+import instance from '../../../utils/axiosConfig';
 
 
 export interface TransferSearchParams {
@@ -110,7 +111,7 @@ class TransferService {
             });
 
 
-            const response = await instance.get(`${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
+            const response = await axios.get(`${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
             return {
                 success: true,
                 data: response?.data || [],
@@ -130,7 +131,7 @@ class TransferService {
     async createBookingConfirmation(params: BookingConfirmationParams): Promise<BookingConfirmationResult> {
         try {
             const response = await instance.post(`${this.baseUrl}/transfers/booking/confirmation/`,
-                JSON.stringify(params),
+                JSON.stringify(params)
             );
             return {
                 success: true,
@@ -166,7 +167,7 @@ class TransferService {
 
     async cancelBooking(confirmationId: string): Promise<BookingFinalizeResult> {
         try {
-            const response = await instance.get(`${this.baseUrl}/transfers/booking/${confirmationId}/cancel/`, {
+            const response = await axios.get(`${this.baseUrl}/transfers/booking/${confirmationId}/cancel/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -185,7 +186,7 @@ class TransferService {
 
     async getBookingBySession(sessionId: string): Promise<BookingConfirmationResult> {
         try {
-            const response = await instance.get(`${this.baseUrl}/transfers/booking/confirmation/by-session/?session_id=${sessionId}`);
+            const response = await axios.get(`${this.baseUrl}/transfers/booking/confirmation/by-session/?session_id=${sessionId}`);
             return {
                 success: true,
                 data: response.data,
@@ -200,7 +201,7 @@ class TransferService {
     }
     async lookupTerminal(name: string): Promise<LookupResult> {
         try {
-            const response = await instance.get(`${this.baseUrl}/transfers/lookup/terminal/?name=${encodeURIComponent(name)}`);
+            const response = await axios.get(`${this.baseUrl}/transfers/lookup/terminal/?name=${encodeURIComponent(name)}`);
             return {
                 success: true,
                 data: response.data?.results || response.data?.data || response.data || [],

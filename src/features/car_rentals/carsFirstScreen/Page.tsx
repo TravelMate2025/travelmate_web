@@ -84,9 +84,9 @@ const CarBookingFirstScreen: React.FC = () => {
         selectedRide: carInfo.selectedRide || "",
         priceRange: carInfo.priceRange || { min: 0, max: 0 },
         passengerCounts: carInfo.passengerCounts || {
-          adults: "",
-          children: "",
-          infant: "",
+          adults: 0,
+          children: 0,
+          infant: 0,
         },
         endGeoLat: carInfo.endGeoLat,
         endGeoLong: carInfo.endGeoLong,
@@ -340,13 +340,6 @@ const CarBookingFirstScreen: React.FC = () => {
 
   return (
     <div className="car-booking-first-screen">
-      {/* Error Alert */}
-      {/* {(submitError || searchError) && (
-        <ErrorAlert
-          message={submitError || searchError || ""} 
-          onClose={() => setSubmitError(null)} 
-        />
-      )} */}
 
       {/* Shared Ride Info */}
       {formData.selectedRide === "Shared Ride" && (
@@ -387,6 +380,7 @@ const CarBookingFirstScreen: React.FC = () => {
                     height: "44px",
                     borderRadius: "8px",
                     cursor: "pointer",
+                    
                   },
                 }}
               />

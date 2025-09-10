@@ -1,7 +1,7 @@
 export interface PassengerCounts {
-  adults: string;
-  children:string;
-  infant: string;
+  adults: number;
+  children:number;
+  infant: number;
 }
 
 export interface PriceRange {
@@ -44,11 +44,6 @@ export interface BookingFormData {
   rate_key?: string;
 }
 
-export interface PassengerCounts {
-  adults: string;
-  children: string;
-  infant: string;
-}
 export interface FormValidationResult {
   isValid: boolean;
   errors: Record<string, string>;

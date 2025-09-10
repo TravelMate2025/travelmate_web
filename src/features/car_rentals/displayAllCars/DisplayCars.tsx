@@ -126,7 +126,7 @@ const DisplayCars: React.FC = () => {
 
   const { loadSavedData } = useFormPersistence(
     {} as BookingFormData,
-    "displayCarsForm"
+    "carBookingForm"
   );
 
   const initialData = useMemo(() => {
@@ -217,10 +217,6 @@ const DisplayCars: React.FC = () => {
 
   const handlePriceSubmit = useCallback(
     (min: number, max: number) => {
-      // if (min < 6000 || max < 6000) {
-      //   openModal("priceError");
-      //   return;
-      // }
       updateField("priceRange", { min, max });
       closeModal("priceRange");
     },
@@ -281,9 +277,7 @@ const DisplayCars: React.FC = () => {
       setLoading(true);
       setLoadingSkeleton(true);
       const params = transferService.convertFormToApiParams({
-        ...formData,
-        toLat: formData.toLat || 0,
-        toLon: formData.toLon || 0,
+        ...formData
       });
       if (!params.fcode || !/^[A-Z]{3}$/.test(params.fcode)) {
         throw new Error("Invalid pickup location code");

@@ -14,9 +14,9 @@ export interface CarInfo {
         max: number;
     };
     passengerCounts: {
-        adults: string;
-        children: string;
-        infant: string;
+        adults: number;
+        children: number;
+        infant: number;
     };
 
     // Additional fields for API compatibility
@@ -49,11 +49,22 @@ interface FormState {
     personalDetails: PersonalDetails | null;
     carInfo: CarInfo | null;
 }
-
+const initialCarInfo: CarInfo = {
+    pickupLocation: "",
+    pickupLocaDescription: "",
+    dropoffLocation: "",
+    dropoffLocaDescription: "",
+    pickupDate: "",
+    pickupTime: "",
+    selectedRide: "",
+    priceRange: { min: 0, max: 0 },
+    passengerCounts: { adults: 0, children: 0, infant: 0 },
+    searchResults: []
+};
 const initialState: FormState = {
     cardinfo: null,
     personalDetails: null,
-    carInfo: null,
+    carInfo: initialCarInfo,
 };
 
 const carPaymentSlice = createSlice({

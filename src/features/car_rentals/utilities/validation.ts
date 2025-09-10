@@ -33,7 +33,7 @@ export const validateBookingForm = (formData: BookingFormData): FormValidationRe
         formData.passengerCounts.children +
         formData.passengerCounts.infant;
 
-    if (totalPassengers === "") {
+    if (totalPassengers === 0) {
         errors.passengers = "At least one passenger is required";
     }
 
