@@ -231,7 +231,6 @@ const CarBookingFirstScreen: React.FC = () => {
 
   const handlePriceSubmit = useCallback(
     (min: number, max: number) => {
-
       updateField("priceRange", { min, max });
       closeModal("priceRange");
     },
@@ -254,7 +253,7 @@ const CarBookingFirstScreen: React.FC = () => {
     [updateField, closeModal]
   );
   const handleSearch = useCallback(async () => {
-    console.log(formData)
+    console.log(formData);
     const errors = [];
     if (!/^[A-Z]{3}$/.test(formData.pickupLocation)) {
       errors.push(
@@ -340,7 +339,6 @@ const CarBookingFirstScreen: React.FC = () => {
 
   return (
     <div className="car-booking-first-screen">
-
       {/* Shared Ride Info */}
       {formData.selectedRide === "Shared Ride" && (
         <div className="flex items-center gap-3 bg-[#CCD8E880] p-2 rounded-md m-2">
@@ -367,6 +365,7 @@ const CarBookingFirstScreen: React.FC = () => {
                 onClick={() => openModal("rideType")}
                 // error={!!errors.selectedRide}
                 // helperText={errors.selectedRide}
+                className="cursor-pointer"
                 InputProps={{
                   readOnly: true,
                   startAdornment: (
@@ -380,7 +379,6 @@ const CarBookingFirstScreen: React.FC = () => {
                     height: "44px",
                     borderRadius: "8px",
                     cursor: "pointer",
-                    
                   },
                 }}
               />
@@ -399,6 +397,7 @@ const CarBookingFirstScreen: React.FC = () => {
                 // error={!!errors.pickupLocation}
                 // helperText={errors.pickupLocation}
                 InputProps={{
+                  readOnly: true,
                   startAdornment: (
                     <InputAdornment position="start">
                       <LocationOnOutlinedIcon />
@@ -427,6 +426,7 @@ const CarBookingFirstScreen: React.FC = () => {
                 // error={!!errors.dropoffLocation}
                 // helperText={errors.dropoffLocation}
                 InputProps={{
+                  readOnly:true,
                   startAdornment: (
                     <InputAdornment position="start">
                       <LocationOnOutlinedIcon />
@@ -535,7 +535,7 @@ const CarBookingFirstScreen: React.FC = () => {
                         </Typography>
 
                         <button
-                          className="w-full h-[52px] rounded-[4px] font-inter text-[14px] font-medium"
+                          className="w-full h-[52px] rounded-[4px] font-inter text-[14px] font-medium cursor-pointer"
                           style={{
                             backgroundColor: "#023E8A",
                             color: "white",

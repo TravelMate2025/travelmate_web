@@ -192,7 +192,7 @@ const debouncedFetchLocations = useMemo(
               suggestions.map((location, index) => (
                 <div
                   key={index}
-                  className="flex justify-between w-full items-center"
+                  className="flex justify-between w-full items-center cursor-pointer hover:bg-gray-100 rounded mt-3 pl-3"
                 >
                   <RoomOutlinedIcon
                     className="text-[#FF6F1E]"

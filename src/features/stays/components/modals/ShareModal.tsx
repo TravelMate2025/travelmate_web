@@ -1,4 +1,5 @@
 import React from "react";
+import toast from "react-hot-toast";
 import { FaTimes, FaLink } from "react-icons/fa";
 import { RiMailFill, RiWhatsappFill } from "react-icons/ri";
 
@@ -10,7 +11,7 @@ interface ShareModalProps {
 const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareLink);
-    alert("Link copied to clipboard!");
+    toast.success("Link Copied to clipboard!");
   };
 
   return (
@@ -19,7 +20,10 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
         {/* Modal Header */}
         <div className="flex justify-between items-center border-b pb-4">
           <h2 className="text-xl font-bold mx-auto">Share</h2>
-          <button onClick={onClose} className="text-gray-600 border border-gray-300 rounded-md p-1">
+          <button
+            onClick={onClose}
+            className="text-gray-600 border border-gray-300 rounded-md p-1"
+          >
             <FaTimes size={20} />
           </button>
         </div>
@@ -28,7 +32,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
         <div className="flex flex-col sm:flex-row justify-around mt-6 space-y-4 sm:space-y-0 sm:gap-4">
           {/* WhatsApp Share */}
           <a
-            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareLink)}`}
+            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+              shareLink
+            )}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg shadow-md hover:bg-gray-200"
@@ -41,7 +47,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
 
           {/* Email Share */}
           <a
-            href={`mailto:?subject=Check this out!&body=${encodeURIComponent(shareLink)}`}
+            href={`mailto:?subject=Check this out!&body=${encodeURIComponent(
+              shareLink
+            )}`}
             className="flex gap-2 px-10 py-3 border border-gray-300 rounded-lg shadow-md hover:bg-gray-200"
           >
             <span className="bg-gray-200 p-1 rounded-md">

@@ -636,7 +636,7 @@ const MobilePage = ({
             </p>
             <div className="px-6  border-[#CDCED1] lg:border rounded-lg p-5 flex justify-between items-center w-full">
               <p className="font-bold text-[#4E4F52]">Total</p>
-              <p>&#8364;{car.price.totalAmountWithFee}</p>
+              <p className="font-bold">&#8364;{car.price.totalAmountWithFee}</p>
             </div>
 
             <Divider

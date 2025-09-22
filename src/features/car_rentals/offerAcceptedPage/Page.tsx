@@ -5,7 +5,9 @@ import MobilePage from "./MobilePage";
 import { useLocation, useNavigate } from "react-router";
 import Footer from "../../../components/2Footer";
 import { transferService } from "../services/transferService";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
+import { RootState } from "../../../store";
+import { useSelector } from "react-redux";
 
 export type DeskProps = {
   handleBack: () => void;
@@ -72,6 +74,7 @@ const Page = () => {
   const location = useLocation();
   const [confirmationId, setConfirmationId] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const { accessToken } = useSelector((state: RootState) => state.auth);
 
   const steps = ["Booking Overview", "Passenger Information", "Payment"];
 
@@ -173,19 +176,22 @@ const Page = () => {
         phone: passFormData.phoneNumber,
       };
 
-      const result = await transferService.createBookingConfirmation(payload);
+      const result = await transferService.createBookingConfirmation(
+        accessToken,
+        payload
+      );
       if (result.success) {
         console.log("Booking confirmed!", result.data);
       } else {
-        console.log("Your search expired, please search again.");
         console.error("Booking failed:", result.error);
         return;
       }
       setActiveStep(2);
       setConfirmationId(result?.data?.id);
       console.log(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Booking failed:", error);
+      toast.error(error?.response?.data?.detail[0]);
     } finally {
       setLoadingSubmit(false);
     }
@@ -240,7 +246,7 @@ const Page = () => {
         //     passFormData,
         //   },
         // });
-       window.location.href = response.checkout_url;
+        window.location.href = response?.checkout_url;
       } else {
         console.error("Payment failed or invalid response:", response);
       }

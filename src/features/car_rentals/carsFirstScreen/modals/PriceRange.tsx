@@ -33,7 +33,6 @@ const PriceRange = ({
       <Dialog
         open={openClick}
         onClose={handleCloseClick}
-        // TransitionComponent={Transition}
         keepMounted
         sx={{
           "& .MuiBackdrop-root": {

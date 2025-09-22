@@ -2,7 +2,7 @@ import { parse, format } from 'date-fns';
 import { BookingFormData } from '../types/booking';
 import axios from 'axios';
 import instance from '../../../utils/axiosConfig';
-
+import toast from 'react-hot-toast';
 
 export interface TransferSearchParams {
     adults: string;
@@ -76,6 +76,7 @@ interface BookingConfirmationResult {
         status: string;
         total_price: string;
         booking_id: string;
+        bookings: any[]
     };
     error?: string;
 }
@@ -128,17 +129,22 @@ class TransferService {
     }
 
 
-    async createBookingConfirmation(params: BookingConfirmationParams): Promise<BookingConfirmationResult> {
+    async createBookingConfirmation(accessToken: string, params: BookingConfirmationParams): Promise<BookingConfirmationResult> {
         try {
             const response = await instance.post(`${this.baseUrl}/transfers/booking/confirmation/`,
-                JSON.stringify(params)
+                JSON.stringify(params), {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            }
             );
             return {
                 success: true,
                 data: response.data,
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error('Create booking confirmation failed:', error);
+            toast.error(error?.response?.data?.detail)
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Failed to create booking confirmation',
@@ -148,16 +154,18 @@ class TransferService {
 
     async createCheckoutSession(confirmationId: string): Promise<CheckoutSessionResult> {
         try {
-            const response = await instance.post(`${this.baseUrl}/transfers/booking/${confirmationId}/create-checkout-session/`);
-            console.log(response)
+
+            const response = await instance.post(`${this.baseUrl}/transfers/booking/${confirmationId}/create-checkout-session/`,);
             return {
                 checkout_url: response?.data?.checkout_url,
                 success: true,
 
             };
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Create checkout session failed:', error);
+            toast.error(error.response.data.detail)
+
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Failed to create checkout session',
@@ -186,7 +194,7 @@ class TransferService {
 
     async getBookingBySession(sessionId: string): Promise<BookingConfirmationResult> {
         try {
-            const response = await axios.get(`${this.baseUrl}/transfers/booking/confirmation/by-session/?session_id=${sessionId}`);
+            const response = await instance.get(`${this.baseUrl}/transfers/booking/confirmation/by-session/?session_id=${sessionId}`);
             return {
                 success: true,
                 data: response.data,
