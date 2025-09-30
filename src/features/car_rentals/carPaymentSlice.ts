@@ -19,12 +19,6 @@ export interface CarInfo {
         infant: number;
     };
 
-    // Additional fields for API compatibility
-    endCity?: string;
-    endCountry?: string;
-    endGeoLat?: number;
-    endGeoLong?: number;
-
     searchResults: any[];
 }
 

@@ -16,6 +16,7 @@ import { BookingFormData } from "../types/booking";
 import SkeletonConfirm from "./Skeleton";
 import { Download, Share } from "lucide-react";
 import ShareModal from "../../stays/components/modals/ShareModal";
+import html2pdf from "html2pdf.js";
 
 const CarPaidForPage = () => {
   const location = useLocation();
@@ -71,24 +72,10 @@ const CarPaidForPage = () => {
       </div>
     );
 
-  const handleDownloadPDF = () => {
-    // Example: pretend this Blob is your generated PDF
-    const blob = new Blob(["Hello, PDF!"], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-
-    // Create a temporary <a> element to download
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "confirmation.pdf";
-    link.click();
-
-    // Clean up
-    URL.revokeObjectURL(url);
-
-    // Show confirmation (replace with toast/snackbar)
-    alert("✅ PDF downloaded successfully!");
-  };
-
+ const handleDownloadPDF = () => {
+  const element = document.getElementById("pdf-content"); // wrap your page in this div
+  html2pdf().from(element).save();
+};
   return (
     <div>
       <Navbar />
@@ -164,7 +151,7 @@ const CarPaidForPage = () => {
               </div>
             </div>
           </div>
-          <div className="lg:grid lg:grid-cols-2 lg:w-full">
+          <div  id="pdf-content" className="lg:grid lg:grid-cols-2 lg:w-full">
             <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-1">
               <p className="text-[16px] font-medium text-[#181818] mb-[15px]">
                 Confirmation Details
@@ -244,7 +231,7 @@ const CarPaidForPage = () => {
                       {cars.transfers[0]?.content.transferDetailInfo[0].value}{" "}
                       {
                         cars.transfers[0]?.content.transferDetailInfo[0]
-                          .description
+                          .description 
                       }
                     </p>
                   </div>

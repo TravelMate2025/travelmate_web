@@ -46,14 +46,15 @@ const MobilePage = ({
   state,
   setState,
   handleChange,
-  formData,
   handleCheckboxChange,
-  isFormValid,
+  errors,
   isFormValids,
   handleSubmit,
   passFormData,
   setPassFormData,
   loadingSubmit,
+  formData,
+  submitted,
 }: DeskProps) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -74,6 +75,7 @@ const MobilePage = ({
 
     const userInfo = JSON.parse(localStorage.getItem("persist:root") || "{}");
     const profileStr = userInfo.profile || "{}";
+
     type Profile = {
       profile: any;
     };
@@ -81,7 +83,7 @@ const MobilePage = ({
       profile: {},
     };
     try {
-      profile = JSON.parse(profileStr);
+      profile = JSON.parse(profileStr).profile;
     } catch {
       // keep defaults
     }
@@ -118,9 +120,10 @@ const MobilePage = ({
       .toString()
       .padStart(2, "0")}`;
   };
+
   return (
     <div>
-      <ToastContainer/>
+      <ToastContainer />
       {showAllModal && (
         <Complete closeDialog={() => setShowAllModal(false)} car={car} />
       )}
@@ -170,17 +173,6 @@ const MobilePage = ({
         {/* <----------------------------------------------------FIRST STEP ----------------------------------------------------> */}
         {activeStep === 0 && (
           <div>
-            {/* <div className="my-5 px-6">
-              <div className="border-1  border-[#023E8A] w-full bg-[#CCD8E81A] pt-[10px] pb-[10px] pr-[10px] pl-[10px] rounded-[8px]">
-                <div className="flex gap-1">
-                  <ErrorOutlineIcon className=" text-[#023E8A] mt-[-4px]" />
-
-                  <div className="text-[#181818] text-[14px]">
-                    Cancellation allowed 24 hours before pick up
-                  </div>
-                </div>
-              </div>
-            </div> */}
 
             <div className="flex items-center gap-4 p-6">
               <img
@@ -204,7 +196,7 @@ const MobilePage = ({
               </p>
               <div className="lg:border rounded-lg lg:p-5 mt-[10px] flex flex-col justify-normal items-start gap-4 border-[#CDCED1]">
                 <div className="flex justify-normal gap-4 items-center">
-                  <div className="w-6 h-6 bg-[#023E8A] rounded-full" />
+                  <div className="size-6 bg-[#023E8A] rounded-full" />
                   <div>
                     <p>{departureInfo.pickUpLocaDescription}</p>
                     <div className="flex items-center justify-normal gap-1 text-gray-500">
@@ -224,7 +216,7 @@ const MobilePage = ({
                   </p>{" "}
                 </div>
                 <div className="flex justify-normal gap-4 items-center">
-                  <div className="w-6 h-6 bg-[#D72638] rounded-full" />
+                  <div className="size-6 bg-[#D72638] rounded-full object-contain" />
                   <div>
                     <p>{departureInfo.dropoffLocation}</p>
                     <div className="flex items-center justify-normal gap-1 text-gray-500 pt-3">
@@ -249,8 +241,8 @@ const MobilePage = ({
               className="lg:hidden"
             />
 
-            <div className="px-6">
-              <p className="text-[16px] font-inter font-medium text-[#181818]">
+            <div className="lg:px-6 px-3">
+              <p className="text-[16px] font-inter font-medium text-[#181818] pl-3 lg:pl-0">
                 Taxi Details
               </p>
 
@@ -277,11 +269,11 @@ const MobilePage = ({
 
                 <div className="flex justify-between items-start w-full text-right">
                   <p className="text-sm font-inter font-normal text-[#4E4F52]">
-                    Luggage
+                    Bags
                   </p>
                   <p className="text-[#181818] text-sm font-inter">
-                    Up to {car.content.transferDetailInfo[3].name.slice(0, 2)}{" "}
-                    Bags + 1 hand luggage per passenger
+                    Up to {car.content.transferDetailInfo[3].name.slice(0, 2)}{" "} Bags
+                    
                   </p>
                 </div>
 
@@ -301,8 +293,8 @@ const MobilePage = ({
               className="lg:hidden"
             />
 
-            <div className="px-6">
-              <p className="text-[16px] font-inter font-medium text-[#181818] pt-4">
+            <div className="lg:px-6 px-3">
+              <p className="text-[16px] font-inter font-medium text-[#181818] pt-4 pl-3 lg:pl-0">
                 Price Summary
               </p>
               <div className="flex  justify-between w-full itmes-center lg:border rounded-lg p-5 mt-[10px border-[#CDCED1]]">
@@ -318,8 +310,8 @@ const MobilePage = ({
             </div>
 
             <Divider sx={{ marginTop: "8px", marginBottom: "8px" }} />
-            <div className="px-5">
-              <div className="flex w-full justify-between items-center p-4">
+            <div className="lg:px-6 px-3">
+              <div className="flex w-full justify-between items-center p-4 pl-3 lg:pl-0">
                 <p className="text-[16px] font-inter font-bold text-[#181818]">
                   Important information
                 </p>
@@ -331,7 +323,7 @@ const MobilePage = ({
                   <ChevronRight />
                 </div>
               </div>
-              <ul className="list-disc pl-8 flex flex-col gap-2 lg:border rounded-lg p-5 border-[#CDCED1]">
+              <ul className="list-disc pl-8 flex flex-col gap-2 lg:border rounded-lg lg:p-5 p-3 border-[#CDCED1]">
                 <li>
                   Your driver will wait up to 60 minutes after your taxi arrives
                 </li>
@@ -344,11 +336,11 @@ const MobilePage = ({
               sx={{ marginTop: "8px", marginBottom: "8px" }}
               className="lg:hidden"
             />
-            <div className="px-5">
-              <p className="text-[16px] font-inter font-bold text-[#181818] p-4">
+            <div className="lg:px-6 px-3">
+              <p className="text-[16px] font-inter font-bold text-[#181818] lg:p-4 p-3 lg:pl-0">
                 Refunds and Cancellations
               </p>
-              <div className="lg:border rounded-lg p-5 mt-[10px] border-[#CDCED1]">
+              <div className="lg:border rounded-lg lg:p-5 p-3 lg:mt-2 border-[#CDCED1]">
                 <ul className="list-disc pl-4 flex flex-col gap-2">
                   <li>Cancellations allowed 24 hours before pick Up</li>
                   <li>Full refund if cancelled 24 hours before pick up</li>
@@ -362,14 +354,14 @@ const MobilePage = ({
 
         {/* <----------------------------------------------------------SECOND STEP-----------------------------------------------------------------> */}
         {activeStep === 1 && (
-          <div className="px-6">
+          <div className="lg:px-6">
             <div>
               <Divider sx={{ marginTop: "8px", marginBottom: "8px" }} />
 
               <div className="">
                 <div className=" mt-[10px]">
                   <div>
-                    <h2 className="py-3 text-lg lg:tex-x;l font-bold">
+                    <h2 className="py-3 text-lg lg:tex-x;l font-bold p-5 lg:p-0">
                       Passenger Information
                     </h2>
                     <div className="lg:border rounded-lg p-5 border-[#CDCED1]">
@@ -401,6 +393,7 @@ const MobilePage = ({
 
                       <Divider
                         sx={{ marginBottom: "16px", marginTop: "16px" }}
+                       
                       />
 
                       <div className="flex-col gap-4 w-full">
@@ -418,6 +411,8 @@ const MobilePage = ({
                               size="small"
                               placeholder="Enter First Name"
                               value={passFormData.firstName}
+                              error={!!errors.firstName && submitted}
+                              helperText={submitted ? errors.firstName : ""}
                               onChange={handleInputChange}
                               InputProps={{
                                 startAdornment: (
@@ -449,6 +444,8 @@ const MobilePage = ({
                               size="small"
                               placeholder="Enter Last Name"
                               value={passFormData.lastName}
+                              error={!!errors.lastName && submitted}
+                              helperText={submitted ? errors.lastName : ""}
                               onChange={handleInputChange}
                               InputProps={{
                                 startAdornment: (
@@ -480,6 +477,8 @@ const MobilePage = ({
                               size="small"
                               placeholder=""
                               value={passFormData.dateOfBirth}
+                              error={!!errors.dateOfBirth && submitted}
+                              helperText={submitted ? errors.dateOfBirth : ""}
                               onChange={handleInputChange}
                               InputProps={{
                                 startAdornment: (
@@ -506,7 +505,7 @@ const MobilePage = ({
                       className="lg:hidden"
                     />
                     <div className="">
-                      <h2 className="py-3 font-bold text-lg lg:text-xl">
+                      <h2 className="py-3 font-bold text-lg lg:text-xl p-5 lg:p-0">
                         Contact Information
                       </h2>
                       <div className="lg:border rounded-lg p-5 block lg:grid grid-cols-2 gap-4 border-[#CDCED1]">
@@ -523,6 +522,8 @@ const MobilePage = ({
                             size="small"
                             placeholder="name@email.com"
                             value={passFormData.email}
+                            error={!!errors.email && submitted}
+                            helperText={submitted ? errors.email : ""}
                             onChange={handleInputChange}
                             InputProps={{
                               startAdornment: (
@@ -552,6 +553,8 @@ const MobilePage = ({
                             variant="outlined"
                             size="small"
                             value={passFormData.countryCode}
+                            error={!!errors.countryCode && submitted}
+                            helperText={submitted ? errors.countryCode : ""}
                             onChange={handleInputChange}
                             InputProps={{
                               startAdornment: (
@@ -583,6 +586,8 @@ const MobilePage = ({
                             size="small"
                             placeholder="Enter Phone Number"
                             value={passFormData.phoneNumber}
+                            error={!!errors.phoneNumber && submitted}
+                            helperText={submitted ? errors.phoneNumber : ""}
                             onChange={handleInputChange}
                             InputProps={{
                               startAdornment: (

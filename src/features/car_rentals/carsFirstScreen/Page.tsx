@@ -25,7 +25,7 @@ import { Info } from "lucide-react";
 import { useBookingForm } from "../hooks/useBookingForm";
 import { useFormPersistence } from "../hooks/useFormPersistence";
 import { useDateSelection } from "../hooks/useDateSelection";
-import { useLocationSearch } from "../hooks/useLocationSearch";
+
 import { useModalState } from "../hooks/useModalState";
 import {
   formatPassengerCount,
@@ -36,25 +36,20 @@ import { BookingFormData } from "../types/booking";
 // Components
 import Passengers from "./modals/Passengers";
 import PriceRange from "./modals/PriceRange";
-import RideType from "./modals/RideType";
-import RecentSearch from "./RecentSearch";
 import { PassengerCounts } from "../types/booking";
 import { transferService } from "../services/transferService";
 import { formatDate } from "../utilities/formatting";
 import SearchPickUpLocation from "./modals/searchPickUp";
 import SearchDropOffLocation from "./modals/searchDropOff";
+import toast from "react-hot-toast";
+import { ToastContainer } from "react-toastify";
+import RideType from "./modals/RideType";
 
 const CarBookingFirstScreen: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const carInfo = useSelector((state: RootState) => state.cars.carInfo);
-  const collectFrom = (data: string, data2: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      pickUpLocaDescription: data,
-      pickupLocation: data2,
-    }));
-  };
+
   const collectTo = (
     data: string,
     data2: string,
@@ -65,8 +60,6 @@ const CarBookingFirstScreen: React.FC = () => {
       ...prev,
       dropoffLocaDescription: data,
       dropoffLocation: data2,
-      endGeoLat: latitude,
-      endGeoLong: longitude,
       toLat: latitude,
       toLon: longitude,
     }));
@@ -88,8 +81,6 @@ const CarBookingFirstScreen: React.FC = () => {
           children: 0,
           infant: 0,
         },
-        endGeoLat: carInfo.endGeoLat,
-        endGeoLong: carInfo.endGeoLong,
       };
     }
     return (
@@ -107,8 +98,6 @@ const CarBookingFirstScreen: React.FC = () => {
           children: 0,
           infant: 0,
         },
-        endGeoLat: 0,
-        endGeoLong: 0,
       }
     );
   }, [carInfo, loadSavedData]);
@@ -140,9 +129,6 @@ const CarBookingFirstScreen: React.FC = () => {
     updateField("pickupDate", displayDate);
   });
 
-  // Location search
-  const { locations, removeLocation } = useLocationSearch();
-
   // Modal management
   const { modals, openModal, closeModal } = useModalState();
 
@@ -171,8 +157,6 @@ const CarBookingFirstScreen: React.FC = () => {
       endAddress: formData.endAddress,
       endCity: formData.endCity,
       endCountry: formData.endCountry,
-      endGeoLat: formData.toLat,
-      endGeoLong: formData.toLon,
       fromLat: formData.fromLat,
       fromLon: formData.fromLon,
       toLat: formData.toLat,
@@ -255,17 +239,15 @@ const CarBookingFirstScreen: React.FC = () => {
   const handleSearch = useCallback(async () => {
     console.log(formData);
     const errors = [];
-    if (!/^[A-Z]{3}$/.test(formData.pickupLocation)) {
-      errors.push(
-        "Pickup location must be a valid 3-letter IATA code (e.g., LOS)"
-      );
+    if (!formData.pickupLocation) {
+      errors.push("Please enter a valid pickup location");
     }
     if (!formData.dropoffLocation) {
       errors.push("Please enter a valid dropoff location");
     }
-    if (!formData.toLat || !formData.toLon) {
-      errors.push("Dropoff location must have valid GPS coordinates");
-    }
+    // if (!formData.toLat || !formData.toLon) {
+    //   errors.push("Dropoff location must have valid GPS coordinates");
+    // }
     if (!formData.pickupDate) {
       errors.push("Please select a pickup date");
     }
@@ -294,6 +276,7 @@ const CarBookingFirstScreen: React.FC = () => {
       }
       const result = await transferService.searchTransfers(params);
       if (!result?.data) {
+        console.log(params);
         throw new Error("No transfer results found");
       }
       dispatch(setSearchResults(result?.data?.results?.services || []));
@@ -314,6 +297,7 @@ const CarBookingFirstScreen: React.FC = () => {
       }
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Search failed");
+      toast.error(error instanceof Error ? error.message : "Search failed");
       console.error("Search failed:", error);
     } finally {
       setLoading(false);
@@ -339,6 +323,7 @@ const CarBookingFirstScreen: React.FC = () => {
 
   return (
     <div className="car-booking-first-screen">
+      <ToastContainer />
       {/* Shared Ride Info */}
       {formData.selectedRide === "Shared Ride" && (
         <div className="flex items-center gap-3 bg-[#CCD8E880] p-2 rounded-md m-2">
@@ -350,12 +335,12 @@ const CarBookingFirstScreen: React.FC = () => {
         </div>
       )}
 
-      <div className="flex lg:flex-row flex-col justify-normal lg:items-center gap-8">
+      <div className="flex lg:flex-row flex-col justify-normal lg:items-center gap-8 lg:min-w-full">
         <div className="flex flex-col">
           {/* First Row */}
-          <div className="flex lg:flex-row flex-col justify-between lg:items-center gap-4">
+          <div className="flex lg:flex-row flex-col justify-between lg:items-center gap-4 w-full">
             {/* Ride Type */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 w-full">
               <label htmlFor="ride-type">Ride Type</label>
               <TextField
                 id="ride-type"
@@ -379,13 +364,14 @@ const CarBookingFirstScreen: React.FC = () => {
                     height: "44px",
                     borderRadius: "8px",
                     cursor: "pointer",
+                    width: "100%",
                   },
                 }}
               />
             </div>
 
             {/* Pick Up Location */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 w-full">
               <label htmlFor="pickup-location">Pick Up</label>
               <TextField
                 id="pickup-location"
@@ -408,13 +394,14 @@ const CarBookingFirstScreen: React.FC = () => {
                   "& .MuiInputBase-root": {
                     height: "44px",
                     borderRadius: "8px",
+                    width: "100%",
                   },
                 }}
               />
             </div>
 
             {/* Drop Off Location */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 w-full">
               <label htmlFor="dropoff-location">Drop Off</label>
               <TextField
                 id="dropoff-location"
@@ -426,7 +413,7 @@ const CarBookingFirstScreen: React.FC = () => {
                 // error={!!errors.dropoffLocation}
                 // helperText={errors.dropoffLocation}
                 InputProps={{
-                  readOnly:true,
+                  readOnly: true,
                   startAdornment: (
                     <InputAdornment position="start">
                       <LocationOnOutlinedIcon />
@@ -437,13 +424,14 @@ const CarBookingFirstScreen: React.FC = () => {
                   "& .MuiInputBase-root": {
                     height: "44px",
                     borderRadius: "8px",
+                    width: "100%",
                   },
                 }}
               />
             </div>
 
             {/* Pick Up Date */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 w-full">
               <label htmlFor="pickup-date">Pick Up Date</label>
               <TextField
                 id="pickup-date"
@@ -467,6 +455,7 @@ const CarBookingFirstScreen: React.FC = () => {
                     height: "44px",
                     borderRadius: "8px",
                     cursor: "pointer",
+                    width: "100%",
                   },
                 }}
               />
@@ -475,6 +464,9 @@ const CarBookingFirstScreen: React.FC = () => {
               <Popper
                 id="date-range-popper"
                 open={datePickerOpen}
+                // sx={{
+                //   width: "100%",
+                // }}
                 anchorEl={anchorEl}
                 placement="bottom-start"
                 modifiers={[
@@ -571,6 +563,7 @@ const CarBookingFirstScreen: React.FC = () => {
                   "& .MuiInputBase-root": {
                     height: "44px",
                     borderRadius: "8px",
+                    width: "100%",
                   },
                 }}
               />
@@ -594,6 +587,7 @@ const CarBookingFirstScreen: React.FC = () => {
                     height: "44px",
                     borderRadius: "8px",
                     cursor: "pointer",
+                    width: "100%",
                   },
                 }}
               />
@@ -617,6 +611,7 @@ const CarBookingFirstScreen: React.FC = () => {
                     height: "44px",
                     borderRadius: "8px",
                     cursor: "pointer",
+                    width: "100%",
                   },
                 }}
               />
@@ -625,11 +620,10 @@ const CarBookingFirstScreen: React.FC = () => {
         </div>
 
         {/* Search Button */}
-        <div>
+        <div className="">
           <button
             className="bg-[#023E8A] lg:w-[120px] w-full text-center text-white font-inter text-base rounded-md py-3 lg:mt-14 cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
             onClick={() => {
-              console.log("Button clicked");
               handleSearch();
             }}
             disabled={!isValid || loading}
@@ -644,20 +638,23 @@ const CarBookingFirstScreen: React.FC = () => {
       {modals.searchPickLocation && (
         <SearchPickUpLocation
           closeDialog={() => closeModal("searchPickLocation")}
-          value={formData.pickupLocation}
+          value={formData.pickUpLocaDescription}
           setValue={handleLocationSelect}
-          collectFrom={collectFrom}
           setExtraFields={(fields) => {
             updateField("endAddress", fields.endAddress);
             updateField("endCity", fields.endCity);
             updateField("endCountry", fields.endCountry);
-            updateField("endGeoLat", fields.endGeoLat);
-            updateField("endGeoLong", fields.endGeoLong);
             updateField("fromLat", fields.fromLat);
             updateField("fromLon", fields.fromLon);
             updateField("toLat", fields.toLat);
             updateField("toLon", fields.toLon);
           }}
+          ChangeValue={(query) =>
+            setFormData((prev) => ({
+              ...prev,
+              pickUpLocaDescription: query,
+            }))
+          }
         />
       )}
       {modals.searchDropLocation && (
@@ -677,8 +674,6 @@ const CarBookingFirstScreen: React.FC = () => {
             updateField("endAddress", fields.endAddress);
             updateField("endCity", fields.endCity);
             updateField("endCountry", fields.endCountry);
-            updateField("endGeoLat", fields.endGeoLat);
-            updateField("endGeoLong", fields.endGeoLong);
             updateField("fromLat", fields.fromLat);
             updateField("fromLon", fields.fromLon);
             updateField("toLat", fields.toLat);
@@ -718,21 +713,7 @@ const CarBookingFirstScreen: React.FC = () => {
         />
       )}
 
-      {/* Recent Search Component */}
-      <RecentSearch
-        openFrom={locationPopper.from.open}
-        handleCloseFrom={() =>
-          setLocationPopper((prev) => ({
-            ...prev,
-            from: { ...prev.from, open: false },
-          }))
-        }
-        fromClick={locationPopper.from.anchor}
-        handleFromOptionClick={handleLocationSelect}
-        handleRemoveOption={removeLocation}
-        locations={locations}
-        // loading={searchLoading}
-      />
+     
     </div>
   );
 };

@@ -16,24 +16,9 @@ export type DeskProps = {
   steps: any[];
   activeStep: number;
   formData: {
-    cardNumber: string;
-    cardHolder: string;
-    expiryDate: string;
-    cvv: string;
     agreement: boolean;
   };
-  errors: {
-    cardNumber: boolean;
-    cardHolder: boolean;
-    expiryDate: boolean;
-    cvv: boolean;
-  };
-  touched: {
-    cardNumber: boolean;
-    cardHolder: boolean;
-    expiryDate: boolean;
-    cvv: boolean;
-  };
+
   handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   state: {
     gilad: boolean;
@@ -67,6 +52,15 @@ export type DeskProps = {
   setIsTheFormValid: (isTheFormValid: boolean) => void;
   setState: (state: any) => void;
   loadingSubmit?: boolean;
+  errors: {
+    firstName: string;
+    lastName: string;
+    dateOfBirth: string;
+    email: string;
+    phoneNumber: string;
+    countryCode: string;
+  };
+  submitted: boolean;
 };
 
 const Page = () => {
@@ -75,6 +69,7 @@ const Page = () => {
   const [confirmationId, setConfirmationId] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const { accessToken } = useSelector((state: RootState) => state.auth);
+  const [submitted, setSubmitted] = useState(false);
 
   const steps = ["Booking Overview", "Passenger Information", "Payment"];
 
@@ -93,46 +88,10 @@ const Page = () => {
   };
 
   const [formData, setFormData] = useState({
-    cardNumber: "",
-    cardHolder: "",
-    expiryDate: "",
-    cvv: "",
     agreement: false,
   });
 
-  const [touched, setTouched] = useState({
-    cardNumber: false,
-    cardHolder: false,
-    expiryDate: false,
-    cvv: false,
-  });
-
-  const handleBlur = (
-    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name } = e.target;
-    setTouched((prev) => ({ ...prev, [name]: true }));
-  };
-
-  const [errors, setErrors] = useState({
-    cardNumber: false,
-    cardHolder: false,
-    expiryDate: false,
-    cvv: false,
-  });
-
-  const validateFields = () => {
-    const newErrors = {
-      cardNumber: formData.cardNumber.length !== 16,
-      cardHolder: formData.cardHolder.trim() === "",
-      expiryDate: formData.expiryDate === "",
-      cvv: formData.cvv.length !== 3,
-    };
-
-    setErrors(newErrors);
-
-    return !Object.values(newErrors).includes(true);
-  };
+  const handleBlur = () => {};
   const [passFormData, setPassFormData] = useState({
     firstName: "",
     lastName: "",
@@ -141,6 +100,32 @@ const Page = () => {
     dateOfBirth: "",
     countryCode: "",
   });
+  const [errors, setErrors] = useState({
+    firstName: "",
+    lastName: "",
+    dateOfBirth: "",
+    email: "",
+    phoneNumber: "",
+    countryCode: "",
+  });
+  const validatePersonalInfo = () => {
+    const newErrors: any = {};
+    if (!passFormData.firstName.trim())
+      newErrors.firstName = "First name is required.";
+    if (!passFormData.lastName.trim())
+      newErrors.lastName = "Last name is required.";
+    if (!passFormData.dateOfBirth.trim())
+      newErrors.dateOfBirth = "Date of birth is required.";
+    if (!passFormData.email.trim()) newErrors.email = "Email is required.";
+    else if (!/\S+@\S+\.\S+/.test(passFormData.email))
+      newErrors.email = "Email is invalid.";
+    if (!passFormData.phoneNumber.trim())
+      newErrors.phoneNumber = "Phone number is required.";
+    if (!passFormData.countryCode.trim())
+      newErrors.countryCode = "Country code is required.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
   const handleChangePayment = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -154,15 +139,30 @@ const Page = () => {
   const [isFormValid, setIsFormValid] = useState(true);
 
   useEffect(() => {
-    setIsFormValid(validateFields() && formData.agreement);
+    setIsFormValid(formData.agreement);
   }, [formData]);
+    const [activeStep, setActiveStep] = useState(0);
+
+  const handleNext = () => {
+    if (activeStep < steps.length - 1) {
+      setActiveStep((prevStep) => prevStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (activeStep > 0) {
+      setActiveStep((prevStep) => prevStep - 1);
+    } else {
+      navigate("/cars-searchResults");
+    }
+  };
 
   const handleConfirm = async () => {
-    if (!isTheFormValid) {
-      console.log("INvalid");
+    setSubmitted(true);
+    if (!isTheFormValid || !validatePersonalInfo()) {
+      toast.error("Please fill in all required fields correctly.");
       return;
     }
-
     try {
       setLoadingSubmit(true);
       const payload = {
@@ -183,7 +183,6 @@ const Page = () => {
       if (result.success) {
         console.log("Booking confirmed!", result.data);
       } else {
-        console.error("Booking failed:", result.error);
         return;
       }
       setActiveStep(2);
@@ -194,22 +193,6 @@ const Page = () => {
       toast.error(error?.response?.data?.detail[0]);
     } finally {
       setLoadingSubmit(false);
-    }
-  };
-
-  const [activeStep, setActiveStep] = useState(0);
-
-  const handleNext = () => {
-    if (activeStep < steps.length - 1) {
-      setActiveStep((prevStep) => prevStep + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (activeStep > 0) {
-      setActiveStep((prevStep) => prevStep - 1);
-    } else {
-      navigate("/cars-searchResults");
     }
   };
 
@@ -239,13 +222,6 @@ const Page = () => {
       );
       console.log(response);
       if (response.success) {
-        // navigate("/car-payment-successful", {
-        //   state: {
-        //     confirmationId,
-        //     car: location.state?.car,
-        //     passFormData,
-        //   },
-        // });
         window.location.href = response?.checkout_url;
       } else {
         console.error("Payment failed or invalid response:", response);
@@ -268,9 +244,8 @@ const Page = () => {
         handleConfirm={handleConfirm}
         steps={steps}
         activeStep={activeStep}
-        formData={formData}
         errors={errors}
-        touched={touched}
+        formData={formData}
         handleChange={handleChange}
         handleSubmit={handleSubmit}
         state={state}
@@ -284,6 +259,7 @@ const Page = () => {
         setIsTheFormValid={setIsTheFormValid}
         isTheFormValid={isTheFormValid}
         loadingSubmit={loadingSubmit}
+        submitted={submitted}
       />
 
       <Footer />

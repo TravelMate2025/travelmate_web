@@ -53,14 +53,14 @@ const RideType = ({
               label="Private Ride"
             />
             <FormControlLabel
-              value="Premium Ride"
-              control={<Radio />}
-              label="Premium Ride"
-            />
-            <FormControlLabel
               value="Shared Ride"
               control={<Radio />}
               label="Shared Ride"
+            />
+            <FormControlLabel
+              value="Private and Shared Ride"
+              control={<Radio />}
+              label="Private and Shared Ride"
             />
           </RadioGroup>
           <Button

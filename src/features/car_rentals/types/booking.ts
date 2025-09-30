@@ -33,8 +33,6 @@ export interface BookingFormData {
   endAddress?: string;
   endCity?: string;
   endCountry?: string;
-  endGeoLat?: number;
-  endGeoLong?: number;
   fromLat?: number;
   fromLon?: number;
   toLat?: number;

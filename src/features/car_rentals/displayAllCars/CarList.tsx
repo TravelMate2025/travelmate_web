@@ -39,14 +39,38 @@ const CarList: React.FC<CarListProps> = ({
 
   const [page, setPage] = useState<number>(1);
   const [showSortModal, setShowSortModal] = useState(false);
+  const [sortOrder, setSortOrder] = useState<
+    "Recommended" | "Low to High" | "High to Low"
+  >("Recommended");
+
+  const sortedCars = useMemo(() => {
+    if (sortOrder === "Low to High") {
+      return [...cars].sort(
+        (a, b) =>
+          (a.cancellationPolicies[0].amount ?? 0) -
+          (b.cancellationPolicies[0].amount ?? 0)
+      );
+    }
+    if (sortOrder === "High to Low") {
+      return [...cars].sort(
+        (a, b) =>
+          (b.cancellationPolicies[0].amount ?? 0) -
+          (a.cancellationPolicies[0].amount ?? 0)
+      );
+    }
+    return cars; // recommended or default order
+  }, [cars, sortOrder]);
 
   const ITEMS_PER_PAGE = 8;
   const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
   const paginatedItems = useMemo(() => {
-    return cars?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-  }, [cars, page]);
+    return sortedCars?.slice(
+      (page - 1) * ITEMS_PER_PAGE,
+      page * ITEMS_PER_PAGE
+    );
+  }, [sortedCars, page]);
 
   const handleSubmitOffer = (car: any) => {
     navigate("/offer-accepted-page", {
@@ -84,7 +108,11 @@ const CarList: React.FC<CarListProps> = ({
       {isMobile ? (
         <div>
           {showSortModal && (
-            <SortOverlay closeDialog={() => setShowSortModal(false)} />
+            <SortOverlay
+              closeDialog={() => setShowSortModal(false)}
+              sortOrder={sortOrder}
+              setSortOrder={setSortOrder}
+            />
           )}
           <div className="flex justify-between py-6 px-6">
             <p>{cars.length} Results</p>
@@ -111,7 +139,7 @@ const CarList: React.FC<CarListProps> = ({
                       className="w-28 h-24 object-contain bg-[#0000001A] rounded-lg"
                     />
                     <p className="mt-[10px] text-[#181818] text-[16px]">
-                      {car.category.name} Car
+                      {car.vehicle.code} {car.vehicle.name}
                     </p>
                   </div>
                   {/* {car.content.transferDetailInfo.map((item: any) => ( */}
@@ -127,8 +155,7 @@ const CarList: React.FC<CarListProps> = ({
                     <div className="text-[14px]">
                       <LuggageOutlinedIcon />
                       <span>
-                        {car.content.transferDetailInfo[3].name.slice(0, 2)}{" "}
-                        Bags + 1 hand luggage per passenger
+                        {car.content.transferDetailInfo[3].name.slice(0, 2)}
                       </span>
                     </div>
                   </div>
@@ -224,18 +251,36 @@ const CarList: React.FC<CarListProps> = ({
               >
                 <MdOutlineSort />
                 <p className="cursor-pointer">
-                  Sort by: <span>Recommended</span>
+                  Sort by: <span>{sortOrder}</span>
                 </p>
                 {showSortModal && (
                   <div className="absolute px-2 top-10 left-0 bg-white shadow-lg flex flex-col justify-normal items-start w-full py-2">
-                    <p className="hover:bg-gray-100 cursor-pointer p-2 w-full rounded-md">
+                    <p
+                      className="hover:bg-gray-100 cursor-pointer p-2 w-full rounded-md"
+                      onClick={() => {
+                        setSortOrder("Recommended");
+                        setShowSortModal(false);
+                      }}
+                    >
                       Recommended
                     </p>
-                    <p className="hover:bg-gray-100 cursor-pointer p-2 w-full rounded-md">
+                    <p
+                      className="hover:bg-gray-100 cursor-pointer p-2 w-full rounded-md"
+                      onClick={() => {
+                        setSortOrder("Low to High");
+                        setShowSortModal(false);
+                      }}
+                    >
                       Price: Low to High
                     </p>
-                    <p className="hover:bg-gray-100 cursor-pointer p-2 w-full rounded-md">
-                      Price:High to Low
+                    <p
+                      className="hover:bg-gray-100 cursor-pointer p-2 w-full rounded-md"
+                      onClick={() => {
+                        setSortOrder("High to Low");
+                        setShowSortModal(false);
+                      }}
+                    >
+                      Price: High to Low
                     </p>
                   </div>
                 )}
@@ -256,7 +301,7 @@ const CarList: React.FC<CarListProps> = ({
                       className="w-28 h-24 object-contain bg-[#0000001A] rounded-lg"
                     />
                     <p className="mt-[10px] text-[#181818] text-[16px]">
-                      {car.category.name} Car
+                      {car.vehicle.code} {car.vehicle.name}
                     </p>
                   </div>
                   <div className="flex  gap-[3px] mb-[10px] mt-[10px]">
@@ -272,7 +317,7 @@ const CarList: React.FC<CarListProps> = ({
                       <LuggageOutlinedIcon />
                       <span>
                         {car.content.transferDetailInfo[3].name.slice(0, 2)}{" "}
-                        Bags + 1 hand luggage per passenger
+                        Bags 
                       </span>
                     </div>
                   </div>

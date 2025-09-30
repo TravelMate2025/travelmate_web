@@ -16,8 +16,6 @@ export const useBookingForm = (initialData?: Partial<BookingFormData>) => {
     endAddress: initialData?.endAddress || "",
     endCity: initialData?.endCity || "",
     endCountry: initialData?.endCountry || "",
-    endGeoLat: initialData?.endGeoLat || 0,
-    endGeoLong: initialData?.endGeoLong || 0,
     searchResults: initialData?.searchResults || [],
     search_id: initialData?.search_id || "",
     rate_key: initialData?.rate_key || "",
@@ -66,8 +64,6 @@ export const useBookingForm = (initialData?: Partial<BookingFormData>) => {
       endAddress: "",
       endCity: "",
       endCountry: "",
-      endGeoLat: 0,
-      endGeoLong: 0,
     });
     setErrors({});
     setSubmitError(null);

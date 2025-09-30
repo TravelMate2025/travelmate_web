@@ -12,15 +12,13 @@ import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 
 interface SearchLocationProps {
   closeDialog: () => void;
+  ChangeValue:(data:string)=>void
   value: string;
-  collectFrom: (data: string, data2: string) => void;
   setValue: (value: string) => void;
   setExtraFields?: (fields: {
     endAddress?: string;
     endCity?: string;
     endCountry?: string;
-    endGeoLat?: number;
-    endGeoLong?: number;
     fromLat?: number;
     fromLon?: number;
     toLat?: number;
@@ -30,27 +28,23 @@ interface SearchLocationProps {
 }
 
 interface PickUp {
-  code: string;
-  content: {
-    description: string;
-    error: string | null;
-    type: string;
-  };
-  coordinates: {
-    error: string | null;
-    latitude: number;
-    longitude: number;
-  };
+  cityName: string;
   countryCode: string;
-  language: string;
+  countryName: string;
+  displayName: string;
+  geoCode: { latitude: number; longitude: number };
+  iataCode: string;
+  id: string;
+  name: string;
+  type: string;
 }
 
 const SearchPickUpLocation = ({
   closeDialog,
   value,
   setValue,
-  collectFrom,
   setExtraFields,
+  ChangeValue
 }: SearchLocationProps) => {
   const [query, setQuery] = useState(value);
   const [suggestions, setSuggestions] = useState<PickUp[]>([]);
@@ -58,7 +52,7 @@ const SearchPickUpLocation = ({
   const [loading, setLoading] = useState(false);
 
   // Debounce function to limit API calls
-  const timeoutRef = useRef<number| null>(null);
+  const timeoutRef = useRef<number | null>(null);
   const debounce = (func: (...args: any[]) => void, wait: number) => {
     return (...args: any[]) => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -67,7 +61,7 @@ const SearchPickUpLocation = ({
   };
 
   const fetchLocations = useCallback(async (searchQuery: string) => {
-    if (!searchQuery) {
+    if (searchQuery.length < 3) {
       setSuggestions([]);
       setError(null);
       setLoading(false);
@@ -79,13 +73,16 @@ const SearchPickUpLocation = ({
       setError(null);
       const response = await transferService.lookupTerminal(searchQuery);
       if (response?.data && Array.isArray(response.data)) {
-        setSuggestions(response.data);
+        setSuggestions(
+          response.data && response.data.find((loc) => loc.type === "AIRPORT")
+            ? response.data.filter((loc) => loc.type === "AIRPORT")
+            : response.data
+        );
       } else {
         setSuggestions([]);
-        setError("No airports found for this query");
       }
     } catch (error: any) {
-      setError(error.message || "Failed to fetch airports");
+      setError(error.response.data || "Failed to fetch airports");
       setSuggestions([]);
     } finally {
       setLoading(false);
@@ -93,26 +90,22 @@ const SearchPickUpLocation = ({
   }, []);
 
   // Debounced fetchLocations to prevent excessive API calls
-const debouncedFetchLocations = useMemo(
-  () => debounce(fetchLocations, 300),
-  [fetchLocations]
-);
+  const debouncedFetchLocations = useMemo(
+    () => debounce(fetchLocations, 300),
+    [fetchLocations]
+  );
 
   const handleSelect = (location: PickUp) => {
-    if (!location.code || !location.code.match(/^[A-Z]{3}$/)) {
-      setError("Please select a valid IATA code");
-      return;
-    }
-
-    setQuery(location.content.description);
-    setValue(location.content.description);
-    collectFrom(location.content.description, location.code);
+    ChangeValue(location.displayName);
+    setQuery(location.displayName);
+    setValue(location.iataCode);
+    console.log(query)
     if (setExtraFields) {
       const fields: Parameters<NonNullable<typeof setExtraFields>>[0] = {
-        fromLat: location.coordinates.latitude,
-        fromLon: location.coordinates.longitude,
-        endCountry: location.countryCode,
-        pickUpLocaDescription: location.content.description,
+        fromLat: location.geoCode.latitude,
+        fromLon: location.geoCode.longitude,
+        endCountry: location.countryName,
+        pickUpLocaDescription: location.displayName,
       };
       setExtraFields(fields);
     }
@@ -144,7 +137,7 @@ const debouncedFetchLocations = useMemo(
           value={query}
           helperText={error}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Enter airport name or IATA code"
+          placeholder="Enter airport name or location"
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -203,18 +196,18 @@ const debouncedFetchLocations = useMemo(
                     sx={{ cursor: "pointer" }}
                   >
                     <ListItemText
-                      primary={location.content.description}
+                      primary={`${location.displayName} ${location.countryName}`}
                       secondary="Airport"
                     />
                   </ListItem>
-                  <p className="pr-3">{location.code}</p>
+                  <p className="pr-3">{location.iataCode}</p>
                 </div>
               ))
             ) : (
               <div className="text-center py-4 text-gray-500">
                 {query
-                  ? "No airports found"
-                  : "Enter an airport name or IATA code"}
+                  ? ""
+                  : "Enter a valid airport name or location"}
               </div>
             )}
           </List>

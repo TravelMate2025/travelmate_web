@@ -54,8 +54,6 @@ interface LocationState {
   endAddress?: string;
   endCity?: string;
   endCountry?: string;
-  endGeoLat?: number;
-  endGeoLong?: number;
   fromLat?: number;
   fromLon?: number;
   toLat?: number;
@@ -85,8 +83,6 @@ const DisplayCars: React.FC = () => {
       ...prev,
       dropoffLocaDescription: data,
       dropoffLocation: data2,
-      endGeoLat: latitude,
-      endGeoLong: longitude,
       toLat: latitude,
       toLon: longitude,
     }));
@@ -113,8 +109,6 @@ const DisplayCars: React.FC = () => {
       endAddress: locationState.endAddress || undefined,
       endCity: locationState.endCity || undefined,
       endCountry: locationState.endCountry || undefined,
-      endGeoLat: locationState.toLat,
-      endGeoLong: locationState.toLon,
       fromLat: locationState.fromLat,
       fromLon: locationState.fromLon,
       toLat: locationState.toLat,
@@ -241,10 +235,8 @@ const DisplayCars: React.FC = () => {
 
   const handleUpdateSearch = useCallback(async () => {
     const errors = [];
-    if (!/^[A-Z]{3}$/.test(formData.pickupLocation)) {
-      errors.push(
-        "Pickup location must be a valid 3-letter IATA code (e.g., CDG)"
-      );
+    if (!formData.pickupLocation) {
+      errors.push("Please enter a valid pickup location");
     }
     if (!formData.dropoffLocation) {
       errors.push("Please enter a valid dropoff location");
@@ -277,7 +269,7 @@ const DisplayCars: React.FC = () => {
       setLoading(true);
       setLoadingSkeleton(true);
       const params = transferService.convertFormToApiParams({
-        ...formData
+        ...formData,
       });
       if (!params.fcode || !/^[A-Z]{3}$/.test(params.fcode)) {
         throw new Error("Invalid pickup location code");
@@ -649,15 +641,18 @@ const DisplayCars: React.FC = () => {
       {modals.searchPickLocation && (
         <SearchPickUpLocation
           closeDialog={() => closeModal("searchPickLocation")}
-          value={formData.pickupLocation}
+          value={formData.pickUpLocaDescription}
           setValue={handleLocationSelect}
-          collectFrom={collectFrom}
+           ChangeValue={(query) =>
+            setFormData((prev) => ({
+              ...prev,
+              pickUpLocaDescription: query,
+            }))
+          }
           setExtraFields={(fields) => {
             updateField("endAddress", fields.endAddress);
             updateField("endCity", fields.endCity);
             updateField("endCountry", fields.endCountry);
-            updateField("endGeoLat", fields.endGeoLat);
-            updateField("endGeoLong", fields.endGeoLong);
             updateField("fromLat", fields.fromLat);
             updateField("fromLon", fields.fromLon);
             updateField("toLat", fields.toLat);
@@ -681,8 +676,6 @@ const DisplayCars: React.FC = () => {
             updateField("endAddress", fields.endAddress);
             updateField("endCity", fields.endCity);
             updateField("endCountry", fields.endCountry);
-            updateField("endGeoLat", fields.endGeoLat);
-            updateField("endGeoLong", fields.endGeoLong);
             updateField("fromLat", fields.fromLat);
             updateField("fromLon", fields.fromLon);
             updateField("toLat", fields.toLat);
@@ -754,8 +747,6 @@ const DisplayCars: React.FC = () => {
             endAddress: formData.endAddress,
             endCity: formData.endCity,
             endCountry: formData.endCountry,
-            endGeoLat: formData.endGeoLat,
-            endGeoLong: formData.endGeoLong,
             fromLat: formData.fromLat,
             fromLon: formData.fromLon,
             toLat: formData.toLat,

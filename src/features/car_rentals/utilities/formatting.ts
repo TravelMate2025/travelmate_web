@@ -50,7 +50,7 @@ export const validateBookingForm = (formData: BookingFormData): FormValidationRe
     errors.selectedRide = "Ride type is required";
   }
     if (!formData.priceRange.min || !formData.priceRange.max) {
-    errors.selectedRide = "Price Range is required";
+    errors.priceRange= "Price Range is required";
   }
 
 

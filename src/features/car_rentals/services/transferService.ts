@@ -14,13 +14,9 @@ export interface TransferSearchParams {
     tcode: string;
     ttype: string;
     language?: string;
-    // direction?: string;
     transfer_type?: string;
     min_price?: number;
     max_price?: number;
-    // radius_km?: number;
-    // enable_fallback?: boolean;
-    // fallback_mode?: string;
 }
 
 interface PostTransferSearchParams {
@@ -33,8 +29,6 @@ interface PostTransferSearchParams {
     end_address?: string;
     end_city?: string;
     end_country?: string;
-    end_geo_lat?: number;
-    end_geo_long?: number;
     price_min?: number;
     price_max?: number;
 }
@@ -49,12 +43,7 @@ interface BookingConfirmationParams {
     country_code: string;
     phone: string;
     remark?: string;
-    dropoff_name?: string;
-    dropoff_address?: string;
-    dropoff_number?: string;
-    dropoff_town?: string;
-    dropoff_country?: string;
-    dropoff_zip?: string;
+
 }
 
 interface TransferResult {
@@ -113,6 +102,7 @@ class TransferService {
 
 
             const response = await axios.get(`${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
+            console.log('Transfer search response:', response.data);
             return {
                 success: true,
                 data: response?.data || [],
@@ -144,7 +134,7 @@ class TransferService {
             };
         } catch (error: any) {
             console.error('Create booking confirmation failed:', error);
-            toast.error(error?.response?.data?.detail)
+            toast.error(error?.response?.data?.error || 'Booking failed. Please try again.')
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Failed to create booking confirmation',
@@ -209,11 +199,13 @@ class TransferService {
     }
     async lookupTerminal(name: string): Promise<LookupResult> {
         try {
-            const response = await axios.get(`${this.baseUrl}/transfers/lookup/terminal/?name=${encodeURIComponent(name)}`);
+            const response = await axios.get(`${this.baseUrl}/flights/search/search_airports/?keyword=${encodeURIComponent(name)}`);
+
             return {
                 success: true,
                 data: response.data?.results || response.data?.data || response.data || [],
             };
+
 
         } catch (error) {
             console.error('Terminal lookup failed:', error);
@@ -226,6 +218,7 @@ class TransferService {
 
 
     convertFormToApiParams(formData: BookingFormData): TransferSearchParams {
+
         if (!formData.pickupDate) {
             throw new Error('Departure date is required');
         }
@@ -238,11 +231,18 @@ class TransferService {
         if (!formData.dropoffLocation) {
             throw new Error('Invalid dropoff location');
         }
-        if (!formData.toLat || !formData.toLon) {
-            throw new Error('Dropoff location must have valid GPS coordinates');
-        }
+        // if (!formData.toLat || !formData.toLon) {
+        //     throw new Error('Dropoff location must have valid GPS coordinates');
+        // }
 
+        let transfer_type = "PRIVATE";
+        if (formData.selectedRide === "Shared Ride") {
+            transfer_type = "SHARED";
+        } else if (formData.selectedRide === "Private and Shared Ride") {
+            transfer_type = "PRIVATE,SHARED";
+        }
         const { departing } = this.formatDateTime(formData.pickupDate, formData.pickupTime);
+
         return {
             adults: formData.passengerCounts.adults.toString(),
             children: formData.passengerCounts.children.toString(),
@@ -253,13 +253,10 @@ class TransferService {
             tcode: `${formData.toLat},${formData.toLon}`,
             ttype: 'GPS',
             language: 'en',
-            // direction: 'ARRIVAL',
-            transfer_type: formData.selectedRide === 'Shared Ride' ? 'SHARED' : 'PRIVATE',
+            transfer_type,
             min_price: formData.priceRange.min,
             max_price: formData.priceRange.max,
-            // enable_fallback: true,
-            // fallback_mode: 'fast',
-            // radius_km: 10.0,
+
         };
     }
 
@@ -274,8 +271,6 @@ class TransferService {
         endAddress?: string;
         endCity?: string;
         endCountry?: string;
-        endGeoLat?: number;
-        endGeoLong?: number;
     }): PostTransferSearchParams {
         if (!formData.departureDate) {
             throw new Error('Departure date is required');
@@ -293,18 +288,22 @@ class TransferService {
         const pickup_location = formData.from
         const dropoff_location = formData.endCountry?.toUpperCase() || formData.to.split(',')[0].trim();
 
+        let transfer_type = "PRIVATE";
+        if (formData.selectedRide === "Shared Ride") {
+            transfer_type = "SHARED";
+        } else if (formData.selectedRide === "Private and Shared Ride") {
+            transfer_type = "PRIVATE,SHARED";
+        }
         return {
             pickup_location,
             dropoff_location,
             pickup_date: this.formatDate(formData.departureDate),
             pickup_time: this.formatTime(formData.times.pickUpTime),
             passengers: formData.passengerCounts.adults + formData.passengerCounts.children + formData.passengerCounts.infant,
-            transfer_type: formData.selectedRide === 'Shared Ride' ? 'SHARED' : 'PRIVATE',
+            transfer_type,
             end_address: formData.endAddress,
             end_city: formData.endCity,
             end_country: formData.endCountry,
-            end_geo_lat: formData.endGeoLat,
-            end_geo_long: formData.endGeoLong,
             price_min: formData.priceRange.min,
             price_max: formData.priceRange.max,
         };

@@ -28,8 +28,6 @@ export interface SearchLocationProps {
     endAddress?: string;
     endCity?: string;
     endCountry?: string;
-    endGeoLat?: number;
-    endGeoLong?: number;
     fromLat?: number;
     fromLon?: number;
     toLat?: number;
@@ -68,10 +66,6 @@ const SearchDropOffLocation = ({
           );
 
           setDropSuggestions(destinationResult);
-          setError(
-            destinationResult.length === 0 ? "No destinations found" : null
-          );
-          return;
         }
       } catch (err: any) {
         setError(err.message || "Failed to fetch destinations");
@@ -106,8 +100,6 @@ const SearchDropOffLocation = ({
         endCountry: location.country,
         toLat: location.latitude,
         toLon: location.longitude,
-        // endGeoLat: location.latitude,
-        // endGeoLong: location.longitude,
       });
     }
     closeDialog();
@@ -127,8 +119,8 @@ const SearchDropOffLocation = ({
           variant="outlined"
           size="small"
           value={query}
-          error={!!error}
-          helperText={error}
+          error={!!error && !loading}
+          helperText={!loading ? error : ""}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search Destinations"
           InputProps={{
@@ -167,8 +159,10 @@ const SearchDropOffLocation = ({
         >
           {loading ? (
             <div className="text-center py-4">Loading...</div>
-          ) : dropSuggestions.length === 0 ? (
-            <div className="text-center py-4">No items match your search</div>
+          ) : dropSuggestions.length === 0 && !loading && query.length > 3 ? (
+            <div className="text-center py-4">
+              {error || "No items match your search"}
+            </div>
           ) : (
             dropSuggestions.map((location, index) => (
               <div
