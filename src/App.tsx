@@ -87,7 +87,7 @@ function App() {
         <Route path="/cars-searchResults" element={<DisplayCars />} />
         <Route path="/offer-accepted-page" element={<Pages />} />
         <Route path="/car-confirmation" element={<Page />} />
-        <Route path="/car-payment-successful" element={<CarPaidForPage />} />
+        <Route path="/transfers/payment-success" element={<CarPaidForPage />} />
         <Route path="/airport-taxi" element={<AirportTaxi />} />
 
         {/* Flight Section */}

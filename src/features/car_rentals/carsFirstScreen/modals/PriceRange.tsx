@@ -6,13 +6,15 @@ import React from "react";
 type priceProps = {
   openClick: boolean;
   handleCloseClick: () => void;
-  handlePriceChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handlePriceChange: (
+    field: "min" | "max",
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => void;
   openNoModal: boolean;
   handleCloseNoModal: () => void;
-  handleMaxPriceChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  miniprice: string;
-  maxprice: string;
-  handleSubmitOffer: () => void;
+  miniprice: number;
+  maxprice: number;
+  handleSubmitOffer: (min: number, max: number) => void;
 };
 const PriceRange = ({
   openClick,
@@ -20,18 +22,17 @@ const PriceRange = ({
   handlePriceChange,
   openNoModal,
   handleCloseNoModal,
-  handleMaxPriceChange,
   miniprice,
   maxprice,
   handleSubmitOffer,
 }: priceProps) => {
+  console.log(miniprice);
   return (
     <div>
       {" "}
       <Dialog
         open={openClick}
         onClose={handleCloseClick}
-        // TransitionComponent={Transition}
         keepMounted
         sx={{
           "& .MuiBackdrop-root": {
@@ -74,8 +75,8 @@ const PriceRange = ({
               type="text"
               size="small"
               placeholder="Enter your price"
-              value={miniprice}
-              onChange={handlePriceChange}
+              value={new Intl.NumberFormat().format(miniprice)}
+              onChange={(e) => handlePriceChange("min", e)}
               sx={{
                 width: "100%",
                 mt: "10px",
@@ -99,8 +100,8 @@ const PriceRange = ({
               type="text"
               size="small"
               placeholder="Enter your price"
-              value={maxprice}
-              onChange={handleMaxPriceChange}
+              value={new Intl.NumberFormat().format(maxprice)}
+              onChange={(e) => handlePriceChange("max", e)}
               sx={{
                 width: "100%",
                 mt: "10px",
@@ -174,12 +175,12 @@ const PriceRange = ({
           <div className="mt-18">
             <button
               onClick={() => {
-                handleSubmitOffer();
+                handleSubmitOffer(miniprice, maxprice);
                 handleCloseClick();
               }}
-              disabled={!miniprice?.trim() || !maxprice?.trim()}
+              disabled={!miniprice || !maxprice}
               className={`w-full h-[52px] rounded-[6px] text-white cursor-pointer ${
-                miniprice?.trim() && maxprice?.trim()
+                miniprice && maxprice
                   ? "bg-[#023E8A]"
                   : "bg-[#023E8A] cursor-not-allowed opacity-50"
               }`}
