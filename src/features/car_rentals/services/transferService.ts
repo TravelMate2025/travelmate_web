@@ -48,7 +48,14 @@ interface BookingConfirmationParams {
 
 interface TransferResult {
     success: boolean;
-    data?: any[];
+    data?: {
+        results: {
+            services: any[]
+            data: any[]
+
+        }
+        search_id: string
+    };
     fallback_info?: {
         attempts: number;
         locations_tried: string[];
@@ -56,6 +63,7 @@ interface TransferResult {
     };
     error?: string;
     message?: string;
+
 }
 
 interface BookingConfirmationResult {
@@ -134,7 +142,7 @@ class TransferService {
             };
         } catch (error: any) {
             console.error('Create booking confirmation failed:', error);
-            toast.error(error?.response?.data?.error || 'Booking failed. Please try again.')
+            toast.error(error?.response?.data?.error || error?.message || error?.response?.data?.detail[0] || 'Booking failed. Please try again.')
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Failed to create booking confirmation',
@@ -182,7 +190,7 @@ class TransferService {
         }
     }
 
-    async getBookingBySession(sessionId: string): Promise<BookingConfirmationResult> {
+    async getBookingBySession(sessionId: string | null): Promise<BookingConfirmationResult> {
         try {
             const response = await instance.get(`${this.baseUrl}/transfers/booking/confirmation/by-session/?session_id=${sessionId}`);
             return {

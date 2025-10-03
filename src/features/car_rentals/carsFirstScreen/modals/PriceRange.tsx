@@ -8,7 +8,7 @@ type priceProps = {
   handleCloseClick: () => void;
   handlePriceChange: (
     field: "min" | "max",
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement| HTMLTextAreaElement>
   ) => void;
   openNoModal: boolean;
   handleCloseNoModal: () => void;

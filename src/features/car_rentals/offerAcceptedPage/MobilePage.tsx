@@ -75,9 +75,16 @@ const MobilePage = ({
 
     const userInfo = JSON.parse(localStorage.getItem("persist:root") || "{}");
     const profileStr = userInfo.profile || "{}";
+    console.log;
 
     type Profile = {
-      profile: any;
+      // profile: {
+      first_name: string;
+      last_name: string;
+      date_of_birth: string;
+      email: string;
+      mobile_number: string;
+      // };
     };
     let profile: Profile = {
       profile: {},
@@ -89,11 +96,11 @@ const MobilePage = ({
     }
     if (checked) {
       setPassFormData({
-        firstName: profile.profile.first_name || "",
-        lastName: profile.profile.last_name || "",
-        dateOfBirth: profile.profile.date_of_birth || "",
-        email: profile.profile.email || "",
-        phoneNumber: profile.profile.mobile_number || "",
+        firstName: profile?.first_name || "",
+        lastName: profile?.last_name || "",
+        dateOfBirth: profile?.date_of_birth || "",
+        email: profile?.email || "",
+        phoneNumber: profile?.mobile_number || "",
         countryCode: "",
       });
     } else {
@@ -105,6 +112,7 @@ const MobilePage = ({
         phoneNumber: "",
         countryCode: "",
       });
+      console.log(profile);
     }
   };
   const addDurationToTime = (pickupTime: string, durationStr: string) => {
@@ -173,7 +181,6 @@ const MobilePage = ({
         {/* <----------------------------------------------------FIRST STEP ----------------------------------------------------> */}
         {activeStep === 0 && (
           <div>
-
             <div className="flex items-center gap-4 p-6">
               <img
                 src={car?.content?.images[0].url || carImage}
@@ -272,8 +279,8 @@ const MobilePage = ({
                     Bags
                   </p>
                   <p className="text-[#181818] text-sm font-inter">
-                    Up to {car.content.transferDetailInfo[3].name.slice(0, 2)}{" "} Bags
-                    
+                    Up to {car.content.transferDetailInfo[3].name.slice(0, 2)}{" "}
+                    Bags
                   </p>
                 </div>
 
@@ -283,7 +290,7 @@ const MobilePage = ({
                   </p>
 
                   <p className="text-[#181818] text-[14px] font-inter">
-                    Holiday Taxi
+                    {car?.supplier || "Holiday Taxi"}
                   </p>
                 </div>
               </div>
@@ -323,14 +330,17 @@ const MobilePage = ({
                   <ChevronRight />
                 </div>
               </div>
-              <ul className="list-disc pl-8 flex flex-col gap-2 lg:border rounded-lg lg:p-5 p-3 border-[#CDCED1]">
-                <li>
-                  Your driver will wait up to 60 minutes after your taxi arrives
-                </li>
-                <li>
-                  You’ll get pickup instructions in your confirmation email.
-                </li>
-              </ul>
+              <div className="lg:border rounded-lg lg:p-5 p-3 lg:mt-2 border-[#CDCED1]">
+                <ul className="list-disc pl-4 flex flex-col gap-2">
+                  <li>
+                    Your driver will wait up to 60 minutes after your taxi
+                    arrives
+                  </li>
+                  <li>
+                    You’ll get pickup instructions in your confirmation email.
+                  </li>
+                </ul>
+              </div>
             </div>
             <Divider
               sx={{ marginTop: "8px", marginBottom: "8px" }}
@@ -393,7 +403,6 @@ const MobilePage = ({
 
                       <Divider
                         sx={{ marginBottom: "16px", marginTop: "16px" }}
-                       
                       />
 
                       <div className="flex-col gap-4 w-full">
@@ -676,7 +685,7 @@ const MobilePage = ({
             <button
               className={`flex items-center justify-center gap-5 w-full lg:w-96 text-white bg-[#023E8A] h-[56px] rounded-[6px] cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed
                 `}
-              disabled={!isFormValids}
+              disabled={!isFormValids || loadingSubmit}
               onClick={handleSubmit}
             >
               <span>Pay with Stripe</span>
@@ -690,7 +699,7 @@ const MobilePage = ({
           <div className="mx-6 mb-20 flex items-center justify-center">
             <button
               className="flex items-center justify-center gap-5 w-full lg:w-96 text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]  disabled:bg-gray-400 disabled:cursor-not-allowed"
-              disabled={!loggedIn && loadingSubmit}
+              disabled={!loggedIn || loadingSubmit}
               onClick={() => {
                 activeStep === 0 ? handleNext() : handleConfirm();
               }}

@@ -66,13 +66,6 @@ const DisplayCars: React.FC = () => {
   const { state } = useLocation();
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [loadingSkeleton, setLoadingSkeleton] = useState(false);
-  const collectFrom = (data: string, data2: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      pickUpLocaDescription: data,
-      pickupLocation: data2,
-    }));
-  };
   const collectTo = (
     data: string,
     data2: string,
@@ -144,7 +137,7 @@ const DisplayCars: React.FC = () => {
   } = useBookingForm(initialData);
 
   // Persist form data to localStorage
-  useFormPersistence(formData, "displayCarsForm");
+  useFormPersistence(formData, "carBookingForm");
 
   // Date selection
   const {

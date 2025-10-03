@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import './App.css';
+import "./App.css";
 import { Toaster } from "react-hot-toast";
 import CreateAccount from "./features/account/pages/CreateAccount";
 import VerifyPage from "./features/account/pages/VerifyPage";
@@ -30,7 +30,7 @@ import Page from "./features/car_rentals/carsFirstScreen/Page";
 import DisplayCars from "./features/car_rentals/displayAllCars/DisplayCars";
 import Pages from "./features/car_rentals/offerAcceptedPage/Page";
 import CarPaidForPage from "./features/car_rentals/carPaidFor/CarPaidForPage";
-import AirportTaxi from './pages/AirportTaxi';
+import AirportTaxi from "./pages/AirportTaxi";
 import Flight from "./pages/Flight";
 import FaqPage from "./features/customer-management/pages/faq";
 import ChatPage from "./features/customer-management/pages/ChatPage";
@@ -39,6 +39,7 @@ import TicketDetailPage from "./features/customer-management/pages/TicketDetailP
 import CreateNewPassword from "./features/account/pages/CreateNewPassword";
 import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailForPasswordReset";
 import PrivateRoute from "../src/routes/PrivateRoute";
+import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
 
 function App() {
   return (
@@ -49,7 +50,10 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/verify-page" element={<VerifyPage />} />
-        <Route path="/reset-email-link" element={<VerifyEmailForPasswordReset />} />
+        <Route
+          path="/reset-email-link"
+          element={<VerifyEmailForPasswordReset />}
+        />
         <Route path="/create-password" element={<CreatePassword />} />
         <Route path="/create-new-password" element={<CreateNewPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -57,31 +61,96 @@ function App() {
         <Route path="/booking-progress" element={<BookingProgress />} />
         <Route path="/stays-detail/:hotelId" element={<StaysDetail />} />
         <Route path="/faqs" element={<FaqPage />} />
-        <Route path="/chat-with-us" element={<ChatPage /> } />
+        <Route path="/chat-with-us" element={<ChatPage />} />
 
         {/* Protected Routes */}
-        <Route path="/account" element={<PrivateRoute><Profile /></PrivateRoute>} />
-        <Route path="/profile-info" element={<PrivateRoute><ProfileInfo /></PrivateRoute>} />
-        <Route path="/booking-confirmation" element={<PrivateRoute><BookingConfirmationPage /></PrivateRoute>} />
-        <Route path="/tickets" element={<PrivateRoute><TicketsPage /></PrivateRoute>} />
-        <Route path="/tickets/:id" element={<PrivateRoute><TicketDetailPage /></PrivateRoute>} />
+        <Route
+          path="/account"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile-info"
+          element={
+            <PrivateRoute>
+              <ProfileInfo />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/booking-confirmation"
+          element={
+            <PrivateRoute>
+              <BookingConfirmationPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/tickets"
+          element={
+            <PrivateRoute>
+              <TicketsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/tickets/:id"
+          element={
+            <PrivateRoute>
+              <TicketDetailPage />
+            </PrivateRoute>
+          }
+        />
 
         {/* round-trip-section */}
-        <Route path="/departure-flight" element={<DeparturePage departureInfo={[]} />} />
-        <Route path="/return-flight" element={<ReturnPage departureInfo={[]} />} />
+        <Route
+          path="/departure-flight"
+          element={<DeparturePage departureInfo={[]} />}
+        />
+        <Route
+          path="/return-flight"
+          element={<ReturnPage departureInfo={[]} />}
+        />
         <Route path="/flightInfo-review" element={<FlightInfoPage />} />
-        <Route path="/flightInfo-confirmation" element={<FlightConfirmationPage />} />
+        <Route
+          path="/flightInfo-confirmation"
+          element={<FlightConfirmationPage />}
+        />
 
         {/* one-way-trip-section */}
-        <Route path="/departure-flight-one-way" element={<DeparturePageOneWay departureInfo={[]} />} />
-        <Route path="/flightInfo-review-one-way" element={<FlightInfoPageOneWay />} />
-        <Route path="/flight-confirm-one-way" element={<FlightConfirmPageOneWay />} />
+        <Route
+          path="/departure-flight-one-way"
+          element={<DeparturePageOneWay departureInfo={[]} />}
+        />
+        <Route
+          path="/flightInfo-review-one-way"
+          element={<FlightInfoPageOneWay />}
+        />
+        <Route
+          path="/flight-confirm-one-way"
+          element={<FlightConfirmPageOneWay />}
+        />
 
         {/* multi-way-trip-section */}
-        <Route path="/departure-flight-multi-way" element={<DeparturePageMultiWay departureInfo={[]} />} />
-        <Route path="/second-departure-flight" element={<SecondDepartureFlightPage departureInfo={[]} />} />
-        <Route path="/flightInfo-review-multi-way" element={<FlightInfoPageMultiWay />} />
-        <Route path="/flight-confirm-multi-way" element={<FlightConfirmPageMultiWay />} />
+        <Route
+          path="/departure-flight-multi-way"
+          element={<DeparturePageMultiWay departureInfo={[]} />}
+        />
+        <Route
+          path="/second-departure-flight"
+          element={<SecondDepartureFlightPage departureInfo={[]} />}
+        />
+        <Route
+          path="/flightInfo-review-multi-way"
+          element={<FlightInfoPageMultiWay />}
+        />
+        <Route
+          path="/flight-confirm-multi-way"
+          element={<FlightConfirmPageMultiWay />}
+        />
 
         {/* Cars-Section */}
         <Route path="/cars-searchResults" element={<DisplayCars />} />
@@ -89,10 +158,10 @@ function App() {
         <Route path="/car-confirmation" element={<Page />} />
         <Route path="/transfers/payment-success" element={<CarPaidForPage />} />
         <Route path="/airport-taxi" element={<AirportTaxi />} />
+        <Route path="/car-paid/download" element={<DownloadPage />} />
 
         {/* Flight Section */}
         <Route path="/flights" element={<Flight />} />
-
       </Routes>
     </>
   );

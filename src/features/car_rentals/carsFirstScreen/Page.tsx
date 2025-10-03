@@ -105,7 +105,7 @@ const CarBookingFirstScreen: React.FC = () => {
   const {
     formData,
     setFormData,
-    errors,
+    // errors,
     isValid,
     loading,
     updateField,
@@ -134,13 +134,13 @@ const CarBookingFirstScreen: React.FC = () => {
 
   // Location picker state
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
-  const [locationPopper, setLocationPopper] = useState<{
-    from: { open: boolean; anchor: HTMLElement | null };
-    to: { open: boolean; anchor: HTMLElement | null };
-  }>({
-    from: { open: false, anchor: null },
-    to: { open: false, anchor: null },
-  });
+  // const [locationPopper, setLocationPopper] = useState<{
+  //   from: { open: boolean; anchor: HTMLElement | null };
+  //   to: { open: boolean; anchor: HTMLElement | null };
+  // }>({
+  //   from: { open: false, anchor: null },
+  //   to: { open: false, anchor: null },
+  // });
 
   // Sync with Redux store whenever formData changes
   useEffect(() => {
