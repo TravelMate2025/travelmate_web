@@ -127,7 +127,7 @@ const SearchPickUpLocation = ({
         <div className="p-[8px] bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] cursor-pointer">
           <X onClick={closeDialog} className="font-bold" />
         </div>
-        <h2 className="font-bold text-lg">Pick Up</h2>
+        <h2 className="font-bold text-lg flex justify-center items-center">Pick Up</h2>
       </div>
       <form className="mt-6">
         <TextField

@@ -40,6 +40,7 @@ import CreateNewPassword from "./features/account/pages/CreateNewPassword";
 import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailForPasswordReset";
 import PrivateRoute from "../src/routes/PrivateRoute";
 import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
+import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
 
 function App() {
   return (
@@ -157,6 +158,7 @@ function App() {
         <Route path="/offer-accepted-page" element={<Pages />} />
         <Route path="/car-confirmation" element={<Page />} />
         <Route path="/transfers/payment-success" element={<CarPaidForPage />} />
+         <Route path="/transfers/payment-failure" element={<CarFailedPayment />} />
         <Route path="/airport-taxi" element={<AirportTaxi />} />
         <Route path="/car-paid/download" element={<DownloadPage />} />
 

@@ -118,10 +118,18 @@ const DisplayCars: React.FC = () => {
 
   const initialData = useMemo(() => {
     const savedData = loadSavedData() || {};
-    if (state && (stateData.pickupLocation || stateData.dropoffLocation)) {
-      return { ...savedData, ...stateData };
-    }
-    return { ...stateData, ...savedData };
+    const merged = state && (stateData.pickupLocation || stateData.dropoffLocation)
+      ? { ...savedData, ...stateData }
+      : { ...stateData, ...savedData };
+
+    // Ensure priceRange.min and priceRange.max are numbers (not undefined)
+    return {
+      ...merged,
+      priceRange: {
+        min: typeof merged.priceRange?.min === "number" ? merged.priceRange.min : 0,
+        max: typeof merged.priceRange?.max === "number" ? merged.priceRange.max : 0,
+      },
+    };
   }, [state, stateData, loadSavedData]);
 
   const {
@@ -157,7 +165,7 @@ const DisplayCars: React.FC = () => {
 
   // Event handlers
   const handleDropLocationClick = useCallback(
-    (event: React.MouseEvent<HTMLElement>, type: "drop") => {
+    ( type: "drop") => {
       setPickOrDrop(type);
       openModal("searchDropLocation");
     },
@@ -165,7 +173,7 @@ const DisplayCars: React.FC = () => {
   );
 
   const handlePickLocationClick = useCallback(
-    (event: React.MouseEvent<HTMLElement>, type: "pick") => {
+    ( type: "pick") => {
       setPickOrDrop(type);
       openModal("searchPickLocation");
     },
@@ -191,7 +199,10 @@ const DisplayCars: React.FC = () => {
   );
 
   const handlePriceChange = useCallback(
-    (field: "min" | "max", event: React.ChangeEvent<HTMLInputElement>) => {
+    (
+      field: "min" | "max",
+      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
       const value = event.target.value.replace(/[^0-9]/g, "");
       const parsedValue = value ? parseInt(value, 10) : 0;
       updateField("priceRange", {
@@ -379,7 +390,7 @@ const DisplayCars: React.FC = () => {
                   className="w-full lg:w-auto"
                   placeholder="Enter Pick Up Location"
                   value={formData.pickUpLocaDescription}
-                  onClick={(e) => handlePickLocationClick(e, "pick")}
+                  onClick={() => handlePickLocationClick("pick")}
                   error={!!errors.pickupLocation}
                   helperText={errors.pickupLocation}
                   InputProps={{
@@ -411,7 +422,7 @@ const DisplayCars: React.FC = () => {
                   className="w-full lg:w-auto"
                   placeholder="Enter Drop Off Location"
                   value={formData.dropoffLocation}
-                  onClick={(e) => handleDropLocationClick(e, "drop")}
+                  onClick={() => handleDropLocationClick( "drop")}
                   error={!!errors.dropoffLocation}
                   helperText={errors.dropoffLocation}
                   InputProps={{
@@ -749,7 +760,7 @@ const DisplayCars: React.FC = () => {
           searchResults={formData.searchResults || stateData.searchResults}
           OpenForm={() => setForm(true)}
           loading={loading}
-          rate_key={formData.rate_key}
+          rate_key={formData.rate_key ?? ""}
         />
       ) : (
         <EmptyState />

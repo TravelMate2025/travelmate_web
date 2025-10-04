@@ -81,6 +81,8 @@ const CarBookingFirstScreen: React.FC = () => {
           children: 0,
           infant: 0,
         },
+        toLat: typeof carInfo.toLat === "number" ? carInfo.toLat : undefined,
+        toLon: typeof carInfo.toLon === "number" ? carInfo.toLon : undefined,
       };
     }
     return (
@@ -98,6 +100,8 @@ const CarBookingFirstScreen: React.FC = () => {
           children: 0,
           infant: 0,
         },
+        toLat: undefined,
+        toLon: undefined,
       }
     );
   }, [carInfo, loadSavedData]);
@@ -125,7 +129,7 @@ const CarBookingFirstScreen: React.FC = () => {
     handleClose: handleDateClose,
     handleSelectDate,
     updateDateRange,
-  } = useDateSelection((apiDate, displayDate) => {
+  } = useDateSelection((displayDate) => {
     updateField("pickupDate", displayDate);
   });
 
@@ -154,11 +158,9 @@ const CarBookingFirstScreen: React.FC = () => {
       selectedRide: formData.selectedRide,
       priceRange: formData.priceRange,
       passengerCounts: formData.passengerCounts,
-      endAddress: formData.endAddress,
-      endCity: formData.endCity,
-      endCountry: formData.endCountry,
-      fromLat: formData.fromLat,
-      fromLon: formData.fromLon,
+      // endAddress: formData.endAddress,
+      // endCity: formData.endCity,
+      // endCountry: formData.endCountry,
       toLat: formData.toLat,
       toLon: formData.toLon,
       searchResults: carInfo?.searchResults || [],
@@ -169,14 +171,14 @@ const CarBookingFirstScreen: React.FC = () => {
 
   // Event handlers
   const handleDropLocationClick = useCallback(
-    (event: React.MouseEvent<HTMLElement>, type: "drop") => {
+    (type: "drop") => {
       setPickOrDrop(type);
       openModal("searchDropLocation");
     },
     [openModal]
   );
   const handlePickLocationClick = useCallback(
-    (event: React.MouseEvent<HTMLElement>, type: "pick") => {
+    (type: "pick") => {
       setPickOrDrop(type);
       openModal("searchPickLocation");
     },
@@ -202,7 +204,10 @@ const CarBookingFirstScreen: React.FC = () => {
   );
 
   const handlePriceChange = useCallback(
-    (field: "min" | "max", event: React.ChangeEvent<HTMLInputElement>) => {
+    (
+      field: "min" | "max",
+      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
       const value = event.target.value.replace(/[^0-9]/g, "");
       const parsedValue = value ? parseInt(value, 10) : 0;
       updateField("priceRange", {
@@ -379,7 +384,7 @@ const CarBookingFirstScreen: React.FC = () => {
                 size="small"
                 placeholder="Search Pick up Location"
                 value={formData.pickUpLocaDescription}
-                onClick={(e) => handlePickLocationClick(e, "pick")}
+                onClick={() => handlePickLocationClick( "pick")}
                 // error={!!errors.pickupLocation}
                 // helperText={errors.pickupLocation}
                 InputProps={{
@@ -409,7 +414,7 @@ const CarBookingFirstScreen: React.FC = () => {
                 size="small"
                 placeholder="Search Destination"
                 value={formData.dropoffLocation}
-                onClick={(e) => handleDropLocationClick(e, "drop")}
+                onClick={() => handleDropLocationClick("drop")}
                 // error={!!errors.dropoffLocation}
                 // helperText={errors.dropoffLocation}
                 InputProps={{
@@ -663,10 +668,12 @@ const CarBookingFirstScreen: React.FC = () => {
           value={formData.dropoffLocation}
           collectTo={collectTo}
           setValue={handleLocationSelect}
-          ChangeValue={(query) =>
+          ChangeValue={(query, lat, lon) =>
             setFormData((prev) => ({
               ...prev,
               dropoffLocation: query,
+              toLat: lat,
+              toLon: lon,
             }))
           }
           setExtraFields={(fields) => {
@@ -712,8 +719,6 @@ const CarBookingFirstScreen: React.FC = () => {
           handlePriceChange={handlePriceChange}
         />
       )}
-
-     
     </div>
   );
 };

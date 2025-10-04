@@ -87,7 +87,11 @@ const MobilePage = ({
       // };
     };
     let profile: Profile = {
-      profile: {},
+      first_name: "",
+      last_name: "",
+      date_of_birth: "",
+      email: "",
+      mobile_number: "",
     };
     try {
       profile = JSON.parse(profileStr).profile;

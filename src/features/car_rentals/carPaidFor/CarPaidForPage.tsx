@@ -16,6 +16,7 @@ import { BookingFormData } from "../types/booking";
 import SkeletonConfirm from "./Skeleton";
 import { Download, Loader, Share } from "lucide-react";
 import ShareModal from "../../stays/components/modals/ShareModal";
+import CarFailedPayment from "./CarFailedPayment";
 
 const CarPaidForPage = () => {
   const location = useLocation();
@@ -40,6 +41,7 @@ const CarPaidForPage = () => {
           setBooking(res?.data?.bookings);
         } else {
           toast.error("Booking falied please try again!");
+          return <CarFailedPayment/>
         }
       } catch (error) {
         console.error("Error fetching booking:", error);
