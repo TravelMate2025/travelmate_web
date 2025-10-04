@@ -11,14 +11,14 @@ import {
 import { useEffect, useState } from "react";
 
 type rideProps = {
-  open: boolean;
+  rideTypeModal: boolean;
   closeModal: () => void;
   selectedRide: string;
   handleSelectRide: (value: string) => void;
 };
 
 const RideType = ({
-  open,
+  rideTypeModal,
   closeModal,
   selectedRide,
   handleSelectRide,
@@ -26,14 +26,14 @@ const RideType = ({
   const [tempSelectedRide, setTempSelectedRide] = useState(selectedRide);
   useEffect(() => {
     setTempSelectedRide(selectedRide); // sync when modal opens
-  }, [selectedRide, open]);
+  }, [selectedRide, rideTypeModal]);
 
   const handleDone = () => {
     handleSelectRide(tempSelectedRide); // update actual value
     closeModal(); // close modal
   };
   return (
-    <Dialog maxWidth="xs" fullWidth open={open} onClose={closeModal}>
+    <Dialog maxWidth="xs" fullWidth open={rideTypeModal} onClose={closeModal}>
       <DialogTitle className="border-b-1 border-b-gray-200 text-center">
         Ride Type
       </DialogTitle>
@@ -53,14 +53,14 @@ const RideType = ({
               label="Private Ride"
             />
             <FormControlLabel
+              value="Premium Ride"
+              control={<Radio />}
+              label="Premium Ride"
+            />
+            <FormControlLabel
               value="Shared Ride"
               control={<Radio />}
               label="Shared Ride"
-            />
-            <FormControlLabel
-              value="Private and Shared Ride"
-              control={<Radio />}
-              label="Private and Shared Ride"
             />
           </RadioGroup>
           <Button
