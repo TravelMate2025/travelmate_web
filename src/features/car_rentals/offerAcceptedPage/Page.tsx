@@ -176,6 +176,11 @@ const Page = () => {
         phone: passFormData.phoneNumber,
       };
 
+      if (!accessToken) {
+        toast.error("You must be logged in to continue.");
+        setLoadingSubmit(false);
+        return;
+      }
       const result = await transferService.createBookingConfirmation(
         accessToken,
         payload
@@ -186,7 +191,7 @@ const Page = () => {
         return;
       }
       setActiveStep(2);
-      setConfirmationId(result?.data?.id);
+      setConfirmationId(result?.data?.id ?? "");
       console.log(result);
     } catch (error: any) {
       console.error("Booking failed:", error);
@@ -221,8 +226,8 @@ const Page = () => {
         confirmationId
       );
       console.log(response);
-      if (response.success) {
-        window.location.href = response?.checkout_url;
+      if (response.success && response.checkout_url) {
+        window.location.href = response.checkout_url;
       } else {
         console.error("Payment failed or invalid response:", response);
       }

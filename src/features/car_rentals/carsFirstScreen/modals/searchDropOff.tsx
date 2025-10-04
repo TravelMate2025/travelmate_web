@@ -17,7 +17,7 @@ export interface SearchLocationProps {
   closeDialog: () => void;
   value: string;
   setValue: (value: string) => void;
-  ChangeValue: (data: string) => void;
+  ChangeValue: (data: string, lat: number, lon: number) => void;
   collectTo: (
     data: string,
     data2: string,
@@ -85,7 +85,7 @@ const SearchDropOffLocation = ({
     }
 
     setValue(location.name);
-    ChangeValue(location.country);
+    ChangeValue(location.country, location.latitude, location.longitude);
     collectTo(
       location.country,
       location.name,

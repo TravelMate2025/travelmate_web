@@ -9,7 +9,7 @@ import { X } from "lucide-react";
 type Props = {
   closeDialog: () => void;
   sortOrder: string;
-  setSortOrder: (order: string) => void;
+  setSortOrder: (order: any) => void;
 };
 const SortOverlay = ({ closeDialog, sortOrder, setSortOrder }: Props) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {

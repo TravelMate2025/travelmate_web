@@ -14,19 +14,20 @@ import { toast, ToastContainer } from "react-toastify";
 import { useFormPersistence } from "../hooks/useFormPersistence";
 import { BookingFormData } from "../types/booking";
 import SkeletonConfirm from "./Skeleton";
-import { Download, Share } from "lucide-react";
+import { Download, Loader, Share } from "lucide-react";
 import ShareModal from "../../stays/components/modals/ShareModal";
-import html2pdf from "html2pdf.js";
+import CarFailedPayment from "./CarFailedPayment";
 
 const CarPaidForPage = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [booking, setBooking] = useState([]);
+  const [booking, setBooking] = useState<any>([]);
   const dispatch = useDispatch();
   const { clearSavedData } = useFormPersistence({} as BookingFormData);
   const searchParams = new URLSearchParams(location.search);
-  const sessionId = searchParams.get("session_id");
+  const sessionId = searchParams?.get("session_id");
   const [showShareModal, setShowShareModal] = useState(false);
+  const [downloadLoading, setDownloadLoading] = useState(false);
 
   useEffect(() => {
     const fetchBooking = async () => {
@@ -40,6 +41,7 @@ const CarPaidForPage = () => {
           setBooking(res?.data?.bookings);
         } else {
           toast.error("Booking falied please try again!");
+          return <CarFailedPayment/>
         }
       } catch (error) {
         console.error("Error fetching booking:", error);
@@ -72,15 +74,24 @@ const CarPaidForPage = () => {
       </div>
     );
 
- const handleDownloadPDF = () => {
-  const element = document.getElementById("pdf-content"); // wrap your page in this div
-  html2pdf().from(element).save();
-};
+  const handleDownload = (cars: any) => {
+    try {
+      setDownloadLoading(true);
+      window.open(
+        `/car-paid/download?data=${encodeURIComponent(JSON.stringify(cars))}`,
+        "_blank"
+      );
+    } catch (error) {
+      toast.error("Failed to download, try again ");
+    } finally {
+      setDownloadLoading(false);
+    }
+  };
+
   return (
     <div>
       <Navbar />
       <ToastContainer />
-
       {booking?.map((cars: any) => (
         <div className="lg:pt-32 pt-20">
           {showShareModal && (
@@ -100,7 +111,12 @@ const CarPaidForPage = () => {
               Taxi Confirmation
             </p>
 
-            <div className="w-[35px]my-6 h-[35px] p-[4px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] ">
+            <div
+              className="w-[35px] h-[35px] p-[4px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] "
+              onClick={() => {
+                handleDownload(cars);
+              }}
+            >
               <FileDownloadOutlinedIcon className="font-bold " />
             </div>
           </div>
@@ -118,10 +134,16 @@ const CarPaidForPage = () => {
                 <span>Share</span>
               </div>
               <div
-                onClick={handleDownloadPDF}
+                onClick={() => {
+                  handleDownload(cars);
+                }}
                 className="flex items-center gap-2 rounded-md border-[1px] border-[#ACAEB3] p-2 cursor-pointer"
               >
-                <Download />
+                {downloadLoading ? (
+                  <Loader className="animate-spin" />
+                ) : (
+                  <Download />
+                )}
                 <span>Download</span>
               </div>
             </div>
@@ -151,7 +173,7 @@ const CarPaidForPage = () => {
               </div>
             </div>
           </div>
-          <div  id="pdf-content" className="lg:grid lg:grid-cols-2 lg:w-full">
+          <div id="pdf-content" className="lg:grid lg:grid-cols-2 lg:w-full">
             <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-1">
               <p className="text-[16px] font-medium text-[#181818] mb-[15px]">
                 Confirmation Details
@@ -231,7 +253,7 @@ const CarPaidForPage = () => {
                       {cars.transfers[0]?.content.transferDetailInfo[0].value}{" "}
                       {
                         cars.transfers[0]?.content.transferDetailInfo[0]
-                          .description 
+                          .description
                       }
                     </p>
                   </div>
@@ -398,9 +420,18 @@ const CarPaidForPage = () => {
                   <ShareOutlinedIcon /> <span>Share this booking</span>
                 </p>
 
-                <p className="text-[#181818] text-[14px]">
+                <p
+                  className="text-[#181818] text-[14px]"
+                  onClick={() => {
+                    handleDownload(cars);
+                  }}
+                >
                   {" "}
-                  <FileDownloadOutlinedIcon />
+                  {downloadLoading ? (
+                    <Loader className="animate-spin" />
+                  ) : (
+                    <FileDownloadOutlinedIcon />
+                  )}
                   <span>Download as PDF</span>
                 </p>
               </div>

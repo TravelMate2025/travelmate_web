@@ -198,14 +198,12 @@ const CarList: React.FC<CarListProps> = ({
                       </p>
                     </div>
 
-                    <div
+                    <button
                       onClick={() => handleSubmitOffer(car)}
-                      className="bg-[#023E8A] text-white text-center pt-[10px] rounded-[8px] w-[93px] h-[42px] text-[14px] cursor-pointer"
+                      className="bg-[#023E8A] text-white text-center rounded-md cursor-pointer px-4 py-3"
                     >
-                      <button className=" cursor-pointer  align-middle">
-                        Select Car
-                      </button>
-                    </div>
+                      Select Car
+                    </button>
                   </div>
                 </Card>
               ))
@@ -288,10 +286,13 @@ const CarList: React.FC<CarListProps> = ({
             </div>
           </div>
 
-          <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 ">
+          <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 pb-20">
             {paginatedItems.length > 0 ? (
               paginatedItems.map((car: any) => (
-                <Card key={car.id} className="p-[20px] w-[100%] cursor-pointer">
+                <Card
+                  key={car.id}
+                  className="p-[20px] w-[100%] cursor-pointer "
+                >
                   <div className="flex justify-normal items-center  gap-3 pb-4">
                     <img
                       src={
@@ -317,7 +318,7 @@ const CarList: React.FC<CarListProps> = ({
                       <LuggageOutlinedIcon />
                       <span>
                         {car.content.transferDetailInfo[3].name.slice(0, 2)}{" "}
-                        Bags 
+                        Bags
                       </span>
                     </div>
                   </div>
@@ -357,14 +358,12 @@ const CarList: React.FC<CarListProps> = ({
                       </p>
                     </div>
 
-                    <div
+                    <button
                       onClick={() => handleSubmitOffer(car)}
-                      className="bg-[#023E8A] text-white text-center pt-[10px] rounded-[8px] w-[93px] h-[42px] text-[14px] cursor-pointer"
+                      className="bg-[#023E8A] text-white text-center rounded-md cursor-pointer px-4 py-3"
                     >
-                      <button className=" cursor-pointer  align-middle">
-                        Select car
-                      </button>
-                    </div>
+                      Select car
+                    </button>
                   </div>
                 </Card>
               ))

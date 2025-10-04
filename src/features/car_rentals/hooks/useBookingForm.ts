@@ -16,6 +16,8 @@ export const useBookingForm = (initialData?: Partial<BookingFormData>) => {
     endAddress: initialData?.endAddress || "",
     endCity: initialData?.endCity || "",
     endCountry: initialData?.endCountry || "",
+    toLat: initialData?.toLat || undefined,
+    toLon: initialData?.toLon || undefined,
     searchResults: initialData?.searchResults || [],
     search_id: initialData?.search_id || "",
     rate_key: initialData?.rate_key || "",

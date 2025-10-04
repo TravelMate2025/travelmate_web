@@ -18,6 +18,8 @@ export interface CarInfo {
         children: number;
         infant: number;
     };
+    toLat?: number,
+    toLon?: number
 
     searchResults: any[];
 }
@@ -53,7 +55,9 @@ const initialCarInfo: CarInfo = {
     selectedRide: "",
     priceRange: { min: 0, max: 0 },
     passengerCounts: { adults: 0, children: 0, infant: 0 },
-    searchResults: []
+    searchResults: [],
+    toLat: undefined,
+    toLon: undefined,
 };
 const initialState: FormState = {
     cardinfo: null,
