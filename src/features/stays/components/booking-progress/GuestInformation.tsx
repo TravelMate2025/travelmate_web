@@ -30,6 +30,10 @@ const GuestInformation: React.FC<GuestInformationProps> = ({ onGuestInfoChange }
     });
   };
 
+  // added this block of code cause handleSubmit was undefined 
+  const handleSubmit=()=>{
+    console.log("submitted")
+  }
 
 
   return (
