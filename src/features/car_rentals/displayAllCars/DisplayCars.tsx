@@ -690,7 +690,7 @@ const DisplayCars: React.FC = () => {
 
       {modals.rideType && (
         <RideType
-          open={modals.rideType}
+          // open={modals.rideType}
           closeModal={() => closeModal("rideType")}
           selectedRide={formData.selectedRide}
           handleSelectRide={handleRideSelect}

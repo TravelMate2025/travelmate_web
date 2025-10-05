@@ -185,6 +185,10 @@ const CarBookingFirstScreen: React.FC = () => {
     [openModal]
   );
 
+  const handleRideClick = () => {
+    console.log("Clicked");
+    openModal("rideType");
+  };
   const handleLocationSelect = useCallback(
     (location: string) => {
       if (pickOrDrop === "pick") {
@@ -352,7 +356,7 @@ const CarBookingFirstScreen: React.FC = () => {
                 variant="outlined"
                 size="small"
                 value={displayValues.rideType}
-                onClick={() => openModal("rideType")}
+                onClick={() => handleRideClick()}
                 // error={!!errors.selectedRide}
                 // helperText={errors.selectedRide}
                 className="cursor-pointer"
@@ -384,7 +388,7 @@ const CarBookingFirstScreen: React.FC = () => {
                 size="small"
                 placeholder="Search Pick up Location"
                 value={formData.pickUpLocaDescription}
-                onClick={() => handlePickLocationClick( "pick")}
+                onClick={() => handlePickLocationClick("pick")}
                 // error={!!errors.pickupLocation}
                 // helperText={errors.pickupLocation}
                 InputProps={{
@@ -699,7 +703,7 @@ const CarBookingFirstScreen: React.FC = () => {
 
       {modals.rideType && (
         <RideType
-          open={modals.rideType}
+          // open={modals.rideType}
           closeModal={() => closeModal("rideType")}
           selectedRide={formData.selectedRide}
           handleSelectRide={handleRideSelect}

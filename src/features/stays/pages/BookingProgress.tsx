@@ -17,7 +17,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createBookingAsync } from '../slice';
 import { RootState, AppDispatch } from '../../../store';
 import { useLocation, useNavigate } from "react-router-dom";
-import { Room } from "../types";
 
 
 
@@ -28,7 +27,7 @@ const BookingProgress: React.FC = () => {
   const formattedTime = "11:59 PM";
 
   const dispatch = useDispatch<AppDispatch>();
-  const { booking, loading, error } = useSelector((state: RootState) => state.stays.booking);
+  const {loading, error } = useSelector((state: RootState) => state.stays.booking);
   const { selectedHotel, searchParams } = useSelector((state: RootState) => state.stays);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();

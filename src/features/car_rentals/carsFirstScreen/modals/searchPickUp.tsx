@@ -9,10 +9,11 @@ import { Loader, SearchIcon, X } from "lucide-react";
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { transferService } from "../../services/transferService";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
+import toast from "react-hot-toast";
 
 interface SearchLocationProps {
   closeDialog: () => void;
-  ChangeValue:(data:string)=>void
+  ChangeValue: (data: string) => void;
   value: string;
   setValue: (value: string) => void;
   setExtraFields?: (fields: {
@@ -44,7 +45,7 @@ const SearchPickUpLocation = ({
   value,
   setValue,
   setExtraFields,
-  ChangeValue
+  ChangeValue,
 }: SearchLocationProps) => {
   const [query, setQuery] = useState(value);
   const [suggestions, setSuggestions] = useState<PickUp[]>([]);
@@ -80,9 +81,11 @@ const SearchPickUpLocation = ({
         );
       } else {
         setSuggestions([]);
+        setError(response.error || "Failed to fetch airports");
       }
     } catch (error: any) {
       setError(error.response.data || "Failed to fetch airports");
+      toast.error(error.response.data || "Failed to fetch airports");
       setSuggestions([]);
     } finally {
       setLoading(false);
@@ -99,7 +102,6 @@ const SearchPickUpLocation = ({
     ChangeValue(location.displayName);
     setQuery(location.displayName);
     setValue(location.iataCode);
-    console.log(query)
     if (setExtraFields) {
       const fields: Parameters<NonNullable<typeof setExtraFields>>[0] = {
         fromLat: location.geoCode.latitude,
@@ -109,6 +111,7 @@ const SearchPickUpLocation = ({
       };
       setExtraFields(fields);
     }
+    // setQuery("");
     closeDialog();
   };
 
@@ -122,97 +125,102 @@ const SearchPickUpLocation = ({
   }, [query, debouncedFetchLocations]);
 
   return (
-    <div className="min-w-screen min-h-screen p-8 rounded-lg bg-white shadow-2xl fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 lg:min-h-[400px] lg:min-w-[90vh] block z-[99] mt-5">
-      <div className="flex justify-normal gap-32 lg:gap-42 items-center my-5 w-full">
-        <div className="p-[8px] bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] cursor-pointer">
-          <X onClick={closeDialog} className="font-bold" />
+    <div className="inset-0 fixed z-50">
+      {/* Backdrop */}
+      <div className="fixed inset-0 " />
+      <div className="min-w-screen min-h-screen p-8 rounded-lg bg-white shadow-2xl fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 lg:min-h-[400px] lg:min-w-[90vh] block z-[99] mt-5">
+        <div className="flex justify-normal gap-24 lg:gap-42 items-center my-5 w-full">
+          <div className="p-[8px] bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] cursor-pointer">
+            <X onClick={closeDialog} className="font-bold" />
+          </div>
+          <h2 className="font-bold text-lg flex justify-center items-center">
+            Pick Up
+          </h2>
         </div>
-        <h2 className="font-bold text-lg flex justify-center items-center">Pick Up</h2>
-      </div>
-      <form className="mt-6">
-        <TextField
-          id="from"
-          variant="outlined"
-          size="small"
-          value={query}
-          helperText={error}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Enter airport name or location"
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-            endAdornment: (
-              <InputAdornment position="end">
-                {loading && <Loader className="animate-spin" />}
-              </InputAdornment>
-            ),
-          }}
-          className="w-full"
-          sx={{
-            "& .MuiInputBase-root": {
-              height: "44px",
-              borderRadius: "8px",
-            },
-          }}
-        />
-        <div>
-          <List
+        <form className="mt-6">
+          <TextField
+            id="from"
+            variant="outlined"
+            size="small"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Enter airport name or location"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  {loading && <Loader className="animate-spin" />}
+                </InputAdornment>
+              ),
+            }}
+            className="w-full"
             sx={{
-              maxHeight: "300px",
-              overflowY: "auto",
-              padding: 0,
-              "&::-webkit-scrollbar": {
-                width: "8px",
-              },
-              "&::-webkit-scrollbar-track": {
-                background: "#f1f1f1",
-              },
-              "&::-webkit-scrollbar-thumb": {
-                background: "#888",
-                borderRadius: "4px",
-              },
-              "&::-webkit-scrollbar-thumb:hover": {
-                background: "#555",
+              "& .MuiInputBase-root": {
+                height: "44px",
+                borderRadius: "8px",
               },
             }}
-          >
-            {loading ? (
-              <div className="text-center py-4">Loading...</div>
-            ) : suggestions.length > 0 ? (
-              suggestions.map((location, index) => (
-                <div
-                  key={index}
-                  className="flex justify-between w-full items-center cursor-pointer hover:bg-gray-100 rounded mt-3 pl-3"
-                >
-                  <RoomOutlinedIcon
-                    className="text-[#FF6F1E]"
-                    sx={{ fontSize: "20px" }}
-                  />
-                  <ListItem
-                    onClick={() => handleSelect(location)}
-                    sx={{ cursor: "pointer" }}
+          />
+          <div>
+            <List
+              className="lg:max-h-[300px] h-full"
+              sx={{
+                // maxHeight: "300px",
+
+                overflowY: "auto",
+                padding: 0,
+                "&::-webkit-scrollbar": {
+                  width: "8px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  background: "#f1f1f1",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  background: "#888",
+                  borderRadius: "4px",
+                },
+                "&::-webkit-scrollbar-thumb:hover": {
+                  background: "#555",
+                },
+              }}
+            >
+              {loading ? (
+                <div className="text-center py-4">Loading...</div>
+              ) : suggestions.length > 0 ? (
+                suggestions.map((location, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between w-full items-center cursor-pointer hover:bg-gray-100 rounded mt-3 pl-3"
                   >
-                    <ListItemText
-                      primary={`${location.displayName} ${location.countryName}`}
-                      secondary="Airport"
+                    <RoomOutlinedIcon
+                      className="text-[#FF6F1E]"
+                      sx={{ fontSize: "20px" }}
                     />
-                  </ListItem>
-                  <p className="pr-3">{location.iataCode}</p>
+                    <ListItem
+                      onClick={() => handleSelect(location)}
+                      sx={{ cursor: "pointer" }}
+                    >
+                      <ListItemText
+                        primary={`${location.displayName} ${location.countryName}`}
+                        secondary="Airport"
+                      />
+                    </ListItem>
+                    <p className="pr-3">{location.iataCode}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-red-500">
+                  {error ? error : "Enter a valid airport name or location"}
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-4 text-gray-500">
-                {query
-                  ? ""
-                  : "Enter a valid airport name or location"}
-              </div>
-            )}
-          </List>
-        </div>
-      </form>
+              )}
+            </List>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
