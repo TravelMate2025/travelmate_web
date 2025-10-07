@@ -91,7 +91,7 @@ const Passengers = ({
           ))}
         </div>
 
-        <div className="p-6 pt-3 ">
+        <div className="p-6 pt-3 mb-12 lg:mb-0">
           <button
             className="bg-[#023E8A] rounded-lg lg:p-2 p-3 w-full text-white cursor-pointer"
             onClick={handleDone}

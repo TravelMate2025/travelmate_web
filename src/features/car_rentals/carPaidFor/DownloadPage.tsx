@@ -1,18 +1,23 @@
 import { Divider } from "@mui/material";
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import TravelMateLogo from "../../../assets/Logo.svg";
 
 const DownloadPage = () => {
   const search = new URLSearchParams(window.location.search);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
   let bookingData: any = {};
   try {
     bookingData = JSON.parse(search.get("data") || "{}");
   } catch {}
 
   useEffect(() => {
-    window.print();
-  }, []);
+    if (isImageLoaded) {
+      setTimeout(() => {
+        window.print();
+      }, 300);
+    }
+  }, [isImageLoaded]);
 
   if (!bookingData) return <div>No booking data found.</div>;
 
@@ -28,7 +33,12 @@ const DownloadPage = () => {
   return (
     <div>
       <div className="flex justify-center items-center my-4">
-        <img src={TravelMateLogo} alt="TravelMate Logo" className="w-32" />
+        <img
+          src={TravelMateLogo}
+          alt="TravelMate Logo"
+          className="w-32"
+          onLoad={() => setIsImageLoaded(true)}
+        />
       </div>
       <Divider
         sx={{ marginTop: "15px", marginBottom: "15px" }}
@@ -36,7 +46,6 @@ const DownloadPage = () => {
       />
 
       <div className="w-full bg-white">
-
         <div className="px-6 lg:px-8 m-auto lg:m-0 ">
           <p className="text-[16px] font-bold text-[#181818] mb-[15px]">
             Taxi Confirmation
@@ -45,7 +54,9 @@ const DownloadPage = () => {
             <p className="text-[#4E4F52] text-[14px] font-normal">
               Payment Status
             </p>
-            <p className="text-[#2D9C5E] text-[14px] font-normal">Paid</p>
+            <p className="text-[#2D9C5E] text-[14px] font-normal">
+              {transfer.status}
+            </p>
           </div>
           <div className="flex justify-normal gap-2">
             <p className="text-[#4E4F52] text-[14px] font-normal">Booking ID</p>
@@ -55,16 +66,13 @@ const DownloadPage = () => {
           </div>
         </div>
 
-        <Divider
-          sx={{ marginTop: "15px", marginBottom: "15px" }}
-  
-        />
+        <Divider sx={{ marginTop: "15px", marginBottom: "15px" }} />
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
             Trip Details
           </p>
-          <div >
+          <div>
             <div className="flex flex-col gap-1">
               <div className="flex justify-normal gap-2">
                 <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
@@ -111,10 +119,7 @@ const DownloadPage = () => {
           </div>
         </div>
 
-        <Divider
-          sx={{ marginTop: "15px", marginBottom: "15px" }}
-  
-        />
+        <Divider sx={{ marginTop: "15px", marginBottom: "15px" }} />
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
@@ -159,10 +164,7 @@ const DownloadPage = () => {
           </div>
         </div>
 
-        <Divider
-          sx={{ marginTop: "15px", marginBottom: "15px" }}
-  
-        />
+        <Divider sx={{ marginTop: "15px", marginBottom: "15px" }} />
 
         <div className="px-6 lg:px-8 m-auto lg:m-0 ">
           <p className="text-[14px] font-bold text-[#181818] py-2">
@@ -186,10 +188,7 @@ const DownloadPage = () => {
           </div>
         </div>
 
-        <Divider
-          sx={{ marginTop: "15px", marginBottom: "15px" }}
-  
-        />
+        <Divider sx={{ marginTop: "15px", marginBottom: "15px" }} />
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
@@ -207,10 +206,7 @@ const DownloadPage = () => {
           </div>
         </div>
 
-        <Divider
-          sx={{ marginTop: "15px", marginBottom: "15px" }}
-  
-        />
+        <Divider sx={{ marginTop: "15px", marginBottom: "15px" }} />
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
@@ -218,9 +214,9 @@ const DownloadPage = () => {
           </p>
           <div>
             {infoRemarks ? (
-              <pre className=" whitespace-pre-wrap text-[#181818] text-[14px] font-inter">
+              <p className="whitespace-pre-wrap  text-[#181818] text-[14px] font-inter">
                 {infoRemarks}
-              </pre>
+              </p>
             ) : (
               <pre className="whitespace-pre-wrap text-[#181818] text-[14px] font-inter">
                 No Information
@@ -229,10 +225,7 @@ const DownloadPage = () => {
           </div>
         </div>
 
-        <Divider
-          sx={{ marginTop: "15px", marginBottom: "15px" }}
-
-        />
+        <Divider sx={{ marginTop: "15px", marginBottom: "15px" }} />
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-bold text-[#181818] py-2">Contacts</p>
@@ -244,14 +237,15 @@ const DownloadPage = () => {
                 />
                 <p className="text-[#4E4F52] text-[14px]">Customer Support</p>
               </div>
-              <p className="text-[#181818] text-[14px]">+234 800 123 4567</p>
+              <p className="text-[#181818] text-[14px]">+234 808 412 2474</p>
             </div>
           </div>
         </div>
-        <Divider
-          sx={{ marginTop: "150px", marginBottom: "30px" }}
-  
-        />
+        <Divider sx={{ marginTop: "150px", marginBottom: "30px" }} />
+
+        <p className="text-center text-[#BDBDBD] text-[12px]">
+          {` &copy; ${new Date().getFullYear()} TravelMate. All rights reserved.`}
+        </p>
       </div>
     </div>
   );

@@ -7,7 +7,13 @@ import {
   InputAdornment,
   TextField,
   FormControlLabel,
+  FormControl,
+  Select,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
+
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import DateRangeOutlinedIcon from "@mui/icons-material/DateRangeOutlined";
 import Switch from "@mui/material/Switch";
@@ -16,12 +22,12 @@ import { useLocation } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import { FaRegCalendarAlt, FaRegClock } from "react-icons/fa";
 import { ArrowRight, ChevronRight, Dot, Info, Loader } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Complete from "./Complete";
-import { MdArrowDropDown } from "react-icons/md";
 import { FiPhone } from "react-icons/fi";
 import { DeskProps } from "./Page";
 import { ToastContainer } from "react-toastify";
+import axios from "axios";
 
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .MuiStepConnector-line`]: {
@@ -64,6 +70,7 @@ const MobilePage = ({
     });
   };
   const [showAllModal, setShowAllModal] = useState(false);
+  const [countryCodes, setCountryCodes] = useState<any[]>([]);
   const loggedIn = localStorage.getItem("accessToken");
   const location = useLocation();
   const { car, departureInfo } = location.state || {};
@@ -132,6 +139,33 @@ const MobilePage = ({
       .toString()
       .padStart(2, "0")}`;
   };
+
+  useEffect(() => {
+    const fetchCodes = async () => {
+      try {
+        const response = await axios.get(
+          "https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags"
+        );
+        const filtered = response.data.filter(
+          (c: any) =>
+            c.idd && c.idd.root && c.idd.suffixes && c.idd.suffixes.length > 0
+        );
+        const mapped = filtered.map((c: any) => ({
+          ...c,
+          dialCode: `${c.idd.root}${c.idd.suffixes[0]}`,
+        }));
+        // ✅ Sort alphabetically by country name
+        const sorted = mapped.sort((a: any, b: any) =>
+          a.name.common.localeCompare(b.name.common)
+        );
+
+        setCountryCodes(sorted);
+      } catch (error) {
+        console.error("Error fetching country codes:", error);
+      }
+    };
+    fetchCodes();
+  }, []);
 
   return (
     <div>
@@ -556,34 +590,79 @@ const MobilePage = ({
                         </div>
                         <div className="flex flex-col mb-[10px]">
                           <label
-                            htmlFor="number"
+                            htmlFor="countryCode"
                             className="mb-1 text-[16px] text-start font-medium"
                           >
                             Country Code
                           </label>
-                          <TextField
-                            id="countryCode"
-                            variant="outlined"
+                          <FormControl
+                            fullWidth
                             size="small"
-                            value={passFormData.countryCode}
-                            error={!!errors.countryCode && submitted}
-                            helperText={submitted ? errors.countryCode : ""}
-                            onChange={handleInputChange}
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="end">
-                                  <MdArrowDropDown />
-                                </InputAdornment>
-                              ),
-                            }}
                             sx={{
-                              width: "100%",
-                              "& .MuiInputBase-root": {
-                                height: "44px",
+                              "& .MuiOutlinedInput-root": {
                                 borderRadius: "8px",
+                                height: "44px",
                               },
                             }}
-                          />
+                          >
+                            <Select
+                              labelId="countryCode-label"
+                              id="countryCode"
+                              name="countryCode"
+                              value={passFormData.countryCode}
+                              onChange={(e) => {
+                                handleInputChange({
+                                  target: {
+                                    id: "countryCode",
+                                    value: e.target.value,
+                                  },
+                                } as any);
+                              }}
+                              renderValue={(value) => value || "Select Code"}
+                              error={!!errors.countryCode && submitted}
+                              MenuProps={{
+                                PaperProps: {
+                                  style: { maxHeight: 300 },
+                                },
+                              }}
+                            >
+                              {countryCodes.map((country) => (
+                                <MenuItem
+                                  key={country.cca2}
+                                  value={country.dialCode}
+                                >
+                                  <ListItemIcon>
+                                    {country.flag ? (
+                                      <img
+                                        src={country.flag}
+                                        alt={country.name.common}
+                                        style={{
+                                          width: 24,
+                                          height: 16,
+                                          borderRadius: 2,
+                                          objectFit: "cover",
+                                        }}
+                                      />
+                                    ) : (
+                                      <span>🌍</span>
+                                    )}
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={`${country.name.common} (${country.dialCode})`}
+                                    primaryTypographyProps={{
+                                      fontSize: 14,
+                                      color: "#181818",
+                                    }}
+                                  />
+                                </MenuItem>
+                              ))}
+                            </Select>
+                            {submitted && errors.countryCode && (
+                              <p className="text-red-500 text-[12px] mt-1">
+                                {errors.countryCode}
+                              </p>
+                            )}
+                          </FormControl>
                         </div>
 
                         <div className="flex flex-col mb-[10px]">

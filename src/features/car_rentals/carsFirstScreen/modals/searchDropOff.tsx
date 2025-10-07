@@ -150,8 +150,8 @@ const SearchDropOffLocation = ({
             }}
           />
           <List
+          className="lg:max-h-[330px] h-full"
             sx={{
-              maxHeight: "300px",
               overflowY: "auto",
               padding: 0,
               "&::-webkit-scrollbar": { width: "8px" },

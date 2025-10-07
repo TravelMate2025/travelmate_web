@@ -41,7 +41,7 @@ const CarPaidForPage = () => {
           setBooking(res?.data?.bookings);
         } else {
           toast.error("Booking falied please try again!");
-          return <CarFailedPayment/>
+          return <CarFailedPayment />;
         }
       } catch (error) {
         console.error("Error fetching booking:", error);
@@ -92,8 +92,8 @@ const CarPaidForPage = () => {
     <div>
       <Navbar />
       <ToastContainer />
-      {booking?.map((cars: any) => (
-        <div className="lg:pt-32 pt-20">
+      {booking?.map((cars: any, index:any) => (
+        <div className="lg:pt-32 pt-20" key={index}>
           {showShareModal && (
             <ShareModal
               onClose={() => setShowShareModal(false)}
@@ -152,27 +152,29 @@ const CarPaidForPage = () => {
             </div>
           </div>
 
-          <div className="mb-8 px-6 lg:px-8 m-auto">
-            <div className="border-1 border-[#2D9C5E] w-full bg-[#D5EBDF4D] pt-[10px] pb-[10px] pr-[10px] pl-[10px] rounded-[8px]">
-              <div className="flex gap-2 items-center">
-                <div className="border-[#2D9C5E] h-[20px]  w-[20px] border-2 mt-[6px] rounded-full flex justify-center">
-                  <CheckIcon
-                    sx={{
-                      width: "15px",
-                      position: "relative",
-                      top: "-3px",
-                      color: "#2D9C5E",
-                    }}
-                  />
-                </div>
+          {cars.status === "CONFIRMED" && (
+            <div className="mb-8 px-6 lg:px-8 m-auto">
+              <div className="border-1 border-[#2D9C5E] w-full bg-[#D5EBDF4D] pt-[10px] pb-[10px] pr-[10px] pl-[10px] rounded-[8px]">
+                <div className="flex gap-2 items-center">
+                  <div className="border-[#2D9C5E] h-[20px]  w-[20px] border-2 mt-[6px] rounded-full flex justify-center">
+                    <CheckIcon
+                      sx={{
+                        width: "15px",
+                        position: "relative",
+                        top: "-3px",
+                        color: "#2D9C5E",
+                      }}
+                    />
+                  </div>
 
-                <div className="text-[12px]">
-                  Payment Successful. Car confirmation Details will also be sent
-                  to {cars.holder.email}
+                  <div className="text-[12px]">
+                    Payment Successful. Car confirmation Details will also be
+                    sent to {cars.holder.email}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
           <div id="pdf-content" className="lg:grid lg:grid-cols-2 lg:w-full">
             <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-1">
               <p className="text-[16px] font-medium text-[#181818] mb-[15px]">
@@ -183,7 +185,9 @@ const CarPaidForPage = () => {
                   <p className="text-[#4E4F52] text-[14px] font-normal">
                     Payment Status
                   </p>
-                  <p className="text-[#2D9C5E] text-[14px] font-normal">Paid</p>
+                  <p className="text-[#2D9C5E] text-[14px] font-normal">
+                    {cars.status}
+                  </p>
                 </div>
                 <div className="flex justify-between">
                   <p className="text-[#4E4F52] text-[14px] font-normal">
@@ -396,7 +400,7 @@ const CarPaidForPage = () => {
                     </p>
                   </div>
                   <p className="text-[#181818] text-[14px]">
-                    +234 800 123 4567
+                    +234 808 412 2474
                   </p>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { parse, format } from 'date-fns';
+import { parse, format, isValid } from 'date-fns';
 import { BookingFormData } from '../types/booking';
 import axios from 'axios';
 import instance from '../../../utils/axiosConfig';
@@ -75,6 +75,7 @@ interface BookingConfirmationResult {
         booking_id: string;
         bookings: any[]
     };
+    status?: number;
     error?: string;
 }
 
@@ -139,10 +140,11 @@ class TransferService {
             return {
                 success: true,
                 data: response.data,
+                status: response.status,
             };
         } catch (error: any) {
             console.error('Create booking confirmation failed:', error);
-            toast.error(error?.response?.data?.error || error?.message || error?.response?.data?.detail[0] || 'Booking failed. Please try again.')
+            toast.error(error?.response?.data?.error || error?.response?.data?.detail[0] || 'Network Error')
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Failed to create booking confirmation',
@@ -153,7 +155,7 @@ class TransferService {
     async createCheckoutSession(confirmationId: string): Promise<CheckoutSessionResult> {
         try {
 
-            const response = await instance.post(`${this.baseUrl}/transfers/booking/${confirmationId}/create-checkout-session/`,);
+            const response = await instance.post(`${this.baseUrl}/transfers/booking/${confirmationId}/create-checkout-session/`);
             return {
                 checkout_url: response?.data?.checkout_url,
                 success: true,
@@ -317,17 +319,31 @@ class TransferService {
         };
     }
 
+
     private formatDateTime(dateStr: string, timeStr: string): { departing: string } {
         try {
             if (!dateStr || !timeStr) {
                 throw new Error('Date or time string is undefined or empty');
             }
-            const datePart = dateStr.includes(' - ') ? dateStr.split(' - ')[0] : dateStr;
-            const date = parse(datePart, 'dd MMM yyyy', new Date());
-            const [hours, minutes] = timeStr.split(':');
-            date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0); // Sets seconds to 00
-            const formattedDateTime = format(date, "yyyy-MM-dd'T'HH:mm:ss");
 
+            let date: Date;
+
+            // Handle ISO or standard yyyy-MM-dd input
+            if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+                date = new Date(dateStr);
+            } else {
+                // Handle "06 Oct 2025" etc.
+                const datePart = dateStr.includes(' - ') ? dateStr.split(' - ')[0] : dateStr;
+                date = parse(datePart, 'dd MMM yyyy', new Date());
+            }
+
+            // Combine with time
+            const [hours, minutes] = timeStr.split(':');
+            date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+
+            if (!isValid(date)) throw new Error('Invalid parsed date');
+
+            const formattedDateTime = format(date, "yyyy-MM-dd'T'HH:mm:ss");
             return { departing: formattedDateTime };
 
         } catch (error) {
@@ -338,6 +354,7 @@ class TransferService {
             return { departing: formattedFallback };
         }
     }
+
     private formatDate(dateStr: string): string {
         try {
             if (!dateStr) {

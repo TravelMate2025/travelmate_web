@@ -1,14 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  TextField,
-  InputAdornment,
-  Popper,
-  ClickAwayListener,
-  Paper,
-  Typography,
-  Box,
-} from "@mui/material";
-import { DateRange } from "react-date-range";
+import { TextField, InputAdornment } from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../../store";
@@ -24,8 +16,6 @@ import { Info } from "lucide-react";
 // Custom hooks and utilities
 import { useBookingForm } from "../hooks/useBookingForm";
 import { useFormPersistence } from "../hooks/useFormPersistence";
-import { useDateSelection } from "../hooks/useDateSelection";
-
 import { useModalState } from "../hooks/useModalState";
 import {
   formatPassengerCount,
@@ -38,12 +28,14 @@ import Passengers from "./modals/Passengers";
 import PriceRange from "./modals/PriceRange";
 import { PassengerCounts } from "../types/booking";
 import { transferService } from "../services/transferService";
-import { formatDate } from "../utilities/formatting";
 import SearchPickUpLocation from "./modals/searchPickUp";
 import SearchDropOffLocation from "./modals/searchDropOff";
 import toast from "react-hot-toast";
 import { ToastContainer } from "react-toastify";
 import RideType from "./modals/RideType";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs"
 
 const CarBookingFirstScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -119,19 +111,6 @@ const CarBookingFirstScreen: React.FC = () => {
 
   // Persist form data
   useFormPersistence(formData);
-
-  // Date selection
-  const {
-    anchorEl,
-    dateRange,
-    open: datePickerOpen,
-    handleClick: handleDateClick,
-    handleClose: handleDateClose,
-    handleSelectDate,
-    updateDateRange,
-  } = useDateSelection((displayDate) => {
-    updateField("pickupDate", displayDate);
-  });
 
   // Modal management
   const { modals, openModal, closeModal } = useModalState();
@@ -286,7 +265,7 @@ const CarBookingFirstScreen: React.FC = () => {
       const result = await transferService.searchTransfers(params);
       if (!result?.data) {
         console.log(params);
-        throw new Error("No transfer results found");
+        throw new Error(result.error || "No transfer results found");
       }
       dispatch(setSearchResults(result?.data?.results?.services || []));
       console.log("Search results:", result?.data);
@@ -442,115 +421,42 @@ const CarBookingFirstScreen: React.FC = () => {
             {/* Pick Up Date */}
             <div className="flex flex-col gap-2 w-full">
               <label htmlFor="pickup-date">Pick Up Date</label>
-              <TextField
-                id="pickup-date"
-                variant="outlined"
-                size="small"
-                placeholder="Select Date"
-                value={formData.pickupDate || "Select Date"}
-                onClick={handleDateClick}
-                // error={!!errors.pickupDate}
-                // helperText={errors.pickupDate}
-                InputProps={{
-                  readOnly: true,
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CalendarMonthOutlinedIcon />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    width: "100%",
-                  },
-                }}
-              />
-
-              {/* Date Range Popper */}
-              <Popper
-                id="date-range-popper"
-                open={datePickerOpen}
-                // sx={{
-                //   width: "100%",
-                // }}
-                anchorEl={anchorEl}
-                placement="bottom-start"
-                modifiers={[
-                  {
-                    name: "offset",
-                    options: { offset: [0, 10] },
-                  },
-                ]}
-              >
-                <ClickAwayListener onClickAway={handleDateClose}>
-                  <Paper
-                    elevation={3}
-                    sx={{
-                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                      width: {
-                        xs: "90vw",
-                        sm: "500px",
-                        md: "650px",
-                        lg: "850px",
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                 value={formData.pickupDate ? dayjs(formData.pickupDate) : null}
+                  onChange={(newValue) => {
+                    if (newValue) {
+                      updateField(
+                        "pickupDate",
+                        newValue.toISOString().split("T")[0]
+                      );
+                    }
+                  }}
+                  
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      variant: "outlined",
+                      InputProps: {
+                        readOnly: true,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CalendarMonthOutlinedIcon />
+                          </InputAdornment>
+                        ),
                       },
-                      maxWidth: "95vv",
-                      overflow: "hidden",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      p: 2,
-                    }}
-                  >
-                    <Box sx={{ width: "100%" }}>
-                      <DateRange
-                        editableDateInputs={true}
-                        onChange={updateDateRange}
-                        moveRangeOnFirstSelection={false}
-                        ranges={dateRange}
-                        rangeColors={["#FF6F1E"]}
-                        months={window.innerWidth < 768 ? 1 : 2}
-                        direction={
-                          window.innerWidth < 768 ? "vertical" : "horizontal"
-                        }
-                        showDateDisplay={false}
-                        className="w-full"
-                      />
-
-                      <Box sx={{ mt: 2, width: "100%" }}>
-                        <Typography
-                          variant="body2"
-                          align="center"
-                          fontWeight={600}
-                          gutterBottom
-                        >
-                          {dateRange[0].startDate
-                            ? `${formatDate(dateRange[0].startDate)}${
-                                dateRange[0].endDate
-                                  ? ` - ${formatDate(dateRange[0].endDate)}`
-                                  : ""
-                              }`
-                            : "Pick a date"}
-                        </Typography>
-
-                        <button
-                          className="w-full h-[52px] rounded-[4px] font-inter text-[14px] font-medium cursor-pointer"
-                          style={{
-                            backgroundColor: "#023E8A",
-                            color: "white",
-                            marginTop: "12px",
-                          }}
-                          onClick={handleSelectDate}
-                        >
-                          Select Date
-                        </button>
-                      </Box>
-                    </Box>
-                  </Paper>
-                </ClickAwayListener>
-              </Popper>
+                      sx: {
+                        "& .MuiInputBase-root": {
+                          height: "44px",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          width: "100%",
+                        },
+                      },
+                    },
+                  }}
+                />
+              </LocalizationProvider>
             </div>
           </div>
 
@@ -681,7 +587,6 @@ const CarBookingFirstScreen: React.FC = () => {
             }))
           }
           setExtraFields={(fields) => {
-            console.log("Data received from modal via setExtraFields:", fields);
             updateField("endAddress", fields.endAddress);
             updateField("endCity", fields.endCity);
             updateField("endCountry", fields.endCountry);
