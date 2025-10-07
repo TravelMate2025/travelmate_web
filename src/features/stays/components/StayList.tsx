@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import StayCard from "./StayCard";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { Hotel } from "../stays"; // Updated import path
+import { Hotel } from "../types"; // Updated import path
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 

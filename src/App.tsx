@@ -39,6 +39,8 @@ import TicketDetailPage from "./features/customer-management/pages/TicketDetailP
 import CreateNewPassword from "./features/account/pages/CreateNewPassword";
 import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailForPasswordReset";
 import PrivateRoute from "../src/routes/PrivateRoute";
+import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
+import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
 
 function App() {
   return (
@@ -150,13 +152,31 @@ function App() {
           path="/flight-confirm-multi-way"
           element={<FlightConfirmPageMultiWay />}
         />
+        <Route
+          path="/departure-flight-multi-way"
+          element={<DeparturePageMultiWay departureInfo={[]} />}
+        />
+        <Route
+          path="/second-departure-flight"
+          element={<SecondDepartureFlightPage departureInfo={[]} />}
+        />
+        <Route
+          path="/flightInfo-review-multi-way"
+          element={<FlightInfoPageMultiWay />}
+        />
+        <Route
+          path="/flight-confirm-multi-way"
+          element={<FlightConfirmPageMultiWay />}
+        />
 
         {/* Cars-Section */}
         <Route path="/cars-searchResults" element={<DisplayCars />} />
         <Route path="/offer-accepted-page" element={<Pages />} />
         <Route path="/car-confirmation" element={<Page />} />
-        <Route path="/car-payment-successful" element={<CarPaidForPage />} />
+        <Route path="/transfers/payment-success" element={<CarPaidForPage />} />
+         <Route path="/transfers/payment-failure" element={<CarFailedPayment />} />
         <Route path="/airport-taxi" element={<AirportTaxi />} />
+        <Route path="/car-paid/download" element={<DownloadPage />} />
 
         {/* Flight Section */}
         <Route path="/flights" element={<Flight />} />

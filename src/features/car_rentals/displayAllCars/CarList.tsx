@@ -414,14 +414,29 @@ const CarList: React.FC<CarListProps> = ({ departureInfo, OpenForm }) => {
                       }}
                     />
                     <div className="text-[14px]">
-                      {car.fuelIcon} {car.full}
+                      <AirlineSeatReclineNormalIcon />
+                      <span>
+                        {car.content.transferDetailInfo[2].name.slice(0, 2)}{" "}
+                        Seats
+                      </span>
+                    </div>
+
+                    <div className="text-[14px]">
+                      <LuggageOutlinedIcon />
+                      <span>
+                        {car.content.transferDetailInfo[3].description}{" "}
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-2">
                     <div className="flex gap-2 items-center">
-                      <i className="">{car.timeIcon}</i>
-                      <p className="">{car.time}</p>
+                      <i className="">
+                        <Clock />
+                      </i>
+                      <p className="text-xs">
+                        {car.content.transferDetailInfo[0].description}
+                      </p>
                     </div>
                     <div className="flex gap-[2px] items-center">
                       <IoIosCheckmarkCircleOutline
@@ -445,14 +460,12 @@ const CarList: React.FC<CarListProps> = ({ departureInfo, OpenForm }) => {
                       <p className="text-[14px] font-bold">{car.price}</p>
                     </div>
 
-                    <div
-                      onClick={handleSubmitMobileOffer}
-                      className="bg-[#023E8A] text-white text-center pt-[10px] rounded-[8px] w-[93px] h-[42px] text-[14px] cursor-pointer"
+                    <button
+                      onClick={() => handleSubmitOffer(car)}
+                      className="bg-[#023E8A] text-white text-center rounded-md cursor-pointer px-4 py-3"
                     >
-                      <button className=" cursor-pointer  align-middle">
-                        {car.button}
-                      </button>
-                    </div>
+                      Select Car
+                    </button>
                   </div>
                 </Card>
               ))
@@ -674,11 +687,13 @@ const CarList: React.FC<CarListProps> = ({ departureInfo, OpenForm }) => {
             </div>
           </div>
 
-          <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 ">
+          <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 pb-20">
             {paginatedItems.length > 0 ? (
-              paginatedItems.map((car) => (
-                <Card key={car.id} className="p-[20px] w-[100%] cursor-pointer">
-                  {/* <div className="flex flex-col sm:flex-row gap-[10px]"> */}
+              paginatedItems.map((car: any) => (
+                <Card
+                  key={car.id}
+                  className="p-[20px] w-[100%] cursor-pointer "
+                >
                   <div className="flex justify-normal items-center  gap-3 pb-4">
                     <img src={car.image} alt="" />
                     <p className="mt-[10px] text-[#181818] text-[16px]">
@@ -686,27 +701,22 @@ const CarList: React.FC<CarListProps> = ({ departureInfo, OpenForm }) => {
                     </p>
                   </div>
 
-                  <div className="flex gap-[3px] mb-[10px] mt-[10px]">
-                    <p>
-                      {car.seatLeft} {car.spaceleft}
-                    </p>
-                    <CircleIcon
-                      sx={{
-                        width: "4px",
-                        height: "4px",
-                        marginTop: "10px",
-                        marginLeft: "2px",
-                      }}
-                    />
-                    <div>
-                      {car.fuelIcon} {car.full}
+                    <div className="text-[14px]">
+                      <LuggageOutlinedIcon />
+                      <span>
+                        {car.content.transferDetailInfo[3].description}{" "}
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-2">
                     <div className="flex gap-2 items-center">
-                      <div className=" ">{car.timeIcon}</div>
-                      <p className="">{car.time}</p>
+                      <i className="">
+                        <Clock />
+                      </i>
+                      <p className="">
+                        {car.content.transferDetailInfo[0].description}
+                      </p>
                     </div>
                     <div className="flex gap-[2px] items-center">
                       <IoIosCheckmarkCircleOutline
@@ -730,14 +740,12 @@ const CarList: React.FC<CarListProps> = ({ departureInfo, OpenForm }) => {
                       <p className="font-bold">{car.price}</p>
                     </div>
 
-                    <div
-                      onClick={handleSubmitMobileOffer}
-                      className="bg-[#023E8A] text-white text-center pt-[10px] rounded-[8px] w-[93px] h-[42px] text-[14px] cursor-pointer"
+                    <button
+                      onClick={() => handleSubmitOffer(car)}
+                      className="bg-[#023E8A] text-white text-center rounded-md cursor-pointer px-4 py-3"
                     >
-                      <button className=" cursor-pointer  align-middle">
-                        {car.button}
-                      </button>
-                    </div>
+                      Select car
+                    </button>
                   </div>
                 </Card>
               ))
