@@ -1,15 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react";
-import {
-  TextField,
-  InputAdornment,
-  Popper,
-  ClickAwayListener,
-  Paper,
-  Box,
-  Typography,
-  Skeleton,
-} from "@mui/material";
-import { DateRange } from "react-date-range";
+import { TextField, InputAdornment, Skeleton } from "@mui/material";
 import { useLocation } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 
@@ -22,7 +12,6 @@ import { X } from "lucide-react";
 // Custom hooks and utilities
 import { useBookingForm } from "../hooks/useBookingForm";
 import { useFormPersistence } from "../hooks/useFormPersistence";
-import { useDateSelection } from "../hooks/useDateSelection";
 import { useModalState } from "../hooks/useModalState";
 import {
   formatPassengerCount,
@@ -37,10 +26,13 @@ import CarList from "./CarList";
 import Navbar from "../../../pages/homePage/Navbar";
 import EmptyState from "./EmptyState";
 import { BookingFormData, PassengerCounts } from "../types/booking";
-import { formatDate } from "../utilities/formatting";
 import { transferService } from "../services/transferService";
 import SearchDropOffLocation from "../carsFirstScreen/modals/searchDropOff";
 import SearchPickUpLocation from "../carsFirstScreen/modals/searchPickUp";
+
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 
 interface LocationState {
   pickupLocation?: string;
@@ -118,16 +110,23 @@ const DisplayCars: React.FC = () => {
 
   const initialData = useMemo(() => {
     const savedData = loadSavedData() || {};
-    const merged = state && (stateData.pickupLocation || stateData.dropoffLocation)
-      ? { ...savedData, ...stateData }
-      : { ...stateData, ...savedData };
+    const merged =
+      state && (stateData.pickupLocation || stateData.dropoffLocation)
+        ? { ...savedData, ...stateData }
+        : { ...stateData, ...savedData };
 
     // Ensure priceRange.min and priceRange.max are numbers (not undefined)
     return {
       ...merged,
       priceRange: {
-        min: typeof merged.priceRange?.min === "number" ? merged.priceRange.min : 0,
-        max: typeof merged.priceRange?.max === "number" ? merged.priceRange.max : 0,
+        min:
+          typeof merged.priceRange?.min === "number"
+            ? merged.priceRange.min
+            : 0,
+        max:
+          typeof merged.priceRange?.max === "number"
+            ? merged.priceRange.max
+            : 0,
       },
     };
   }, [state, stateData, loadSavedData]);
@@ -147,25 +146,13 @@ const DisplayCars: React.FC = () => {
   // Persist form data to localStorage
   useFormPersistence(formData, "carBookingForm");
 
-  // Date selection
-  const {
-    anchorEl,
-    dateRange,
-    open: datePickerOpen,
-    handleClick: handleDateClick,
-    handleClose: handleDateClose,
-    handleSelectDate,
-    updateDateRange,
-  } = useDateSelection((displayDate) => {
-    updateField("pickupDate", displayDate);
-  });
 
   const { modals, openModal, closeModal } = useModalState();
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
 
   // Event handlers
   const handleDropLocationClick = useCallback(
-    ( type: "drop") => {
+    (type: "drop") => {
       setPickOrDrop(type);
       openModal("searchDropLocation");
     },
@@ -173,7 +160,7 @@ const DisplayCars: React.FC = () => {
   );
 
   const handlePickLocationClick = useCallback(
-    ( type: "pick") => {
+    (type: "pick") => {
       setPickOrDrop(type);
       openModal("searchPickLocation");
     },
@@ -422,7 +409,7 @@ const DisplayCars: React.FC = () => {
                   className="w-full lg:w-auto"
                   placeholder="Enter Drop Off Location"
                   value={formData.dropoffLocation}
-                  onClick={() => handleDropLocationClick( "drop")}
+                  onClick={() => handleDropLocationClick("drop")}
                   error={!!errors.dropoffLocation}
                   helperText={errors.dropoffLocation}
                   InputProps={{
@@ -448,111 +435,44 @@ const DisplayCars: React.FC = () => {
                 <label className="font-medium text-sm text-gray-700">
                   Pick Up Date
                 </label>
-                <TextField
-                  variant="outlined"
-                  size="small"
-                  className="w-full lg:w-auto"
-                  value={formData.pickupDate || "Select Date"}
-                  onClick={handleDateClick}
-                  error={!!errors.pickupDate}
-                  helperText={errors.pickupDate}
-                  placeholder="Select Date"
-                  InputProps={{
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <CalendarMonthOutlinedIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    "& .MuiInputBase-root": {
-                      height: "44px",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                    },
-                  }}
-                />
 
-                {/* Date Range Popper */}
-                <Popper
-                  id="date-range-popper"
-                  open={datePickerOpen}
-                  anchorEl={anchorEl}
-                  placement="bottom-start"
-                  modifiers={[
-                    {
-                      name: "offset",
-                      options: { offset: [0, 10] },
-                    },
-                  ]}
-                >
-                  <ClickAwayListener onClickAway={handleDateClose}>
-                    <Paper
-                      elevation={3}
-                      sx={{
-                        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                        width: {
-                          xs: "90vw",
-                          sm: "500px",
-                          md: "650px",
-                          lg: "850px",
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    value={
+                      formData.pickupDate ? dayjs(formData.pickupDate) : null
+                    }
+                    onChange={(newValue) => {
+                      if (newValue) {
+                        updateField(
+                          "pickupDate",
+                          newValue.toISOString().split("T")[0]
+                        );
+                      }
+                    }}
+                    slotProps={{
+                      textField: {
+                        size: "small",
+                        variant: "outlined",
+                        InputProps: {
+                          readOnly: true,
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <CalendarMonthOutlinedIcon />
+                            </InputAdornment>
+                          ),
                         },
-                        maxWidth: "95vw",
-                        overflow: "hidden",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        p: 2,
-                      }}
-                    >
-                      <Box sx={{ width: "100%" }}>
-                        <DateRange
-                          editableDateInputs={true}
-                          onChange={updateDateRange}
-                          moveRangeOnFirstSelection={false}
-                          ranges={dateRange}
-                          rangeColors={["#FF6F1E"]}
-                          months={window.innerWidth < 768 ? 1 : 2}
-                          direction={
-                            window.innerWidth < 768 ? "vertical" : "horizontal"
-                          }
-                          showDateDisplay={false}
-                          className="w-full"
-                        />
-
-                        <Box sx={{ mt: 2, width: "100%" }}>
-                          <Typography
-                            variant="body2"
-                            align="center"
-                            fontWeight={600}
-                            gutterBottom
-                          >
-                            {dateRange[0].startDate
-                              ? `${formatDate(dateRange[0].startDate)}${
-                                  dateRange[0].endDate
-                                    ? ` - ${formatDate(dateRange[0].endDate)}`
-                                    : ""
-                                }`
-                              : "Pick a date"}
-                          </Typography>
-
-                          <button
-                            className="w-full h-[52px] rounded-[4px] font-inter text-[14px] font-medium"
-                            style={{
-                              backgroundColor: "#023E8A",
-                              color: "white",
-                              marginTop: "12px",
-                            }}
-                            onClick={handleSelectDate}
-                          >
-                            Select Date
-                          </button>
-                        </Box>
-                      </Box>
-                    </Paper>
-                  </ClickAwayListener>
-                </Popper>
+                        sx: {
+                          "& .MuiInputBase-root": {
+                            height: "44px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            width: "100%",
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
               </div>
             </div>
 
@@ -647,7 +567,7 @@ const DisplayCars: React.FC = () => {
           closeDialog={() => closeModal("searchPickLocation")}
           value={formData.pickUpLocaDescription}
           setValue={handleLocationSelect}
-           ChangeValue={(query) =>
+          ChangeValue={(query) =>
             setFormData((prev) => ({
               ...prev,
               pickUpLocaDescription: query,

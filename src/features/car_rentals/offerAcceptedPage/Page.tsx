@@ -141,7 +141,7 @@ const Page = () => {
   useEffect(() => {
     setIsFormValid(formData.agreement);
   }, [formData]);
-    const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(0);
 
   const handleNext = () => {
     if (activeStep < steps.length - 1) {
@@ -188,6 +188,7 @@ const Page = () => {
       if (result.success) {
         console.log("Booking confirmed!", result.data);
       } else {
+        navigate("/");
         return;
       }
       setActiveStep(2);
@@ -195,7 +196,7 @@ const Page = () => {
       console.log(result);
     } catch (error: any) {
       console.error("Booking failed:", error);
-      toast.error(error?.response?.data?.detail[0]);
+      toast.error(`${error?.response?.data?.detail[0]} Please search again`);
     } finally {
       setLoadingSubmit(false);
     }

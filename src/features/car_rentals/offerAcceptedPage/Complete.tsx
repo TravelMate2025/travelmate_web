@@ -8,7 +8,7 @@ const Complete = ({ closeDialog, car }: Props) => {
   return (
     <div className="min-w-screen min-h-screen fixed top-0 left-0 z-[99] flex items-center justify-center bg-black bg-opacity-30">
       <div
-        className="rounded-lg bg-white shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 mt-12"
+        className="rounded-lg bg-white shadow-2xl w-full max-w-2xl lg:max-h-[90vh] max-h-screen overflow-y-auto p-8 mt-12"
         style={{ boxSizing: "border-box" }}
       >
         <div className="flex justify-normal items-center lg:gap-24 gap-6 my-5 w-full">
@@ -20,9 +20,9 @@ const Complete = ({ closeDialog, car }: Props) => {
           </h1>
         </div>
         {car?.content?.transferRemarks?.[0]?.description && (
-          <pre className="mt-4 whitespace-pre-wrap text-sm font-serif">
+          <p className="mt-4 whitespace-pre-wrap text-sm font-inter">
             {car.content.transferRemarks[0].description}
-          </pre>
+          </p>
         )}
       </div>
     </div>

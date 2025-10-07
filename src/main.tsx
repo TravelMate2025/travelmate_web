@@ -7,7 +7,8 @@ import { Provider } from "react-redux";
 import { persistor, store } from "./store";
 import { PersistGate } from "redux-persist/integration/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
+
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -15,7 +16,9 @@ createRoot(document.getElementById("root")!).render(
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <BrowserRouter>
-            <App />
+            {/* <LocalizationProvider dateAdapter={AdapterDateFns}> */}
+              <App />
+            {/* </LocalizationProvider> */}
           </BrowserRouter>
         </PersistGate>
       </Provider>
