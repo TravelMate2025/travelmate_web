@@ -53,8 +53,6 @@ const Step3 = () => {
     // navigate("/flightInfo-confirmation");
   };
 
-  
-
   return (
     <div className="grid gap-2">
       <div className="border border-[#CDCED1] p-4 rounded-lg">
@@ -76,7 +74,7 @@ const Step3 = () => {
 
       {/* Price Summary Section */}
       <div className="max-h-[521px] h-full grid">
-        <PriceSummary confirm nextStep={handleConfirm} />
+        <PriceSummary confirm nextStep={handleConfirm} state={location.state} />
       </div>
     </div>
   );

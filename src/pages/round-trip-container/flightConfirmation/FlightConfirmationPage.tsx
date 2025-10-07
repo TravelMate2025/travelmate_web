@@ -6,20 +6,22 @@ import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import CheckIcon from "@mui/icons-material/Check";
 import { Divider } from "@mui/material";
-import { Link, useLocation } from "react-router-dom";
-import airlogo from "../../../assets/airlogo.svg";
+import { Link, } from "react-router-dom";
+
 import line3 from "../../../assets/arrow2.svg";
-import line4 from "../../../assets/line3.svg";
+
 import Footer from "../../../components/2Footer";
-import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
-import { useMediaQuery } from "react-responsive";
-import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
+
 import { useFetchBookingByIdQuery } from "../../../features/flights/api/flightApi";
 import dayjs from "dayjs";
 import { useAppSelector } from "../../../hooks/redux";
 import { PriceSummary } from "../../../features/flights/components/roundtrip/Steps/Step1";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { downloadSectionAsPDF } from "../../../features/flights/utils/functions";
+
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import FlightItineraryPDF from "./FlightConfirmationPdf";
 
 const FlightCard = ({
   title,
@@ -148,20 +150,20 @@ const FlightCard = ({
 };
 const FlightConfirmationPage = () => {
 
-  const handleDownload = async () => {
-    const element = document.body; // or a specific div like document.getElementById("confirmation-section")
+  // const handleDownload = async () => {
+  //   const element =  document.getElementById("confirmation-section")
 
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
+  //   const canvas = await html2canvas(element, { scale: 2 });
+  //   const imgData = canvas.toDataURL("image/png");
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+  //   const pdf = new jsPDF("p", "mm", "a4");
+  //   const imgProps = pdf.getImageProperties(imgData);
+  //   const pdfWidth = pdf.internal.pageSize.getWidth();
+  //   const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`flight-confirmation-${bookingId || "ticket"}.pdf`);
-  };
+  //   pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+  //   pdf.save(`flight-confirmation-${bookingId || "ticket"}.pdf`);
+  // };
 
 
  const { user } = useAppSelector((state) => state.auth);
@@ -210,9 +212,14 @@ const FlightConfirmationPage = () => {
           </p>
           <div>
             <div className="mb-6 ">
-              <div className="w-[35px] mt-[-5px] h-[35px] p-[4px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] ">
+              <button
+                className="w-[35px] mt-[-5px] h-[35px] p-[4px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] "
+                onClick={() =>
+                  downloadSectionAsPDF("confirmation-section", "dfd")
+                }
+              >
                 <FileDownloadOutlinedIcon className="font-bold " />
-              </div>
+              </button>
             </div>
           </div>
         </div>
@@ -246,10 +253,19 @@ const FlightConfirmationPage = () => {
                 <IosShareOutlinedIcon className="w-[30%]" />
                 <span>Share</span>
               </button>
-              <button className="border-1 border-[#ACAEB3]  p-[8px] rounded-[4px] flex">
-                <FileDownloadOutlinedIcon className="w-[30%]" />
-                <span>Download</span>
-              </button>
+
+              <PDFDownloadLink
+                document={<FlightItineraryPDF bookingData={savedBooking} />}
+                
+                fileName={`flight-confirmation-${bookingId}.pdf`}
+              >
+                {({ loading }) => (
+                  <button className="border-1 border-[#ACAEB3] p-[8px] rounded-[4px] flex">
+                    <FileDownloadOutlinedIcon className="w-[30%]" />
+                    <span>{loading ? "Generating..." : "Download"}</span>
+                  </button>
+                )}
+              </PDFDownloadLink>
             </div>
           </div>
 
@@ -461,7 +477,7 @@ const FlightConfirmationPage = () => {
             </div>
             <Divider sx={{ my: 3 }} />
             <div className="flex-1  grid max-h-[350px]">
-              <PriceSummary  state={savedBooking.state}  final />
+              <PriceSummary state={savedBooking.state} final />
 
               {/* <Divider sx={{ my: 3 }} /> */}
               {/*

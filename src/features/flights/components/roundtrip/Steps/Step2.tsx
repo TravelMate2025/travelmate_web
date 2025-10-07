@@ -165,15 +165,37 @@ const Step2: React.FC = () => {
   const onSubmit = handleSubmit(async (formData) => {
     console.log("✅ Form Data:", formData);
     console.log("Location state:", location.state);
-
+    let flightIds;
+    let upsellOffer;
     // Map trip type
     let tripType: BookingType = "ONE_WAY";
     if (location.state.tripType === "multi-city") {
+            upsellOffer = location.state.multiCitySelections[0]?.upsell?.id || undefined;
+      flightIds = location.state.multiCitySelections.map((city) => {
+        return city.flight.id
+      })
       tripType = "MULTI_CITY";
     } else if (location.state.tripType === "round-trip") {
+      upsellOffer = location.state?.departureUpsell?.id || undefined;
+      flightIds = [
+        location.state?.departureFlight.id,
+        ...(location.state?.returnFlight
+          ? [location.state.returnFlight.id]
+          : []),
+      ];
       tripType = "ROUND_TRIP";
+    } else {
+            flightIds = [
+              location.state?.departureFlight.id,
+              ...(location.state?.returnFlight
+                ? [location.state.returnFlight.id]
+                : []),
+      ];
+            upsellOffer = location.state?.departureUpsell?.id || undefined;
     }
 
+    // console.log("flightids", flightIds);
+    
     // Build passengers array
     const passengers: Passenger[] = formData.passengers.map((p) => ({
       title: p.title.toUpperCase(),
@@ -196,13 +218,8 @@ const Step2: React.FC = () => {
     try {
       const res = await createBooking({
         booking_type: tripType,
-        flight_offer_ids: [
-          location.state?.departureFlight.id,
-          ...(location.state?.returnFlight
-            ? [location.state.returnFlight.id]
-            : []),
-        ],
-        upsell_offer_id: location.state?.departureUpsell.id || undefined,
+        flight_offer_ids: flightIds,
+        upsell_offer_id: upsellOffer,
         passengers,
       }).unwrap();
       console.log("✅ Booking created:", res);
@@ -237,7 +254,9 @@ const Step2: React.FC = () => {
 
       // nextStep();
     } catch (err) {
-      toast.error(err?.response.data.error || "Error booking flight");
+      console.log(err);
+      
+      // toast.error(err?.response.data.error || "Error booking flight");
       console.error("❌ Booking failed:", err);
     }
   });
