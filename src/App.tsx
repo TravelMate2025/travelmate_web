@@ -31,7 +31,7 @@ import DisplayCars from "./features/car_rentals/displayAllCars/DisplayCars";
 import Pages from "./features/car_rentals/offerAcceptedPage/Page";
 import CarPaidForPage from "./features/car_rentals/carPaidFor/CarPaidForPage";
 import AirportTaxi from "./pages/AirportTaxi";
-// import Flight from "./pages/Flight"; 
+
 import FaqPage from "./features/customer-management/pages/faq";
 import ChatPage from "./features/customer-management/pages/ChatPage";
 import TicketsPage from "./features/customer-management/pages/TicketsPage";
