@@ -1,744 +1,623 @@
-
-
-
 // import { useState,useEffect } from 'react';
-import Navbar from '../../homePage/Navbar'
-import { IconButton } from '@mui/material'
-import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutlined';
-import IosShareOutlinedIcon from '@mui/icons-material/IosShareOutlined';
-import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
-import CheckIcon from '@mui/icons-material/Check';
-import { Divider } from '@mui/material';
-import { Link } from 'react-router-dom';
-import airlogo from "../../../assets/airlogo.svg"
-import line3 from "../../../assets/line3.svg"
-import Footer from "../../../components/2Footer"
-import LocalPhoneOutlinedIcon from '@mui/icons-material/LocalPhoneOutlined';
-import { useMediaQuery } from "react-responsive";
-import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined';
+
+export interface LocalState {
+  id: number;
+  checkoutUrl: string;
+  passengers: Passenger[];
+  contact: Contact;
+  state: State;
+  booking: BookingWrapper;
+}
+export interface BookingWrapper {
+  id: number;
+  booking: Booking;
+  booking_reference: string;
+  booking_type: string;
+  currency: string;
+  service_fee: string;
+  base_flight_cost: string;
+  admin_notes: null | string;
+  cancelled_by: null | string;
+  cancellation_date: null | string;
+  cancellation_reason: null | string;
+  flights: Flight[];
+  passenger_bookings: PassengerBooking[];
+  payment_details: null | string;
+  amadeus_status: string;
+  amadeus_reference: string;
+  total_price: string;
+}
+
+export interface PassengerBooking {
+  id: number;
+  passenger: Passenger;
+  ticket_number: string | null;
+  seat_number: string | null;
+}
+export interface State {
+  from: Location;
+  to: Location;
+  formattedDate: string;
+  date: DateRange;
+  flightClass: string;
+  passengers: PassengerCounts;
+  tripType: string;
+  country: string;
+  flights: Flight[];
+  departureFlight: FlightOffer;
+  departureTotal: number;
+  departureUpsell: UpsellFlightOffer;
+  departureCounts: PassengerCounts;
+  departureFlightOption: string;
+  upsell: UpsellFlightOffer;
+  returnTotal: number;
+  returnUpsell: UpsellFlightOffer;
+  returnFlight: FlightOffer;
+  returnCounts: PassengerCounts;
+  returnFlightOption: string;
+}
+
+export interface Contact {
+  email: string;
+  phone: string;
+  name?: string
+  dob?:string
+}
+import Navbar from "../../homePage/Navbar";
+import { IconButton } from "@mui/material";
+import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
+import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
+import CheckIcon from "@mui/icons-material/Check";
+import { Divider } from "@mui/material";
+import { Link,  } from "react-router-dom";
+
+import line3 from "../../../assets/arrow2.svg";
+
+import Footer from "../../../components/2Footer";
+
+import { useFetchBookingByIdQuery } from "../../../features/flights/api/flightApi";
+import dayjs from "dayjs";
+import { useAppSelector } from "../../../hooks/redux";
+import { PriceSummary } from "../../../features/flights/components/roundtrip/Steps/Step1";
+
+import { downloadSectionAsPDF } from "../../../features/flights/utils/functions";
+
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import FlightItineraryPDF from "./FlightConfirmationPdf";
+import { Booking, FlightOffer, Passenger, UpsellFlightOffer,  } from "../../../features/flights/types";
+import { DateRange } from "react-date-range";
+import { Flight, PassengerCounts } from "../../../features/flights/hooks/useFlightBooking";
+import ShareModal from "../../../features/flights/components/ShareModal";
+import { useState } from "react";
+
+const FlightCard = ({
+  title,
+  flight,
+  ticketNumber,
+}: {
+  title: string;
+  flight: any;
+  ticketNumber?: string;
+}) => {
+  if (!flight) return null;
+
+  const departure = flight.itineraries?.[0]?.segments?.[0];
+  const arrival = flight.itineraries?.[0]?.segments?.slice(-1)[0];
 
 
+ 
+  
 
-const FlightConfirmationPage = () => {
-    const isMobile = useMediaQuery({ maxWidth: 768 });
   return (
-    <div>
-        <div>
-            <Navbar />
-        </div>
-          {isMobile ? (
-        <div>
+    <div className="mt-[16px]">
+      <div>
+        <p className="text-[20px] font-medium text-[#181818] mb-[16px]">
+          {title}
+        </p>
+      </div>
 
-        <div className='w-[90%] m-auto mt-[90px] flex justify-between'>
-            <Link to="/">
-            <p className='text-[14px] mt-[5px] font-medium font-inter'>Done</p>
-            </Link>
-            <p className='text-[20px] font-semibold font-inter'>Flight Confirmation</p>
-            <div>     
-            <div className="mb-6 ">
-                <div className="w-[35px] mt-[-5px] h-[35px] p-[4px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] ">
-                <FileDownloadOutlinedIcon className="font-bold " />
-                </div>
-            </div>
-            </div>
+      <div className="md:border border-[#CDCED1] md:p-[24px] rounded-[12px]">
+        {/* Airline */}
+        <div className="flex gap-[4px] mb-[10px]">
+          <img src={flight.validatingAirlineLogo || "/airline.png"} alt="" />
+          <p className="text-[#181818] md:text-lg text-sm mt-[5px]">
+            {departure.operating.airline.name || "Unknown Airline"}
+          </p>
         </div>
 
-
-            <div className='mb-[32px] w-[90%] m-auto'>
-         
-                     <div className='border-1 border-[#2D9C5E] w-full bg-[#D5EBDF4D] pt-[10px] pb-[10px] pr-[10px] pl-[10px] rounded-[8px]'>
-         
-                     <div className='flex gap-2'>
-                         <div>
-                             <div className='border-[#2D9C5E] h-[20px]  w-[20px] border-2 mt-[6px] rounded-full flex justify-center'>
-                                 <CheckIcon sx={{width:"15px", position:"relative", top:"-3px", color:"#2D9C5E"}} />
-                             </div>
-                         </div>
-                         <div className='text-[12px]'>Payment Successful. Car confirmation Details will also be sent to elvis@gmail.com</div>
-                     </div>
-         
-                     </div>
-                 </div>
-
-            <div className='w-[90%] m-auto'>
-            <div>
-            <p className='text-[16px] font-medium text-[#181818] mb-[15px]'>Confirmation Details</p>
-            </div>
-                    <div className='flex justify-between'>
-                        <p className='text-[#4E4F52] text-[14px] font-normal mb-2'> Booking Reference</p>
-                        <p className='text-[#2D9C5E] text-[14px] font-normal'>1111</p>
-                    </div>
-                    <div className='flex justify-between'>
-                        <p className='text-[#4E4F52] text-[14px] font-normal'>Payment Status</p>
-                        <p className='text-[#2D9C5E] text-[14px] font-normal'>Paid</p>
-                    </div>
-            </div>
-
-            <Divider sx={{marginTop:"15px", marginBottom:"15px"}}/>
-
-
-            <div className='w-[90%] m-auto'>
-            <div className=''>
-            <p className='text-[16px] font-medium text-[#181818] mb-[16px]'>Passenger Details</p>
-            </div>
-
-            <div>
-                <div className=''>
-                    <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Name</p>
-                        <p className='text-[#181818] text-[14px]'>Elvis Igiebor</p>
-                    </div>
-
-                     <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Email Address</p>
-                        <p className='text-[#181818] text-[14px]'>Elvis@gmail.com</p>
-                    </div>
-
-                    
-                     <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px] '>Phone Number</p>
-                        <p className='text-[#181818] text-[14px]'>090123456782</p>
-                    </div>
-
-                       <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Date Of Birth</p>
-                        <p className='text-[#181818] text-[14px]'>11/08/2024</p>
-                    </div>
-                </div>
-            </div>
-            </div>
-
-            <Divider sx={{marginTop:"15px", marginBottom:"15px"}}/>
-
-            <div className='w-[90%] m-auto '>
-            <div>
-            <p className='text-[16px] font-medium text-[#181818] mb-[16px]'>Departure Flight Details</p>
-            </div>
-
-
-            <div>
-                <div>
-
-                    <div className='flex gap-[4px] mb-[10px]'>
-                        <img src={airlogo} alt='' className='w-[8%]' />
-                        <p className='text-[#181818] text-[14px] mt-[3px]'>Air Peace</p>
-                    </div>
-
-                    <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#181818] text-[14px] font-semibold'>2:00pm</p>
-                        <img src={line3} alt='' className='w-[60%] mt-4 ' />
-                        <p className='text-[#181818] text-[14px] font-semibold'>4:00pm</p>
-                    </div>
-
-                     <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Lagos (LOS)</p>
-                        <p className='text-[#4E4F52] text-[14px]'>Abuja (ABV)</p>
-                    </div>
-            <Divider sx={{marginTop:"15px", marginBottom:"15px"}}/>
-
-                    
-                     <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px] '>E-ticket Number</p>
-                        <p className='text-[#181818] text-[14px]'>123456</p>
-                    </div>
-
-                       <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Date</p>
-                        <p className='text-[#181818] text-[14px]'>Feb 19,2025</p>
-                    </div>
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Flight</p>
-                        <p className='text-[#181818] text-[14px]'>P4 7120</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Duration</p>
-                        <p className='text-[#181818] text-[14px]'>2 Hrs</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Class</p>
-                        <p className='text-[#181818] text-[14px]'>Economy</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Baggage</p>
-                        <p className='text-[#181818] text-[14px]'>1 carry-on +23kg Checked bag</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Seat selection</p>
-                        <p className='text-[#181818] text-[14px]'>Not Allowed</p>
-                    </div>
-
-                       <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Refund Policy</p>
-                        <p className='text-[#181818] text-[14px]'>Non refundable</p>
-                    </div>
-                </div>
-            </div>
-            </div>
-           
-
-            <Divider sx={{marginTop:"15px", marginBottom:"15px"}}/>
-
-
-            <div className='w-[90%] m-auto '>
-            <div>
-            <p className='text-[16px] font-medium text-[#181818] mb-[16px]'>Return Flight Details</p>
-            </div>
-
-
-            <div>
-                <div className=''>
-
-                    <div className='flex gap-[4px] mb-[10px]'>
-                        <img src={airlogo} alt='' className='w-[8%]' />
-                        <p className='text-[#181818] text-[14px] mt-[3px]'>Air Peace</p>
-                    </div>
-
-                    <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px] font-medium'>2:00pm</p>
-                        <img src={line3} alt='' className='w-[60%] mt-4 ' />
-                        <p className='text-[#181818] text-[14px] font-medium'>4:00pm</p>
-                    </div>
-
-                     <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Lagos (LOS)</p>
-                        <p className='text-[#181818] text-[14px]'>Abuja (ABV)</p>
-                    </div>
-            <Divider sx={{marginTop:"15px", marginBottom:"15px"}}/>
-
-                    
-                     <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px] '>E-ticket Number</p>
-                        <p className='text-[#181818] text-[14px]'>123456</p>
-                    </div>
-
-                       <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Date</p>
-                        <p className='text-[#181818] text-[14px]'>Feb 19,2025</p>
-                    </div>
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Flight</p>
-                        <p className='text-[#181818] text-[14px]'>P4 7120</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Duration</p>
-                        <p className='text-[#181818] text-[14px]'>2 Hrs</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Class</p>
-                        <p className='text-[#181818] text-[14px]'>Economy</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Baggage</p>
-                        <p className='text-[#181818] text-[14px]'>1 carry-on +23kg Checked bag</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Seat selection</p>
-                        <p className='text-[#181818] text-[14px]'>Not Allowed</p>
-                    </div>
-
-                       <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[14px]'>Refund Policy</p>
-                        <p className='text-[#181818] text-[14px]'>Non refundable</p>
-                    </div>
-                </div>
-            </div>
-            </div>
-
-
-             
-            <Divider sx={{marginTop:"15px", marginBottom:"15px"}}/>
-
-          <div className="w-[90%] m-auto ">
-                    <p className="text-[16px] font-inter font-medium text-[#181818]">Price Summary</p>
-                     <div className="">
-                        <div className="flex flex-col gap-1">
-                        <div className="flex justify-between">
-                            <div>
-                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">Departure Flight</p>
-                            <p className="text-[12px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
-                            </div>
-                            <div><p className="text-[#181818] text-[14px] font-inter">₦40,000</p></div>
-                        </div>
-
-                        <div className="flex justify-between">
-                            <div>
-                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">Taxes & Fees</p>
-                            <p className="text-[12px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
-                            </div>
-                            <div><p className="text-[#181818] text-[1px] font-inter">₦40,000</p></div>
-                        </div>
-
-
-                        <div className="flex justify-between">
-                            <div>
-                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">Return Flight</p>
-                            <p className="text-[12px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
-                            </div>
-                            <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
-                        </div>
-
-                            <div className="flex justify-between">
-                            <div>
-                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">Taxes & Fees</p>
-                            <p className="text-[12px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
-                            </div>
-                            <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
-                        </div>
-
-
-
-                        <Divider sx={{ marginTop: "12px", marginBottom: "12px" }} />
-                        <div className="flex justify-between">
-                            <p>Total</p>
-                            <p className='text-[#023E8A] font-medium'>₦160,000</p>
-                        </div>
-                        </div>
-                    </div>
-                </div>
-            <Divider sx={{marginTop:"15px", marginBottom:"15px"}}/>
-
-             <div className="w-[90%] m-auto">
-                    <p className="text-[14px] font-inter mb-4 font-medium text-[#181818]">Price Summary</p>
-                    <div className="">
-                        <div className="flex flex-col gap-1">
-                        <div className="flex justify-between">
-                        <div>
-                        <p className="text-[14px] font-inter font-normal text-[#4E4F52]">Total</p>
-                        </div>
-                        <div><p className="text-[#181818] text-[14px] font-inter">₦40,000</p></div>
-                        </div>
-                        </div>
-                        </div>
-            </div>
-
-            <Divider sx={{marginTop:"15px", marginBottom:"15px"}}/>
-            <div className='w-[90%] m-auto'>
-                <div>
-                <p className='text-[14px] font-medium text-[#181818] mb-4'>Contacts</p>
-                </div>
-                    
-                <div>
-                <div className=''>
-                <div className='flex justify-between'>
-                <div className='flex gap-2'>
-                <LocalPhoneOutlinedIcon sx={{fontSize:"14px", marginTop:"2px"}}/>
-                <p className='text-[#4E4F52] text-[14px]'>Customer Support</p>
-                </div>
-                <p className='text-[#181818] text-[14px]'>+234 800 123 4567</p>
-                </div>
-                </div>
-                </div>    
-            </div>
-
-            <Divider sx={{marginTop:"15px", marginBottom:"15px"}}/>
-
-             <div className='w-[90%] m-auto'>
-                <div>
-                <p className='text-[14px] font-medium text-[#181818] mb-4'>Actions</p>
-                </div>
-                    
-                <div>
-                
-                <div className=''>
-                <p className='text-[#4E4F52] text-[14px] mb-2'><ShareOutlinedIcon /> <span>Share this booking</span></p>
-                </div>
-                <p className='text-[#181818] text-[14px]'> <FileDownloadOutlinedIcon /><span>Download as PDF</span></p>
-                </div>
-                  
-            </div>
-
-            <Divider sx={{marginTop:"150px", marginBottom:"30px"}}/>
-
-
-             <div className="">
-                <Link to="/">
-                <button
-                    className="w-full text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]">
-                    Back to home
-                </button>
-                </Link>
-            </div>
-
-            
-           
-
-
+        {/* Departure & Arrival Time */}
+        <div className="flex justify-between mb-[10px]">
+          <p className="text-[#4E4F52] md:text-lg text-sm font-medium">
+            {dayjs(departure?.departure?.at).format("hh:mma")}
+          </p>
+
+          <img src={line3} alt="" className="mx-auto inline-block" />
+
+          <p className="text-[#181818] md:text-lg text-sm font-medium">
+            {dayjs(arrival?.arrival?.at).format("hh:mma")}
+          </p>
         </div>
 
-          ) : (
-
-            // web view
-
-        <div className='mt-[85px] '>
-        <Link to="/">
-            <div className='w-[90%] m-auto mb-[14px]'>
-                <div className='flex gap-2 '>
-                <IconButton >
-                    < ArrowBackIosNewOutlinedIcon className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
-                </IconButton>
-
-                <div> <p className='mt-2 '>Back to home</p></div>
-                </div>
-            </div>
-        </Link>
-
-        <Divider sx={{marginBottom:"24px"}} />
-
-        <div className='w-[90%] m-auto'>
-        <div className='flex justify-between mb-[32px]'>
-            <div>
-            <p className='text-[28px] font-bold text-[#181818]'>Flight Confirmation</p>
-            </div>
-
-            <div className='flex gap-3'>
-                <button className='border-1 border-[#ACAEB3] p-[8px] rounded-[4px] flex'>
-                    <IosShareOutlinedIcon className='w-[30%]' />
-                    <span>Share</span>
-                </button>
-                <button className='border-1 border-[#ACAEB3]  p-[8px] rounded-[4px] flex'>
-                    <FileDownloadOutlinedIcon className='w-[30%]' />
-                    <span>Download</span>    
-                </button>
-            </div>
-        </div>
-        
-        <div className='mb-[32px]'>
-
-            <div className='border-1 border-[#2D9C5E] w-full bg-[#D5EBDF4D] pt-[16px] pb-[16px] pr-[12px] pl-[12px] rounded-[8px]'>
-
-            <div className='flex gap-2'>
-                <div>
-                    <div className='border-[#2D9C5E] h-[20px]  w-[20px] border-2  rounded-full flex justify-center'>
-                        <CheckIcon sx={{width:"15px", position:"relative", top:"-3px", color:"#2D9C5E"}} />
-                    </div>
-                </div>
-                <div>Payment Successful and Your flight is confirmed. E-ticket has been sent to elvis@gmail.com</div>
-            </div>
-
-            </div>
+        {/* Airports */}
+        <div className="flex justify-between mb-[10px]">
+          <p className="text-[#4E4F52] md:text-lg text-sm">
+            {departure?.departure?.iataCode}
+          </p>
+          <p className="text-[#181818] md:text-lg text-sm">
+            {arrival?.arrival?.iataCode}
+          </p>
         </div>
 
+        {/* Ticket Number */}
+        {ticketNumber && (
+          <div className="flex justify-between mb-[10px]">
+            <p className="text-[#4E4F52] md:text-lg text-sm">E-ticket Number</p>
+            <p className="text-[#181818] md:text-lg text-sm">{ticketNumber}</p>
+          </div>
+        )}
 
-
-    <div className='flex gap-[40px]'>
-        <div>
-
-            <div>
-            <div>
-            <p className='text-[20px] font-medium text-[#181818] mb-[16px]'>Confirmation Details</p>
-            </div>
-
-            <div>
-                <div className='border border-[#CDCED1] w-[43.6vw] p-[24px] rounded-[12px]'>
-                    <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Booking Reference</p>
-                        <p className='text-[#181818] text-[18px]'>123456</p>
-                    </div>
-
-                     <div className='flex justify-between'>
-                        <p className='text-[#4E4F52] text-[18px]'>Payment Status</p>
-                        <p className='text-[#2D9C5E] text-[18px]'>Paid</p>
-                    </div>
-                </div>
-            </div>
-            </div>
-            
-            <div className='mt-[16px]'>
-            <div>
-            <p className='text-[20px] font-medium text-[#181818] mb-[16px]'>Passenger Details</p>
-            </div>
-
-            <div>
-                <div className='border border-[#CDCED1] w-[43.6vw] p-[24px] rounded-[12px]'>
-                    <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Name</p>
-                        <p className='text-[#181818] text-[18px]'>Elvis Igiebor</p>
-                    </div>
-
-                     <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Email Address</p>
-                        <p className='text-[#181818] text-[18px]'>Elvis@gmail.com</p>
-                    </div>
-
-                    
-                     <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px] '>Phone Number</p>
-                        <p className='text-[#181818] text-[18px]'>090123456782</p>
-                    </div>
-
-                       <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Date Of Birth</p>
-                        <p className='text-[#181818] text-[18px]'>11/08/2024</p>
-                    </div>
-                </div>
-            </div>
-            </div>
-
-
-            <div className='mt-[16px]'>
-            <div>
-            <p className='text-[20px] font-medium text-[#181818] mb-[16px]'>Departure Flight</p>
-            </div>
-
-
-            <div>
-                <div className='border border-[#CDCED1] w-[43.6vw] p-[24px] rounded-[12px]'>
-
-                    <div className='flex gap-[4px] mb-[10px]'>
-                        <img src={airlogo} alt='' />
-                        <p className='text-[#181818] text-[18px] mt-[5px]'>Air Peace</p>
-                    </div>
-
-                    <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px] font-medium'>2:00pm</p>
-                        <img src={line3} alt='' />
-                        <p className='text-[#181818] text-[18px] font-medium'>4:00pm</p>
-                    </div>
-
-                     <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Lagos (LOS)</p>
-                        <p className='text-[#181818] text-[18px]'>Abuja (ABV)</p>
-                    </div>
-
-                    
-                     <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px] '>E-ticket Number</p>
-                        <p className='text-[#181818] text-[18px]'>123456</p>
-                    </div>
-
-                       <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Date</p>
-                        <p className='text-[#181818] text-[18px]'>Feb 19,2025</p>
-                    </div>
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Flight</p>
-                        <p className='text-[#181818] text-[18px]'>P4 7120</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Duration</p>
-                        <p className='text-[#181818] text-[18px]'>2 Hrs</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Class</p>
-                        <p className='text-[#181818] text-[18px]'>Economy</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Baggage</p>
-                        <p className='text-[#181818] text-[18px]'>1 carry-on +23kg Checked bag</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Seat selection</p>
-                        <p className='text-[#181818] text-[18px]'>Not Allowed</p>
-                    </div>
-
-                       <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Refund Policy</p>
-                        <p className='text-[#181818] text-[18px]'>Non refundable</p>
-                    </div>
-                </div>
-            </div>
-            </div>
-
-
-             <div className='mt-[16px] mb-[141px]'>
-            <div>
-            <p className='text-[20px] font-medium text-[#181818] mb-[16px]'>Return Flight</p>
-            </div>
-
-
-            <div>
-                <div className='border border-[#CDCED1] w-[43.6vw] p-[24px] rounded-[12px]'>
-
-                    <div className='flex gap-[4px] mb-[10px]'>
-                        <img src={airlogo} alt='' />
-                        <p className='text-[#181818] text-[18px] mt-[5px]'>Air Peace</p>
-                    </div>
-
-                    <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px] font-medium'>2:00pm</p>
-                        <img src={line3} alt='' />
-                        <p className='text-[#181818] text-[18px] font-medium'>4:00pm</p>
-                    </div>
-
-                     <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Lagos (LOS)</p>
-                        <p className='text-[#181818] text-[18px]'>Abuja (ABV)</p>
-                    </div>
-
-                    
-                     <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px] '>E-ticket Number</p>
-                        <p className='text-[#181818] text-[18px]'>123456</p>
-                    </div>
-
-                       <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Date</p>
-                        <p className='text-[#181818] text-[18px]'>Feb 19,2025</p>
-                    </div>
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Flight</p>
-                        <p className='text-[#181818] text-[18px]'>P4 7120</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Duration</p>
-                        <p className='text-[#181818] text-[18px]'>2 Hrs</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Class</p>
-                        <p className='text-[#181818] text-[18px]'>Economy</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Baggage</p>
-                        <p className='text-[#181818] text-[18px]'>1 carry-on +23kg Checked bag</p>
-                    </div>
-
-
-                      <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Seat selection</p>
-                        <p className='text-[#181818] text-[18px]'>Not Allowed</p>
-                    </div>
-
-                       <div className='flex justify-between mb-[10px]'>
-                        <p className='text-[#4E4F52] text-[18px]'>Refund Policy</p>
-                        <p className='text-[#181818] text-[18px]'>Non refundable</p>
-                    </div>
-                </div>
-            </div>
-            </div>
-            
+        {/* Date */}
+        <div className="flex justify-between mb-[10px]">
+          <p className="text-[#4E4F52] md:text-lg text-sm">Date</p>
+          <p className="text-[#181818] md:text-lg text-sm">
+            {dayjs(departure?.departure?.at).format("MMM DD, YYYY")}
+          </p>
         </div>
 
-        <div>
-                <div className="">
-                    <p className="text-[20px] font-inter font-medium text-[#181818]">Price Summary</p>
-                     <div className="border border-[#CDCED1] rounded-[10px] w-[43.6vw] p-[20px] mt-[20px]">
-                        <div className="flex flex-col gap-1">
-                        <div className="flex justify-between">
-                            <div>
-                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Departure Flight</p>
-                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
-                            </div>
-                            <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
-                        </div>
-
-                        <div className="flex justify-between">
-                            <div>
-                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Taxes & Fees</p>
-                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
-                            </div>
-                            <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
-                        </div>
-
-
-                        <div className="flex justify-between">
-                            <div>
-                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Return Flight</p>
-                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
-                            </div>
-                            <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
-                        </div>
-
-                            <div className="flex justify-between">
-                            <div>
-                            <p className="text-[18px] font-inter font-normal text-[#4E4F52]">Taxes & Fees</p>
-                            <p className="text-[14px] font-inter font-normal text-[#4E4F52]">1 Passenger</p>
-                            </div>
-                            <div><p className="text-[#181818] text-[16px] font-inter">₦40,000</p></div>
-                        </div>
-
-
-
-                        <Divider sx={{ marginTop: "12px", marginBottom: "12px" }} />
-                        <div className="flex justify-between">
-                            <p>Total</p>
-                            <p className='text-[#023E8A] font-medium'>₦160,000</p>
-                        </div>
-                        </div>
-                    </div>
-                </div>
-
-            <div className=' mt-[16px]'>
-            <div>
-            <p className='text-[20px] font-medium text-[#181818] mb-[16px]'>Contacts</p>
-            </div>
-
-            <div>
-                <div className='border border-[#CDCED1] w-[43.6vw] p-[24px] rounded-[12px]'>
-                    <div className='flex justify-between'>
-                        <div className='flex gap-2'>
-                        <LocalPhoneOutlinedIcon />
-                        <p className='text-[#4E4F52] text-[18px]'>Customer Support</p>
-                        </div>
-                        <p className='text-[#181818] text-[18px]'>+234 800 123 4567</p>
-                    </div>
-                </div>
-            </div>
-
-               <div className="mt-[100px]">
-                <Link to="/">
-                        <button
-                        className="w-full text-white h-[56px] rounded-[6px] cursor-pointer
-                            bg-[#023E8A]"
-                        
-                        >
-                        Back to home
-                        </button>
-                </Link>
-                    </div>
-            </div>
+        {/* Flight Number */}
+        <div className="flex justify-between mb-[10px]">
+          <p className="text-[#4E4F52] md:text-lg text-sm">Flight</p>
+          <p className="text-[#181818] md:text-lg text-sm">
+            {departure?.carrierCode} {departure?.number}
+          </p>
         </div>
+
+        {/* Duration */}
+        <div className="flex justify-between mb-[10px]">
+          <p className="text-[#4E4F52] md:text-lg text-sm">Duration</p>
+          <p className="text-[#181818] md:text-lg text-sm">
+            {flight.itineraries?.[0]?.duration || "-"}
+          </p>
+        </div>
+
+        {/* Class */}
+        <div className="flex justify-between mb-[10px]">
+          <p className="text-[#4E4F52] md:text-lg text-sm">Class</p>
+          <p className="text-[#181818] md:text-lg text-sm">
+            {flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin ||
+              "-"}
+          </p>
+        </div>
+
+        {/* Baggage */}
+        <div className="flex justify-between mb-[10px]">
+          <p className="text-[#4E4F52] md:text-lg text-sm">Baggage</p>
+          <p className="text-[#181818] md:text-lg text-sm">
+            {flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]
+              ?.includedCheckedBags?.quantity
+              ? `${flight.travelerPricings[0].fareDetailsBySegment[0].includedCheckedBags.quantity} Checked bag(s)`
+              : "No Checked bag"}
+          </p>
+        </div>
+
+        {/* Seat Selection */}
+        <div className="flex justify-between mb-[10px]">
+          <p className="text-[#4E4F52] md:text-lg text-sm">Seat selection</p>
+          <p className="text-[#181818] md:text-lg text-sm">Not Allowed</p>
+        </div>
+
+        {/* Refund Policy */}
+        <div className="flex justify-between mb-[10px]">
+          <p className="text-[#4E4F52] md:text-lg text-sm">Refund Policy</p>
+          <p className="text-[#181818] md:text-lg text-sm">Non refundable</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+const FlightConfirmationPage = () => {
+const [open, setOpen] = useState(false)
+
+
+ const { user } = useAppSelector((state) => state.auth);
+console.log(window.location.href);
+
+ // Get booking from localStorage
+ const savedBooking = JSON.parse(localStorage.getItem("bookingData") || "null") as LocalState;
+ const bookingId = savedBooking?.id;
+
+
+
+ // Fetch booking by id from localStorage
+ const { data } = useFetchBookingByIdQuery(bookingId.toString(), {
+   skip: !bookingId,
+ });
+
+  console.log(data);
 
 
   
 
-    </div>
-        </div>
-        </div>
-
-
-    )}
-
-        
-        <div className="mt-24">
-                 <Footer  />
+  
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "confirmed":
+        return "text-[#2D9C5E]"; // green
+      case "pending":
+        return "text-[#F2994A]"; // orange
+      case "failed":
+        return "text-[#EB5757]"; // red
+      default:
+        return "text-[#4E4F52]"; // gray
+    }
+  }
+    
+  if (!data) {
+      return 
+    };
+console.log(data);
+  
+  if (data?.payment_details.payment_status === "REFUNDED") {
+    window.location.href = data.payment_details.additional_details.cancel_url;
+    return;
+  }
+  
+  return (
+    <div>
+      <div>
+        <Navbar />
+      </div>
+      <ShareModal
+        onClose={() => setOpen(false)}
+        open={open}
+        onShareWhatsApp={() => {
+          const shareUrl = encodeURIComponent(window.location.href);
+          window.open(`https://wa.me/?text=${shareUrl}`, "_blank");
+        }}
+        onShareMail={() => {
+          const subject = encodeURIComponent(
+            "Check out my flight confirmation"
+          );
+          const body = encodeURIComponent(
+            `Here is my flight confirmation: ${window.location.href}`
+          );
+          window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
+        }}
+        onCopyLink={() => {
+          navigator.clipboard.writeText(window.location.href);
+          setOpen(false);
+          alert("Link copied to clipboard!");
+        }}
+      />
+      <div className="mt-[85px]  ">
+        <div className="w-[90%] m-auto mt-[90px] max-md:flex hidden justify-between">
+          <Link to="/">
+            <p className="text-[14px] mt-[5px] font-medium font-inter">Done</p>
+          </Link>
+          <p className="text-[20px] font-semibold font-inter">
+            Flight Confirmation
+          </p>
+          <div>
+            <div className="mb-6 ">
+              <button
+                className="w-[35px] mt-[-5px] h-[35px] p-[4px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] "
+                onClick={() =>
+                  downloadSectionAsPDF("confirmation-section", "dfd")
+                }
+              >
+                <FileDownloadOutlinedIcon className="font-bold " />
+              </button>
             </div>
-           
-    </div>
-  )
-}
+          </div>
+        </div>
+        <Link to="/" className="max-md:hidden block ">
+          <div className="w-[90%] m-auto mb-[14px]">
+            <div className="flex gap-2 ">
+              <IconButton>
+                <ArrowBackIosNewOutlinedIcon className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]" />
+              </IconButton>
 
-export default FlightConfirmationPage
+              <div>
+                {" "}
+                <p className="mt-2 ">Back to home</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        <Divider sx={{ marginBottom: "24px" }} />
+
+        <div className="w-[90%] m-auto">
+          <div className="md:flex hidden justify-between mb-[32px]">
+            <div>
+              <p className="text-[28px] font-bold text-[#181818]">
+                Flight Confirmation
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                className="border-1 border-[#ACAEB3] p-[8px] rounded-[4px] flex"
+                onClick={() => {
+                  setOpen(true);
+                }}
+              >
+                <IosShareOutlinedIcon className="w-[30%]" />
+                <span>Share</span>
+              </button>
+
+              <PDFDownloadLink
+                document={<FlightItineraryPDF bookingData={savedBooking} />}
+                fileName={`flight-confirmation-${bookingId}.pdf`}
+              >
+                {({ loading }) => (
+                  <button className="border-1 border-[#ACAEB3] p-[8px] rounded-[4px] flex">
+                    <FileDownloadOutlinedIcon className="w-[30%]" />
+                    <span>{loading ? "Generating..." : "Download"}</span>
+                  </button>
+                )}
+              </PDFDownloadLink>
+            </div>
+          </div>
+
+          <div className="mb-[32px]">
+            <div className="border-1 border-[#2D9C5E] w-full bg-[#D5EBDF4D] pt-[16px] pb-[16px] pr-[12px] pl-[12px] rounded-[8px]">
+              <div className="flex gap-2">
+                <div>
+                  <div className="border-[#2D9C5E] h-[20px]  w-[20px] border-2  rounded-full flex justify-center">
+                    <CheckIcon
+                      sx={{
+                        width: "15px",
+                        position: "relative",
+                        top: "-3px",
+                        color: "#2D9C5E",
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="max-md:text-xs ">
+                  Payment Successful and Your flight is{" "}
+                  {data?.payment_details.payment_status}. E-ticket has been sent
+                  to {user?.email}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex max-md:flex-col gap-[40px]">
+            <div className="flex-1">
+              <div>
+                <div>
+                  <p className="text-[20px] font-medium text-[#181818] mb-[16px]">
+                    Confirmation Details
+                  </p>
+                </div>
+
+                <div>
+                  <div className="md:border border-[#CDCED1] md:p-[24px] rounded-[12px]">
+                    <div className="flex justify-between mb-[10px]">
+                      <p className="text-[#4E4F52] md:text-lg text-sm">
+                        Booking Reference
+                      </p>
+                      <p className="text-[#181818] md:text-lg text-sm">
+                        {data?.booking_reference}
+                      </p>
+                    </div>
+                    <div className="flex justify-between mb-[10px]">
+                      <p className="text-[#4E4F52] md:text-lg text-sm">
+                        E-ticket Number
+                      </p>
+                      <p className="text-[#181818] md:text-lg text-sm">-</p>
+                    </div>
+                    <div className="flex justify-between">
+                      <p className="text-[#4E4F52] md:text-lg text-sm">
+                        Payment Status
+                      </p>
+                      <p
+                        className={`${getStatusColor(
+                          data?.booking?.status?.toLowerCase()
+                        )} md:text-lg text-sm capitalize`}
+                      >
+                        {data?.booking?.status?.toLowerCase()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <Divider sx={{ my: 3 }} />
+              <div className="mt-[16px]">
+                <div>
+                  <p className="text-[20px] font-medium text-[#181818] mb-[16px]">
+                    Contact Details
+                  </p>
+                </div>
+
+                <div>
+                  <div className="md:border border-[#CDCED1]  md:p-[24px] rounded-[12px]">
+                    <div className="flex justify-between mb-[10px]">
+                      <p className="text-[#4E4F52] md:text-lg text-sm">Name</p>
+                      <p className="text-[#181818] md:text-lg text-sm">
+                        {savedBooking.contact?.name}
+                      </p>
+                    </div>
+
+                    <div className="flex justify-between mb-[10px]">
+                      <p className="text-[#4E4F52] md:text-lg text-sm">
+                        Email Address
+                      </p>
+                      <p className="text-[#181818] md:text-lg text-sm">
+                        {savedBooking.contact?.email}
+                      </p>
+                    </div>
+
+                    <div className="flex justify-between mb-[10px]">
+                      <p className="text-[#4E4F52] md:text-lg text-sm ">
+                        Phone Number
+                      </p>
+                      <p className="text-[#181818] md:text-lg text-sm">{""}</p>
+                    </div>
+                    {savedBooking.contact.dob && (
+                      <div className="flex justify-between mb-[10px]">
+                        <p className="text-[#4E4F52] md:text-lg text-sm">
+                          Date Of Birth
+                        </p>
+                        <p className="text-[#181818] md:text-lg text-sm">
+                          {/* 11/08/2024 */}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <Divider sx={{ my: 3 }} />
+              <div className="mt-[16px]">
+                <div>
+                  <p className="text-[20px] font-medium text-[#181818] mb-[16px]">
+                    Passenger Contact Details
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  {savedBooking?.passengers?.map((p: any, index: number) => (
+                    <div
+                      key={index}
+                      className="md:border border-[#CDCED1] md:p-[24px] rounded-[12px]"
+                    >
+                      <div className="flex justify-between mb-[10px]">
+                        <p className="text-[#4E4F52] md:text-lg text-sm">
+                          Title
+                        </p>
+                        <p className="text-[#181818] md:text-lg text-sm">
+                          {p.title || "-"}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between mb-[10px]">
+                        <p className="text-[#4E4F52] md:text-lg text-sm">
+                          Name
+                        </p>
+                        <p className="text-[#181818] md:text-lg text-sm">
+                          {`${p.first_name || ""} ${p.last_name || ""}`}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between mb-[10px]">
+                        <p className="text-[#4E4F52] md:text-lg text-sm">
+                          Date Of Birth
+                        </p>
+                        <p className="text-[#181818] md:text-lg text-sm">
+                          {p.date_of_birth || "-"}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between mb-[10px]">
+                        <p className="text-[#4E4F52] md:text-lg text-sm">
+                          Gender
+                        </p>
+                        <p className="text-[#181818] md:text-lg text-sm">
+                          {p.gender || "-"}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between mb-[10px]">
+                        <p className="text-[#4E4F52] md:text-lg text-sm">
+                          Passport Number
+                        </p>
+                        <p className="text-[#181818] md:text-lg text-sm">
+                          {p.passport_number || "-"}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between mb-[10px]">
+                        <p className="text-[#4E4F52] md:text-lg text-sm">
+                          Passport Expiry Date
+                        </p>
+                        <p className="text-[#181818] md:text-lg text-sm">
+                          {p.passport_expiry || "-"}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between mb-[10px]">
+                        <p className="text-[#4E4F52] md:text-lg text-sm">
+                          Nationality
+                        </p>
+                        <p className="text-[#181818] md:text-lg text-sm">
+                          {p.nationality || "-"}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <>
+                <Divider sx={{ my: 3 }} />
+                <FlightCard
+                  title="Departure Flight"
+                  flight={savedBooking.state?.departureFlight}
+                  ticketNumber="123456"
+                />
+                <Divider sx={{ my: 3 }} />
+                {savedBooking.state?.returnFlight && (
+                  <FlightCard
+                    title="Return Flight"
+                    flight={savedBooking.state?.returnFlight}
+                    ticketNumber="654321"
+                  />
+                )}
+              </>
+            </div>
+            <Divider sx={{ my: 3 }} />
+            <div className="flex-1  grid max-h-[350px]">
+              <PriceSummary state={savedBooking.state as any} final />
+
+              {/* <Divider sx={{ my: 3 }} /> */}
+              {/*
+              
+              <div className=" mt-[16px]">
+                <div>
+                  <p className="text-[20px] font-medium text-[#181818] mb-[16px]">
+                    Contacts
+                  </p>
+                </div>
+
+                <div>
+                  <div className="md:border border-[#CDCED1]  md:p-[24px] rounded-[12px]">
+                    <div className="flex justify-between">
+                      <div className="flex gap-2">
+                        <LocalPhoneOutlinedIcon />
+                        <p className="text-[#4E4F52] md:text-lg text-sm">
+                          Customer Support
+                        </p>
+                      </div>
+                      <p className="text-[#181818] md:text-lg text-sm">
+                        +234 800 123 4567
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-[100px]">
+                  <Link to="/">
+                    <button
+                      className="w-full text-white h-[56px] rounded-[6px] cursor-pointer
+                            bg-[#023E8A]"
+                    >
+                      Back to home
+                    </button>
+                  </Link>
+                </div>
+              </div> */}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-24">
+        <Footer />
+      </div>
+    </div>
+  );
+};
+
+export default FlightConfirmationPage;

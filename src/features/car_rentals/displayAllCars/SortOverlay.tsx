@@ -8,14 +8,8 @@ import { X } from "lucide-react";
 
 type Props = {
   closeDialog: () => void;
-  sortOrder: string;
-  setSortOrder: (order: any) => void;
 };
-const SortOverlay = ({ closeDialog, sortOrder, setSortOrder }: Props) => {
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSortOrder(event.target.value);
-    closeDialog();
-  };
+const SortOverlay = ({ closeDialog }: Props) => {
   return (
     <div>
       {" "}
@@ -32,13 +26,11 @@ const SortOverlay = ({ closeDialog, sortOrder, setSortOrder }: Props) => {
           <FormControl>
             <RadioGroup
               aria-labelledby="demo-radio-buttons-group-label"
-              defaultValue="Recommended"
+              defaultValue="reco"
               name="radio-buttons-group"
-              onChange={handleChange}
-              value={sortOrder}
             >
               <FormControlLabel
-                value="Recommended"
+                value="reco"
                 control={
                   <Radio
                     sx={{
@@ -55,7 +47,7 @@ const SortOverlay = ({ closeDialog, sortOrder, setSortOrder }: Props) => {
                 label="Recommended"
               />
               <FormControlLabel
-                value="Low to High"
+                value="lth"
                 control={
                   <Radio
                     sx={{
@@ -69,11 +61,11 @@ const SortOverlay = ({ closeDialog, sortOrder, setSortOrder }: Props) => {
                     }}
                   />
                 }
-                label="Price: Low to High"
+                label="Price:Low to High"
               />
 
               <FormControlLabel
-                value="High to Low"
+                value="htl"
                 control={
                   <Radio
                     sx={{

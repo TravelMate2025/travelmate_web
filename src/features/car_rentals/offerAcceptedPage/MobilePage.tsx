@@ -1,33 +1,27 @@
 import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
 import { Box, Stepper, Step, StepLabel, StepConnector } from "@mui/material";
-import carImage from "../../../assets/carImage.png";
+import { Rating, Stack, Typography } from "@mui/material";
+import circle from "../../../assets/circle.svg";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import {
   Divider,
   InputAdornment,
   TextField,
   FormControlLabel,
-  FormControl,
-  Select,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
 } from "@mui/material";
-
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import DateRangeOutlinedIcon from "@mui/icons-material/DateRangeOutlined";
 import Switch from "@mui/material/Switch";
 import { Checkbox } from "@mui/material";
-import { useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { styled } from "@mui/material/styles";
+import { DeskProps } from "./Desk-Web";
 import { FaRegCalendarAlt, FaRegClock } from "react-icons/fa";
-import { ArrowRight, ChevronRight, Dot, Info, Loader } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowRight, ChevronRight, Dot, Info } from "lucide-react";
+import { useState } from "react";
 import Complete from "./Complete";
+import { MdArrowDropDown } from "react-icons/md";
 import { FiPhone } from "react-icons/fi";
-import { DeskProps } from "./Page";
-import { ToastContainer } from "react-toastify";
-import axios from "axios";
 
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .MuiStepConnector-line`]: {
@@ -48,131 +42,30 @@ const MobilePage = ({
   steps,
   handleBack,
   handleNext,
-  handleConfirm,
   state,
-  setState,
+  carList,
   handleChange,
+  formData,
   handleCheckboxChange,
-  errors,
+  isFormValid,
   isFormValids,
   handleSubmit,
   passFormData,
   setPassFormData,
-  loadingSubmit,
-  formData,
-  submitted,
+  value,
 }: DeskProps) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setPassFormData({
-      ...passFormData,
+    const { id, value } = e.target as any;
+    setPassFormData((prev) => ({
+      ...prev,
       [id]: value,
-    });
+    }));
   };
   const [showAllModal, setShowAllModal] = useState(false);
-  const [countryCodes, setCountryCodes] = useState<any[]>([]);
-  const loggedIn = localStorage.getItem("accessToken");
-  const location = useLocation();
-  const { car, departureInfo } = location.state || {};
-  // ...existing code...
-  const handleProfileSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = e.target.checked;
-    setState((prev: any) => ({ ...prev, jason: checked }));
-    handleChange(e);
-
-    const userInfo = JSON.parse(localStorage.getItem("persist:root") || "{}");
-    const profileStr = userInfo.profile || "{}";
-    console.log;
-
-    type Profile = {
-      // profile: {
-      first_name: string;
-      last_name: string;
-      date_of_birth: string;
-      email: string;
-      mobile_number: string;
-      // };
-    };
-    let profile: Profile = {
-      first_name: "",
-      last_name: "",
-      date_of_birth: "",
-      email: "",
-      mobile_number: "",
-    };
-    try {
-      profile = JSON.parse(profileStr).profile;
-    } catch {
-      // keep defaults
-    }
-    if (checked) {
-      setPassFormData({
-        firstName: profile?.first_name || "",
-        lastName: profile?.last_name || "",
-        dateOfBirth: profile?.date_of_birth || "",
-        email: profile?.email || "",
-        phoneNumber: profile?.mobile_number || "",
-        countryCode: "",
-      });
-    } else {
-      setPassFormData({
-        firstName: "",
-        lastName: "",
-        dateOfBirth: "",
-        email: "",
-        phoneNumber: "",
-        countryCode: "",
-      });
-      console.log(profile);
-    }
-  };
-  const addDurationToTime = (pickupTime: string, durationStr: string) => {
-    const [h, m] = pickupTime.split(":").map(Number);
-    let totalMin = h * 60 + m;
-    const hourMatch = durationStr.match(/(\d+)\s*hour(s)?/i);
-    const minMatch = durationStr.match(/(\d+)\s*min/i);
-    if (hourMatch) totalMin += parseInt(hourMatch[1]) * 60;
-    if (minMatch) totalMin += parseInt(minMatch[1]);
-    const newH = Math.floor(totalMin / 60) % 24;
-    const newM = totalMin % 60;
-    return `${newH.toString().padStart(2, "0")}:${newM
-      .toString()
-      .padStart(2, "0")}`;
-  };
-
-  useEffect(() => {
-    const fetchCodes = async () => {
-      try {
-        const response = await axios.get(
-          "https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags"
-        );
-        const filtered = response.data.filter(
-          (c: any) =>
-            c.idd && c.idd.root && c.idd.suffixes && c.idd.suffixes.length > 0
-        );
-        const mapped = filtered.map((c: any) => ({
-          ...c,
-          dialCode: `${c.idd.root}${c.idd.suffixes[0]}`,
-        }));
-        // ✅ Sort alphabetically by country name
-        const sorted = mapped.sort((a: any, b: any) =>
-          a.name.common.localeCompare(b.name.common)
-        );
-
-        setCountryCodes(sorted);
-      } catch (error) {
-        console.error("Error fetching country codes:", error);
-      }
-    };
-    fetchCodes();
-  }, []);
-
+  const [loggedIn] = useState(false);
   return (
     <div>
-      <ToastContainer />
-      {showAllModal && (
-        <Complete closeDialog={() => setShowAllModal(false)} car={car} />
-      )}
+      {showAllModal && <Complete closeDialog={() => setShowAllModal(false)} />}
       <div className="mt-4">
         <div className="lg:pt-20 pt-20 mb-6 flex justify-normal items-center px-6 gap-8">
           <div className=" p-[8px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] ">
@@ -191,7 +84,7 @@ const MobilePage = ({
             alternativeLabel
             connector={<CustomConnector />}
           >
-            {steps.map((label: any, index) => (
+            {steps.map((label, index) => (
               <Step key={index}>
                 <StepLabel
                   StepIconProps={{
@@ -219,15 +112,61 @@ const MobilePage = ({
         {/* <----------------------------------------------------FIRST STEP ----------------------------------------------------> */}
         {activeStep === 0 && (
           <div>
-            <div className="flex items-center gap-4 p-6">
-              <img
-                src={car?.content?.images[0].url || carImage}
-                alt=""
-                className="w-28 h-28 p-2 object-contain bg-[#0000001A] rounded-lg"
-              />
-              <p className="text-[#67696D] text-[14px] ">
-                {car.vehicle.name} {car.vehicle.code}
-              </p>
+            {/* <div className="my-5 px-6">
+              <div className="border-1  border-[#023E8A] w-full bg-[#CCD8E81A] pt-[10px] pb-[10px] pr-[10px] pl-[10px] rounded-[8px]">
+                <div className="flex gap-1">
+                  <ErrorOutlineIcon className=" text-[#023E8A] mt-[-4px]" />
+
+                  <div className="text-[#181818] text-[14px]">
+                    Cancellation allowed 24 hours before pick up
+                  </div>
+                </div>
+              </div>
+            </div> */}
+
+            <div className="flex gap-[8px] justify-between px-6">
+              <div className="flex gap-[4px]">
+                <img src={circle} alt="" className="w-[50px] h-[50px]" />
+                <div>
+                  <div className="flex gap-[2px] mt-[4px]">
+                    <p className="mt-[2px] text-[#181818] text-[14px]">Elvis</p>
+                    <div>
+                      <Stack direction="row">
+                        <Rating
+                          value={1}
+                          max={1}
+                          readOnly
+                          sx={{ fontSize: "14px", marginTop: "5px" }}
+                        />
+                        <Typography
+                          variant="body1"
+                          sx={{ fontSize: "14px", marginTop: "2px" }}
+                        >
+                          {value}
+                        </Typography>
+                      </Stack>
+                    </div>
+                  </div>
+                  <div className="mt-[2px]">
+                    <p className="text-[#67696D] text-[14px] ">
+                      Red Toyota Corolla
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="">
+                {carList.map((car) => (
+                  <div key={car.id} className="flex justify-between gap-[8px]">
+                    <div className="">
+                      <img
+                        src={car.image}
+                        alt=""
+                        className="h-[70px] w-[50px] mt-[-8px]"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <Divider
@@ -239,42 +178,97 @@ const MobilePage = ({
               <p className="text-[16px] font-inter font-medium text-[#181818]">
                 Trip Details
               </p>
-              <div className="lg:border rounded-lg lg:p-5 mt-[10px] flex flex-col justify-normal items-start gap-4 border-[#CDCED1]">
+              <div className="lg:border rounded-lg p-5 mt-[10px] flex flex-col justify-normal items-start gap-4 border-[#CDCED1]">
                 <div className="flex justify-normal gap-4 items-center">
-                  <div className="size-6 bg-[#023E8A] rounded-full" />
+                  <div className="w-6 h-6 bg-[#023E8A] rounded-full" />
                   <div>
-                    <p>{departureInfo.pickUpLocaDescription}</p>
+                    <p>Murtala Mohammed Airport</p>
                     <div className="flex items-center justify-normal gap-1 text-gray-500">
                       <FaRegCalendarAlt />
-                      <p>{departureInfo.pickupDate}</p>
+                      <p>February 10, 2025</p>
                       <Dot fill="#4E4F52" />
                       <FaRegClock />
-                      <p>{departureInfo.pickupTime}</p>
+                      <p>3:30pm</p>
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-5 items-center ml-3">
                   {" "}
                   <div className="border-l-2 border-l-[#4E4F52] h-16" />{" "}
-                  <p className="text-[#4E4F52]">
-                    {car.content.transferDetailInfo[0].name}
-                  </p>{" "}
+                  <p className="text-[#4E4F52]">Estimated Time: 90 minutes</p>{" "}
                 </div>
                 <div className="flex justify-normal gap-4 items-center">
-                  <div className="size-6 bg-[#D72638] rounded-full object-contain" />
+                  <div className="w-6 h-6 bg-[#D72638] rounded-full" />
                   <div>
-                    <p>{departureInfo.dropoffLocation}</p>
-                    <div className="flex items-center justify-normal gap-1 text-gray-500 pt-3">
+                    <p>Murtala Mohammed Airport</p>
+                    <div className="flex items-center justify-normal gap-1 text-gray-500">
                       <FaRegCalendarAlt />
-                      <p>{departureInfo.pickupDate}</p>
+                      <p>February 10, 2025</p>
                       <Dot fill="#4E4F52" />
                       <FaRegClock />
+                      <p>3:30pm</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Divider
+              sx={{ marginTop: "8px", marginBottom: "8px" }}
+              className="lg:hidden"
+            />
 
-                      <p>
-                        {addDurationToTime(
-                          departureInfo.pickupTime,
-                          car.content.transferDetailInfo[0].name
-                        )}
+            <div className="px-6">
+              <p className="text-[16px] font-inter font-medium text-[#181818]">
+                Taxi Details
+              </p>
+              <div className=" mt-[10px] lg:border rounded-lg p-5 border-[#CDCED1]">
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
+                        Type
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[#181818] text-[14px] font-inter">
+                        Red Toyota Corolla
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
+                        Seats
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[14px] text-[#181818]">3 Seats</p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
+                        Luggages
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[#181818] text-[14px] font-inter">
+                        Up to 4 Luggages
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
+                        Plate Number
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[#181818] text-[14px] font-inter">
+                        AA1234FT
                       </p>
                     </div>
                   </div>
@@ -286,77 +280,95 @@ const MobilePage = ({
               className="lg:hidden"
             />
 
-            <div className="lg:px-6 px-3">
-              <p className="text-[16px] font-inter font-medium text-[#181818] pl-3 lg:pl-0">
-                Taxi Details
+            <div className="px-6">
+              <p className="text-[16px] font-inter font-medium text-[#181818] pt-4">
+                Driver Details
               </p>
+              <div className="lg:border rounded-lg p-5 mt-[10px] border-[#CDCED1]">
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
+                        Name
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[#181818] text-[14px] font-inter">
+                        Elvis Igiebor
+                      </p>
+                    </div>
+                  </div>
 
-              <div className="flex flex-col gap-2 items-center  mt-[10px] lg:border rounded-lg p-5 border-[#CDCED1]">
-                <div className="flex justify-between items-center w-full">
-                  <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                    Type
-                  </p>
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
+                        Rating
+                      </p>
+                    </div>
+                    <div>
+                      <Stack direction="row">
+                        <Rating
+                          value={1}
+                          max={1}
+                          readOnly
+                          sx={{ fontSize: "14px", marginTop: "5px" }}
+                        />
+                        <Typography
+                          variant="body1"
+                          sx={{ fontSize: "14px", marginTop: "2px" }}
+                        >
+                          {value}
+                        </Typography>
+                      </Stack>
+                    </div>
+                  </div>
 
-                  <p className="text-[#181818] text-sm font-inter">
-                    {car.category.name} Car
-                  </p>
-                </div>
-
-                <div className="flex justify-between w-full items-center">
-                  <p className="text-sm font-inter font-normal text-[#4E4F52]">
-                    Seats
-                  </p>
-
-                  <p className="text-sm text-[#181818]">
-                    {car.maxPaxCapacity} Seats
-                  </p>
-                </div>
-
-                <div className="flex justify-between items-start w-full text-right">
-                  <p className="text-sm font-inter font-normal text-[#4E4F52]">
-                    Bags
-                  </p>
-                  <p className="text-[#181818] text-sm font-inter">
-                    Up to {car.content.transferDetailInfo[3].name.slice(0, 2)}{" "}
-                    Bags
-                  </p>
-                </div>
-
-                <div className="flex justify-between items-center w-full">
-                  <p className="text-smfont-inter font-normal text-[#4E4F52]">
-                    Provider
-                  </p>
-
-                  <p className="text-[#181818] text-[14px] font-inter">
-                    {car?.supplier || "Holiday Taxi"}
-                  </p>
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
+                        Phone Number
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[#181818] text-[14px] font-inter">
+                        090123456782
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+
             <Divider
               sx={{ marginTop: "8px", marginBottom: "8px" }}
               className="lg:hidden"
             />
 
-            <div className="lg:px-6 px-3">
-              <p className="text-[16px] font-inter font-medium text-[#181818] pt-4 pl-3 lg:pl-0">
+            <div className="px-6">
+              <p className="text-[16px] font-inter font-medium text-[#181818] pt-4">
                 Price Summary
               </p>
-              <div className="flex  justify-between w-full itmes-center lg:border rounded-lg p-5 mt-[10px border-[#CDCED1]]">
-                <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                  Total
-                </p>
-
-                <p className="text-[#181818] text-[14px] font-bold font-inter">
-                  {" "}
-                  &#8364;{car.price.totalAmountWithFee}
-                </p>
+              <div className="lg:border rounded-lg p-5 mt-[10px border-[#CDCED1]]">
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
+                        Total
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[#181818] text-[14px] font-inter">
+                        ₦40,000
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             <Divider sx={{ marginTop: "8px", marginBottom: "8px" }} />
-            <div className="lg:px-6 px-3">
-              <div className="flex w-full justify-between items-center p-4 pl-3 lg:pl-0">
+            <div className=" pt-4 px-6">
+              <div className="flex w-full justify-between items-center pb-4">
                 <p className="text-[16px] font-inter font-bold text-[#181818]">
                   Important information
                 </p>
@@ -368,27 +380,24 @@ const MobilePage = ({
                   <ChevronRight />
                 </div>
               </div>
-              <div className="lg:border rounded-lg lg:p-5 p-3 lg:mt-2 border-[#CDCED1]">
-                <ul className="list-disc pl-4 flex flex-col gap-2">
-                  <li>
-                    Your driver will wait up to 60 minutes after your taxi
-                    arrives
-                  </li>
-                  <li>
-                    You’ll get pickup instructions in your confirmation email.
-                  </li>
-                </ul>
-              </div>
+              <ul className="list-disc pl-8 flex flex-col gap-2 lg:border rounded-lg p-5 border-[#CDCED1]">
+                <li>
+                  Your driver will wait up to 60 minutes after your taxi arrives
+                </li>
+                <li>
+                  You’ll get pickup instructions in your confirmation email.
+                </li>
+              </ul>
             </div>
             <Divider
               sx={{ marginTop: "8px", marginBottom: "8px" }}
               className="lg:hidden"
             />
-            <div className="lg:px-6 px-3">
-              <p className="text-[16px] font-inter font-bold text-[#181818] lg:p-4 p-3 lg:pl-0">
+            <div className="px-6">
+              <p className="text-[16px] font-inter font-bold text-[#181818] pt-4">
                 Refunds and Cancellations
               </p>
-              <div className="lg:border rounded-lg lg:p-5 p-3 lg:mt-2 border-[#CDCED1]">
+              <div className="lg:border rounded-lg p-5 mt-[10px] border-[#CDCED1]">
                 <ul className="list-disc pl-4 flex flex-col gap-2">
                   <li>Cancellations allowed 24 hours before pick Up</li>
                   <li>Full refund if cancelled 24 hours before pick up</li>
@@ -396,20 +405,22 @@ const MobilePage = ({
               </div>
             </div>
 
+            <Divider sx={{ marginTop: "8px", marginBottom: "8px" }} />
+
             <Divider sx={{ marginTop: "60px", marginBottom: "20px" }} />
           </div>
         )}
 
         {/* <----------------------------------------------------------SECOND STEP-----------------------------------------------------------------> */}
         {activeStep === 1 && (
-          <div className="lg:px-6">
+          <div className="px-6">
             <div>
               <Divider sx={{ marginTop: "8px", marginBottom: "8px" }} />
 
               <div className="">
                 <div className=" mt-[10px]">
                   <div>
-                    <h2 className="py-3 text-lg lg:tex-x;l font-bold p-5 lg:p-0">
+                    <h2 className="py-3 text-lg lg:tex-x;l font-bold">
                       Passenger Information
                     </h2>
                     <div className="lg:border rounded-lg p-5 border-[#CDCED1]">
@@ -430,7 +441,7 @@ const MobilePage = ({
                             control={
                               <Switch
                                 checked={state.jason}
-                                onChange={handleProfileSwitch}
+                                onChange={handleChange}
                                 name="jason"
                               />
                             }
@@ -458,8 +469,6 @@ const MobilePage = ({
                               size="small"
                               placeholder="Enter First Name"
                               value={passFormData.firstName}
-                              error={!!errors.firstName && submitted}
-                              helperText={submitted ? errors.firstName : ""}
                               onChange={handleInputChange}
                               InputProps={{
                                 startAdornment: (
@@ -491,8 +500,6 @@ const MobilePage = ({
                               size="small"
                               placeholder="Enter Last Name"
                               value={passFormData.lastName}
-                              error={!!errors.lastName && submitted}
-                              helperText={submitted ? errors.lastName : ""}
                               onChange={handleInputChange}
                               InputProps={{
                                 startAdornment: (
@@ -524,8 +531,6 @@ const MobilePage = ({
                               size="small"
                               placeholder=""
                               value={passFormData.dateOfBirth}
-                              error={!!errors.dateOfBirth && submitted}
-                              helperText={submitted ? errors.dateOfBirth : ""}
                               onChange={handleInputChange}
                               InputProps={{
                                 startAdornment: (
@@ -552,7 +557,7 @@ const MobilePage = ({
                       className="lg:hidden"
                     />
                     <div className="">
-                      <h2 className="py-3 font-bold text-lg lg:text-xl p-5 lg:p-0">
+                      <h2 className="py-3 font-bold text-lg lg:text-xl">
                         Contact Information
                       </h2>
                       <div className="lg:border rounded-lg p-5 block lg:grid grid-cols-2 gap-4 border-[#CDCED1]">
@@ -569,8 +574,6 @@ const MobilePage = ({
                             size="small"
                             placeholder="name@email.com"
                             value={passFormData.email}
-                            error={!!errors.email && submitted}
-                            helperText={submitted ? errors.email : ""}
                             onChange={handleInputChange}
                             InputProps={{
                               startAdornment: (
@@ -590,79 +593,32 @@ const MobilePage = ({
                         </div>
                         <div className="flex flex-col mb-[10px]">
                           <label
-                            htmlFor="countryCode"
+                            htmlFor="number"
                             className="mb-1 text-[16px] text-start font-medium"
                           >
                             Country Code
                           </label>
-                          <FormControl
-                            fullWidth
+                          <TextField
+                            id="number"
+                            variant="outlined"
                             size="small"
+                            value={passFormData.email}
+                            onChange={handleInputChange}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="end">
+                                  <MdArrowDropDown />
+                                </InputAdornment>
+                              ),
+                            }}
                             sx={{
-                              "& .MuiOutlinedInput-root": {
-                                borderRadius: "8px",
+                              width: "100%",
+                              "& .MuiInputBase-root": {
                                 height: "44px",
+                                borderRadius: "8px",
                               },
                             }}
-                          >
-                            <Select
-                              labelId="countryCode-label"
-                              id="countryCode"
-                              name="countryCode"
-                              value={passFormData.countryCode}
-                              onChange={(e) => {
-                                handleInputChange({
-                                  target: {
-                                    id: "countryCode",
-                                    value: e.target.value,
-                                  },
-                                } as any);
-                              }}
-                              renderValue={(value) => value || "Select Code"}
-                              error={!!errors.countryCode && submitted}
-                              MenuProps={{
-                                PaperProps: {
-                                  style: { maxHeight: 300 },
-                                },
-                              }}
-                            >
-                              {countryCodes.map((country) => (
-                                <MenuItem
-                                  key={country.cca2}
-                                  value={country.dialCode}
-                                >
-                                  <ListItemIcon>
-                                    {country.flag ? (
-                                      <img
-                                        src={country.flag}
-                                        alt={country.name.common}
-                                        style={{
-                                          width: 24,
-                                          height: 16,
-                                          borderRadius: 2,
-                                          objectFit: "cover",
-                                        }}
-                                      />
-                                    ) : (
-                                      <span>🌍</span>
-                                    )}
-                                  </ListItemIcon>
-                                  <ListItemText
-                                    primary={`${country.name.common} (${country.dialCode})`}
-                                    primaryTypographyProps={{
-                                      fontSize: 14,
-                                      color: "#181818",
-                                    }}
-                                  />
-                                </MenuItem>
-                              ))}
-                            </Select>
-                            {submitted && errors.countryCode && (
-                              <p className="text-red-500 text-[12px] mt-1">
-                                {errors.countryCode}
-                              </p>
-                            )}
-                          </FormControl>
+                          />
                         </div>
 
                         <div className="flex flex-col mb-[10px]">
@@ -678,8 +634,6 @@ const MobilePage = ({
                             size="small"
                             placeholder="Enter Phone Number"
                             value={passFormData.phoneNumber}
-                            error={!!errors.phoneNumber && submitted}
-                            helperText={submitted ? errors.phoneNumber : ""}
                             onChange={handleInputChange}
                             InputProps={{
                               startAdornment: (
@@ -718,12 +672,12 @@ const MobilePage = ({
                   alt="paypal icon"
                   className="w-24 h-10 object-cover bg-white rounded-lg p-2 border-1 border-[#CDCED1]"
                 />
-                <p className="font-bold text-lg">Stripe</p>
+                <p className="font-bold text-lg">Paypal</p>
               </div>
               <div className="flex flex-col justify-center items-center gap-4 bg-[#FAFAFA] rounded-lg lg:p-26 p-12 ">
                 <ArrowRight className="font-bold w-12 h-12" />
                 <p className="text-[#4E4F52]">
-                  You'll be redirected to Stripe to complete your secure payment
+                  You'll be redirected to PayPal to complete your secure payment
                 </p>
               </div>
             </div>
@@ -733,7 +687,7 @@ const MobilePage = ({
             </p>
             <div className="px-6  border-[#CDCED1] lg:border rounded-lg p-5 flex justify-between items-center w-full">
               <p className="font-bold text-[#4E4F52]">Total</p>
-              <p className="font-bold">&#8364;{car.price.totalAmountWithFee}</p>
+              <p>#600,000</p>
             </div>
 
             <Divider
@@ -763,34 +717,27 @@ const MobilePage = ({
           </div>
         )}
         {activeStep === 2 ? (
-          // <Link to="/car-payment-successful">
-          <div className="mx-6 my-6 flex items-center justify-center">
-            <button
-              className={`flex items-center justify-center gap-5 w-full lg:w-96 text-white bg-[#023E8A] h-[56px] rounded-[6px] cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed
+          <Link to="/car-payment-successful">
+            <div className="mx-6 my-6 flex items-center justify-center">
+              <button
+                className={`w-full lg:w-96 text-white bg-[#023E8A] h-[56px] rounded-[6px] cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed
                 `}
-              disabled={!isFormValids || loadingSubmit}
-              onClick={handleSubmit}
-            >
-              <span>Pay with Stripe</span>
-              {loadingSubmit && (
-                <Loader className="animate-spin " stroke="#ffffff" />
-              )}
-            </button>
-          </div>
+                disabled={!isFormValids}
+                onClick={handleSubmit}
+              >
+                Pay with Paypal
+              </button>
+            </div>
+          </Link>
         ) : (
-          // {/* </Link> */}
           <div className="mx-6 mb-20 flex items-center justify-center">
             <button
-              className="flex items-center justify-center gap-5 w-full lg:w-96 text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]  disabled:bg-gray-400 disabled:cursor-not-allowed"
-              disabled={!loggedIn || loadingSubmit}
-              onClick={() => {
-                activeStep === 0 ? handleNext() : handleConfirm();
-              }}
+              className="w-full lg:w-96 text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]  disabled:bg-gray-400 disabled:cursor-not-allowed"
+              disabled={!isFormValid && !loggedIn}
+              onClick={handleNext}
+              // disabled={activeStep === steps.length - 1}
             >
-              <span>Continue</span>
-              {loadingSubmit && (
-                <Loader className="animate-spin " stroke="#ffffff" />
-              )}
+              {activeStep === steps.length - 1 ? "Pay with Paypal" : "Continue"}
             </button>
           </div>
         )}
