@@ -1,39 +1,37 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { TextField, InputAdornment } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import React, { useState, useEffect, ChangeEvent } from "react";
+import {
+  TextField,
+  InputAdornment,
+  Popper,
+  ClickAwayListener,
+  Paper,
+  Typography,
+  Divider,
+  Box,
+} from "@mui/material";
+import { DateRange, RangeKeyDict } from "react-date-range";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
+import { addDays, format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import { MdArrowDropDown } from "react-icons/md";
-import { Info } from "lucide-react";
 
-// Custom hooks and utilities
-import { useBookingForm } from "../hooks/useBookingForm";
-import { useFormPersistence } from "../hooks/useFormPersistence";
-import { useModalState } from "../hooks/useModalState";
-import {
-  formatPassengerCount,
-  formatPriceRange,
-} from "../utilities/formatting";
-import { BookingFormData } from "../types/booking";
+interface DateRangeType {
+  startDate: Date;
+  endDate: Date;
+  key: string;
+}
 
-// Components
+import SearchLoaction from "./modals/SearchLoaction";
 import Passengers from "./modals/Passengers";
 import PriceRange from "./modals/PriceRange";
-import { PassengerCounts } from "../types/booking";
-import { transferService } from "../services/transferService";
-import SearchPickUpLocation from "./modals/searchPickUp";
-import SearchDropOffLocation from "./modals/searchDropOff";
-import toast from "react-hot-toast";
-import { ToastContainer } from "react-toastify";
+import { MdArrowDropDown } from "react-icons/md";
 import RideType from "./modals/RideType";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs"
-
-const CarBookingFirstScreen: React.FC = () => {
+import { Info } from "lucide-react";
+const Page = () => {
   const navigate = useNavigate();
 
   const [, setSelectedValue] = useState<string>(() => {
@@ -42,161 +40,141 @@ const CarBookingFirstScreen: React.FC = () => {
   const [FromClick, setFromClick] = useState<HTMLElement | null>(null);
   const [ToClick, setToClick] = useState<HTMLElement | null>(null);
 
-  const collectTo = (
-    data: string,
-    data2: string,
-    latitude: number,
-    longitude: number
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      dropoffLocaDescription: data,
-      dropoffLocation: data2,
-      toLat: latitude,
-      toLon: longitude,
-    }));
-  };
-  // Initialize form with Redux data or saved data
-  const { loadSavedData } = useFormPersistence({} as BookingFormData);
-  const initialData = useMemo(() => {
-    if (carInfo) {
-      return {
-        pickupLocation: carInfo.pickupLocation || "",
-        pickUpLocaDescription: carInfo.pickupLocaDescription || "",
-        dropoffLocation: carInfo.dropoffLocation || "",
-        pickupDate: carInfo.pickupDate || "",
-        pickupTime: carInfo.pickupTime || "",
-        selectedRide: carInfo.selectedRide || "",
-        priceRange: carInfo.priceRange || { min: 0, max: 0 },
-        passengerCounts: carInfo.passengerCounts || {
-          adults: 0,
-          children: 0,
-          infant: 0,
-        },
-        toLat: typeof carInfo.toLat === "number" ? carInfo.toLat : undefined,
-        toLon: typeof carInfo.toLon === "number" ? carInfo.toLon : undefined,
-      };
-    }
-    return (
-      loadSavedData() || {
-        pickupLocation: "",
-        pickUpLocaDescription: "",
-        dropoffLocation: "",
+  const [selectedFrom, setSelectedFrom] = useState("");
+  const [selectedTo, setSelectedTo] = useState("");
 
-        pickupDate: "",
-        pickupTime: "",
-        selectedRide: "",
-        priceRange: { min: 0, max: 0 },
-        passengerCounts: {
-          adults: 0,
-          children: 0,
-          infant: 0,
-        },
-        toLat: undefined,
-        toLon: undefined,
-      }
-    );
-  }, [carInfo, loadSavedData]);
+  const [openFrom, setOpenFrom] = useState(false);
+  const [openTo, setOpenTo] = useState(false);
 
-  const {
-    formData,
-    setFormData,
-    // errors,
-    isValid,
-    loading,
-    updateField,
-    setLoading,
-    setSubmitError,
-  } = useBookingForm(initialData);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedRide, setSelectedRide] = useState("");
+  // const [selected]
 
-  // Persist form data
-  useFormPersistence(formData);
+  const [maxprice, setMaxPrice] = useState("");
+  const [miniprice, setMiniPrice] = useState("");
+  const [priceRange, setPriceRange] = useState("");
+  // const [rideOptions, setRideOptions]
 
-  // Modal management
-  const { modals, openModal, closeModal } = useModalState();
+  const [searchPickOrDrop, setSearchPickOrDrop] = useState(false);
+  const [openPassengerModal, setOpenPassengerModal] = useState(false);
+  const [rideTypeModal, setRideTypeModal] = useState(false);
 
-  // Location picker state
-  const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
-  // const [locationPopper, setLocationPopper] = useState<{
-  //   from: { open: boolean; anchor: HTMLElement | null };
-  //   to: { open: boolean; anchor: HTMLElement | null };
-  // }>({
-  //   from: { open: false, anchor: null },
-  //   to: { open: false, anchor: null },
-  // });
+  const [openClick, setOpenClick] = useState<boolean>(false);
+  const [openNoModal, setOpenNoModal] = useState(false);
 
-  // Sync with Redux store whenever formData changes
+  const [times, setTimes] = useState({
+    pickUpTime: "",
+    dropOffTime: "",
+  });
+  const [passengerCounts, setPassengerCounts] = useState({
+    adults: 0,
+    children: 0,
+    infant: 0,
+  });
   useEffect(() => {
-    const reduxData = {
-      pickupLocation: formData.pickupLocation,
-      pickupLocaDescription: formData.pickUpLocaDescription,
-      dropoffLocation: formData.dropoffLocation,
-      dropoffLocaDescription: formData.dropoffLocaDescription,
-      pickupDate: formData.pickupDate,
-      pickupTime: formData.pickupTime,
-      selectedRide: formData.selectedRide,
-      priceRange: formData.priceRange,
-      passengerCounts: formData.passengerCounts,
-      // endAddress: formData.endAddress,
-      // endCity: formData.endCity,
-      // endCountry: formData.endCountry,
-      toLat: formData.toLat,
-      toLon: formData.toLon,
-      searchResults: carInfo?.searchResults || [],
-    };
+    const savedValue = localStorage.getItem("tripType");
+    if (savedValue) {
+      setSelectedValue(savedValue);
+    }
+  }, []);
 
-    dispatch(setCarInfo(reduxData));
-  }, [formData, dispatch, carInfo?.searchResults]);
-
-  // Event handlers
-  const handleDropLocationClick = useCallback(
-    (type: "drop") => {
-      setPickOrDrop(type);
-      openModal("searchDropLocation");
+  const [dateRange, setDateRange] = useState<DateRangeType[]>([
+    {
+      startDate: new Date(),
+      endDate: addDays(new Date(), 0),
+      key: "selection",
     },
-    [openModal]
-  );
-  const handlePickLocationClick = useCallback(
-    (type: "pick") => {
-      setPickOrDrop(type);
-      openModal("searchPickLocation");
-    },
-    [openModal]
-  );
+  ]);
 
-  const handleRideClick = () => {
-    console.log("Clicked");
-    openModal("rideType");
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(anchorEl ? null : event.currentTarget);
   };
-  const handleLocationSelect = useCallback(
-    (location: string) => {
-      if (pickOrDrop === "pick") {
-        updateField("pickupLocation", location);
-      } else {
-        updateField("dropoffLocation", location);
-      }
-    },
-    [pickOrDrop, updateField, closeModal]
-  );
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleToClick = (event: React.MouseEvent<HTMLElement>) => {
+    setOpenTo((prev) => !prev);
+    setToClick(event.currentTarget);
+  };
+
+  const handleCloseTo = () => {
+    setOpenTo(false);
+  };
+
+  const handleFromClick = (event: React.MouseEvent<HTMLElement>) => {
+    setOpenFrom((prev) => !prev);
+    setFromClick(event.currentTarget);
+  };
+
+  const handleFromOptionClick = (option: string) => {
+    setSelectedFrom(option);
+    setOpenFrom(false);
+  };
+
+  const handleToOptionClick = (option: string) => {
+    setSelectedTo(option);
+    setOpenTo(false);
+  };
+
+  const handleCloseFrom = () => {
+    setOpenFrom(false);
+  };
+
+  const open = Boolean(anchorEl);
+  const id = open ? "date-range-popper" : undefined;
+
+  const [locations, setLocations] = useState([
+    "Ibadan, Oyo",
+    "Abuja",
+    "Port Harcourt",
+  ]);
+
+  const handleRemoveOption = (locationToRemove: string) => {
+    setLocations(locations.filter((location) => location !== locationToRemove));
+  };
+  const handleSelectRide = (value: string) => {
+    setSelectedRide(value);
+  };
+
+  const formatDate = (date: Date) => format(date, "dd MMM yyyy");
+
+  const [, setOpens] = useState(false);
+
+  const handleSelectDate = () => {
+    if (dateRange[0].startDate) {
+      const startDateFormatted = formatDate(dateRange[0].startDate);
+      const endDateFormatted = dateRange[0].endDate
+        ? formatDate(dateRange[0].endDate)
+        : startDateFormatted;
+
+      const displayText =
+        startDateFormatted === endDateFormatted
+          ? startDateFormatted
+          : `${startDateFormatted} - ${endDateFormatted}`;
+
+      setSelectedDate(displayText);
+      setOpens(false);
+      handleClose();
+    }
+  };
 
   const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
     setTimes({ ...times, [event.target.name]: event.target.value });
   };
 
-  const handlePriceChange = useCallback(
-    (
-      field: "min" | "max",
-      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-      const value = event.target.value.replace(/[^0-9]/g, "");
-      const parsedValue = value ? parseInt(value, 10) : 0;
-      updateField("priceRange", {
-        ...formData.priceRange,
-        [field]: parsedValue,
-      });
-    },
-    [updateField, formData.priceRange]
-  );
+  const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value.replace(/,/g, "");
+    if (!isNaN(Number(value)) && value !== "") {
+      const formattedValue = new Intl.NumberFormat().format(Number(value));
+      setMiniPrice(formattedValue);
+    } else {
+      setMiniPrice("");
+    }
+  };
 
   const handleMaxPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value.replace(/,/g, "");
@@ -208,98 +186,94 @@ const CarBookingFirstScreen: React.FC = () => {
     }
   };
 
-  const handleRideSelect = useCallback(
-    (ride: string) => {
-      updateField("selectedRide", ride);
-      closeModal("rideType");
-    },
-    [updateField, closeModal]
-  );
-  const handleSearch = useCallback(async () => {
-    console.log(formData);
-    const errors = [];
-    if (!formData.pickupLocation) {
-      errors.push("Please enter a valid pickup location");
-    }
-    if (!formData.dropoffLocation) {
-      errors.push("Please enter a valid dropoff location");
-    }
-    // if (!formData.toLat || !formData.toLon) {
-    //   errors.push("Dropoff location must have valid GPS coordinates");
-    // }
-    if (!formData.pickupDate) {
-      errors.push("Please select a pickup date");
-    }
-    if (!formData.pickupTime) {
-      errors.push("Please select a pickup time");
-    }
-    if (!isValid) {
-      errors.push("Please fill in all required fields correctly");
-    }
+  const handleCloseNoModal = () => {
+    setOpenNoModal(false);
+  };
+  const handleSubmitOffer = () => {
+    const numericMinPrice = parseInt(miniprice.replace(/,/g, ""), 10) || 0;
+    const numericMaxPrice = parseInt(maxprice.replace(/,/g, ""), 10) || 0;
 
-    if (errors.length > 0) {
-      setSubmitError(errors.join(", "));
+    if (numericMinPrice < 6000 || numericMaxPrice < 6000) {
+      setOpenNoModal(true);
+    } else {
+      const formattedPriceRange = `${new Intl.NumberFormat().format(
+        numericMinPrice
+      )} - ${new Intl.NumberFormat().format(numericMaxPrice)}`;
+      setPriceRange(formattedPriceRange);
+      handleCloseClick();
     }
+  };
 
-    setSubmitError(null);
-    try {
-      setLoading(true);
-      const params = transferService.convertFormToApiParams({
-        ...formData,
-      });
-      if (!params.fcode || !/^[A-Z]{3}$/.test(params.fcode)) {
-        throw new Error("Invalid pickup location code");
-      }
-      if (!params.tcode || params.tcode === "undefined,undefined") {
-        throw new Error("Invalid destination coordinates");
-      }
-      const result = await transferService.searchTransfers(params);
-      if (!result?.data) {
-        console.log(params);
-        throw new Error(result.error || "No transfer results found");
-      }
-      dispatch(setSearchResults(result?.data?.results?.services || []));
-      console.log("Search results:", result?.data);
-      navigate("/cars-searchResults", {
-        state: {
-          ...formData,
-          searchResults: result?.data?.results?.services || [],
-          times: { pickUpTime: formData.pickupTime, dropOffTime: "" },
-          priceRange: {
-            min: formData.priceRange.min,
-            max: formData.priceRange.max,
-          },
-          search_id: result?.data?.search_id,
-        },
-      });
-      {
-      }
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Search failed");
-      toast.error(error instanceof Error ? error.message : "Search failed");
-      console.error("Search failed:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [
-    isValid,
-    formData,
-    navigate,
-    setSubmitError,
-    setLoading,
-    transferService,
-  ]);
+  const handleSearch = () => {
+    // const priceRange = `${miniprice} - ${maxprice}`;
+    const numericMinPrice = parseInt(miniprice.replace(/,/g, ""), 10) || 0;
+    const numericMaxPrice = parseInt(maxprice.replace(/,/g, ""), 10) || 0;
 
-  // Memoized display values
-  const displayValues = useMemo(
-    () => ({
-      passengers: formatPassengerCount(formData.passengerCounts),
-      priceRange: formatPriceRange(formData.priceRange),
-      rideType: formData.selectedRide || "Select Ride Type",
-    }),
-    [formData]
-  );
+    const formattedPriceRange = {
+      miniprice: numericMinPrice,
+      maxprice: numericMaxPrice,
+    };
+    navigate("/cars-searchResults", {
+      state: {
+        from: selectedFrom,
+        to: selectedTo,
+        departureDate: selectedDate,
+        times,
+        priceRange: formattedPriceRange,
+        selectedRide,
+        passengerCounts,
+      },
+    });
+  };
+  const formData=  {
+        from: selectedFrom,
+        to: selectedTo,
+        departureDate: selectedDate,
+        times,
+        priceRange,
+        selectedRide,
+        passengerCounts,
+      }
+useEffect(()=> {
+ localStorage.setItem( 'form', JSON.stringify(formData))
+})
+  const handleOpen = () => {
+    // setSelectedCarId(car.id);
+    setOpenClick(true);
+  };
 
+  const handleCloseClick = () => {
+    setOpenClick(false);
+  };
+
+  const formatPassengerCount = (counts: {
+    adults: number;
+    children: number;
+    infant: number;
+  }) => {
+    const { adults, children, infant } = counts;
+    const parts = [];
+
+    if (adults > 0) parts.push(`${adults} adult${adults > 1 ? "s" : ""}`);
+    if (children > 0)
+      parts.push(`${children} child${children > 1 ? "ren" : ""}`);
+    if (infant > 0) parts.push(`${infant} infant${infant > 1 ? "s" : ""}`);
+
+    return parts.length > 0 ? parts.join(", ") : "Select Passengers";
+  };
+
+  const formFilled =
+    (!!selectedFrom &&
+      !!selectedTo &&
+      !!selectedDate &&
+      !!times.pickUpTime &&
+      !!priceRange &&
+      !!selectedRide &&
+      passengerCounts.adults > 0) ||
+    passengerCounts.children > 0 ||
+    passengerCounts.infant > 0;
+
+  console.log(formFilled);
   return (
     <div>
       {searchPickOrDrop && (
@@ -348,11 +322,11 @@ const CarBookingFirstScreen: React.FC = () => {
                 className="capitalize cursor-pointer"
                 variant="outlined"
                 size="small"
-                value={displayValues.rideType}
-                onClick={() => handleRideClick()}
-                // error={!!errors.selectedRide}
-                // helperText={errors.selectedRide}
-                className="cursor-pointer"
+                value={selectedRide}
+                onChange={(e) => {
+                  setSelectedRide(e.target.value);
+                }}
+                onClick={() => setRideTypeModal(true)}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -379,10 +353,15 @@ const CarBookingFirstScreen: React.FC = () => {
                 variant="outlined"
                 size="small"
                 placeholder="Search Pick up Location"
-                value={formData.pickUpLocaDescription}
-                onClick={() => handlePickLocationClick("pick")}
-                // error={!!errors.pickupLocation}
-                // helperText={errors.pickupLocation}
+                value={selectedFrom}
+                onChange={(e) => {
+                  setSelectedFrom(e.target.value);
+                }}
+                onClick={(e) => {
+                  handleFromClick(e);
+                  setSearchPickOrDrop(true);
+                  setPickOrDrop("pick");
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -490,10 +469,6 @@ const CarBookingFirstScreen: React.FC = () => {
                   setPickOrDrop("drop");
                 }}
                 placeholder="Search Destination"
-                value={formData.dropoffLocation}
-                onClick={() => handleDropLocationClick("drop")}
-                // error={!!errors.dropoffLocation}
-                // helperText={errors.dropoffLocation}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -583,45 +558,125 @@ const CarBookingFirstScreen: React.FC = () => {
               </Popper>
             </div>
 
-            {/* Pick Up Date */}
-            <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="pickup-date">Pick Up Date</label>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                 value={formData.pickupDate ? dayjs(formData.pickupDate) : null}
-                  onChange={(newValue) => {
-                    if (newValue) {
-                      updateField(
-                        "pickupDate",
-                        newValue.toISOString().split("T")[0]
-                      );
-                    }
-                  }}
-                  
-                  slotProps={{
-                    textField: {
-                      size: "small",
-                      variant: "outlined",
-                      InputProps: {
-                        readOnly: true,
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <CalendarMonthOutlinedIcon />
-                          </InputAdornment>
-                        ),
-                      },
-                      sx: {
-                        "& .MuiInputBase-root": {
-                          height: "44px",
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          width: "100%",
-                        },
-                      },
+            <div className="flex flex-col gap-2">
+              <label htmlFor="departure-date" className="mb-1">
+                Pick Up Date
+              </label>
+              <TextField
+                id="departure-date"
+                variant="outlined"
+                size="small"
+                placeholder="Select Date"
+                value={selectedDate}
+                onClick={handleClick}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CalendarMonthOutlinedIcon />
+                    </InputAdornment>
+                  ),
+                }}
+                // className="md:w-[23vw] lg:w-[23vw] w-full"
+                sx={{
+                  "& .MuiInputBase-root": {
+                    height: "44px",
+                    borderRadius: "8px",
+                  },
+                  "& .MuiOutlinedInput-input": {
+                    padding: "8px 10px",
+                    cursor: "pointer",
+                  },
+                }}
+              />
+
+              <Popper
+                id={id}
+                open={open}
+                anchorEl={anchorEl}
+                placement="bottom-start"
+                modifiers={[
+                  {
+                    name: "offset",
+                    options: {
+                      offset: [0, 10],
                     },
-                  }}
-                />
-              </LocalizationProvider>
+                  },
+                ]}
+              >
+                <ClickAwayListener onClickAway={handleClose}>
+                  <Paper
+                    elevation={3}
+                    sx={{
+                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                      width: {
+                        xs: "90vw", // Small screens
+                        sm: "500px", // Tablets
+                        md: "650px", // Medium screens
+                        lg: "850px", // Large screens
+                      },
+                      maxWidth: "95vw",
+                      overflow: "hidden",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      p: 2,
+                    }}
+                  >
+                    <Box sx={{ width: "100%" }}>
+                      <DateRange
+                        editableDateInputs={true}
+                        onChange={(item: RangeKeyDict) => {
+                          setDateRange([
+                            {
+                              startDate: item.selection.startDate ?? new Date(),
+                              endDate: item.selection.endDate ?? new Date(),
+                              key: item.selection.key ?? "selection",
+                            },
+                          ]);
+                        }}
+                        moveRangeOnFirstSelection={false}
+                        ranges={dateRange}
+                        rangeColors={["#FF6F1E"]}
+                        months={window.innerWidth < 768 ? 1 : 2} // 1 month on small screens
+                        direction={
+                          window.innerWidth < 768 ? "vertical" : "horizontal"
+                        }
+                        showDateDisplay={false}
+                        className="w-full"
+                      />
+
+                      <Box sx={{ mt: 2, width: "100%" }}>
+                        <Typography
+                          variant="body2"
+                          align="center"
+                          fontWeight={600}
+                          gutterBottom
+                        >
+                          {dateRange[0].startDate
+                            ? `${formatDate(dateRange[0].startDate)}${
+                                dateRange[0].endDate
+                                  ? ` - ${formatDate(dateRange[0].endDate)}`
+                                  : ""
+                              }`
+                            : "Pick a date"}
+                        </Typography>
+
+                        <button
+                          className="w-full h-[52px] rounded-[4px] font-inter text-[14px] font-medium"
+                          style={{
+                            backgroundColor: "#023E8A",
+                            color: "white",
+                            marginTop: "12px",
+                          }}
+                          onClick={handleSelectDate}
+                        >
+                          Select Date
+                        </button>
+                      </Box>
+                    </Box>
+                  </Paper>
+                </ClickAwayListener>
+              </Popper>
             </div>
           </div>
 
@@ -731,87 +786,6 @@ const CarBookingFirstScreen: React.FC = () => {
           </button>
         </div>
       </div>
-
-      {/* Modals */}
-
-      {modals.searchPickLocation && (
-        <SearchPickUpLocation
-          closeDialog={() => closeModal("searchPickLocation")}
-          value={formData.pickUpLocaDescription}
-          setValue={handleLocationSelect}
-          setExtraFields={(fields) => {
-            updateField("endAddress", fields.endAddress);
-            updateField("endCity", fields.endCity);
-            updateField("endCountry", fields.endCountry);
-            updateField("fromLat", fields.fromLat);
-            updateField("fromLon", fields.fromLon);
-            updateField("toLat", fields.toLat);
-            updateField("toLon", fields.toLon);
-          }}
-          ChangeValue={(query) =>
-            setFormData((prev) => ({
-              ...prev,
-              pickUpLocaDescription: query,
-            }))
-          }
-        />
-      )}
-      {modals.searchDropLocation && (
-        <SearchDropOffLocation
-          closeDialog={() => closeModal("searchDropLocation")}
-          value={formData.dropoffLocation}
-          collectTo={collectTo}
-          setValue={handleLocationSelect}
-          ChangeValue={(query, lat, lon) =>
-            setFormData((prev) => ({
-              ...prev,
-              dropoffLocation: query,
-              toLat: lat,
-              toLon: lon,
-            }))
-          }
-          setExtraFields={(fields) => {
-            updateField("endAddress", fields.endAddress);
-            updateField("endCity", fields.endCity);
-            updateField("endCountry", fields.endCountry);
-            updateField("fromLat", fields.fromLat);
-            updateField("fromLon", fields.fromLon);
-            updateField("toLat", fields.toLat);
-            updateField("toLon", fields.toLon);
-          }}
-        />
-      )}
-      {modals.passengers && (
-        <Passengers
-          openPassengerModal={modals.passengers}
-          closeModal={() => closeModal("passengers")}
-          initialValues={formData.passengerCounts}
-          handlePassengersUpdate={handlePassengerUpdate}
-        />
-      )}
-
-      {modals.rideType && (
-        <RideType
-          // open={modals.rideType}
-          closeModal={() => closeModal("rideType")}
-          selectedRide={formData.selectedRide}
-          handleSelectRide={handleRideSelect}
-        />
-      )}
-
-      {modals.priceRange && (
-        <PriceRange
-          openClick={modals.priceRange}
-          handleCloseClick={() => closeModal("priceRange")}
-          openNoModal={modals.priceError}
-          handleCloseNoModal={() => closeModal("priceError")}
-          miniprice={formData.priceRange.min}
-          maxprice={formData.priceRange.max}
-          handleSubmitOffer={handlePriceSubmit}
-          // loading={loading}
-          handlePriceChange={handlePriceChange}
-        />
-      )}
     </div>
   );
 };

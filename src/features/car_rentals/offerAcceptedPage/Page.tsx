@@ -106,6 +106,15 @@ const Page = () => {
   useEffect(() => {
     setIsFormValid(validateFields() && formData.agreement);
   }, [formData]);
+
+  const handleSubmit = () => {
+    if (isFormValid) {
+      console.log("Form submitted successfully!");
+    } else {
+      console.log("Form has errors, please fix them.");
+    }
+  };
+
   const [activeStep, setActiveStep] = useState(0);
 
   const handleNext = () => {
@@ -122,50 +131,13 @@ const Page = () => {
     }
   };
 
-  const handleConfirm = async () => {
-    setSubmitted(true);
-    if (!isTheFormValid || !validatePersonalInfo()) {
-      toast.error("Please fill in all required fields correctly.");
-      return;
-    }
-    try {
-      setLoadingSubmit(true);
-      const payload = {
-        search_id,
-        rate_key,
-        first_name: passFormData.firstName,
-        last_name: passFormData.lastName,
-        dob: passFormData.dateOfBirth,
-        email: passFormData.email,
-        country_code: passFormData.countryCode,
-        phone: passFormData.phoneNumber,
-      };
-
-      if (!accessToken) {
-        toast.error("You must be logged in to continue.");
-        setLoadingSubmit(false);
-        return;
-      }
-      const result = await transferService.createBookingConfirmation(
-        accessToken,
-        payload
-      );
-      if (result.success) {
-        console.log("Booking confirmed!", result.data);
-      } else {
-        navigate("/");
-        return;
-      }
-      setActiveStep(2);
-      setConfirmationId(result?.data?.id ?? "");
-      console.log(result);
-    } catch (error: any) {
-      console.error("Booking failed:", error);
-      toast.error(`${error?.response?.data?.detail[0]} Please search again`);
-    } finally {
-      setLoadingSubmit(false);
-    }
-  };
+  const [passFormData, setPassFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    dateOfBirth: "",
+  });
 
   const [isTheFormValid, setIsTheFormValid] = useState(false);
 
@@ -183,26 +155,8 @@ const Page = () => {
     setIsTheFormValid(isValid);
   }, [passFormData]);
 
-  const isFormValids = formData.agreement;
-
-  const handleSubmit = async () => {
-    try {
-      setLoadingSubmit(true);
-      const response = await transferService.createCheckoutSession(
-        confirmationId
-      );
-      console.log(response);
-      if (response.success && response.checkout_url) {
-        window.location.href = response.checkout_url;
-      } else {
-        console.error("Payment failed or invalid response:", response);
-      }
-    } catch (error) {
-      console.error("Error in payment:", error);
-    } finally {
-      setLoadingSubmit(false);
-    }
-  };
+  const isFormValids =
+    formData.agreement
 
   return (
     <div>

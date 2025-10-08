@@ -19,6 +19,7 @@ import { AxiosError, AxiosRequestConfig } from "axios";
 import dayjs from "dayjs";
 import { Flight } from "../hooks/useFlightBooking";
 
+
 export type TripType = "one-way" | "round-trip" | "multi-city";
 
 interface PassengerCounts {
@@ -27,11 +28,11 @@ interface PassengerCounts {
   infants: number;
 }
 
-interface FlightSegment {
-  from: Flight;
-  to: Flight;
-  date: string; // "DD MMM YYYY"
-}
+// interface FlightSegment {
+//   from: Flight;
+//   to: Flight;
+//   date: string; // "DD MMM YYYY"
+// }
 
 interface GetFlightParams {
   tripType: TripType;
@@ -43,7 +44,7 @@ interface GetFlightParams {
   passengerCounts: PassengerCounts;
   travelClass: string;
   currency?: string;
-  flights?: FlightSegment[]; // used for multi-city
+  flights?: Flight[]; // used for multi-city
 }
 
 export function buildFlightPayload({
@@ -65,7 +66,7 @@ export function buildFlightPayload({
     travel_class: travelClass.toUpperCase(),
     currency,
   };
-console.log(date);
+
 
   switch (tripType) {
     case "one-way":
@@ -96,7 +97,7 @@ console.log(date);
       return {
         ...basePayload,
         tripType: "MULTI_CITY",
-        segments: flights.map((f) => ({
+        segments: flights.map((f:any) => ({
           origin: f.from.iataCode,
           destination: f.to.iataCode,
           departure_date: dayjs(f.date, "DD MMM YYYY").format("YYYY-MM-DD"),
@@ -110,6 +111,13 @@ console.log(date);
 
 
 // Wrap axios with fetchBaseQuery adapter
+export interface APIError {
+  status?: number;
+  data?: {
+    message?: string;
+    [key: string]: any;
+  };
+}
 const axiosBaseQuery =
   (
     { baseUrl }: { baseUrl: string } = { baseUrl: "" }
@@ -121,7 +129,7 @@ const axiosBaseQuery =
       params?: AxiosRequestConfig["params"];
     },
     unknown,
-    unknown
+    APIError
   > =>
   async ({ url, method, data, params }) => {
     try {
@@ -142,6 +150,12 @@ export const flightsApi = createApi({
   reducerPath: "flightsApi",
   baseQuery: axiosBaseQuery({ baseUrl: "" }),
   tagTypes: ["Airports", "Flights", "FlightDetails", "Bookings"], // ✅ define tags
+  serializeQueryArgs: ({ endpointName, queryArgs }) => {
+    if (endpointName === "fetchFlights") {
+      return JSON.stringify(queryArgs);
+    }
+    return endpointName;
+  },
   endpoints: (builder) => ({
     // ✈️ Fetch Airports
     fetchAirports: builder.query<Airport[], string>({
@@ -153,10 +167,14 @@ export const flightsApi = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: "Airports" as const, id })),
-              { type: "Airports", id: "LIST" as string },
+              ...result.map(({ id }) => ({
+                type: "Airports" as const,
+                id: id ?? "UNKNOWN_ID",
+              })),
+              { type: "Airports", id: "LIST" },
             ]
           : [{ type: "Airports", id: "LIST" }],
+
       keepUnusedDataFor: 300,
     }),
 
@@ -191,7 +209,7 @@ export const flightsApi = createApi({
         method: "GET",
         params: { flight_id: flightId },
       }),
-      providesTags: (result, error, flightId) => [
+      providesTags: (_result, _error, flightId) => [
         { type: "FlightDetails", id: flightId },
       ],
       keepUnusedDataFor: 600, // ✅ cache details for 10 minutes
@@ -224,7 +242,7 @@ export const flightsApi = createApi({
         url: `/flights/bookings/${id}/`,
         method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: "Bookings", id }],
+      providesTags: (_result, _error, id) => [{ type: "Bookings", id }],
       keepUnusedDataFor: 300,
     }),
     // Inside flightsApi endpoints

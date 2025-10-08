@@ -8,101 +8,20 @@ import { Link } from "react-router-dom";
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
 import Footer from "../../../components/2Footer";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
-import { useDispatch } from "react-redux";
-import { resetForm } from "../carPaymentSlice";
-import { useEffect, useState } from "react";
-import { transferService } from "../services/transferService";
-import { toast, ToastContainer } from "react-toastify";
-import { useFormPersistence } from "../hooks/useFormPersistence";
-import { BookingFormData } from "../types/booking";
-import SkeletonConfirm from "./Skeleton";
-import { Download, Loader, Share } from "lucide-react";
-import ShareModal from "../../stays/components/modals/ShareModal";
-import CarFailedPayment from "./CarFailedPayment";
+import { useMediaQuery } from "react-responsive";
 
 const CarPaidForPage = () => {
-  const location = useLocation();
-  const [loading, setLoading] = useState(false);
-  const [booking, setBooking] = useState<any>([]);
-  const dispatch = useDispatch();
-  const { clearSavedData } = useFormPersistence({} as BookingFormData);
-  const searchParams = new URLSearchParams(location.search);
-  const sessionId = searchParams?.get("session_id");
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [downloadLoading, setDownloadLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchBooking = async () => {
-      const isSuccess =
-        searchParams.has("success") || location.pathname.includes("success");
-      try {
-        setLoading(true);
-        if (isSuccess) {
-          const res = await transferService.getBookingBySession(sessionId);
-          console.log(res);
-          setBooking(res?.data?.bookings);
-        } else {
-          toast.error("Booking falied please try again!");
-          return <CarFailedPayment />;
-        }
-      } catch (error) {
-        console.error("Error fetching booking:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (sessionId) fetchBooking();
-  }, [sessionId]);
-
-  if (loading) return <SkeletonConfirm />;
-  if (!booking)
-    return (
-      <div className="text-center pt-12 flex flex-col gap-6">
-        <p>No booking found for this session.</p>
-        <div className="mx-6 lg:mx-8  lg:order-6">
-          <Link to="/">
-            <button
-              className="px-4 py-3 text-white rounded-[6px] cursor-pointer bg-[#023E8A]"
-              onClick={() => {
-                dispatch(resetForm());
-                clearSavedData();
-              }}
-            >
-              Back to home
-            </button>
-          </Link>
-        </div>
-      </div>
-    );
-
-  const handleDownload = (cars: any) => {
-    try {
-      setDownloadLoading(true);
-      window.open(
-        `/car-paid/download?data=${encodeURIComponent(JSON.stringify(cars))}`,
-        "_blank"
-      );
-    } catch (error) {
-      toast.error("Failed to download, try again ");
-    } finally {
-      setDownloadLoading(false);
-    }
-  };
-
+  const value = 4.5;
+  const isMobile = useMediaQuery({ maxWidth: 768 });
   return (
     <div>
-      <Navbar />
-      <ToastContainer />
-      {booking?.map((cars: any, index:any) => (
-        <div className="lg:pt-32 pt-20" key={index}>
-          {showShareModal && (
-            <ShareModal
-              onClose={() => setShowShareModal(false)}
-              shareLink={`/cars/bookings/`}
-            />
-          )}
-          <div className="lg:hidden px-6 lg:px-8 py-6 m-auto flex justify-between">
+      <div>
+        <Navbar />
+      </div>
+
+      {isMobile ? (
+        <div>
+          <div className="w-[90%] m-auto mt-[90px] flex justify-between">
             <Link to="/">
               <p className="text-[14px] mt-[5px] font-medium font-inter">
                 Done
@@ -111,49 +30,19 @@ const CarPaidForPage = () => {
             <p className="text-[20px] font-semibold font-inter">
               Car Confirmation
             </p>
-
-            <div
-              className="w-[35px] h-[35px] p-[4px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] "
-              onClick={() => {
-                handleDownload(cars);
-              }}
-            >
-              <FileDownloadOutlinedIcon className="font-bold " />
-            </div>
-          </div>
-          <div className="hidden px-6 lg:px-8 py-6 m-auto lg:flex justify-between">
-            <p className="text-[20px] font-semibold font-inter">
-              Taxi Confirmation
-            </p>
-
-            <div className="flex items-center justify-end gap-4">
-              <div
-                onClick={() => setShowShareModal(true)}
-                className="flex items-center gap-2 rounded-md border-[1px] border-[#ACAEB3] p-2 cursor-pointer"
-              >
-                <Share />
-                <span>Share</span>
-              </div>
-              <div
-                onClick={() => {
-                  handleDownload(cars);
-                }}
-                className="flex items-center gap-2 rounded-md border-[1px] border-[#ACAEB3] p-2 cursor-pointer"
-              >
-                {downloadLoading ? (
-                  <Loader className="animate-spin" />
-                ) : (
-                  <Download />
-                )}
-                <span>Download</span>
+            <div>
+              <div className="mb-6 ">
+                <div className="w-[35px] mt-[-5px] h-[35px] p-[4px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] ">
+                  <FileDownloadOutlinedIcon className="font-bold " />
+                </div>
               </div>
             </div>
           </div>
 
-          {cars.status === "CONFIRMED" && (
-            <div className="mb-8 px-6 lg:px-8 m-auto">
-              <div className="border-1 border-[#2D9C5E] w-full bg-[#D5EBDF4D] pt-[10px] pb-[10px] pr-[10px] pl-[10px] rounded-[8px]">
-                <div className="flex gap-2 items-center">
+          <div className="mb-[32px] w-[90%] m-auto">
+            <div className="border-1 border-[#2D9C5E] w-full bg-[#D5EBDF4D] pt-[10px] pb-[10px] pr-[10px] pl-[10px] rounded-[8px]">
+              <div className="flex gap-2">
+                <div>
                   <div className="border-[#2D9C5E] h-[20px]  w-[20px] border-2 mt-[6px] rounded-full flex justify-center">
                     <CheckIcon
                       sx={{
@@ -164,37 +53,28 @@ const CarPaidForPage = () => {
                       }}
                     />
                   </div>
-
-                  <div className="text-[12px]">
-                    Payment Successful. Car confirmation Details will also be
-                    sent to {cars.holder.email}
-                  </div>
+                </div>
+                <div className="text-[12px]">
+                  Payment Successful. Car confirmation Details will also be sent
+                  to elvis@gmail.com
                 </div>
               </div>
             </div>
-          )}
-          <div id="pdf-content" className="lg:grid lg:grid-cols-2 lg:w-full">
-            <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-1">
+          </div>
+
+          <div className="w-[90%] m-auto">
+            <div>
               <p className="text-[16px] font-medium text-[#181818] mb-[15px]">
                 Confirmation Details
               </p>
-              <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3]">
-                <div className="flex justify-between">
-                  <p className="text-[#4E4F52] text-[14px] font-normal">
-                    Payment Status
-                  </p>
-                  <p className="text-[#2D9C5E] text-[14px] font-normal">
-                    {cars.status}
-                  </p>
-                </div>
-                <div className="flex justify-between">
-                  <p className="text-[#4E4F52] text-[14px] font-normal">
-                    Booking ID
-                  </p>
-                  <p className="text-[14px] font-normal">{cars.reference}</p>
-                </div>
-              </div>
             </div>
+            <div className="flex justify-between">
+              <p className="text-[#4E4F52] text-[14px] font-normal">
+                Payment Status
+              </p>
+              <p className="text-[#2D9C5E] text-[14px] font-normal">Paid</p>
+            </div>
+          </div>
 
           <Divider sx={{ marginTop: "15px", marginBottom: "15px" }} />
 
@@ -309,11 +189,7 @@ const CarPaidForPage = () => {
                   </div>
                   <div>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {cars.transfers[0]?.content.transferDetailInfo[0].value}{" "}
-                      {
-                        cars.transfers[0]?.content.transferDetailInfo[0]
-                          .description
-                      }
+                      090123456782
                     </p>
                   </div>
                 </div>
@@ -461,7 +337,7 @@ const CarPaidForPage = () => {
                     </p>
                   </div>
                   <p className="text-[#181818] text-[14px]">
-                    +234 808 412 2474
+                    +234 800 123 4567
                   </p>
                 </div>
               </div>
@@ -482,23 +358,14 @@ const CarPaidForPage = () => {
                 <p className="text-[#4E4F52] text-[14px] mb-2">
                   <ShareOutlinedIcon /> <span>Share this booking</span>
                 </p>
-
-                <p
-                  className="text-[#181818] text-[14px]"
-                  onClick={() => {
-                    handleDownload(cars);
-                  }}
-                >
-                  {" "}
-                  {downloadLoading ? (
-                    <Loader className="animate-spin" />
-                  ) : (
-                    <FileDownloadOutlinedIcon />
-                  )}
-                  <span>Download as PDF</span>
-                </p>
               </div>
+              <p className="text-[#181818] text-[14px]">
+                {" "}
+                <FileDownloadOutlinedIcon />
+                <span>Download as PDF</span>
+              </p>
             </div>
+          </div>
 
           <Divider sx={{ marginTop: "150px", marginBottom: "30px" }} />
 

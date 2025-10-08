@@ -1,10 +1,8 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 
-import { useForm, FormProvider, SubmitHandler } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import { IconButton, StepConnector, stepConnectorClasses, styled } from "@mui/material";
+
+import { IconButton,  } from "@mui/material";
 
 import { Icon } from "@iconify/react";
 import CustomStepper from "./CustomStepper";
@@ -57,15 +55,7 @@ export interface FormValues {
 }
 
 // ✅ One global schema with all fields
-const validationSchema: yup.ObjectSchema<FormValues> = yup.object({
-  flightNumber: yup.string().required("Flight number is required"),
-  passengerName: yup.string().required("Passenger name is required"),
-  cardNumber: yup
-    .string()
-    .required("Card number is required")
-    .matches(/^\d{16}$/, "Card number must be 16 digits"),
 
-});
 
 interface StepLayoutProps {
   children: React.ReactNode;
@@ -84,15 +74,7 @@ const [booking, setBooking] = React.useState<{
     phone: string;
   };
 }>({ id: "", checkoutUrl: "" });
-  const methods = useForm<FormValues>({
-    defaultValues: {
-      flightNumber: "",
-      passengerName: "",
-      cardNumber: "",
-    },
-    resolver: yupResolver(validationSchema),
-    mode: "onChange",
-  });
+
 
   const nextStep = () =>
     setActiveStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
@@ -127,10 +109,7 @@ const [booking, setBooking] = React.useState<{
    
   };
 
-  const onSubmit: SubmitHandler<FormValues> = (data) => {
-    console.log("✅ Final Submission:", data);
-    alert("Form submitted successfully!");
-  };
+
 
   return (
     // <FormProvider {...methods}>

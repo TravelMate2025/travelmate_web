@@ -8,7 +8,7 @@ import {
   Typography,
   TextField,
   Button,
-  FormControl,
+
   Select,
   MenuItem,
   FormControlLabel,
@@ -16,7 +16,7 @@ import {
   RadioGroup,
   Switch,
   Paper,
-  styled,
+ 
   InputAdornment,
   Box,
 } from "@mui/material";
@@ -30,9 +30,9 @@ import { useStepContext } from "./StepLayout";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useGetNationsQuery } from "../../../api/nationalityApi";
+
 import { NationalitySelector } from "../../NationalitySelector";
-import { useLocation, useNavigate, useNavigation } from "react-router-dom";
+import { useLocation,  } from "react-router-dom";
 import { LocationState } from "./Step1";
 import {
   useCreateBookingMutation,
@@ -41,12 +41,12 @@ import {
 import { BookingType, Passenger } from "../../../types";
 import toast from "react-hot-toast";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { DateRangePicker } from "react-date-range";
+
 import { DateSelector } from "../../DateSelector";
 import { format } from "date-fns";
 import { useAppSelector } from "../../../../../hooks/redux";
 import { RootState } from "../../../../../store";
-import { fetchUserProfile } from "../../../../account/api/profile";
+
 
 // Validation Schema for a single passenger
 const passengerSchema = yup.object().shape({
@@ -72,11 +72,7 @@ const schema = yup.object().shape({
 });
 
 // Styled Switch
-const AndroidSwitch = styled(Switch)(() => ({
-  padding: 8,
-  "& .MuiSwitch-track": { borderRadius: 11 },
-  "& .MuiSwitch-thumb": { boxShadow: "none", width: 16, height: 16, margin: 2 },
-}));
+
 
 // Shared styles
 const fieldSx = {
@@ -108,16 +104,16 @@ const menuProps = {
 
 const Step2: React.FC = () => {
   const location = useLocation() as LocationState;
-  const { user, accessToken } = useAppSelector(
+  const { user,  } = useAppSelector(
     (state: RootState) => state.auth
   );
   console.log(user);
 
   const [useProfile, setUseProfile] = useState(false);
-  const [createSession, { data }] = useCreateCheckoutSessionMutation();
+  const [createSession, ] = useCreateCheckoutSessionMutation();
   const { nextStep, updateBooking } = useStepContext();
   const [createBooking] = useCreateBookingMutation();
-  const navigation = useNavigate();
+
   const handleUseProfile = async (
     _: React.ChangeEvent<HTMLInputElement>,
     checked: boolean
@@ -145,10 +141,10 @@ const Step2: React.FC = () => {
         title: "",
         firstName: "",
         lastName: "",
-        dob: null,
+        dob: undefined,
         gender: "",
         passportNumber: "",
-        passportExpiry: null,
+       passportExpiry: undefined,
         nationality: "",
       })),
       email: "",
@@ -222,8 +218,9 @@ const Step2: React.FC = () => {
         upsell_offer_id: upsellOffer,
         passengers,
       }).unwrap();
-      console.log("✅ Booking created:", res);
+  
       if (res) {
+        // @ts-ignore
         const result = await createSession({ id: res.id });
         toast.success("Flight booked");
 
@@ -244,6 +241,7 @@ const Step2: React.FC = () => {
         localStorage.setItem("bookingData", JSON.stringify(bookingData));
 
         // continue with updateBooking
+        // @ts-ignore
         updateBooking(bookingData);
 
         nextStep();
@@ -254,10 +252,10 @@ const Step2: React.FC = () => {
 
       // nextStep();
     } catch (err) {
-      console.log(err);
+   
       
       // toast.error(err?.response.data.error || "Error booking flight");
-      console.error("❌ Booking failed:", err);
+   
     }
   });
 
@@ -277,7 +275,7 @@ const Step2: React.FC = () => {
   useEffect(() => {
 
     if (useProfile) {
-    setValue("email",user?.email)
+    setValue("email",user?.email as string)
     } else {
       setValue("email", "")
     }
@@ -386,16 +384,7 @@ const Step2: React.FC = () => {
               id=""
               label=""
               range={false}
-              value={
-                field.value
-                  ? field.value instanceof Date
-                    ? format(field.value, "dd MMM yyyy")
-                    : `${format(
-                        field.value.startDate,
-                        "dd MMM yyyy"
-                      )} - ${format(field.value.endDate, "dd MMM yyyy")}`
-                  : ""
-              }
+              value={field.value ? format(field.value, "dd MMM yyyy") : ""}
               onDateChange={(val) => {
                 if (val instanceof Date) {
                   field.onChange(val); // <-- stores date
@@ -462,16 +451,7 @@ const Step2: React.FC = () => {
               render={({ field }) => (
                 <DateSelector
                   label=""
-                  value={
-                    field.value
-                      ? field.value instanceof Date
-                        ? format(field.value, "dd MMM yyyy")
-                        : `${format(
-                            field.value.startDate,
-                            "dd MMM yyyy"
-                          )} - ${format(field.value.endDate, "dd MMM yyyy")}`
-                      : ""
-                  }
+                  value={field.value ? format(field.value, "dd MMM yyyy") : ""}
                   onDateChange={(val) => {
                     if (val instanceof Date) {
                       field.onChange(val); // <-- stores date

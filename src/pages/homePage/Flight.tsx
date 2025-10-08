@@ -71,27 +71,35 @@ const passengersSchema = yup
       return children + infants <= adults;
     }
   );
-
+type TripDate = Date | { startDate: Date; endDate: Date };
 // ✅ Simple trip schema
 export const simpleTripSchema = yup.object({
-  tripType: yup.string().oneOf(["round-trip", "one-way", "multi-city"]).required(),
+  tripType: yup
+    .string()
+    .oneOf(["round-trip", "one-way", "multi-city"])
+    .required(),
   from: airportSchema.required("Origin is required"),
   to: airportSchema.required("Destination is required"),
   date: yup
-    .mixed()
+    .mixed<TripDate>()
+    .required("Date is required")
     .test("future-date", "Date must be in the future", (value) => {
       if (!value) return false;
+
       if (value instanceof Date) {
         return !isBefore(startOfDay(value), today);
       }
-      // @ts-ignore
-      if (value?.startDate) {
-        // @ts-ignore
+
+      if (
+        typeof value === "object" &&
+        "startDate" in value &&
+        value.startDate instanceof Date
+      ) {
         return !isBefore(startOfDay(value.startDate), today);
       }
+
       return false;
-    })
-    .required("Date is required"),
+    }),
   class: yup.string().required("Class is required"),
   passengers: passengersSchema,
 });

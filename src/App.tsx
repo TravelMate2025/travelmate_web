@@ -31,7 +31,7 @@ import DisplayCars from "./features/car_rentals/displayAllCars/DisplayCars";
 import Pages from "./features/car_rentals/offerAcceptedPage/Page";
 import CarPaidForPage from "./features/car_rentals/carPaidFor/CarPaidForPage";
 import AirportTaxi from "./pages/AirportTaxi";
-import Flight from "./pages/Flight";
+// import Flight from "./pages/Flight"; 
 import FaqPage from "./features/customer-management/pages/faq";
 import ChatPage from "./features/customer-management/pages/ChatPage";
 import TicketsPage from "./features/customer-management/pages/TicketsPage";
@@ -39,8 +39,9 @@ import TicketDetailPage from "./features/customer-management/pages/TicketDetailP
 import CreateNewPassword from "./features/account/pages/CreateNewPassword";
 import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailForPasswordReset";
 import PrivateRoute from "../src/routes/PrivateRoute";
-import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
-import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
+import PaymentFailed from "./features/flights/components/PaymentFailed";
+// import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
+// import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
 
 function App() {
   return (
@@ -120,6 +121,10 @@ function App() {
           path="/flights/payment-success"
           element={<FlightConfirmationPage />}
         />
+        <Route
+          path="/flights/payment-cancelled"
+          element={<PaymentFailed />}
+        />
 
         {/* one-way-trip-section */}
         <Route
@@ -174,12 +179,12 @@ function App() {
         <Route path="/offer-accepted-page" element={<Pages />} />
         <Route path="/car-confirmation" element={<Page />} />
         <Route path="/transfers/payment-success" element={<CarPaidForPage />} />
-         <Route path="/transfers/payment-failure" element={<CarFailedPayment />} />
+         {/* <Route path="/transfers/payment-failure" element={<CarFailedPayment />} /> */}
         <Route path="/airport-taxi" element={<AirportTaxi />} />
-        <Route path="/car-paid/download" element={<DownloadPage />} />
+        {/* <Route path="/car-paid/download" element={<DownloadPage />} /> */}
 
         {/* Flight Section */}
-        <Route path="/flights" element={<Flight />} />
+        {/* <Route path="/flights" element={<Flight />} /> */}
       </Routes>
     </>
   );

@@ -1,4 +1,68 @@
 // import { useState,useEffect } from 'react';
+
+export interface LocalState {
+  id: number;
+  checkoutUrl: string;
+  passengers: Passenger[];
+  contact: Contact;
+  state: State;
+  booking: BookingWrapper;
+}
+export interface BookingWrapper {
+  id: number;
+  booking: Booking;
+  booking_reference: string;
+  booking_type: string;
+  currency: string;
+  service_fee: string;
+  base_flight_cost: string;
+  admin_notes: null | string;
+  cancelled_by: null | string;
+  cancellation_date: null | string;
+  cancellation_reason: null | string;
+  flights: Flight[];
+  passenger_bookings: PassengerBooking[];
+  payment_details: null | string;
+  amadeus_status: string;
+  amadeus_reference: string;
+  total_price: string;
+}
+
+export interface PassengerBooking {
+  id: number;
+  passenger: Passenger;
+  ticket_number: string | null;
+  seat_number: string | null;
+}
+export interface State {
+  from: Location;
+  to: Location;
+  formattedDate: string;
+  date: DateRange;
+  flightClass: string;
+  passengers: PassengerCounts;
+  tripType: string;
+  country: string;
+  flights: Flight[];
+  departureFlight: FlightOffer;
+  departureTotal: number;
+  departureUpsell: UpsellFlightOffer;
+  departureCounts: PassengerCounts;
+  departureFlightOption: string;
+  upsell: UpsellFlightOffer;
+  returnTotal: number;
+  returnUpsell: UpsellFlightOffer;
+  returnFlight: FlightOffer;
+  returnCounts: PassengerCounts;
+  returnFlightOption: string;
+}
+
+export interface Contact {
+  email: string;
+  phone: string;
+  name?: string
+  dob?:string
+}
 import Navbar from "../../homePage/Navbar";
 import { IconButton } from "@mui/material";
 import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
@@ -6,7 +70,7 @@ import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import CheckIcon from "@mui/icons-material/Check";
 import { Divider } from "@mui/material";
-import { Link, } from "react-router-dom";
+import { Link,  } from "react-router-dom";
 
 import line3 from "../../../assets/arrow2.svg";
 
@@ -16,12 +80,16 @@ import { useFetchBookingByIdQuery } from "../../../features/flights/api/flightAp
 import dayjs from "dayjs";
 import { useAppSelector } from "../../../hooks/redux";
 import { PriceSummary } from "../../../features/flights/components/roundtrip/Steps/Step1";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+
 import { downloadSectionAsPDF } from "../../../features/flights/utils/functions";
 
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import FlightItineraryPDF from "./FlightConfirmationPdf";
+import { Booking, FlightOffer, Passenger, UpsellFlightOffer,  } from "../../../features/flights/types";
+import { DateRange } from "react-date-range";
+import { Flight, PassengerCounts } from "../../../features/flights/hooks/useFlightBooking";
+import ShareModal from "../../../features/flights/components/ShareModal";
+import { useState } from "react";
 
 const FlightCard = ({
   title,
@@ -149,38 +217,28 @@ const FlightCard = ({
   );
 };
 const FlightConfirmationPage = () => {
-
-  // const handleDownload = async () => {
-  //   const element =  document.getElementById("confirmation-section")
-
-  //   const canvas = await html2canvas(element, { scale: 2 });
-  //   const imgData = canvas.toDataURL("image/png");
-
-  //   const pdf = new jsPDF("p", "mm", "a4");
-  //   const imgProps = pdf.getImageProperties(imgData);
-  //   const pdfWidth = pdf.internal.pageSize.getWidth();
-  //   const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-  //   pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-  //   pdf.save(`flight-confirmation-${bookingId || "ticket"}.pdf`);
-  // };
+const [open, setOpen] = useState(false)
 
 
  const { user } = useAppSelector((state) => state.auth);
+console.log(window.location.href);
 
  // Get booking from localStorage
- const savedBooking = JSON.parse(localStorage.getItem("bookingData") || "null");
+ const savedBooking = JSON.parse(localStorage.getItem("bookingData") || "null") as LocalState;
  const bookingId = savedBooking?.id;
 
 
+
  // Fetch booking by id from localStorage
- const { data } = useFetchBookingByIdQuery(bookingId, {
+ const { data } = useFetchBookingByIdQuery(bookingId.toString(), {
    skip: !bookingId,
  });
 
-  
   console.log(data);
+
+
   
+
   
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -188,20 +246,50 @@ const FlightConfirmationPage = () => {
         return "text-[#2D9C5E]"; // green
       case "pending":
         return "text-[#F2994A]"; // orange
-      case "cancelled":
+      case "failed":
         return "text-[#EB5757]"; // red
       default:
         return "text-[#4E4F52]"; // gray
     }
-  };
-
+  }
+    
+  if (!data) {
+      return 
+    };
+console.log(data);
+  
+  if (data?.payment_details.payment_status === "REFUNDED") {
+    window.location.href = data.payment_details.additional_details.cancel_url;
+    return;
+  }
   
   return (
     <div>
       <div>
         <Navbar />
       </div>
-
+      <ShareModal
+        onClose={() => setOpen(false)}
+        open={open}
+        onShareWhatsApp={() => {
+          const shareUrl = encodeURIComponent(window.location.href);
+          window.open(`https://wa.me/?text=${shareUrl}`, "_blank");
+        }}
+        onShareMail={() => {
+          const subject = encodeURIComponent(
+            "Check out my flight confirmation"
+          );
+          const body = encodeURIComponent(
+            `Here is my flight confirmation: ${window.location.href}`
+          );
+          window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
+        }}
+        onCopyLink={() => {
+          navigator.clipboard.writeText(window.location.href);
+          setOpen(false);
+          alert("Link copied to clipboard!");
+        }}
+      />
       <div className="mt-[85px]  ">
         <div className="w-[90%] m-auto mt-[90px] max-md:flex hidden justify-between">
           <Link to="/">
@@ -249,14 +337,18 @@ const FlightConfirmationPage = () => {
             </div>
 
             <div className="flex gap-3">
-              <button className="border-1 border-[#ACAEB3] p-[8px] rounded-[4px] flex">
+              <button
+                className="border-1 border-[#ACAEB3] p-[8px] rounded-[4px] flex"
+                onClick={() => {
+                  setOpen(true);
+                }}
+              >
                 <IosShareOutlinedIcon className="w-[30%]" />
                 <span>Share</span>
               </button>
 
               <PDFDownloadLink
                 document={<FlightItineraryPDF bookingData={savedBooking} />}
-                
                 fileName={`flight-confirmation-${bookingId}.pdf`}
               >
                 {({ loading }) => (
@@ -286,7 +378,7 @@ const FlightConfirmationPage = () => {
                 </div>
                 <div className="max-md:text-xs ">
                   Payment Successful and Your flight is{" "}
-                  {data?.booking?.status.toLowerCase()}. E-ticket has been sent
+                  {data?.payment_details.payment_status}. E-ticket has been sent
                   to {user?.email}
                 </div>
               </div>
@@ -477,7 +569,7 @@ const FlightConfirmationPage = () => {
             </div>
             <Divider sx={{ my: 3 }} />
             <div className="flex-1  grid max-h-[350px]">
-              <PriceSummary state={savedBooking.state} final />
+              <PriceSummary state={savedBooking.state as any} final />
 
               {/* <Divider sx={{ my: 3 }} /> */}
               {/*

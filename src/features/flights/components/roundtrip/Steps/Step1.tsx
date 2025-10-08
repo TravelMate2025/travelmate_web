@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+
 import { Link, useLocation } from "react-router-dom";
 import Divider from "@mui/material/Divider";
 import FlightClassOutlinedIcon from "@mui/icons-material/FlightClassOutlined";
@@ -15,7 +15,7 @@ import {
   Fee,
   FlightOffer,
   UpsellFlightOffer,
-  UpsellFlightOfferResponse,
+
 } from "../../../types";
 import dayjs from "dayjs";
 import { PassengerCounts } from "../../../hooks/useFlightBooking";
@@ -34,7 +34,7 @@ export interface FlightReviewState {
   to: string;
   departureDate: string;
   passengers: PassengerCounts;
-  departureUpsell: { total: number; upsell: UpsellFlightOffer };
+  departureUpsell: {id?:string, total: number; upsell: UpsellFlightOffer };
   returnUpsell: { total: number; upsell: UpsellFlightOffer };
   flightClass: string;
   tripType: "one-way" | "round-trip" | "multi-city";
@@ -44,7 +44,7 @@ export interface FlightReviewState {
   returnFlight: FlightOffer;
   returnCounts: PassengerCounts;
   returnFlightOption: string;
-  multiCitySelections: { flight: FlightOffer }[];
+  multiCitySelections: { flight: FlightOffer; upsell: UpsellFlightOffer }[];
 }
 // ✅ Reusable flight info card
 const FlightCard = ({
@@ -154,7 +154,7 @@ export const PriceSummary = ({
   state?:FlightReviewState
 }) => {
 
-console.log(state);
+
 
   let baseFare = 0;
   let taxes = 0;
@@ -184,11 +184,13 @@ console.log(state);
     );
 
     uniqueSelections.forEach((selection) => {
+    
+      
       const price = selection.flight?.price;
       if (!price) return;
 
-      baseFare += parseFloat(price.base || "0");
-      taxes += parseFloat(price.total || "0") - parseFloat(price.base || "0");
+      baseFare += parseFloat(price.grandTotal || "0");
+      taxes += parseFloat(price.totalWithFee.toString() || "0") - parseFloat(price.grandTotal || "0");
       airlineFees += (price.fees || []).reduce(
         (acc, fee: Fee) => acc + parseFloat(fee.amount || "0"),
         0
@@ -202,14 +204,15 @@ console.log(state);
     });
   } else {
     const departure = state?.departureFlight?.price;
-    const departureUpsell = state?.departureUpsell?.total || 0;
-    const returnFlight = state?.returnFlight?.price;
-    const returnUpsell = state?.returnUpsell?.total || 0;
+    // const _departureUpsell = state?.departureUpsell?.total || 0;
+    const returnFlight = state?.returnFlight;
+    // const _returnUpsell = state?.returnUpsell?.total || 0;
+
 
     // Use departure flight currency if available, else fallback
-    currency = departure?.currency || returnFlight?.currency || "EUR";
+    currency = departure?.currency || returnFlight?.price.currency || "EUR";
 
-    const prices = [departure, returnFlight].filter(Boolean);
+    const prices = [departure].filter(Boolean);
     prices.forEach((price) => {
       if (!price) return;
       baseFare += parseFloat(price.grandTotal || "0");
@@ -246,9 +249,9 @@ console.log(state);
                 {state?.tripType.split("-").join(" ")}
               </p>
               <p className="text-[18px] font-inter text-[#4E4F52] capitalize">
-                {state?.passengers?.adults +
-                  state?.passengers?.children +
-                  state?.passengers.infants}{" "}
+                {(state?.passengers?.adults || 0) +
+                  (state?.passengers?.children || 0) +
+                  (state?.passengers?.infants || 0)}{" "}
                 Passengers
               </p>
             </div>
@@ -264,11 +267,11 @@ console.log(state);
                 Taxes & Surcharges
               </p>
               <p className="text-[18px] font-inter text-[#4E4F52] capitalize">
-                {state?.passengers?.adults +
-                  state?.passengers?.children +
-                  state?.passengers?.infants}{" "}
+                {(state?.passengers?.adults || 0) +
+                  (state?.passengers?.children || 0) +
+                  (state?.passengers?.infants || 0)}{" "}
                 Passengers
-              </p> 
+              </p>
             </div>
             <p className="text-[#181818] text-[16px]">
               {currency} {airlineFees.toLocaleString()}
@@ -329,33 +332,31 @@ console.log(state);
           />
         )}
 
-        {
-          final &&
+        {final && (
           <div className=" my-[16px]">
-                <div>
-                  <p className="text-[20px] font-medium text-[#181818] mb-[16px]">
-                    Contacts
+            <div>
+              <p className="text-[20px] font-medium text-[#181818] mb-[16px]">
+                Contacts
+              </p>
+            </div>
+
+            <div>
+              <div className="md:border border-[#CDCED1]  md:p-[24px] rounded-[12px]">
+                <div className="flex justify-between">
+                  <div className="flex gap-2">
+                    <LocalPhoneOutlinedIcon />
+                    <p className="text-[#4E4F52] md:text-lg text-sm">
+                      Customer Support
+                    </p>
+                  </div>
+                  <p className="text-[#181818] md:text-lg text-sm">
+                    +234 800 123 4567
                   </p>
                 </div>
-
-                <div>
-                  <div className="md:border border-[#CDCED1]  md:p-[24px] rounded-[12px]">
-                    <div className="flex justify-between">
-                      <div className="flex gap-2">
-                        <LocalPhoneOutlinedIcon />
-                        <p className="text-[#4E4F52] md:text-lg text-sm">
-                          Customer Support
-                        </p>
-                      </div>
-                      <p className="text-[#181818] md:text-lg text-sm">
-                        +234 800 123 4567
-                      </p>
-                    </div>
-                  </div>
               </div>
-
-              </div>
-        }
+            </div>
+          </div>
+        )}
         <button
           className="w-full mt-auto text-white h-[56px] rounded-[6px] bg-[#023E8A] cursor-pointer"
           onClick={nextStep}

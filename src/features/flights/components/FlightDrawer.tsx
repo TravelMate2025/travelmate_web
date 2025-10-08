@@ -17,21 +17,21 @@ import {
   Dialog,
 } from "@mui/material";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
-import RemoveOutlinedIcon from "@mui/icons-material/RemoveOutlined";
+
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+
 import CheckIcon from "@mui/icons-material/Check";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import FlightClassOutlinedIcon from "@mui/icons-material/FlightClassOutlined";
 import { MdArrowDropDown } from "react-icons/md";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FlightOffer, FlightUpsellOfferResponse, Segment, UpsellFlightOffer, UpsellFlightOfferResponse, UpSellPrice } from "../types";
+import { FlightOffer, FlightUpsellOfferResponse,  UpsellFlightOfferResponse,  } from "../types";
 import { formatDuration, formatStops, getCity } from "../utils/functions";
 import { FlightReviewState } from "./roundtrip/Steps/Step1";
 import { useEffect, useState, memo } from "react";
-import { fromTheme } from "tailwind-merge";
+
 
 import dayjs from "dayjs";
 import FlightDetails from "./FlightDetails";
@@ -60,7 +60,27 @@ interface Option {
   image: string;
   features: string[];
 }
-
+export type MultiCitySelection =
+  | {
+      flight: FlightOffer;
+      counts: Counts;
+      option: string;
+      upsell: UpsellFlightOfferResponse;
+    }
+  | {
+      flight: FlightOffer;
+      counts: {
+        adults: number;
+        children?: number;
+        infants?: number;
+        extraBags: number;
+      };
+      option: string;
+      upsell: {
+        upsell?: FlightUpsellOfferResponse;
+        total: number;
+      };
+    };
 export interface Counts {
   adults: number;
   children?: number;
@@ -74,21 +94,11 @@ interface FlightDrawerProps {
   title: string;
   options: Option[];
   onNext?: () => void;
-  multiCitySelections?: {
-    flight: FlightOffer;
-    counts: Counts;
-    option: string;
-    upsell: UpsellFlightOfferResponse;
-  }[];
+  multiCitySelections?: MultiCitySelection[];
   selectedOption: string | null;
   setMultiCitySelections?: React.Dispatch<
     React.SetStateAction<
-      {
-        flight: FlightOffer;
-        counts: Counts;
-        option: string;
-        upsell: UpsellFlightOfferResponse;
-      }[]
+    MultiCitySelection[]
     >
   >;
   setSelectedOption: (id: string) => void;
@@ -107,15 +117,14 @@ export const FlightDrawer = memo<FlightDrawerProps>(
     openClick,
     handleCloseClick,
     selectedDeparture,
-    options,
+    
     onNext,
     selectedOption,
-    setSelectedOption,
+  
     counts,
     multiCitySelections,
     setMultiCitySelections,
-    handleIncrement,
-    handleDecrement,
+  
     returnFlight,
     title,
   }) => {
@@ -126,7 +135,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
 
     const extraBagPrice = 10000;
 
-    let firstSegment, lastSegment, itinerary, price;
+    let firstSegment:any, lastSegment, itinerary, price:any;
     if (selectedDeparture) {
       itinerary = selectedDeparture.itineraries?.[returnFlight]; // departure itinerary
       firstSegment = itinerary?.segments?.[0];
@@ -136,7 +145,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
 
     const [upsell, setUpsell] =  useState<{upsell?:FlightUpsellOfferResponse , total:number}>({total:0})
 
-    const [upsellFlightOffer, { data, isLoading, error }] =
+    const [upsellFlightOffer, { data,  }] =
       useUpsellFlightOfferMutation();
 
    
@@ -601,7 +610,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                           </div>
 
                           <Stack direction="row" flexWrap="wrap">
-                            {firstSegment.amenities?.map((a, i) => (
+                            {firstSegment.amenities?.map((a:any, i:any) => (
                               <Box
                                 key={i}
                                 display="flex"
@@ -652,7 +661,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
             {selectedDeparture && (
               <CardContent>
                 <div className="space-y-1 mb-4">
-                  <p className="text-[#181818] font-semibold text-[12px] md:text-[18px] font-medium">
+                  <p className="text-[#181818]  text-[12px] md:text-[18px] font-medium">
                     Bags
                   </p>
 

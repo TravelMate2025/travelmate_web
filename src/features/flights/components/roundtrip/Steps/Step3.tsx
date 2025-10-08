@@ -1,47 +1,23 @@
-import { Checkbox, FormControlLabel, TextField } from "@mui/material";
-import { CreditCardIcon } from "lucide-react";
-import React, { useState } from "react";
-import master from "../../../../../assets/images/mastercard-logo.png";
-import visa from "../../../../../assets/images/visa-logo.png";
+
+
 import { PriceSummary } from "./Step1";
-import { useLocation, useNavigate } from "react-router-dom";
-import { DateSelector } from "../../DateSelector";
-import { format } from "date-fns";
+import { useLocation,  } from "react-router-dom";
+
 import { useStepContext } from "./StepLayout";
-import { useCreateCheckoutSessionMutation } from "../../../api/flightApi";
+
 import { Icon } from "@iconify/react/dist/iconify.js";
 
 const Step3 = () => {
-  const navigate = useNavigate();
-  const { booking, updateBooking } = useStepContext();
-  const [createSession, { data }] = useCreateCheckoutSessionMutation();
+ 
+  const { booking,  } = useStepContext();
+
   const location = useLocation();
   booking.checkoutUrl;
-  // 🔹 State for form inputs
-  const [formData, setFormData] = useState({
-    cardNumber: "",
-    cardHolder: "",
-    expiryDate: new Date(), // from DateSelector
-    cvv: "",
-    defaultPayment: false,
-  });
+ 
 
-  // 🔹 Handle input changes
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
+ 
 
-  // 🔹 Handle expiry date (from DateSelector)
-  const handleExpiryDateChange = (date: Date) => {
-    setFormData((prev) => ({ ...prev, expiryDate: date }));
-  };
-
+ 
   // 🔹 Submit or confirm action
   const handleConfirm = async () => {
     console.log(booking);

@@ -9,12 +9,11 @@ import React, {
 
 import {
   Button,
-  Card,
-  CardContent,
+
   FormControl,
   Grid,
   PaginationItem,
-  RadioGroup,
+ 
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -22,49 +21,34 @@ import {
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import InputAdornment from "@mui/material/InputAdornment";
-import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-// import LocationOnOutlinedIcon from "@mui/icons-material/LocationOn";
 
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
-import { addDays, format } from "date-fns";
-import FlightClassOutlinedIcon from "@mui/icons-material/FlightClassOutlined";
+import {  format } from "date-fns";
 
-import Typography from "@mui/material/Typography";
+import { Divider,  } from "@mui/material";
 
-import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
-import { Divider, IconButton } from "@mui/material";
-import RemoveOutlinedIcon from "@mui/icons-material/RemoveOutlined";
-import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
-import { Link, useParams } from "react-router-dom";
+import { Link,  } from "react-router-dom";
 import TravelmateApp from "../../homePage/TravelmateApp";
 import Footer from "../../../components/2Footer";
-import airlogo from "../../../assets/airlogo.svg";
 
-import Line from "../../../assets/arrow.svg";
-import { Stack, Pagination, Dialog, DialogContent } from "@mui/material";
+import { Stack, Pagination,  } from "@mui/material";
 import { useLocation } from "react-router-dom";
 
 import SortIcon from "@mui/icons-material/Sort";
 
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
+
 
 import Breadcrumb from "../../BreadCrumb";
 
 import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
 import ModeEditOutlinedIcon from "@mui/icons-material/ModeEditOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import CheckIcon from "@mui/icons-material/Check";
-import axios from "axios";
+
 import { Icon } from "@iconify/react";
-interface DateRangeType {
-  startDate: Date;
-  endDate: Date;
-  key: string;
-}
+
 
 interface Departure {
   id: number;
@@ -89,33 +73,29 @@ interface DepartureListProps {
   departureInfo: Departure[];
 }
 
-import { Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
-
-import { MdArrowDropDown } from "react-icons/md";
 
 import SortFlight from "../../../features/flights/components/SortFlight";
-import FilterFlight, {
-  FlightFilters,
-} from "../../../features/flights/components/FilterFlight";
+
 import DepartCard from "../../../features/flights/components/DepartCard";
 import { LocationSelector } from "../../../features/flights/components/LocationSelector";
 import { DateSelector } from "../../../features/flights/components/DateSelector";
 import { PassengerSelector } from "../../../features/flights/components/PassengerSelector";
 import { ClassSelector } from "../../../features/flights/components/ClassSelector";
 import {
-  DateSelection,
+ 
   useFlightBooking,
 } from "../../../features/flights/hooks/useFlightBooking";
 import {
   FlightDrawer,
-  Counts,
+
+  MultiCitySelection,
 } from "../../../features/flights/components/FlightDrawer";
 
-import dayjs from "dayjs";
+
 import {
   FlightOffer,
-  UpsellFlightOffer,
-  UpsellFlightOfferResponse,
+ 
+
 } from "../../../features/flights/types";
 import {
   buildFlightPayload,
@@ -123,21 +103,21 @@ import {
   useLazyFetchFlightsQuery
 } from "../../../features/flights/api/flightApi";
 import { useLazyGetLocationInfoQuery } from "../../../features/flights/api/locationApi";
-import * as yup from "yup";
+
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
-  getFormattedDate,
-  MultiTripFormValues,
-  multiTripSchema,
+
+
   SimpleTripFormValues,
   simpleTripSchema,
 } from "../../homePage/Flight";
+import FilterFlight, { FlightFilters } from "../../../features/flights/components/FilterFlight";
 
 const DeparturePage: React.FC<DepartureListProps> = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [fetchCoords, { isFetching, data }] = useLazyGetLocationInfoQuery();
+  const [fetchCoords, { data }] = useLazyGetLocationInfoQuery();
   const location = useLocation();
 
   const simpleForm = useForm<SimpleTripFormValues>({
@@ -152,17 +132,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
     },
   });
 
-  const multiForm = useForm<MultiTripFormValues>({
-    resolver: yupResolver(multiTripSchema),
-    defaultValues: {
-      tripType: "multi-city",
-      flights: [],
-      class: "",
-      passengers: { adults: 1, children: 0, infants: 0 },
-    },
-  });
-
-  const [country, setCountry] = useState<string>("Detecting...");
+  const [_country, setCountry] = useState<string>("Detecting...");
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -174,12 +144,10 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
             fetchCoords({ latitude, longitude });
           } catch (error) {
             console.error("Geolocation lookup failed:", error);
-            setCountry("Error detecting country");
           }
         },
         (error) => {
           console.error("Geolocation error:", error);
-          setCountry("Permission denied or unavailable");
         }
       );
     } else {
@@ -189,12 +157,11 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   const {
     from: initialFrom,
     to: initialTo,
-    formattedDate,
+
     date,
     flights: storedFlights,
     passengers,
-    selectedDate: initDate,
-    passengerCounts,
+
     flightClass: initialFlight,
     tripType: selectedTrip,
   } = location.state;
@@ -208,25 +175,13 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
 
     isCountryReady,
     flights,
-
-    setSelectedFrom,
-    setSelectedTo,
-
-    setSelectedClass,
-    setPassengerCounts,
-
-    updateFlight,
-    addFlight,
-    removeFlight,
-    handleSearch,
   } = useFlightBooking();
 
-  const [selectedDate, setSelectedDate] = useState<DateSelection>(new Date());
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [fetchFlights, { data: flightResults, error, isLoading, isFetching:fetchingFlight }] =
-    useLazyFetchFlightsQuery();
-  const [_locations, setLocations] = useState([
+  const [
+    fetchFlights,
+    { data: flightResults, error, isLoading, isFetching: fetchingFlight },
+  ] = useLazyFetchFlightsQuery();
+  const [_locations, _setLocations] = useState([
     "Ibadan, Oyo",
     "Abuja",
     "Port Harcourt",
@@ -258,12 +213,8 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   const isMultiCity = selectedTrip === "multi-city";
   const getFlight = useCallback(
     (formData?: SimpleTripFormValues) => {
-
-      
       try {
         if (isMultiCity) {
-       
-          
           const payload = buildFlightPayload({
             tripType: tripType as TripType,
             initialFrom,
@@ -274,12 +225,11 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
             passengerCounts: formData?.passengers || passengers,
             travelClass: formData?.class || selectedClass,
             currency: data?.currency || "NGN",
+            // @ts-ignore
             flights,
           });
 
-      
-          
-
+          // @ts-ignore
           fetchFlights(payload);
         } else {
           const payload = buildFlightPayload({
@@ -292,9 +242,11 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
             passengerCounts: formData?.passengers || passengers,
             travelClass: formData?.class || selectedClass,
             currency: data?.currency || "NGN",
+            // @ts-ignore
             flights,
           });
 
+          // @ts-ignore
           fetchFlights(payload);
         }
       } catch (err) {
@@ -318,12 +270,16 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   // console.log(location);
 
   useEffect(() => {
- 
-
     // if (data?.currency) {
- 
 
-      getFlight({class:initialFlight, date, from:initialFrom, passengers,  to:initialTo,  });
+    // @ts-ignore
+    getFlight({
+      class: initialFlight,
+      date,
+      from: initialFrom,
+      passengers,
+      to: initialTo,
+    });
     // }
   }, [data, getFlight]);
 
@@ -350,11 +306,9 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   const [isOpenFrom, setIsOpenFrom] = useState(false);
   const [isOpenTo, setIsOpenTo] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { id } = useParams<{ id: string }>();
+
   const flightIndex = 0;
 
-  // Get all flights from sessionStorage
-  const tripData = JSON.parse(sessionStorage.getItem("trip") || "{}");
   const [currentSegment, setCurrentSegment] = useState(0); // start at first flight
   const [visitedSegments, setVisitedSegments] = useState([0]);
   const currentFlight = storedFlights[flightIndex];
@@ -373,11 +327,11 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
     }
   };
 
-  const goPrevSegment = () => {
-    if (currentSegment > 0) {
-      setCurrentSegment(currentSegment - 1);
-    }
-  };
+  // const goPrevSegment = () => {
+  //   if (currentSegment > 0) {
+  //     setCurrentSegment(currentSegment - 1);
+  //   }
+  // };
 
   const closeDialog = () => {
     setIsDialogOpen(false);
@@ -389,7 +343,6 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   const [selectedOption, setSelectedOption] = useState("basic");
 
   const ITEMS_PER_PAGE = 4;
-
 
   useEffect(() => {
     if (isSimpleTrip) {
@@ -420,14 +373,11 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
     airlines: [],
   });
   const [multiCitySelections, setMultiCitySelections] = useState<
-    {
-      flight: FlightOffer;
-      counts: Counts;
-      option: string;
-      upsell: UpsellFlightOfferResponse;
-    }[]
+    MultiCitySelection[]
   >([]);
   const handleFilterChange = (newFilters: FlightFilters) => {
+    console.log(newFilters);
+
     setFilters(newFilters);
   };
 
@@ -436,15 +386,14 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   const [selectedSort, setSelectedSort] = useState<string | undefined>(
     "recommended"
   );
-  const handleRemoveLocation = useCallback((location: string) => {}, []);
+
   const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
 
-
   // useEffect(() => {
   //   const resp = async () => {
-      
+
   //         const res = axios.get(
   //           "https://r2.datahub.io/clvyjaryy0000la0cxieg4o8o/main/raw/data/countries.geojson"
   //         );
@@ -452,78 +401,141 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   //   }
   //   resp()
   // }, [])
- 
-  
-  const sortedDepartures = useMemo(() => {
-    const sortedArray = [...departures];
 
-    const durationToMinutes = (duration: string) => {
-      const hoursMatch = duration?.match(/(\d+)hrs?/);
-      const minutesMatch = duration?.match(/(\d+)m/);
-      const hours = hoursMatch ? parseInt(hoursMatch[1], 10) : 0;
-      const minutes = minutesMatch ? parseInt(minutesMatch[1], 10) : 0;
-      return hours * 60 + minutes;
+  // Filter flights before sorting
+  const filteredDepartures = useMemo(() => {
+    return (flightResults?.data || []).filter((flight: any) => {
+      const price = parseFloat(flight.price.total || "0");
+
+      // Price range
+      if (price < filters.priceRange[0] || price > filters.priceRange[1])
+        return false;
+
+      // Stops filter
+      if (filters.stops !== null) {
+        console.log(filters);
+
+        const stops = flight.itineraries[0]?.segments?.length - 1 || 0;
+        console.log(stops);
+
+        if (filters.stops === "Non Stop" && stops > 0) return false;
+        if (filters.stops === "1 Stop" && stops !== 1) return false;
+        if (filters.stops === "1+ Stop" && stops < 2) return false;
+      }
+
+      // Refund policy
+      if (filters.refundPolicy === "refundable" && !flight.refundable)
+        return false;
+      if (filters.refundPolicy === "non-refundable" && flight.refundable)
+        return false;
+
+      // Airline filter
+      if (filters.airlines.length > 0) {
+        const carrierCode = flight.validatingAirlineCodes?.[0] || "";
+        if (!filters.airlines.includes(carrierCode)) return false;
+      }
+
+      return true;
+    });
+  }, [flightResults?.data, filters]);
+
+  // sort using the already-filtered list
+  const sortedDepartures = useMemo(() => {
+    // start from the filtered list (not the original departures)
+    const sortedArray = [...filteredDepartures];
+
+    const parsePrice = (p: any) => {
+      if (!p && p !== 0) return 0;
+      // price might be "2304.20" or "2,304.20" or a number
+      const n = typeof p === "number" ? p : String(p).replace(/[,₦\$]/g, "");
+      return parseFloat(n as any) || 0;
+    };
+
+    const durationToMinutes = (raw: string | undefined) => {
+      if (!raw) return 0;
+
+      // support ISO 8601 durations like "PT2H30M"
+      const isoMatch = String(raw).match(/PT(?:(\d+)H)?(?:(\d+)M)?/i);
+      if (isoMatch) {
+        const h = parseInt(isoMatch[1] || "0", 10);
+        const m = parseInt(isoMatch[2] || "0", 10);
+        return h * 60 + m;
+      }
+
+      // support "2h 30m", "2 hrs 30 m", "2hrs30m", "2hrs", "150m", "2h30m", "2hrs"
+      const hoursMatch = String(raw).match(/(\d+)\s*h(?:rs?)?/i);
+      const minsMatch = String(raw).match(/(\d+)\s*m/i);
+      if (hoursMatch || minsMatch) {
+        const hours = hoursMatch ? parseInt(hoursMatch[1], 10) : 0;
+        const mins = minsMatch ? parseInt(minsMatch[1], 10) : 0;
+        return hours * 60 + mins;
+      }
+
+      // support "2hrs" or "150m" or "2hrs 30m" handled above; fallback to numbers in string
+      const digits = String(raw).match(/(\d+)/);
+      return digits ? parseInt(digits[1], 10) : 0;
     };
 
     switch (selectedSort) {
       case "price_low":
         sortedArray.sort(
-          (a: any, b: any) => parseInt(a.price.total) - parseInt(b.price.total)
+          (a: any, b: any) =>
+            parsePrice(a.price?.total) - parsePrice(b.price?.total)
         );
         break;
+
       case "price_high":
         sortedArray.sort(
-          (a: any, b: any) => parseInt(b.price.total) - parseInt(a.price.total)
+          (a: any, b: any) =>
+            parsePrice(b.price?.total) - parsePrice(a.price?.total)
         );
         break;
+
       case "shortest_duration":
         sortedArray.sort(
           (a: any, b: any) =>
-            durationToMinutes(a.itineraries[0]?.duration) -
-            durationToMinutes(b.itineraries[0]?.duration)
+            durationToMinutes(a.itineraries?.[0]?.duration) -
+            durationToMinutes(b.itineraries?.[0]?.duration)
         );
         break;
+
       case "longest_duration":
         sortedArray.sort(
           (a: any, b: any) =>
-            durationToMinutes(b.itineraries[0]?.duration) -
-            durationToMinutes(a.itineraries[0]?.duration)
+            durationToMinutes(b.itineraries?.[0]?.duration) -
+            durationToMinutes(a.itineraries?.[0]?.duration)
         );
         break;
+
+      case "recommended":
       default:
+        // keep API order for recommended (no-op)
         break;
     }
 
     return sortedArray;
-  }, [selectedSort, departures]);
+  }, [selectedSort, filteredDepartures]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedSort, filters]);
+
 
   const paginatedItems = useMemo(() => {
     const startIndex = (page - 1) * ITEMS_PER_PAGE;
     return sortedDepartures.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [page, sortedDepartures]);
 
-  const [openFrom, setOpenFromMulti] = useState<Record<string, boolean>>({});
-  const [openTo, setOpenToMulti] = useState<Record<string, boolean>>({});
-
-  const toggleOpenFrom = (id: string, value: boolean) => {
-    setOpenFromMulti((prev) => ({ ...prev, [id]: value }));
-  };
-
-  const toggleOpenTo = (id: string, value: boolean) => {
-    setOpenToMulti((prev) => ({ ...prev, [id]: value }));
-  };
-
   const getNewFlight = useCallback(
-    (formData?:any) => {
+    (formData?: any) => {
       try {
         const payload = buildFlightPayload({
           tripType:
             formData?.tripType || tripType || ("round-trip" as TripType),
-
-          // ✅ Prefer formData, then state, then initial
+          initialFrom, // <-- add this
+          initialTo, // <-- add this
           selectedFrom: formData?.from || selectedFrom || initialFrom,
           selectedTo: formData?.to || selectedTo || initialTo,
-
           date: formData?.date || date,
           passengerCounts: formData?.passengers || passengers,
           travelClass: formData?.class || selectedClass,
@@ -531,6 +543,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
           flights,
         });
 
+        // @ts-ignore
         fetchFlights(payload);
       } catch (err) {
         console.error("Failed to fetch flights:", err);
@@ -552,8 +565,6 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   const onSearch = simpleForm.handleSubmit((formData) => {
     getNewFlight(formData);
   });
-
-
 
   return (
     <div>
@@ -594,7 +605,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
                           label="From"
                           onSelect={field.onChange}
                           isOpen={isOpenFrom}
-                          defaultValue={field.value}
+                          defaultValue={field.value as any}
                           anchorEl={fromAnchors.current["single"] || null}
                           setAnchorEl={(el) =>
                             (fromAnchors.current["single"] =
@@ -623,7 +634,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
                           label="To"
                           onSelect={field.onChange}
                           isOpen={isOpenTo}
-                          defaultValue={field.value}
+                          defaultValue={field.value as any}
                           anchorEl={toAnchors.current["single"] || null}
                           setAnchorEl={(el) =>
                             (toAnchors.current["single"] =
@@ -694,7 +705,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
                           id="passengers"
                           label="Passengers"
                           value={`${field.value.adults} Adult, ${field.value.children} Child, ${field.value.infants} Infant`}
-                          counts={field.value}
+                          counts={field.value as any}
                           onChange={field.onChange}
                         />
                       )}
@@ -759,14 +770,35 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
                   {simpleForm.getValues("to")?.cityName}
                 </p>
                 <p className="text-[14px] font-normal text-[#67696D]">
-                  {new Date(simpleForm.getValues("date")).toLocaleDateString(
-                    "en-US",
-                    { month: "short", day: "numeric" }
-                  )}
-                  , {" "}
-                  {simpleForm.getValues("passengers.adults") +
-                    simpleForm.getValues("passengers.children") +
-                    simpleForm.getValues("passengers.infants")}{" "}passengers
+                  {(() => {
+                    const dateValue = simpleForm.getValues("date");
+
+                    if (dateValue instanceof Date) {
+                      return dateValue.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      });
+                    }
+
+                    if (
+                      dateValue &&
+                      typeof dateValue === "object" &&
+                      "startDate" in dateValue &&
+                      dateValue.startDate instanceof Date
+                    ) {
+                      return dateValue.startDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      });
+                    }
+
+                    return "";
+                  })()}
+                  ,{" "}
+                  {(simpleForm.getValues("passengers.adults") ?? 0) +
+                    (simpleForm.getValues("passengers.children") ?? 0) +
+                    (simpleForm.getValues("passengers.infants") ?? 0)}{" "}
+                  passengers
                 </p>
               </div>
 
@@ -790,18 +822,19 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
                     .filter(
                       (value, index, self) => self.indexOf(value) === index
                     )
+                    .sort((a, b) => a - b) // ensure order
                     .map((idx) => (
-                      <React.Fragment key={flights[idx].id}>
+                      <React.Fragment key={`segment-${idx}`}>
                         <span className="text-[#67696D]"> &gt; </span>
                         <span
-                          className={`font-medium cursor-pointer ${
+                          className={`font-medium cursor-pointer transition-colors ${
                             currentSegment === idx
                               ? "text-[#023E8A]"
                               : "text-[#67696D]"
-                          }`}
+                          } hover:text-[#023E8A]`}
                           onClick={() => setCurrentSegment(idx)}
                         >
-                          Departure Flight {currentSegment + 1}
+                          Departure Flight {idx + 1}
                         </span>
                       </React.Fragment>
                     ))}
@@ -882,6 +915,10 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
                         open={isDialogOpen}
                         onClose={closeDialog}
                         onChange={handleFilterChange}
+                        onApply={() => {
+                          setFilters({ ...filters });
+                          closeDialog();
+                        }}
                       />
                       <Button
                         variant="outlined"
@@ -915,7 +952,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
 
           <div>
             <div className="mt-[24px] w-[90%] m-auto cursor-pointer">
-              {(isLoading || fetchingFlight) ? (
+              {isLoading || fetchingFlight ? (
                 <div className="flex justify-center mt-20">
                   Loading flights...
                 </div>
@@ -928,8 +965,11 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
                     Failed to load flights
                   </p>
                   <p className="text-[#67696D] text-center w-[80%] mt-2">
-                    {error?.data?.message ||
-                      "Something went wrong while fetching flight offers. Please try again later."}
+                    {"data" in error &&
+                    typeof error.data === "object" &&
+                    "message" in error.data
+                      ? (error.data as { message?: string })?.message
+                      : "Something went wrong while fetching flight offers. Please try again later."}
                   </p>
                   <Button
                     variant="contained"
@@ -965,7 +1005,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
 
               <Stack spacing={2} className="mt-50">
                 <Pagination
-                  count={Math.ceil(departures.length / ITEMS_PER_PAGE)}
+                  count={Math.ceil(filteredDepartures.length / ITEMS_PER_PAGE)}
                   shape="rounded"
                   page={page}
                   variant="text"

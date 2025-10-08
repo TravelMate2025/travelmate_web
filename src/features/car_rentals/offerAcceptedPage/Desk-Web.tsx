@@ -68,14 +68,17 @@ export type DeskProps = {
     phoneNumber: string;
     dateOfBirth: string;
   };
-  setPassFormData: (passFormData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phoneNumber: string;
-    dateOfBirth: string;
-    [key: string]: any;
-  }) => void;
+  setPassFormData: React.Dispatch<
+    React.SetStateAction<{
+      firstName: string;
+      lastName: string;
+      email: string;
+      phoneNumber: string;
+      dateOfBirth: string;
+      [key: string]: any;
+    }>
+  >;
+
   isTheFormValid: boolean;
   setIsTheFormValid: (isTheFormValid: boolean) => void;
 };

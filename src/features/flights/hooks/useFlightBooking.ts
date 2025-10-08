@@ -6,13 +6,12 @@ import { format } from "date-fns";
 import { Airport } from "../types";
 import axios from "axios";
 
-export interface Flight {
-
-  from: Airport;
-  to: Airport;
-  date: DateSelection; // always a formatted string
-}
-
+export type Flight = {
+  id: number;
+  from: Airport | null;
+  to: Airport | null;
+  date: string;
+};
 export interface PassengerCounts {
   adults: number;
   children: number;
@@ -41,16 +40,17 @@ export const useFlightBooking = () => {
     children: 0,
     infants: 0,
   });
+const emptyAirport: Airport = { id: "",  cityName:"", countryCode:"", countryName:"", displayName:"", geoCode:{latitude:0,longitude:0}, iataCode:"", name:"", priority:0, type:"AIRPORT" };
+const [flights, setFlights] = useState<Flight[]>(() => {
+  const receivedFlights = location.state?.flights as Flight[] | undefined;
 
-  const [flights, setFlights] = useState<Flight[]>(() => {
-    const receivedFlights = location.state?.flights as Flight[] | undefined;
-    return (
-      receivedFlights || [
-        { id: 1, from: "", to: "", date: "" },
-        { id: 2, from: "", to: "", date: "" },
-      ]
-    );
-  });
+  return (
+    receivedFlights || [
+      { id: 1, from: emptyAirport, to: emptyAirport, date: "" },
+      { id: 2, from: emptyAirport, to: emptyAirport, date: "" },
+    ]
+  );
+});
 
 
       const [country, setCountry] = useState<string>("Detecting...");
@@ -97,18 +97,18 @@ export const useFlightBooking = () => {
     []
   );
 
-  const addFlight = useCallback(() => {
-    setFlights((prev) => [
-      ...prev,
-      { id: Date.now(), from: "", to: "", date: "" },
-    ]);
-  }, []);
+const addFlight = useCallback(() => {
+  setFlights((prev) => [
+    ...prev,
+    { id: Date.now(), from: null, to: null, date: "" },
+  ]);
+}, []);
 
   const removeFlight = useCallback((id: number) => {
     setFlights((prev) => prev.filter((flight) => flight.id !== id));
   }, []);
 
-  const getFormattedDate = (date: DateSelection) => {
+  const getFormattedDate = (date?: DateSelection) => {
     if (!date) return "";
     if (date instanceof Date) return format(date, "yyyy-MM-dd");
     return `${format(date.startDate, "yyyy-MM-dd")} to ${format(

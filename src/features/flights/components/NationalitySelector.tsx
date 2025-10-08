@@ -1,23 +1,20 @@
-"use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { X, Search } from "lucide-react";
 import {
-  ClickAwayListener,
-  Dialog,
-  DialogContent,
+
   Drawer,
-  Input,
+ 
   Paper,
-  Popper,
+
   useMediaQuery,
   useTheme,
-  Fade,
+ 
   InputAdornment,
   TextField,
 } from "@mui/material";
 import {
-  Menu,
+ 
   MenuItem,
   Divider,
   ListItemIcon,

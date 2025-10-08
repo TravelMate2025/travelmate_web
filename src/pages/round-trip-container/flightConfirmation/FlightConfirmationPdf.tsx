@@ -1,15 +1,16 @@
-import React from "react";
+
 import {
   Document,
   Page,
   Text,
   View,
   StyleSheet,
-  Font,
+  // Font,
   Image,
 } from "@react-pdf/renderer";
 import dayjs from "dayjs";
-import Logo from "../../../assets/Travelmate_logo.svg"
+import { LocalState } from "./FlightConfirmationPage";
+import Logo from "../../../assets/logo.png"
 
 // ========= Styles =========
 const styles = StyleSheet.create({
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 12,
     marginBottom: 4,
-    color: "#007BFF",
+
   },
   text: {
     marginBottom: 3,
@@ -50,39 +51,44 @@ const styles = StyleSheet.create({
 });
 
 // ========= Component =========
-const FlightItineraryPDF = ({ bookingData }:{bookingData:any}) => {
+const FlightItineraryPDF = ({ bookingData }:{bookingData:LocalState}) => {
+
     const booking = bookingData.booking;
-    console.log(bookingData);
+ 
     
-  const passenger = bookingData.passengers[0]?.passenger;
+  const passenger = bookingData.passengers[0];
+
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
-        <View  style={{justifyContent:"center", flexDirection:"row"}}>
-          <Image source={{ uri: `localhost:5173/logo.svg` }} />
+        <View style={{ justifyContent: "center", flexDirection: "row" }}>
+          <Image src={Logo} style={{ width: 100, height: 80,  }} />
         </View>
         <Text style={[styles.text, styles.bold]}>
-          Booking Reference: {bookingData.booking_reference}
+          Booking Reference: {bookingData.booking.amadeus_reference}
         </Text>
-        <Text style={styles.text}>Status: {booking.status}</Text>
+        <Text style={styles.text}>Status: {booking.booking.total_price}</Text>
 
         {/* Price / Booking Info */}
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>Price Details</Text>
           <Text style={styles.text}>
-            Base Flight Cost: {bookingData.currency}{" "}
-            {bookingData.base_flight_cost}
+            Base Flight Cost: {bookingData.booking.currency}{" "}
+            {bookingData.booking.base_flight_cost}
           </Text>
           <Text style={styles.text}>
-            Service Fee: {bookingData.currency} {bookingData.service_fee}
+            Service Fee: {bookingData.booking.currency}{" "}
+            {bookingData.booking.service_fee}
           </Text>
           <Text style={styles.text}>
-            Total Amount: {bookingData.currency}{" "}
+            Total Amount: {bookingData.booking.currency}{" "}
             {bookingData.booking.total_price}
           </Text>
-          <Text style={styles.text}>Payment Status: {booking.status}</Text>
+          <Text style={styles.text}>
+            Payment Status: {booking.booking.status}
+          </Text>
           <Text style={styles.text}>
             Booking Type:{" "}
             {bookingData?.booking?.booking_type?.replace("_", " ")}
@@ -90,30 +96,37 @@ const FlightItineraryPDF = ({ bookingData }:{bookingData:any}) => {
         </View>
 
         {/* Passenger Info */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>Passenger Details</Text>
-          <Text style={styles.text}>
-            Name: {passenger?.title} {passenger?.first_name}{" "}
-            {passenger?.last_name}
-          </Text>
-          <Text style={styles.text}>
-            Date of Birth:{" "}
-            {dayjs(passenger?.date_of_birth).format("DD/MM/YYYY")}
-          </Text>
-          <Text style={styles.text}>
-            Gender: {passenger?.gender === "M" ? "Male" : "Female"}
-          </Text>
-          <Text style={styles.text}>Email: {passenger?.email}</Text>
-          <Text style={styles.text}>Phone: {passenger?.phone}</Text>
-          <Text style={styles.text}>
-            Passport Number: {passenger?.passport_number}
-          </Text>
-          <Text style={styles.text}>
-            Passport Expiry:{" "}
-            {dayjs(passenger?.passport_expiry).format("DD/MM/YYYY")}
-          </Text>
-          <Text style={styles.text}>Nationality: {passenger?.nationality}</Text>
-        </View>
+
+        {bookingData.booking.passenger_bookings.map((p, i) => {
+          return (
+            <View style={styles.section} key={i}>
+              <Text style={styles.sectionHeader}>Passenger Details</Text>
+              <Text style={styles.text}>
+                Name: {p.passenger?.title} {p.passenger?.first_name}{" "}
+                {p.passenger?.last_name}
+              </Text>
+              <Text style={styles.text}>
+                Date of Birth:{" "}
+                {dayjs(p.passenger?.date_of_birth).format("DD/MM/YYYY")}
+              </Text>
+              <Text style={styles.text}>
+                Gender: {p.passenger?.gender === "M" ? "Male" : "Female"}
+              </Text>
+              <Text style={styles.text}>Email: {p.passenger?.email}</Text>
+              <Text style={styles.text}>Phone: {p.passenger?.phone}</Text>
+              <Text style={styles.text}>
+                Passport Number: {p.passenger?.passport_number}
+              </Text>
+              <Text style={styles.text}>
+                Passport Expiry:{" "}
+                {dayjs(p.passenger?.passport_expiry).format("DD/MM/YYYY")}
+              </Text>
+              <Text style={styles.text}>
+                Nationality: {p.passenger?.nationality}
+              </Text>
+            </View>
+          );
+        })}
 
         {/* Flights */}
         <View style={styles.section}>
@@ -124,7 +137,7 @@ const FlightItineraryPDF = ({ bookingData }:{bookingData:any}) => {
                 Segment {idx + 1}: {f.airline_code} {f.flight_number}
               </Text>
               <Text style={styles.text}>
-                {f.departure_airport} ➜ {f.arrival_airport}
+                {f.departure_airport} to {f.arrival_airport}
               </Text>
               <Text style={styles.text}>
                 Departure:{" "}
@@ -147,8 +160,8 @@ const FlightItineraryPDF = ({ bookingData }:{bookingData:any}) => {
         {/* Contact */}
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>Contact Details</Text>
-          <Text style={styles.text}>Email: {passenger?.email}</Text>
-          <Text style={styles.text}>Phone: {passenger?.phone}</Text>
+          <Text style={styles.text}>Email: {bookingData.contact?.email}</Text>
+          <Text style={styles.text}>Phone: {bookingData.contact?.phone}</Text>
         </View>
 
         {/* Important Info */}
@@ -160,11 +173,6 @@ const FlightItineraryPDF = ({ bookingData }:{bookingData:any}) => {
             E-ticket will be sent to: {passenger?.email}
           </Text>
         </View>
-
-        {/* Footer */}
-        <Text style={styles.footer}>
-          © {new Date().getFullYear()} TravelMate. All rights reserved.
-        </Text>
       </Page>
     </Document>
   );

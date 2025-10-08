@@ -11,9 +11,9 @@ import {
   IconButton,
   Slider,
   Typography,
+  Button,
 } from "@mui/material";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
-import { useLocation } from "react-router-dom";
 
 export interface FlightFilters {
   priceRange: number[];
@@ -28,6 +28,7 @@ interface FilterFlightProps {
   open?: boolean;
   onClose?: () => void;
   onChange: (filters: FlightFilters) => void;
+  onApply?: () => void; // ✅ optional callback for apply action
 }
 
 const MAX_PRICE = 1_000_000;
@@ -44,6 +45,7 @@ const FilterFlight: React.FC<FilterFlightProps> = ({
   onChange,
   onClose,
   open = false,
+  onApply,
 }) => {
   const airlinesList = useMemo(
     () => ["Aero", "Arik Air", "Value Jet", "Air Peace", "United Nigeria"],
@@ -61,7 +63,6 @@ const FilterFlight: React.FC<FilterFlightProps> = ({
     (label: string) => onChange({ ...filters, stops: label }),
     [filters, onChange]
   );
-
 
   const handleRefundChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) =>
@@ -95,7 +96,7 @@ const FilterFlight: React.FC<FilterFlightProps> = ({
   );
 
   const renderContent = () => (
-    <Box sx={{ flex: 1, overflowY: "auto", pb: 1 }}>
+    <Box sx={{ flex: 1, overflowY: "auto", pb: 10 }}>
       {/* Header */}
       <Box
         display="flex"
@@ -130,14 +131,13 @@ const FilterFlight: React.FC<FilterFlightProps> = ({
           onChange={handleSliderChange}
           min={0}
           max={MAX_PRICE}
+          sx={{ width: "90%", ml: 2 }}
           step={1000}
           valueLabelDisplay="auto"
           valueLabelFormat={(v) =>
-            new Intl.NumberFormat("en-NG", {
-              style: "currency",
-              currency: "NGN",
-              maximumFractionDigits: 0,
-            }).format(v)
+            new Intl.NumberFormat("en-NG", { maximumFractionDigits: 0 }).format(
+              v
+            )
           }
         />
       </Box>
@@ -220,6 +220,33 @@ const FilterFlight: React.FC<FilterFlightProps> = ({
     </Box>
   );
 
+  const applyButton = (
+    <Box
+      sx={{
+        position: "sticky",
+        bottom: 0,
+        backgroundColor: "white",
+        py: 2,
+        px: 3,
+        borderTop: "1px solid #eee",
+      }}
+    >
+      <Button
+        fullWidth
+        variant="contained"
+        sx={{
+          textTransform: "none",
+          fontWeight: "bold",
+          backgroundColor: "#023E8A",
+          "&:hover": { backgroundColor: "#0353A4" },
+        }}
+        onClick={onApply || onClose}
+      >
+        Apply 
+      </Button>
+    </Box>
+  );
+
   return isMobile ? (
     <Drawer
       anchor="bottom"
@@ -237,6 +264,7 @@ const FilterFlight: React.FC<FilterFlightProps> = ({
       }}
     >
       {renderContent()}
+      {applyButton}
     </Drawer>
   ) : (
     <Dialog
@@ -246,7 +274,7 @@ const FilterFlight: React.FC<FilterFlightProps> = ({
       sx={{
         "& .MuiBackdrop-root": { backgroundColor: "rgba(0, 0, 0, 0.3)" },
         "& .MuiPaper-root": {
-          width: 390,
+          maxWidth: "432px",
           height: 880,
           borderRadius: "10px",
           display: "flex",
@@ -254,7 +282,8 @@ const FilterFlight: React.FC<FilterFlightProps> = ({
         },
       }}
     >
-      <DialogContent>{renderContent()}</DialogContent>
+      <DialogContent sx={{ p: 3 }}>{renderContent()}</DialogContent>
+      {applyButton}
     </Dialog>
   );
 };

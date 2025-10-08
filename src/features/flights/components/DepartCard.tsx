@@ -21,8 +21,8 @@ function formatDuration(duration: string): string {
 }
 import Line from "../../../assets/arrow.svg";
 import Line2 from "../../../assets/arrow2dots.svg";
-import { useLocation } from "react-router-dom";
-import { airports } from "../data";
+
+
 import { getCity } from "../utils/functions";
 const DepartCard: React.FC<DepartCardProps> = ({ depart, onClick , segment = 0}) => {
   // Example: Get first itinerary and its first + last segment
@@ -32,7 +32,6 @@ const DepartCard: React.FC<DepartCardProps> = ({ depart, onClick , segment = 0})
     firstItinerary.segments[firstItinerary.segments.length - 1];
 
 
-  const location = useLocation()
 
   
 

@@ -1,5 +1,4 @@
-import React from "react";
-import { useFetchFlightDetailsQuery } from "../api/flightApi";
+
 import { FlightOffer } from "../types";
 import Line2 from "../../../assets/Line4.svg";
 import dayjs from "dayjs";
