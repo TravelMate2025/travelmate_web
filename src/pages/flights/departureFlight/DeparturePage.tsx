@@ -132,7 +132,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
     },
   });
 
-  const [_country, setCountry] = useState<string>("Detecting...");
+
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -151,7 +151,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
         }
       );
     } else {
-      setCountry("Geolocation not supported");
+    
     }
   }, []);
   const {
@@ -214,6 +214,8 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   const getFlight = useCallback(
     (formData?: SimpleTripFormValues) => {
       try {
+
+     
         if (isMultiCity) {
           const payload = buildFlightPayload({
             tripType: tripType as TripType,
@@ -281,7 +283,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
       to: initialTo,
     });
     // }
-  }, [data, getFlight]);
+  }, []);
 
   const [page, setPage] = useState<number>(1);
   const [openClick, setOpenClick] = useState<boolean>(false);

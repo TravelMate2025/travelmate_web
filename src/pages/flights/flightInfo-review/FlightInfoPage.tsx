@@ -4,11 +4,11 @@ import Navbar from "../../homePage/Navbar";
 
 
 import Footer from "../../../components/2Footer";
+import Step1 from "../../../features/flights/components/Steps/Step1";
+import Step2 from "../../../features/flights/components/Steps/Step2";
+import Step3 from "../../../features/flights/components/Steps/Step3";
+import StepLayout, { useStepContext } from "../../../features/flights/components/Steps/StepLayout";
 
-import Step1 from "../../../features/flights/components/roundtrip/Steps/Step1";
-import Step2 from "../../../features/flights/components/roundtrip/Steps/Step2";
-import Step3 from "../../../features/flights/components/roundtrip/Steps/Step3";
-import StepLayout, { useStepContext } from "../../../features/flights/components/roundtrip/Steps/StepLayout";
 
 
 

@@ -28,11 +28,7 @@ interface PassengerCounts {
   infants: number;
 }
 
-// interface FlightSegment {
-//   from: Flight;
-//   to: Flight;
-//   date: string; // "DD MMM YYYY"
-// }
+
 
 interface GetFlightParams {
   tripType: TripType;
@@ -152,10 +148,20 @@ export const flightsApi = createApi({
   tagTypes: ["Airports", "Flights", "FlightDetails", "Bookings"], // ✅ define tags
   serializeQueryArgs: ({ endpointName, queryArgs }) => {
     if (endpointName === "fetchFlights") {
-      return JSON.stringify(queryArgs);
+      // Create a stable cache key
+      return JSON.stringify(
+        Object.keys(queryArgs as any)
+          .sort()
+          .reduce((obj, key) => {
+            // @ts-ignore
+            obj[key] = queryArgs[key];
+            return obj;
+          }, {})
+      );
     }
     return endpointName;
   },
+
   endpoints: (builder) => ({
     // ✈️ Fetch Airports
     fetchAirports: builder.query<Airport[], string>({

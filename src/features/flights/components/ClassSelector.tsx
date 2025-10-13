@@ -24,6 +24,12 @@ interface ClassSelectorProps {
 }
 
 const flightClasses = ["Economy", "Business", "First Class"];
+const travelClassMap = {
+  Economy: "ECONOMY",
+  "Premium Economy": "PREMIUM_ECONOMY",
+  "Business Class": "BUSINESS",
+  "First Class": "FIRST",
+};
 
 export const ClassSelector = memo<ClassSelectorProps>(
   ({ id, label, value, onChange }) => {
@@ -58,7 +64,8 @@ export const ClassSelector = memo<ClassSelectorProps>(
           {flightClasses.map((flightClass, index) => (
             <React.Fragment key={flightClass}>
               <FormControlLabel
-                value={flightClass}
+                // @ts-ignore
+                value={travelClassMap[flightClass] || "ECONOMY"}
                 control={<Radio />}
                 label={flightClass}
                 className="pl-10"
@@ -81,6 +88,11 @@ export const ClassSelector = memo<ClassSelectorProps>(
           id={id}
           variant="outlined"
           size="small"
+          slotProps={{
+            input: {
+            readOnly:true
+          }
+        }}
           fullWidth
           placeholder="Economy"
           value={value}
@@ -120,6 +132,7 @@ export const ClassSelector = memo<ClassSelectorProps>(
                 borderTopLeftRadius: "16px",
                 borderTopRightRadius: "16px",
                 padding: "16px",
+                minHeight: "70vh",
               },
             }}
           >

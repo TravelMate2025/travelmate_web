@@ -8,7 +8,7 @@ import AirlineSeatReclineExtraOutlinedIcon from "@mui/icons-material/AirlineSeat
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
 import { Icon } from "@iconify/react";
-import planelogo from "../../../../../assets/plane.svg"; // adjust path
+import planelogo from "../../../../assets/plane.svg"; // adjust path
 
 import { Checkbox, FormControlLabel, Typography } from "@mui/material";
 import {
@@ -16,11 +16,11 @@ import {
   FlightOffer,
   UpsellFlightOffer,
 
-} from "../../../types";
+} from "../../types";
 import dayjs from "dayjs";
-import { PassengerCounts } from "../../../hooks/useFlightBooking";
+import { PassengerCounts } from "../../hooks/useFlightBooking";
 import { useStepContext } from "./StepLayout";
-import { getCity } from "../../../utils/functions";
+import { getCity } from "../../utils/functions";
 export interface LocationState {
   pathname: string;
   search: string;

@@ -31,21 +31,21 @@ import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
-import { NationalitySelector } from "../../NationalitySelector";
+import { NationalitySelector } from "../NationalitySelector";
 import { useLocation,  } from "react-router-dom";
 import { LocationState } from "./Step1";
 import {
   useCreateBookingMutation,
   useCreateCheckoutSessionMutation,
-} from "../../../api/flightApi";
-import { BookingType, Passenger } from "../../../types";
+} from "../../api/flightApi";
+import { BookingType, Passenger } from "../../types";
 import toast from "react-hot-toast";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-import { DateSelector } from "../../DateSelector";
+import { DateSelector } from "../DateSelector";
 import { format } from "date-fns";
-import { useAppSelector } from "../../../../../hooks/redux";
-import { RootState } from "../../../../../store";
+import { useAppSelector } from "../../../../hooks/redux";
+import { RootState } from "../../../../store";
 
 
 // Validation Schema for a single passenger
@@ -270,7 +270,7 @@ const Step2: React.FC = () => {
     totalAdults + totalChildren
   );
   const infantPassengers = fields.slice(totalAdults + totalChildren);
-  console.log(useProfile);
+  
   
   useEffect(() => {
 

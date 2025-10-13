@@ -79,7 +79,7 @@ import Footer from "../../../components/2Footer";
 import { useFetchBookingByIdQuery } from "../../../features/flights/api/flightApi";
 import dayjs from "dayjs";
 import { useAppSelector } from "../../../hooks/redux";
-import { PriceSummary } from "../../../features/flights/components/roundtrip/Steps/Step1";
+import { PriceSummary } from "../../../features/flights/components/Steps/Step1";
 
 import { downloadSectionAsPDF } from "../../../features/flights/utils/functions";
 
@@ -90,6 +90,7 @@ import { DateRange } from "react-date-range";
 import { Flight, PassengerCounts } from "../../../features/flights/hooks/useFlightBooking";
 import ShareModal from "../../../features/flights/components/ShareModal";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 const FlightCard = ({
   title,
@@ -234,7 +235,6 @@ console.log(window.location.href);
    skip: !bookingId,
  });
 
-  console.log(data);
 
 
   
@@ -256,7 +256,7 @@ console.log(window.location.href);
   if (!data) {
       return 
     };
-console.log(data);
+// console.log(data);
   
   if (data?.payment_details.payment_status === "REFUNDED") {
     window.location.href = data.payment_details.additional_details.cancel_url;
@@ -287,7 +287,7 @@ console.log(data);
         onCopyLink={() => {
           navigator.clipboard.writeText(window.location.href);
           setOpen(false);
-          alert("Link copied to clipboard!");
+          toast.success("Link copied to clipboard!");
         }}
       />
       <div className="mt-[85px]  ">
@@ -382,7 +382,7 @@ console.log(data);
                   to {user?.email}
                 </div>
               </div>
-            </div>
+            </div> 
           </div>
 
           <div className="flex max-md:flex-col gap-[40px]">

@@ -20,6 +20,8 @@ import { Airport } from "../types";
 import { useLazyFetchAirportsQuery } from "../api/flightApi";
 import { useTheme } from "@mui/material/styles";
 
+import { ScrollArea } from "./ScrollArea";
+
 interface LocationSelectorProps {
   id: string;
   label: string;
@@ -50,8 +52,30 @@ export const LocationSelector = memo<LocationSelectorProps>(
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-    const [triggerFetchAirports, { data: locations = [], isFetching }] =
+    const [triggerFetchAirports, { data: locations = [], isFetching,  error }] =
       useLazyFetchAirportsQuery();
+
+    // 🕐 Debounce delay time (ms)
+    const DEBOUNCE_DELAY = 500;
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    // Update debounced value after delay
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, DEBOUNCE_DELAY);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value]);
+
+    // Fetch airports when debounced value changes
+    useEffect(() => {
+      if (debouncedValue.trim()) {
+        triggerFetchAirports(debouncedValue);
+      }
+    }, [debouncedValue, triggerFetchAirports]);
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
       setAnchorEl(event.currentTarget);
@@ -71,9 +95,6 @@ export const LocationSelector = memo<LocationSelectorProps>(
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = event.target.value;
       setValue(newValue);
-      if (newValue.trim()) {
-        triggerFetchAirports(newValue);
-      }
       setIsOpen(true);
       if (!anchorEl) setAnchorEl(event.currentTarget);
     };
@@ -83,7 +104,7 @@ export const LocationSelector = memo<LocationSelectorProps>(
       onSelect?.(location);
       handleClose();
     };
-
+const filteredLocations =  locations.filter((loc=>loc.type === "AIRPORT"));
     const resultsList = (
       <>
         {isFetching ? (
@@ -92,12 +113,12 @@ export const LocationSelector = memo<LocationSelectorProps>(
           </Box>
         ) : locations.length === 0 ? (
           <Box display="flex" justifyContent="center" py={4}>
-            <Typography color="textSecondary">No location found</Typography>
+              <Typography color="textSecondary">No location found{ JSON.stringify({error})}</Typography>
           </Box>
         ) : (
-          locations.map((location, index) => (
+          filteredLocations.map((location, index) => (
             <React.Fragment key={location.id}>
-              <div
+              <div 
                 className="flex justify-between pl-6 pt-4 pr-6 cursor-pointer"
                 onClick={() => handleLocationSelect(location)}
               >
@@ -129,7 +150,6 @@ export const LocationSelector = memo<LocationSelectorProps>(
           {label}
         </label>
 
-        {/* Main input (always visible) */}
         <TextField
           id={id}
           variant="outlined"
@@ -168,12 +188,13 @@ export const LocationSelector = memo<LocationSelectorProps>(
               sx: {
                 borderTopLeftRadius: 16,
                 borderTopRightRadius: 16,
-                overflow: "hidden", // prevent child content from overflowing
+                height: "80vh", // ✅ Ensures it takes fixed viewport height
+                display: "flex",
+                flexDirection: "column",
               },
             }}
           >
-            <Box sx={{ p: 2, minHeight: "80vh", overflowY: "auto" }}>
-              {/* Drawer Header with input */}
+            <Box sx={{ p: 2, flexShrink: 0 }}>
               <Box display="flex" justifyContent="space-between" mb={2}>
                 <Typography variant="h6">Select Location</Typography>
                 <IconButton onClick={handleClose}>
@@ -202,8 +223,7 @@ export const LocationSelector = memo<LocationSelectorProps>(
                   },
                 }}
               />
-
-              {resultsList}
+              <ScrollArea className="h-[60vh] pb-20">{resultsList}</ScrollArea>
             </Box>
           </Drawer>
         ) : (

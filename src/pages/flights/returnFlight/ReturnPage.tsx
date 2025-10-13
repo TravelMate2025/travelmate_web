@@ -475,7 +475,12 @@ const onSearch = simpleForm.handleSubmit((formData) => {
   getNewFlight(formData);
 });
   
-console.log(simpleForm.formState.errors);
+  console.log(location.state, sortedDepartures);
+  
+  const departs = paginatedItems.filter((item) => item.id === location.state.departureFlight.id )
+  
+
+  
 
   return (
     <div>
@@ -860,7 +865,7 @@ console.log(simpleForm.formState.errors);
                   </Button>
                 </div>
               ) : paginatedItems.length > 0 ? (
-                paginatedItems.map((depart) => (
+                departs.map((depart) => (
                   <DepartCard
                     key={depart.id}
                     depart={depart}
