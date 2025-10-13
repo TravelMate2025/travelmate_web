@@ -29,7 +29,7 @@ import { MdArrowDropDown } from "react-icons/md";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FlightOffer, FlightUpsellOfferResponse,  UpsellFlightOfferResponse,  } from "../types";
 import { formatDuration, formatStops, getCity } from "../utils/functions";
-import { FlightReviewState } from "./roundtrip/Steps/Step1";
+import { FlightReviewState } from "./Steps/Step1";
 import { useEffect, useState, memo } from "react";
 
 

@@ -6,7 +6,7 @@ import { IconButton,  } from "@mui/material";
 
 import { Icon } from "@iconify/react";
 import CustomStepper from "./CustomStepper";
-import { BookingResponse, Passenger } from "../../../types";
+import { BookingResponse, Passenger } from "../../types";
 
 const steps = ["Flight Overview", "Passenger Information", "Payment"];
 
