@@ -147,7 +147,7 @@ const CarList: React.FC<CarListProps> = ({
                     <div className="text-[14px]">
                       <AirlineSeatReclineNormalIcon />
                       <span>
-                        {car.content.transferDetailInfo[2].name.slice(0, 2)}{" "}
+                         {car.content.transferDetailInfo[2].value} {" "}
                         Seats
                       </span>
                     </div>
@@ -155,7 +155,7 @@ const CarList: React.FC<CarListProps> = ({
                     <div className="text-[14px]">
                       <LuggageOutlinedIcon />
                       <span>
-                        {car.content.transferDetailInfo[3].description}{" "}
+                         {car?.content?.transferDetailInfo[3]?.value || "2"} {car.content.transferDetailInfo[3].description}
                       </span>
                     </div>
                   </div>
@@ -168,7 +168,7 @@ const CarList: React.FC<CarListProps> = ({
                         <Clock />
                       </i>
                       <p className="text-xs">
-                        {car.content.transferDetailInfo[0].description}
+                         {car.content.transferDetailInfo[0].value} {car.content.transferDetailInfo[0].description}
                       </p>
                     </div>
                     <div className="flex gap-[2px] items-center">
@@ -311,7 +311,7 @@ const CarList: React.FC<CarListProps> = ({
                     <div className="text-[14px]">
                       <AirlineSeatReclineNormalIcon />
                       <span>
-                        {car.content.transferDetailInfo[2].name.slice(0, 2)}{" "}
+                        {car.content.transferDetailInfo[2].value} {" "}
                         Seats
                       </span>
                     </div>
@@ -319,7 +319,7 @@ const CarList: React.FC<CarListProps> = ({
                     <div className="text-[14px]">
                       <LuggageOutlinedIcon />
                       <span>
-                        {car.content.transferDetailInfo[3].description}{" "}
+                       {car?.content?.transferDetailInfo[3]?.value || "2"} {car.content.transferDetailInfo[3].description}
                       </span>
                     </div>
                   </div>
@@ -330,7 +330,7 @@ const CarList: React.FC<CarListProps> = ({
                         <Clock />
                       </i>
                       <p className="">
-                        {car.content.transferDetailInfo[0].description}
+                        {car.content.transferDetailInfo[0].value} {car.content.transferDetailInfo[0].description}
                       </p>
                     </div>
                     <div className="flex gap-[2px] items-center">

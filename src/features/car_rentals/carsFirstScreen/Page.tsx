@@ -9,7 +9,6 @@ import { setSearchResults } from "../carPaymentSlice";
 
 // Icons
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import { MdArrowDropDown } from "react-icons/md";
 import { Info } from "lucide-react";
 
@@ -35,7 +34,7 @@ import { ToastContainer } from "react-toastify";
 import RideType from "./modals/RideType";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs"
+import dayjs from "dayjs";
 
 const CarBookingFirstScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -423,27 +422,20 @@ const CarBookingFirstScreen: React.FC = () => {
               <label htmlFor="pickup-date">Pick Up Date</label>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                 value={formData.pickupDate ? dayjs(formData.pickupDate) : null}
+                  value={
+                    formData.pickupDate ? dayjs(formData.pickupDate) : null
+                  }
                   onChange={(newValue) => {
                     if (newValue) {
-                      updateField(
-                        "pickupDate",
-                        newValue.toISOString().split("T")[0]
-                      );
+                      updateField("pickupDate", newValue.format("YYYY-MM-DD"));
                     }
                   }}
-                  
                   slotProps={{
                     textField: {
                       size: "small",
                       variant: "outlined",
                       InputProps: {
                         readOnly: true,
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <CalendarMonthOutlinedIcon />
-                          </InputAdornment>
-                        ),
                       },
                       sx: {
                         "& .MuiInputBase-root": {

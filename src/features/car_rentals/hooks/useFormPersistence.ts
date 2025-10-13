@@ -1,26 +1,35 @@
-import { useCallback, useEffect } from 'react';
-import { debounce } from 'lodash';
+import { useCallback, useEffect, useRef } from 'react';
 import { BookingFormData } from '../types/booking';
 
+// Custom debounce function
+const debounce = <T extends (...args: any[]) => void>(func: T, delay: number) => {
+  let timer: ReturnType<typeof setTimeout>;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => func(...args), delay);
+  };
+};
 
 export const useFormPersistence = (
   formData: BookingFormData,
   storageKey: string = 'carBookingForm'
 ) => {
-  // Debounced save to localStorage
-  const debouncedSave = useCallback(
+  const debouncedSave = useRef(
     debounce((data: BookingFormData) => {
       try {
         localStorage.setItem(storageKey, JSON.stringify(data));
       } catch (error) {
         console.error('Failed to save form data:', error);
       }
-    }, 500),
-    [storageKey]
-  );
+    }, 500)
+  ).current;
 
   useEffect(() => {
-    if (formData.pickupLocation || formData.dropoffLocation || formData.pickupDate ) {
+    if (
+      formData.pickupLocation ||
+      formData.dropoffLocation ||
+      formData.pickupDate
+    ) {
       debouncedSave(formData);
     }
   }, [formData, debouncedSave]);
@@ -35,7 +44,7 @@ export const useFormPersistence = (
     }
   }, [storageKey]);
 
-   const clearSavedData = useCallback(() => {
+  const clearSavedData = useCallback(() => {
     try {
       localStorage.removeItem(storageKey);
     } catch (error) {

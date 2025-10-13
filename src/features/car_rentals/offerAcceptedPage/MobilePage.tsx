@@ -126,15 +126,26 @@ const MobilePage = ({
       console.log(profile);
     }
   };
+
   const addDurationToTime = (pickupTime: string, durationStr: string) => {
     const [h, m] = pickupTime.split(":").map(Number);
     let totalMin = h * 60 + m;
+
+    // Try to extract hours and minutes if specified
     const hourMatch = durationStr.match(/(\d+)\s*hour(s)?/i);
     const minMatch = durationStr.match(/(\d+)\s*min/i);
+
     if (hourMatch) totalMin += parseInt(hourMatch[1]) * 60;
     if (minMatch) totalMin += parseInt(minMatch[1]);
+
+    // If only a plain number is provided (like "35"), treat as minutes
+    if (!hourMatch && !minMatch && !isNaN(Number(durationStr))) {
+      totalMin += Number(durationStr);
+    }
+
     const newH = Math.floor(totalMin / 60) % 24;
     const newM = totalMin % 60;
+
     return `${newH.toString().padStart(2, "0")}:${newM
       .toString()
       .padStart(2, "0")}`;
@@ -257,7 +268,8 @@ const MobilePage = ({
                   {" "}
                   <div className="border-l-2 border-l-[#4E4F52] h-16" />{" "}
                   <p className="text-[#4E4F52]">
-                    {car.content.transferDetailInfo[0].name}
+                    {car.content.transferDetailInfo[0].value}{" "}
+                    {car.content.transferDetailInfo[0].description}
                   </p>{" "}
                 </div>
                 <div className="flex justify-normal gap-4 items-center">
@@ -273,7 +285,7 @@ const MobilePage = ({
                       <p>
                         {addDurationToTime(
                           departureInfo.pickupTime,
-                          car.content.transferDetailInfo[0].name
+                          car.content.transferDetailInfo[0].value
                         )}
                       </p>
                     </div>
@@ -317,14 +329,14 @@ const MobilePage = ({
                     Bags
                   </p>
                   <p className="text-[#181818] text-sm font-inter">
-                    Up to {car.content.transferDetailInfo[3].name.slice(0, 2)}{" "}
-                    Bags
+                    Up to {car.content.transferDetailInfo[3].value}{" "}
+                    {car.content.transferDetailInfo[3].description}
                   </p>
                 </div>
 
                 <div className="flex justify-between items-center w-full">
-                  <p className="text-smfont-inter font-normal text-[#4E4F52]">
-                    Provider
+                  <p className="text-sm font-inter font-normal text-[#4E4F52]">
+                    Provider 
                   </p>
 
                   <p className="text-[#181818] text-[14px] font-inter">

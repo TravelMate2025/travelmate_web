@@ -5,7 +5,6 @@ import { useMediaQuery } from "react-responsive";
 
 // Icons
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import { MdArrowDropDown } from "react-icons/md";
 import { X } from "lucide-react";
 
@@ -145,7 +144,6 @@ const DisplayCars: React.FC = () => {
 
   // Persist form data to localStorage
   useFormPersistence(formData, "carBookingForm");
-
 
   const { modals, openModal, closeModal } = useModalState();
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
@@ -455,11 +453,6 @@ const DisplayCars: React.FC = () => {
                         variant: "outlined",
                         InputProps: {
                           readOnly: true,
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <CalendarMonthOutlinedIcon />
-                            </InputAdornment>
-                          ),
                         },
                         sx: {
                           "& .MuiInputBase-root": {
