@@ -52,7 +52,7 @@ export const LocationSelector = memo<LocationSelectorProps>(
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-    const [triggerFetchAirports, { data: locations = [], isFetching,  error }] =
+    const [triggerFetchAirports, { data: locations = [], isFetching,  }] =
       useLazyFetchAirportsQuery();
 
     // 🕐 Debounce delay time (ms)
@@ -113,7 +113,7 @@ const filteredLocations =  locations.filter((loc=>loc.type === "AIRPORT"));
           </Box>
         ) : locations.length === 0 ? (
           <Box display="flex" justifyContent="center" py={4}>
-              <Typography color="textSecondary">No location found{ JSON.stringify({error})}</Typography>
+              <Typography color="textSecondary">No location found</Typography>
           </Box>
         ) : (
           filteredLocations.map((location, index) => (

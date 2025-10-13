@@ -256,7 +256,7 @@ console.log(window.location.href);
   if (!data) {
       return 
     };
-// console.log(data);
+
   
   if (data?.payment_details.payment_status === "REFUNDED") {
     window.location.href = data.payment_details.additional_details.cancel_url;
