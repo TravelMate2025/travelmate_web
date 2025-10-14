@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { Airport } from "../types";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 export type Flight = {
   id: number;
@@ -71,17 +72,20 @@ const [flights, setFlights] = useState<Flight[]>(() => {
                 
                 setCountry(data?.address?.country || "Unknown");
               } catch (error) {
-                console.error("Geolocation lookup failed:", error);
+                toast.error("Geolocation lookup failed:");
                 setCountry("Error detecting country");
               }
             },
-            (error) => {
-              console.error("Geolocation error:", error);
+            (_error) => {
+              toast.error("Geolocation error:", );
               setCountry("Permission denied or unavailable");
-            }
+            },
+            {
+               enableHighAccuracy: true, 
+             }
           );
         } else {
-          setCountry("Geolocation not supported");
+        toast.error("Geolocation is not supported by this browser.");
         }
       }, []);
 

@@ -222,7 +222,7 @@ const [open, setOpen] = useState(false)
 
 
  const { user } = useAppSelector((state) => state.auth);
-console.log(window.location.href);
+
 
  // Get booking from localStorage
  const savedBooking = JSON.parse(localStorage.getItem("bookingData") || "null") as LocalState;

@@ -394,7 +394,7 @@ const FlightBookingForm: React.FC = () => {
               <Grid item xs={12} md={2} display="flex" alignItems="flex-end">
                 <button
                   type="submit"
-                  disabled={!isCountryReady as boolean}
+                  // disabled={!isCountryReady as boolean}
                   className="bg-[#023E8A] h-[52px] disabled:bg-zinc-700 md:max-w-[140px] w-full text-center text-white font-inter text-base rounded-[8px] cursor-pointer hover:bg-[#012a5c] transition-colors"
                 >
                   Search
