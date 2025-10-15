@@ -132,7 +132,7 @@ const FlightBookingForm: React.FC = () => {
     tripType,
     setTripType,
 
-    isCountryReady,
+   
     handleSearch,
   } = useFlightBooking();
 
