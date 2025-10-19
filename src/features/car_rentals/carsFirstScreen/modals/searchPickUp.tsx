@@ -129,11 +129,11 @@ const SearchPickUpLocation = ({
       {/* Backdrop */}
       <div className="fixed inset-0 " />
       <div className="min-w-screen min-h-screen p-8 rounded-lg bg-white shadow-2xl fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 lg:min-h-[400px] lg:min-w-[90vh] block z-[99] mt-5">
-        <div className="flex justify-normal gap-24 lg:gap-42 items-center my-5 w-full">
+        <div className="flex justify-normal gap-24 lg:gap-42 items-center my-5 w-full pt-12 lg:pt-0">
           <div className="p-[8px] bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] cursor-pointer">
             <X onClick={closeDialog} className="font-bold" />
           </div>
-          <h2 className="font-bold text-lg flex justify-center items-center">
+          <h2 className="font-bold text-lg ">
             Pick Up
           </h2>
         </div>

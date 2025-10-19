@@ -12,7 +12,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId="850549815467-rkdnknf41sh6ram92ecdhhtbp4nlgvq6.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId="801961826535-5q7gufshvp0hd5jni2i5igdu949c7j54.apps.googleusercontent.com">
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <BrowserRouter>
