@@ -7,7 +7,7 @@ const breadcrumbMap: { [key: string]: { label: string; path?: string }[] } = {
   // Round-trip section
   "/flight/departure": [{ label: "Departure Flight" }],
   "/flight/return": [
-    { label: "Departure Flight", path: "/departure-flight" },
+    { label: "Departure Flight", path: "/flightdeparture" },
     { label: "Return Flight" },
   ],
 

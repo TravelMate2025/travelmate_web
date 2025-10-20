@@ -20,7 +20,7 @@ const Step3 = () => {
  
   // 🔹 Submit or confirm action
   const handleConfirm = async () => {
-    console.log(booking);
+ 
 
     // window.open(booking.checkoutUrl);
     window.location.href = booking.checkoutUrl;

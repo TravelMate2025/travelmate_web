@@ -1,4 +1,3 @@
-import Navbar from "../../homePage/Navbar";
 import React, {
   useState,
   useEffect,
@@ -6,50 +5,57 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-
 import {
   Button,
-
   FormControl,
   Grid,
   PaginationItem,
-
   useMediaQuery,
   useTheme,
+  TextField,
+  Box,
+  InputAdornment,
+  Divider,
+  Stack,
+  Pagination,
 } from "@mui/material";
-
-import TextField from "@mui/material/TextField";
-import Box from "@mui/material/Box";
-import InputAdornment from "@mui/material/InputAdornment";
-
-
-import "react-date-range/dist/styles.css";
-import "react-date-range/dist/theme/default.css";
-import {  format } from "date-fns";
-
-import { Divider,  } from "@mui/material";
-
-import { Link,  } from "react-router-dom";
-import TravelmateApp from "../../homePage/TravelmateApp";
-import Footer from "../../../components/2Footer";
-
-
-
-import { Stack, Pagination,  } from "@mui/material";
-import { useLocation } from "react-router-dom";
-
-import SortIcon from "@mui/icons-material/Sort";
-
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-
-
-import Breadcrumb from "../../BreadCrumb";
-
+import { Link, useLocation, } from "react-router-dom";
+import { format } from "date-fns";
+import { Icon } from "@iconify/react";
 import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
 import ModeEditOutlinedIcon from "@mui/icons-material/ModeEditOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import SortIcon from "@mui/icons-material/Sort";
+import Navbar from "../../homePage/Navbar";
+import TravelmateApp from "../../homePage/TravelmateApp";
+import Footer from "../../../components/2Footer";
+import Breadcrumb from "../../BreadCrumb";
+import SortFlight from "../../../features/flights/components/SortFlight";
+import DepartCard from "../../../features/flights/components/DepartCard";
+import { LocationSelector } from "../../../features/flights/components/LocationSelector";
+import { DateSelector } from "../../../features/flights/components/DateSelector";
+import { PassengerSelector } from "../../../features/flights/components/PassengerSelector";
+import { ClassSelector } from "../../../features/flights/components/ClassSelector";
+import {
+  FlightDrawer,
+  MultiCitySelection,
+} from "../../../features/flights/components/FlightDrawer";
+import FilterFlight, {
+  FlightFilters,
+} from "../../../features/flights/components/FilterFlight";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { SimpleTripFormValues, simpleTripSchema } from "../../homePage/Flight";
+import {
 
-import { Icon } from "@iconify/react";
+  useLazyFetchFlightsQuery,
+} from "../../../features/flights/api/flightApi";
+import { useLazyGetLocationInfoQuery } from "../../../features/flights/api/locationApi";
+import { buildFlightPayload } from "../../../features/flights/api/flightApi";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
+import { SearchData } from "../../../features/flights/hooks/useFlightBooking";
 
 
 interface Departure {
@@ -72,46 +78,26 @@ interface Departure {
 }
 
 interface DepartureListProps {
-  departureInfo: Departure[];
+  departureInfo?: Departure[];
 }
 
+const ITEMS_PER_PAGE = 4;
 
-
-import SortFlight from "../../../features/flights/components/SortFlight";
-import FilterFlight, {
-  FlightFilters,
-} from "../../../features/flights/components/FilterFlight";
-import DepartCard from "../../../features/flights/components/DepartCard";
-import { LocationSelector } from "../../../features/flights/components/LocationSelector";
-import { DateSelector } from "../../../features/flights/components/DateSelector";
-import { PassengerSelector } from "../../../features/flights/components/PassengerSelector";
-import { ClassSelector } from "../../../features/flights/components/ClassSelector";
-import {
-  
-  useFlightBooking,
-} from "../../../features/flights/hooks/useFlightBooking";
-import {
-  FlightDrawer,
-
-} from "../../../features/flights/components/FlightDrawer";
-
-
-import { FlightOffer, } from "../../../features/flights/types";
-import { buildFlightPayload, TripType, useLazyFetchFlightsQuery } from "../../../features/flights/api/flightApi";
-import { useLazyGetLocationInfoQuery } from "../../../features/flights/api/locationApi";
-
-import { useForm, Controller } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import {    SimpleTripFormValues, simpleTripSchema } from "../../homePage/Flight";
-
-
-const DeparturePage: React.FC<DepartureListProps> = () => {
+const ReturnPage: React.FC<DepartureListProps> = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-const [fetchCoords, { isFetching, data }] = useLazyGetLocationInfoQuery();
-  const location = useLocation();
+  const [fetchCoords, { data: locationData }] = useLazyGetLocationInfoQuery();
+  const [fetchFlights, { data: flightResults, error, isLoading, isFetching }] =
+    useLazyFetchFlightsQuery();
 
-  const simpleForm = useForm<SimpleTripFormValues>({
+
+  // Form setup
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<SimpleTripFormValues>({
     resolver: yupResolver(simpleTripSchema),
     defaultValues: {
       tripType: "round-trip",
@@ -123,73 +109,45 @@ const [fetchCoords, { isFetching, data }] = useLazyGetLocationInfoQuery();
     },
   });
 
-
-
-  
-       const [_country, setCountry] = useState<string>("Detecting...");
-    
-        useEffect(() => {
-          if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-              async (position) => {
-                const { latitude, longitude } = position.coords;
-    
-                try {
-              
-               
-                
-               fetchCoords({latitude, longitude})
-                } catch (error) {
-                  console.error("Geolocation lookup failed:", error);
-                  setCountry("Error detecting country");
-                }
-              },
-              (error) => {
-                console.error("Geolocation error:", error);
-                setCountry("Permission denied or unavailable");
-              }
-            );
-          } else {
-            setCountry("Geolocation not supported");
-          }
-        }, []);
-  const {
-    from: initialFrom,
-    to: initialTo,
-
-    date,
-   flights:storedFlights,
-    passengers,
-
-    flightClass: initialFlight,
-    tripType: selectedTrip,
-  } = location.state;
-
-
+  // Parse search data from sessionStorage
+  const searchData = useMemo(
+    () => JSON.parse(sessionStorage.getItem("trip") || "{}") as SearchData,
+    []
+  );
   const {
     tripType,
-    selectedFrom,
-    selectedTo,
-
-    selectedClass,
-
-isCountryReady,
+    from: selectedFrom,
+    to: selectedTo,
+    flightClass: selectedClass,
     flights,
+    date,
+    passengers: selectedPassengers,
+  } = searchData;
 
- 
-  } = useFlightBooking();
-
-
-  const [from, _setFrom] = useState("");
-  const [to, _setTo] = useState("");
-  const [fetchFlights, { data: flightResults, error, isLoading, isFetching:_fetchingFlight }] =
-    useLazyFetchFlightsQuery();
-  const [_locations, _setLocations] = useState([
-    "Ibadan, Oyo",
-    "Abuja",
-    "Port Harcourt",
-  ]);
-
+  // State management
+  const [page, setPage] = useState(1);
+  const [openClick, setOpenClick] = useState(false);
+  const [selectedDepartureId, setSelectedDepartureId] = useState<string | null>(
+    null
+  );
+  const [isOpenFrom, setIsOpenFrom] = useState(false);
+  const [isOpenTo, setIsOpenTo] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [selectedSort, setSelectedSort] = useState<string>("recommended");
+  const [filters, setFilters] = useState<FlightFilters>({
+    priceRange: [2000, 10_000_000],
+    stops: null,
+    refundPolicy: null,
+    airlines: [],
+  });
+  const [multiCitySelections, setMultiCitySelections] = useState<
+    MultiCitySelection[]
+  >([]);
+  const [currentSegment, setCurrentSegment] = useState(1);
+  const [visitedSegments, setVisitedSegments] = useState([0]);
+  const fromAnchors = useRef<Record<string, HTMLDivElement | null>>({});
+  const toAnchors = useRef<Record<string, HTMLDivElement | null>>({});
   const [counts, setCounts] = useState({
     adults: 0,
     children: 0,
@@ -197,260 +155,121 @@ isCountryReady,
     extraBags: 0,
   });
 
-  const handleIncrement = (type: keyof typeof counts) => {
-    setCounts((prevCounts) => ({
-      ...prevCounts,
-      [type]: prevCounts[type] + 1,
-    }));
-  };
-
-  const handleDecrement = (type: keyof typeof counts) => {
-    setCounts((prevCounts) => ({
-      ...prevCounts,
-      [type]: prevCounts[type] > 0 ? prevCounts[type] - 1 : 0,
-    }));
-  };
-
-
-  const isSimpleTrip =
-    selectedTrip === "round-trip" || selectedTrip === "one-way";
-  const isMultiCity = selectedTrip === "multi-city";
-const getFlight = useCallback(
-  (formData?: SimpleTripFormValues) => {
-    try {
-      if (isMultiCity) {
-              const payload = buildFlightPayload({
-                tripType: tripType as TripType,
-                initialFrom,
-                initialTo,
-                selectedFrom: formData?.from as any,
-                selectedTo: formData?.to as any,
-                date: formData?.date || date, // prefer form data if present
-                passengerCounts: formData?.passengers || passengers,
-                travelClass: formData?.class || selectedClass,
-                currency: data?.currency,
-                flights,
-              });
-// @ts-ignore
-              fetchFlights(payload);
-      } else {
-        
-        const payload = buildFlightPayload({
-          tripType: tripType as TripType,
-          initialFrom,
-          initialTo,
-          selectedFrom: selectedFrom as any,
-          selectedTo: selectedTo as any,
-          date: formData?.date || date, // prefer form data if present
-          passengerCounts: formData?.passengers || passengers,
-          travelClass: formData?.class || selectedClass,
-          currency: data?.currency,
-          flights,
-        });
-  // @ts-ignore
-        fetchFlights(payload);
-      }
-    } catch (err) {
-      console.error("Failed to fetch flights:", err);
+  // Geolocation effect
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords: { latitude, longitude } }) =>
+          fetchCoords({ latitude, longitude }).catch((err) =>
+            console.error("Geolocation lookup failed:", err)
+          ),
+        (err) => console.error("Geolocation error:", err)
+      );
     }
-  },
-  [
-    tripType,
-    initialFrom,
-    initialTo,
-    selectedFrom,
-    selectedTo,
+  }, [fetchCoords]);
+
+  // Reset form when searchData changes
+  useEffect(() => {
+    if (!date) return;
+  reset({
+    class: selectedClass,
     date,
-    passengers,
-    selectedClass,
-    data?.currency,
-    flights,
-    fetchFlights,
-  ]
-);
-
-useEffect(() => {
-  if (data?.currency) {
-    getFlight();
-  }
-}, [data, getFlight]);
-
-
-
-
-
-const [page, setPage] = useState<number>(1);
-const [openClick, setOpenClick] = useState<boolean>(false);
-const [selectedDepartureId, setSelectedDepartureId] = useState<string | null>(
-  null
-);
-
-const handleOpen = (depart: FlightOffer) => {
-  setSelectedDepartureId(depart.id);
-  setOpenClick(true);
-};
-
-const handleCloseClick = () => {
-  setOpenClick(false);
-  setSelectedDepartureId(null);
-};
-const departures = flightResults?.data || [];
-const selectedDeparture = departures.find(
-  (d: any) => d.id === selectedDepartureId
-);
-
-const [isOpenFrom, setIsOpenFrom] = useState(false);
-const [isOpenTo, setIsOpenTo] = useState(false);
-const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-const [currentSegment, setCurrentSegment] = useState(1); // start at first flight
-const [visitedSegments, setVisitedSegments] = useState([0]);
-const currentFlight = storedFlights[currentSegment];
-const openDialog = () => {
-  setIsDialogOpen(true);
-};
-const goNextSegment = () => {
-  if (currentSegment < flights.length - 1) {
-    const next = currentSegment + 1;
-    setCurrentSegment(next);
-    
-    // Add to visited segments if not already there
-    if (!visitedSegments.includes(next)) {
-      setVisitedSegments((prev) => [...prev, next]);
-    }
-  }
-};
-
-// const goPrevSegment = () => {
-//   if (currentSegment > 0) {
-//     setCurrentSegment(currentSegment - 1);
-//   }
-// };
-
-const closeDialog = () => {
-  setIsDialogOpen(false);
-};
-const fromAnchors = useRef<Record<string, HTMLDivElement | null>>({});
-const toAnchors = useRef<Record<string, HTMLDivElement | null>>({});
-const [isSortOpen, setIsSortOpen] = useState(false);
-
-const [selectedOption, setSelectedOption] = useState("basic");
-
-const ITEMS_PER_PAGE = 4;
-
-
-  useEffect(() => {   
-   
- 
-    
-    if (isSimpleTrip) {
- 
-      
-  
-      simpleForm.reset({class:initialFlight, date:date, from:initialFrom, to:initialTo, passengers, tripType: tripType as any})
-    } else {
-      console.log(currentFlight, location );
-      simpleForm.reset({class:location.state.flightClass, tripType:tripType as any, passengers:location.state.passengers,date:currentFlight.date, from:currentFlight.from, to:currentFlight.to})
-      
-    }
-
-
- 
-  }, [location]);
-
-
-  const [filters, setFilters] = useState<FlightFilters>({
-    priceRange: [2000, 10_000_000],
-    stops: null,
-    refundPolicy: null,
-    airlines: [],
+    from: selectedFrom,
+    to: tripType === "multi-city" ? selectedFrom : selectedTo,
+    passengers: selectedPassengers,
+    tripType: tripType as "round-trip" | "one-way" | "multi-city",
   });
 
-  const handleFilterChange = (newFilters: FlightFilters) => {
-    setFilters(newFilters);
-  
-  };
+  }, [
+    searchData,
+    reset,
+    date,
+    selectedClass,
+    selectedFrom,
+    selectedTo,
+    selectedPassengers,
+    tripType,
+  ]);
 
-  // const [tempValue, setTempValue] = useState<number[]>([2000, 10000000]);
-
-  const [selectedSort, setSelectedSort] = useState<string | undefined>(
-    "recommended"
-  );
-
-  const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value);
-  };
-
-  const sortedDepartures = useMemo(() => {
-    const sortedArray = [...departures];
-
-    const durationToMinutes = (duration: string) => {
-      const hoursMatch = duration?.match(/(\d+)hrs?/);
-      const minutesMatch = duration?.match(/(\d+)m/);
-      const hours = hoursMatch ? parseInt(hoursMatch[1], 10) : 0;
-      const minutes = minutesMatch ? parseInt(minutesMatch[1], 10) : 0;
-      return hours * 60 + minutes;
-    };
-
-    switch (selectedSort) {
-      case "price_low":
-        sortedArray.sort(
-          (a: any, b: any) => parseInt(a.price.total) - parseInt(b.price.total)
-        );
-        break;
-      case "price_high":
-        sortedArray.sort(
-          (a: any, b: any) => parseInt(b.price.total) - parseInt(a.price.total)
-        );
-        break;
-      case "shortest_duration":
-        sortedArray.sort(
-          (a: any, b: any) =>
-            durationToMinutes(a.itineraries[0]?.duration) -
-            durationToMinutes(b.itineraries[0]?.duration)
-        );
-        break;
-      case "longest_duration":
-        sortedArray.sort(
-          (a: any, b: any) =>
-            durationToMinutes(b.itineraries[0]?.duration) -
-            durationToMinutes(a.itineraries[0]?.duration)
-        );
-        break;
-      default:
-        break;
+  const location = useLocation()
+  // Fetch flights on mount
+  useEffect(() => {
+    if (locationData?.currency) {
+      getFlight({
+        class: selectedClass,
+        date: date as any,
+        from: selectedFrom as any,
+        passengers: selectedPassengers,
+        to: selectedTo as any,
+        tripType: tripType as "round-trip" | "one-way" | "multi-city",
+      });
     }
+  }, [
+    locationData?.currency,
+    selectedClass,
+    date,
+    selectedFrom,
+    selectedTo,
+    selectedPassengers,
+  ]);
 
-    return sortedArray;
-  }, [selectedSort, departures]);
+  // Reset page when filters or sort change
+  useEffect(() => {
+    setPage(1);
+  }, [filters, selectedSort]);
 
-  const paginatedItems = useMemo(() => {
-    const startIndex = (page - 1) * ITEMS_PER_PAGE;
-    return sortedDepartures.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [page, sortedDepartures]);
+  // Handlers
+  const handleIncrement = useCallback((type: keyof typeof counts) => {
+    setCounts((prev) => ({ ...prev, [type]: prev[type] + 1 }));
+  }, []);
 
+  const handleDecrement = useCallback((type: keyof typeof counts) => {
+    setCounts((prev) => ({
+      ...prev,
+      [type]: prev[type] > 0 ? prev[type] - 1 : 0,
+    }));
+  }, []);
 
+  const handleOpen = useCallback((depart: any) => {
+    setSelectedDepartureId(depart.id);
+    setOpenClick(true);
+  }, []);
 
+  const handleCloseClick = useCallback(() => {
+    setOpenClick(false);
+    setSelectedDepartureId(null);
+  }, []);
 
+  const goNextSegment = useCallback(() => {
+    if (Array.isArray(flights) && currentSegment < flights.length - 1) {
+      const next = currentSegment + 1;
+      setCurrentSegment(next);
+      setVisitedSegments((prev) =>
+        prev.includes(next) ? prev : [...prev, next]
+      );
+    }
+  }, [currentSegment, flights]);
 
- 
+  // Flight fetching logic
+  const getFlight = useCallback(
+    (formData?: SimpleTripFormValues) => {
 
-  const getNewFlight = useCallback(
-    (formData?:any) => {
       try {
-    const payload = buildFlightPayload({
-      tripType: formData?.tripType || tripType || ("round-trip" as TripType),
-      initialFrom, // <-- add this
-      initialTo, // <-- add this
-      selectedFrom: formData?.from || selectedFrom || initialFrom,
-      selectedTo: formData?.to || selectedTo || initialTo,
-      date: formData?.date || date,
-      passengerCounts: formData?.passengers || passengers,
-      travelClass: formData?.class || selectedClass,
-      currency: data?.currency,
-      flights,
-    });
 
+        const t  =     tripType as "round-trip" | "one-way" | "multi-city"
+        const payload = buildFlightPayload({
+          tripType: formData?.tripType || t || "round-trip",
+          initialFrom: { id: selectedFrom?.iataCode || "" },
+          initialTo: { id: selectedTo?.iataCode || "" },
+          selectedFrom: formData?.from || selectedFrom as any,
+          selectedTo: formData?.to || selectedTo as any,
+          date: formData?.date || date,
+          passengerCounts: formData?.passengers || selectedPassengers as any,
+          travelClass: formData?.class || selectedClass,
+          currency: locationData?.currency || "NGN",
+          // @ts-ignore
+          flights,
+        });
         // @ts-ignore
         fetchFlights(payload);
       } catch (err) {
@@ -462,519 +281,555 @@ const ITEMS_PER_PAGE = 4;
       selectedFrom,
       selectedTo,
       date,
-      passengers,
+      selectedPassengers,
       selectedClass,
-      data?.currency,
+      locationData?.currency,
       flights,
       fetchFlights,
     ]
   );
 
-  
-const onSearch = simpleForm.handleSubmit((formData) => {
-  getNewFlight(formData);
-});
-  
-  console.log(location.state, sortedDepartures);
-  
-  const departs = paginatedItems.filter((item) => item.id === location.state.departureFlight.id )
-  
+  const onSearch = handleSubmit((formData) => {
+    sessionStorage.setItem(
+      "trip",
+      JSON.stringify({
+        ...searchData,
+        date: formData.date,
+        flightClass: formData.class,
+        from: formData.from,
+        to: formData.to,
+        passengers: formData.passengers,
+        tripType: formData.tripType,
+      })
+    );
+    getFlight(formData);
+  });
 
-  
+  // Flight filtering
+  const filteredDepartures = useMemo(() => {
+    return (flightResults?.data || []).filter((flight: any) => {
+      const price = parseFloat(flight.price?.total || "0");
+      if (price < filters.priceRange[0] || price > filters.priceRange[1])
+        return false;
 
+      if (filters.stops !== null) {
+        const stops = flight.itineraries[0]?.segments?.length - 1 || 0;
+        if (filters.stops === "Non Stop" && stops > 0) return false;
+        if (filters.stops === "1 Stop" && stops !== 1) return false;
+        if (filters.stops === "1+ Stop" && stops < 2) return false;
+      }
+
+      if (filters.refundPolicy === "refundable" && !flight.refundable)
+        return false;
+      if (filters.refundPolicy === "non-refundable" && flight.refundable)
+        return false;
+
+      if (
+        filters.airlines.length > 0 &&
+        !filters.airlines.includes(flight.validatingAirlineCodes?.[0] || "")
+      )
+        return false;
+
+      return true;
+    });
+  }, [flightResults?.data, filters]);
+
+  // Flight sorting
+  const sortedDepartures = useMemo(() => {
+    const sortedArray = [...filteredDepartures];
+    const parsePrice = (p: any) =>
+      parseFloat(String(p).replace(/[,₦\$]/g, "") || "0");
+    const durationToMinutes = (raw: string | undefined) => {
+      if (!raw) return 0;
+      const isoMatch = String(raw).match(/PT(?:(\d+)H)?(?:(\d+)M)?/i);
+      if (isoMatch)
+        return (
+          parseInt(isoMatch[1] || "0", 10) * 60 +
+          parseInt(isoMatch[2] || "0", 10)
+        );
+      const hoursMatch = String(raw).match(/(\d+)\s*h(?:rs?)?/i);
+      const minsMatch = String(raw).match(/(\d+)\s*m/i);
+      return (
+        (hoursMatch ? parseInt(hoursMatch[1], 10) * 60 : 0) +
+        (minsMatch ? parseInt(minsMatch[1], 10) : 0)
+      );
+    };
+
+    switch (selectedSort) {
+      case "price_low":
+        sortedArray.sort(
+          (a, b) => parsePrice(a.price?.total) - parsePrice(b.price?.total)
+        );
+        break;
+      case "price_high":
+        sortedArray.sort(
+          (a, b) => parsePrice(b.price?.total) - parsePrice(a.price?.total)
+        );
+        break;
+      case "shortest_duration":
+        sortedArray.sort(
+          (a, b) =>
+            durationToMinutes(a.itineraries?.[0]?.duration) -
+            durationToMinutes(b.itineraries?.[0]?.duration)
+        );
+        break;
+      case "longest_duration":
+        sortedArray.sort(
+          (a, b) =>
+            durationToMinutes(b.itineraries?.[0]?.duration) -
+            durationToMinutes(a.itineraries?.[0]?.duration)
+        );
+        break;
+      default:
+        break;
+    }
+    return sortedArray;
+  }, [filteredDepartures, selectedSort]);
+
+  const paginatedItems = useMemo(() => {
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    return sortedDepartures.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [page, sortedDepartures]);
+
+  const selectedDeparture = useMemo(
+    () => flightResults?.data?.find((d: any) => d.id === selectedDepartureId),
+    [flightResults?.data, selectedDepartureId]
+  );
+  const isMultiCity = tripType === "multi-city";
+  const currentFlight = flights?.[currentSegment];
+  const departs = paginatedItems.filter(
+    (item) => item.id === location.state.departureFlight.id
+  );
   return (
     <div>
-      <div>
-        <Navbar />
-      </div>
-
-      <div className="w-full h-full  md:bg-[#CCD8E833] mt-[73px]  ">
-        <div className="mb-6 md:hidden ">
+      <Navbar />
+      <div className="w-full h-full md:bg-[#CCD8E833] mt-[73px]">
+        {/* Mobile header */}
+        <div className="mb-6 md:hidden">
           <Link to="/">
-            <div
-              style={{ position: "absolute", left: "28px", top: "85px" }}
-              className="w-[40px] h-[40px] p-[8px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] "
-            >
-              <ArrowBackIosNewOutlinedIcon className="font-bold " />
+            <div className="absolute left-[28px] top-[85px] w-[40px] h-[40px] p-[8px] bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px]">
+              <ArrowBackIosNewOutlinedIcon />
             </div>
           </Link>
-          <p className="text-center font-semibold text-[20px]  mt-[90px]">
-            Return Flight
+          <p className="text-center font-semibold text-[20px] mt-[90px]">
+            Departure Flight
           </p>
         </div>
 
-        <div className="hidden md:block w-[90%] m-auto ">
-          <div className="flex justify-center pt-5 pb-6 mb-[18px]">
-            <form onSubmit={onSearch}>
-              <FormControl sx={{ width: "100%" }}>
-                {/* Simple Trip */}
-
-                <Grid container spacing={2}>
-                  {/* From */}
-                  <Grid item xs={12} md={2}>
-                    <Controller
-                      name="from"
-                      control={simpleForm.control}
-                      render={({ field }) => (
-                        <LocationSelector
-                          id="from"
-                          label="From"
-                          onSelect={field.onChange}
-                          isOpen={isOpenFrom}
-                          // @ts-ignore
-                          defaultValue={field.value}
-                          anchorEl={fromAnchors.current["single"] || null}
-                          setAnchorEl={(el) =>
-                            (fromAnchors.current["single"] =
-                              el as HTMLDivElement | null)
-                          }
-                          setIsOpen={setIsOpenFrom}
-                          onRemoveLocation={() => field.onChange("")}
-                        />
-                      )}
-                    />
-                    {simpleForm.formState.errors.from && (
-                      <p className="text-red-500 text-sm">
-                        {simpleForm.formState.errors.from.message}
-                      </p>
+        {/* Desktop form */}
+        <div className="hidden md:block w-[90%] m-auto">
+          <form onSubmit={onSearch}>
+            <FormControl sx={{ width: "100%" }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={2}>
+                  <Controller
+                    name="from"
+                    control={control}
+                    render={({ field }) => (
+                      <LocationSelector
+                        id="from"
+                        label="From"
+                        onSelect={field.onChange}
+                        isOpen={isOpenFrom}
+                        defaultValue={field.value as any}
+                        anchorEl={fromAnchors.current["single"]}
+                        setAnchorEl={(el) =>
+                          (fromAnchors.current["single"] = el)
+                        }
+                        setIsOpen={setIsOpenFrom}
+                        onRemoveLocation={() => field.onChange("")}
+                      />
                     )}
-                  </Grid>
-
-                  {/* To */}
-                  <Grid item xs={12} md={2}>
-                    <Controller
-                      name="to"
-                      control={simpleForm.control}
-                      render={({ field }) => (
-                        <LocationSelector
-                          id="to"
-                          label="To"
-                          onSelect={field.onChange}
-                          isOpen={isOpenTo}
-                          // @ts-ignore
-                          defaultValue={field.value}
-                          anchorEl={toAnchors.current["single"] || null}
-                          setAnchorEl={(el) =>
-                            (toAnchors.current["single"] =
-                              el as HTMLDivElement | null)
-                          }
-                          setIsOpen={setIsOpenTo}
-                          onRemoveLocation={() => field.onChange("")}
-                        />
-                      )}
-                    />
-                    {simpleForm.formState.errors.to && (
-                      <p className="text-red-500 text-sm">
-                        {simpleForm.formState.errors.to.message}
-                      </p>
-                    )}
-                  </Grid>
-
-                  {/* Date */}
-                  <Grid item xs={12} md={2}>
-                    <Controller
-                      name="date"
-                      control={simpleForm.control}
-                      render={({ field }) => (
-                        <DateSelector
-                          id="departure-date"
-                          label="Date"
-                          value={
-                            field.value
-                              ? field.value instanceof Date
-                                ? format(field.value, "dd MMM yyyy")
-                                : `${format(
-                                    field.value.startDate,
-                                    "dd MMM yyyy"
-                                  )} - ${format(
-                                    field.value.endDate,
-                                    "dd MMM yyyy"
-                                  )}`
-                              : ""
-                          }
-                          onDateChange={(val) => {
-                            if (val instanceof Date) {
-                              field.onChange(val); // <-- stores date
-                            } else if (val?.startDate && val?.endDate) {
-                              field.onChange(val); // <-- store range object
-                            } else {
-                              field.onChange(null);
-                            }
-                          }}
-                          range={tripType === "round-trip"}
-                        />
-                      )}
-                    />
-
-                    {simpleForm.formState.errors.date && (
-                      <p className="text-red-500 text-sm">
-                        {simpleForm.formState.errors.date.message}
-                      </p>
-                    )}
-                  </Grid>
-
-                  {/* Passengers */}
-                  <Grid item xs={12} md={2}>
-                    <Controller
-                      name="passengers"
-                      control={simpleForm.control}
-                      render={({ field }) => (
-                        <PassengerSelector
-                          id="passengers"
-                          label="Passengers"
-                          value={`${field.value.adults} Adult, ${field.value.children} Child, ${field.value.infants} Infant`}
-                          // @ts-ignore
-                          counts={field.value}
-                          onChange={field.onChange}
-                        />
-                      )}
-                    />
-                    {simpleForm.formState.errors.passengers && (
-                      <p className="text-red-500 text-sm">
-                        {simpleForm.formState.errors.passengers.message}
-                      </p>
-                    )}
-                  </Grid>
-
-                  {/* Class */}
-                  <Grid item xs={12} md={2}>
-                    <Controller
-                      name="class"
-                      control={simpleForm.control}
-                      render={({ field }) => (
-                        <ClassSelector
-                          id="class"
-                          label="Class"
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      )}
-                    />
-                    {simpleForm.formState.errors.class && (
-                      <p className="text-red-500 text-sm">
-                        {simpleForm.formState.errors.class.message}
-                      </p>
-                    )}
-                  </Grid>
-
-                  <Grid
-                    item
-                    xs={12}
-                    md={2}
-                    display="flex"
-                    alignItems="flex-end"
-                  >
-                    <button
-                      type="submit"
-                      disabled={!isCountryReady as boolean}
-                      className="bg-[#023E8A] h-[52px] disabled:bg-zinc-700 md:max-w-[140px] w-full text-center text-white font-inter text-base rounded-[8px] cursor-pointer hover:bg-[#012a5c] transition-colors"
-                    >
-                      Search
-                    </button>
-                  </Grid>
+                  />
+                  {errors.from && (
+                    <p className="text-red-500 text-sm">
+                      {errors.from.message}
+                    </p>
+                  )}
                 </Grid>
-
-                {/* Multi-City */}
-              </FormControl>
-            </form>
-          </div>
+                <Grid item xs={12} md={2}>
+                  <Controller
+                    name="to"
+                    control={control}
+                    render={({ field }) => (
+                      <LocationSelector
+                        id="to"
+                        label="To"
+                        onSelect={field.onChange}
+                        isOpen={isOpenTo}
+                        defaultValue={field.value as any}
+                        anchorEl={toAnchors.current["single"]}
+                        setAnchorEl={(el) => (toAnchors.current["single"] = el)}
+                        setIsOpen={setIsOpenTo}
+                        onRemoveLocation={() => field.onChange("")}
+                      />
+                    )}
+                  />
+                  {errors.to && (
+                    <p className="text-red-500 text-sm">{errors.to.message}</p>
+                  )}
+                </Grid>
+                <Grid item xs={12} md={2}>
+                  <Controller
+                    name="date"
+                    control={control}
+                    render={({ field }) => (
+                      <DateSelector
+                        id="departure-date"
+                        label="Date"
+                        value={
+                          field.value
+                            ? field.value instanceof Date
+                              ? format(field.value, "dd MMM yyyy")
+                              : `${format(
+                                  field.value.startDate,
+                                  "dd MMM yyyy"
+                                )} - ${format(
+                                  field.value.endDate,
+                                  "dd MMM yyyy"
+                                )}`
+                            : ""
+                        }
+                        onDateChange={(val) =>
+                          field.onChange(
+                            val instanceof Date
+                              ? val
+                              : val?.startDate && val?.endDate
+                              ? val
+                              : null
+                          )
+                        }
+                        range={tripType === "round-trip"}
+                      />
+                    )}
+                  />
+                  {errors.date && (
+                    <p className="text-red-500 text-sm">
+                      {errors.date.message}
+                    </p>
+                  )}
+                </Grid>
+                <Grid item xs={12} md={2}>
+                  <Controller
+                    name="passengers"
+                    control={control}
+                    render={({ field }) => (
+                      <PassengerSelector
+                        id="passengers"
+                        label="Passengers"
+                        value={`${field.value.adults} Adult, ${field.value.children} Child, ${field.value.infants} Infant`}
+                        counts={field.value as any}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                  {errors.passengers && (
+                    <p className="text-red-500 text-sm">
+                      {errors.passengers.message}
+                    </p>
+                  )}
+                </Grid>
+                <Grid item xs={12} md={2}>
+                  <Controller
+                    name="class"
+                    control={control}
+                    render={({ field }) => (
+                      <ClassSelector
+                        id="class"
+                        label="Class"
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                  {errors.class && (
+                    <p className="text-red-500 text-sm">
+                      {errors.class.message}
+                    </p>
+                  )}
+                </Grid>
+                <Grid item xs={12} md={2} display="flex" alignItems="flex-end">
+                  <button
+                    type="submit"
+                    className="bg-[#023E8A] h-[52px] w-full md:max-w-[140px] text-white font-inter text-base rounded-[8px] hover:bg-[#012a5c] transition-colors"
+                  >
+                    Search
+                  </button>
+                </Grid>
+              </Grid>
+            </FormControl>
+          </form>
         </div>
 
+        {/* Mobile search summary */}
         <div className="md:mb-[20px] mt-[25px] w-[90%] m-auto md:hidden">
-          <div className="border-1  border-[#023E8A] w-full bg-[#CCD8E81A] pt-[10px] pb-[10px] pr-[8px] pl-[8px] rounded-[8px]">
+          <div className="border-[1px] border-[#023E8A] bg-[#CCD8E81A] p-[10px] rounded-[8px]">
             <div className="flex gap-2 justify-between">
               <div className="text-[#181818]">
-                <p className="text-[16px] font-medium">
-                  {from} to {to}
-                </p>
+                <p className="text-[16px] font-medium">{`${control._formValues.from?.cityName} to ${control._formValues.to?.cityName}`}</p>
                 <p className="text-[14px] font-normal text-[#67696D]">
-                  {/* {formatDate(selectedDate as Date)} , {passengerText} */}
+                  {control._formValues.date instanceof Date
+                    ? control._formValues.date.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : control._formValues.date?.startDate instanceof Date
+                    ? control._formValues.date.startDate.toLocaleDateString(
+                        "en-US",
+                        { month: "short", day: "numeric" }
+                      )
+                    : ""}
+                  ,{" "}
+                  {(control._formValues.passengers.adults || 0) +
+                    (control._formValues.passengers.children || 0) +
+                    (control._formValues.passengers.infants || 0)}{" "}
+                  passengers
                 </p>
               </div>
-
               <Link to="/">
-                <div>
-                  <ModeEditOutlinedIcon className="  mt-3" />
-                </div>
+                <ModeEditOutlinedIcon className="mt-3" />
               </Link>
             </div>
           </div>
         </div>
 
-        <div className="bg-white w-full h-full md:pt-[20px] pb-[50px] mb-[100px] ">
+        {/* Main content */}
+        <div className="bg-white w-full h-full md:pt-[20px] pb-[50px] mb-[100px]">
           <div className="w-[90%] m-auto hidden md:block">
             <div className="flex gap-1 text-[15px] mb-4">
               {isMultiCity ? (
-                <div className="flex gap-1 text-[15px] mb-4">
-                  <span className="font-medium text-[#67696D]">Home</span>
-                  {visitedSegments
-                    .concat(currentSegment)
-                    .filter(
-                      (value, index, self) => self.indexOf(value) === index
-                    )
-                    .map((idx) => (
-                      <React.Fragment key={flights[idx].id}>
-                        <span className="text-[#67696D]"> &gt; </span>
-                        <span
-                          className={`font-medium cursor-pointer ${
-                            currentSegment === idx
-                              ? "text-[#023E8A]"
-                              : "text-[#67696D]"
-                          }`}
-                          onClick={() => setCurrentSegment(idx)}
-                        >
-                          Return Flight {currentSegment + 1}
-                        </span>
-                      </React.Fragment>
-                    ))}
-                </div>
+                [...new Set([...visitedSegments, currentSegment])]
+                  .sort((a, b) => a - b)
+                  .map((idx) => (
+                    <React.Fragment key={`segment-${idx}`}>
+                      <span className="text-[#67696D]">&gt;</span>
+                      <span
+                        className={`font-medium cursor-pointer transition-colors ${
+                          currentSegment === idx
+                            ? "text-[#023E8A]"
+                            : "text-[#67696D]"
+                        } hover:text-[#023E8A]`}
+                        onClick={() => setCurrentSegment(idx)}
+                      >
+                        Departure Flight {idx + 1}
+                      </span>
+                    </React.Fragment>
+                  ))
               ) : (
                 <Breadcrumb />
               )}
             </div>
+            <Divider />
           </div>
 
-          <Divider
-            sx={{
-              display: {
-                xs: "none",
-                md: "block",
-              },
-            }}
-          />
-
-          <div className="">
-            <div className="mt-[26px] md:mb-[26px]">
-              <div className="w-[90%] m-auto flex justify-between">
-                <p className="text-[24px] font-inter font-semibold max-md:hidden">
-                  {isMultiCity
-                    ? `Return Flight from
-                          ${currentFlight.from.cityName} (${currentFlight.from.iataCode}) to
-                          ${currentFlight.to.cityName} (${currentFlight.to.iataCode})`
-                    : " Return Flight"}
-                </p>
-                <div>
-                  <div className="">
-                    <Box sx={{ display: "flex", gap: "15px" }}>
-                      <TextField
-                        id="filter-input"
-                        variant="outlined"
-                        size="small"
-                        placeholder="Filter"
-                        aria-readonly="true"
-                        onClick={openDialog}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              {/* <TuneIcon sx={{ color: "black" }} /> */}
-
-                              <Icon
-                                icon="mi:filter"
-                                width="24"
-                                height="24"
-                                color="black"
-                              />
-                            </InputAdornment>
-                          ),
-                          readOnly: true,
-                        }}
-                        sx={{
-                          width: "100px",
-                          "& .MuiInputBase-root": {
-                            height: "44px",
-                            borderRadius: "8px",
-                            borderColor: "#DEDFE1",
-                            cursor: "pointer",
-                          },
-                          "& .MuiInputBase-input::placeholder": {
-                            color: "black",
-                            opacity: 1, // ensures full color visibility
-                          },
-                          "& .MuiInputBase-input": {
-                            color: "black",
-                          },
-                        }}
-                      />
-
-                      {/* filter here */}
-
-                      <FilterFlight
-                        isMobile={isMobile}
-                        filters={filters}
-                        open={isDialogOpen}
-                        onClose={closeDialog}
-                        onChange={handleFilterChange}
-                      />
-                      <Button
-                        variant="outlined"
-                        sx={{
-                          display: { xs: "block", md: "none" },
-                          borderRadius: "8px",
-                        }}
-                        color="inherit"
-                        onClick={() => setIsSortOpen(true)}
-                      >
-                        <SortIcon sx={{ color: "black" }} /> Sort
-                      </Button>
-
-                      <SortFlight
-                        setValue={(value) => {
-                          setSelectedSort(value);
-                        }}
-                        open={isSortOpen}
-                        onClose={() => setIsSortOpen(false)}
-                        isMobile={isMobile}
-                        value={selectedSort}
-                        handleApplyFilters={() => {}}
-                      />
-                    </Box>
-                  </div>
-                </div>
-              </div>
+          <div className="mt-[26px] md:mb-[26px]">
+            <div className="w-[90%] m-auto flex justify-between">
+              <p className="text-[24px] font-inter font-semibold max-md:hidden">
+                {isMultiCity && currentFlight?.from && currentFlight?.to
+                  ? `Departure Flight from ${currentFlight.from.cityName} (${currentFlight.from.iataCode}) to ${currentFlight.to.cityName} (${currentFlight.to.iataCode})`
+                  : "Departure Flight"}
+              </p>
+              <Box sx={{ display: "flex", gap: "15px" }}>
+                <TextField
+                  id="filter-input"
+                  variant="outlined"
+                  size="small"
+                  placeholder="Filter"
+                  onClick={() => setIsDialogOpen(true)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Icon
+                          icon="mi:filter"
+                          width="24"
+                          height="24"
+                          color="black"
+                        />
+                      </InputAdornment>
+                    ),
+                    readOnly: true,
+                  }}
+                  sx={{
+                    width: "100px",
+                    "& .MuiInputBase-root": {
+                      height: "44px",
+                      borderRadius: "8px",
+                      borderColor: "#DEDFE1",
+                      cursor: "pointer",
+                    },
+                    "& .MuiInputBase-input::placeholder": {
+                      color: "black",
+                      opacity: 1,
+                    },
+                    "& .MuiInputBase-input": { color: "black" },
+                  }}
+                />
+                <FilterFlight
+                  isMobile={isMobile}
+                  filters={filters}
+                  open={isDialogOpen}
+                  onClose={() => setIsDialogOpen(false)}
+                  onChange={setFilters}
+                  onApply={() => setFilters({ ...filters })}
+                />
+                <Button
+                  variant="outlined"
+                  sx={{
+                    display: { xs: "block", md: "none" },
+                    borderRadius: "8px",
+                  }}
+                  color="inherit"
+                  onClick={() => setIsSortOpen(true)}
+                >
+                  <SortIcon sx={{ color: "black" }} /> Sort
+                </Button>
+                <SortFlight
+                  setValue={setSelectedSort}
+                  open={isSortOpen}
+                  onClose={() => setIsSortOpen(false)}
+                  isMobile={isMobile}
+                  value={selectedSort}
+                  handleApplyFilters={() => {}}
+                />
+              </Box>
             </div>
             <Divider />
           </div>
 
-          <div>
-            <div className="mt-[24px] w-[90%] m-auto cursor-pointer">
-              {isLoading || isFetching ? (
-                <div className="flex justify-center mt-20">
-                  Loading flights...
-                </div>
-              ) : error ? (
-                <div className="flex flex-col items-center justify-center mt-20 text-red-600">
-                  <ErrorOutlineIcon
-                    sx={{ width: 60, height: 60, color: "red" }}
-                  />
-                  <p className="font-semibold text-[20px] mt-4">
-                    Failed to load flights
-                  </p>
-                  <p className="text-[#67696D] text-center w-[80%] mt-2">
-                    {"data" in error &&
-                    typeof error.data === "object" &&
-                    "message" in error.data
-                      ? (error.data as { message?: string })?.message
-                      : "Something went wrong while fetching flight offers. Please try again later."}
-                  </p>
-                  <Button
-                    variant="contained"
-                    sx={{ mt: 3, borderRadius: "8px", textTransform: "none" }}
-                    onClick={() => getFlight()} // retry
-                  >
-                    Retry
-                  </Button>
-                </div>
-              ) : paginatedItems.length > 0 ? (
-                departs.map((depart) => (
-                  <DepartCard
-                    key={depart.id}
-                    depart={depart}
-                    onClick={handleOpen}
-                    segment={currentSegment}
-                  />
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center mt-20">
-                  <SearchOutlinedIcon
-                    sx={{ width: "60px", height: "60px", color: "#67696D" }}
-                  />
-                  <p className="text-black font-semibold text-[20px] mt-4">
-                    No Flight Match your Search
-                  </p>
-                  <p className="text-[#67696D] w-[80%] m-auto font-normal text-[16px] mt-4 text-center">
-                    Looks like there are no flights for your selected route and
-                    dates. Try selecting different travel dates.
-                  </p>
-                </div>
-              )}
-
-              <Stack spacing={2} className="mt-50">
-                <Pagination
-                  count={Math.ceil(departures.length / ITEMS_PER_PAGE)}
-                  shape="rounded"
-                  page={page}
-                  variant="text"
-                  hideNextButton={false}
-                  hidePrevButton={false}
-                  renderItem={(item) => (
-                    <PaginationItem
-                      {...item}
-                      slots={{
-                        previous: () => (
-                          <div className="flex items-center gap-3">
-                            <Icon
-                              icon="material-symbols-light:arrow-back-ios-new"
-                              width="24"
-                              height="24"
-                            />
-                            <span className=" ">Prev</span>
-                          </div>
-                        ),
-                        next: () => (
-                          <div className="flex items-center gap-3">
-                            <span className=" ">Next</span>
-                            <Icon
-                              icon="material-symbols-light:arrow-forward-ios"
-                              width="24"
-                              height="24"
-                            />
-                          </div>
-                        ),
-                      }}
-                      sx={{
-                        borderRadius: "6px",
-                        fontWeight: 500,
-                        "&.Mui-selected": {
-                          backgroundColor: "#023E8A",
-                          color: "white",
-                        },
-                        ...(item.type === "previous" || item.type === "next"
-                          ? {
-                              color: "black",
-
-                              // horizontal padding
-                              "&:hover": {
-                                backgroundColor: "#CCD8E801",
-                              },
-                              boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-                              borderRadius: "6px",
-                            }
-                          : {}),
-                      }}
-                    />
-                  )}
-                  onChange={handleChange}
-                  sx={{ display: "flex", justifyContent: "center" }}
+          <div className="mt-[24px] w-[90%] m-auto cursor-pointer">
+            {isLoading || isFetching ? (
+              <div className="flex justify-center mt-20">
+                Loading flights...
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center mt-20 text-red-600">
+                <ErrorOutlineIcon
+                  sx={{ width: 60, height: 60, color: "red" }}
                 />
-              </Stack>
-              {selectedDeparture && (
-                <FlightDrawer
-                  counts={counts}
-                  handleCloseClick={handleCloseClick}
-                  handleDecrement={handleDecrement}
-                  handleIncrement={handleIncrement}
-                  openClick={openClick}
-                  options={[]}
-                  selectedOption={selectedOption}
-                  onNext={goNextSegment}
-                  setSelectedOption={setSelectedOption}
-                  selectedDeparture={selectedDeparture}
-                  returnFlight={isMultiCity ? currentSegment : 1}
-                  title="Return"
+                <p className="font-semibold text-[20px] mt-4">
+                  Failed to load flights
+                </p>
+                <p className="text-[#67696D] text-center w-[80%] mt-2">
+                  {"data" in error &&
+                  typeof error.data === "object" &&
+                  "message" in error.data
+                    ? (error.data as { message?: string })?.message
+                    : "Something went wrong while fetching flight offers. Please try again later."}
+                </p>
+                <Button
+                  variant="contained"
+                  sx={{ mt: 3, borderRadius: "8px", textTransform: "none" }}
+                  onClick={() => getFlight()}
+                >
+                  Retry
+                </Button>
+              </div>
+            ) : paginatedItems.length > 0 ? (
+              departs.map((depart) => (
+                <DepartCard
+                  key={depart.id}
+                  depart={depart}
+                  onClick={handleOpen}
+                  segment={currentSegment}
                 />
-              )}
-            </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center mt-20">
+                <SearchOutlinedIcon
+                  sx={{ width: "60px", height: "60px", color: "#67696D" }}
+                />
+                <p className="text-black font-semibold text-[20px] mt-4">
+                  No Flight Match your Search
+                </p>
+                <p className="text-[#67696D] w-[80%] m-auto font-normal text-[16px] mt-4 text-center">
+                  Looks like there are no flights for your selected route and
+                  dates. Try selecting different travel dates.
+                </p>
+              </div>
+            )}
+
+            <Stack spacing={2} className="mt-50">
+              <Pagination
+                count={Math.ceil(filteredDepartures.length / ITEMS_PER_PAGE)}
+                shape="rounded"
+                page={page}
+                variant="text"
+                renderItem={(item) => (
+                  <PaginationItem
+                    {...item}
+                    slots={{
+                      previous: () => (
+                        <div className="flex items-center gap-3">
+                          <Icon
+                            icon="material-symbols-light:arrow-back-ios-new"
+                            width="24"
+                            height="24"
+                          />
+                          <span>Prev</span>
+                        </div>
+                      ),
+                      next: () => (
+                        <div className="flex items-center gap-3">
+                          <span>Next</span>
+                          <Icon
+                            icon="material-symbols-light:arrow-forward-ios"
+                            width="24"
+                            height="24"
+                          />
+                        </div>
+                      ),
+                    }}
+                    sx={{
+                      borderRadius: "6px",
+                      fontWeight: 500,
+                      "&.Mui-selected": {
+                        backgroundColor: "#023E8A",
+                        color: "white",
+                      },
+                      ...(item.type === "previous" || item.type === "next"
+                        ? {
+                            color: "black",
+                            "&:hover": { backgroundColor: "#CCD8E801" },
+                            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+                            borderRadius: "6px",
+                          }
+                        : {}),
+                    }}
+                  />
+                )}
+                onChange={(_event, value) => setPage(value)}
+                sx={{ display: "flex", justifyContent: "center" }}
+              />
+            </Stack>
+
+            {selectedDeparture && (
+              <FlightDrawer
+                counts={counts}
+                handleCloseClick={handleCloseClick}
+                handleDecrement={handleDecrement}
+                handleIncrement={handleIncrement}
+                openClick={openClick}
+                multiCitySelections={multiCitySelections}
+                setMultiCitySelections={setMultiCitySelections}
+                options={[]}
+                searchState={searchData}
+                selectedOption="basic"
+                onNext={goNextSegment}
+                setSelectedOption={() => {}} // Placeholder, adjust as needed
+                selectedDeparture={selectedDeparture}
+                returnFlight={isMultiCity ? currentSegment : 1}
+                title="Departure"
+              />
+            )}
           </div>
         </div>
 
-        <div className="">
-          <TravelmateApp />
-        </div>
+        <TravelmateApp />
       </div>
-
       <Footer />
     </div>
   );
 };
 
-export default DeparturePage;
+export default React.memo(ReturnPage);
+

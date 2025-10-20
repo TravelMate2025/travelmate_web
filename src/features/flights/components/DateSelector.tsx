@@ -45,6 +45,8 @@ export const DateSelector = memo<DateSelectorProps>(
 
     // Sync with parent value
     useEffect(() => {
+      console.log(value);
+      
       if (!value || typeof value !== "string") return;
 
       if (range && (value.includes("to") || value.includes("-"))) {

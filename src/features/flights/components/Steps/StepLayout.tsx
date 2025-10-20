@@ -113,72 +113,73 @@ const [booking, setBooking] = React.useState<{
 
   return (
     // <FormProvider {...methods}>
-      <StepContext.Provider value={value}>
-        <Box sx={{ width: "100%" }}>
-          <div className="flex items-center mb-4">
-            <IconButton
-              sx={{
-                borderRadius: 2,
-                boxShadow: "0 0 6px rgba(0, 0, 0, 0.2)",
-                display: {
-                  xs: "block",
-                  md: "none",
-                },
-              }}
-              onClick={prevStep}
-            >
-              <Icon
-                icon="ic:outline-arrow-back-ios-new"
-                width="24"
-                color="black"
-                height="24"
-              />
-              
-            </IconButton>
-            <div className="flex-1 ">
-              <p className="font-semibold text-center md:hidden text-xl text-[#181818]">
-                {steps[activeStep]}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center">
-            <IconButton
-              sx={{
-                borderRadius: 2,
-                boxShadow: "0 0 6px rgba(0, 0, 0, 0.2)",
-                display: {
-                  xs: "none",
-                  md: "block",
-                },
-              }}
-              onClick={prevStep}
-            >
-              <Icon
-                icon="ic:outline-arrow-back-ios-new"
-                width="24"
-                color="black"
-                height="24"
-              />
-            </IconButton>
-            <div className="flex-1 flex justify-center items-center">
-              <CustomStepper
-                steps={steps.map((step) => {
-                  return { label: step };
-                })}
-                activeStep={activeStep}
-              />
-            </div>
-          </div>
-
-          <Box
-       
-            sx={{ mt: 4 }}
-          
+    <StepContext.Provider value={value}>
+      <Box sx={{ width: "100%" }}>
+        <div className="flex items-center mb-4">
+          <IconButton
+            sx={{
+              borderRadius: 2,
+              boxShadow: "0 0 6px rgba(0, 0, 0, 0.2)",
+              display: {
+                xs: "block",
+                sm: "none",
+              },
+            }}
+            onClick={prevStep}
           >
-            {children}
-          </Box>
-        </Box>
-      </StepContext.Provider>
+            <Icon
+              icon="ic:outline-arrow-back-ios-new"
+              width="24"
+              color="black"
+              height="24"
+            />
+          </IconButton>
+          <div className="flex-1 ">
+            <p className="font-semibold text-center md:hidden text-xl text-[#181818]">
+              {steps[activeStep]}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center">
+          <IconButton
+            disabled={activeStep === 0}
+            onClick={prevStep}
+            sx={{
+              borderRadius: 2,
+              boxShadow: "0 0 6px rgba(0, 0, 0, 0.2)",
+              display: {
+                xs: "none",
+                md: "block",
+              },
+              color: activeStep === 0 ? "#9e9e9e" : "black", // greyed out when disabled
+              cursor: activeStep === 0 ? "not-allowed" : "pointer", // optional UX tweak
+              "&.Mui-disabled": {
+                opacity: 0.5,
+                boxShadow: "none", // remove shadow when disabled (optional)
+              },
+            }}
+          >
+            <Icon
+              icon="ic:outline-arrow-back-ios-new"
+              width="24"
+              height="24"
+              color={activeStep === 0 ? "#9e9e9e" : "black"} // adjust icon color when disabled
+            />
+          </IconButton>
+
+          <div className="flex-1 flex justify-center items-center">
+            <CustomStepper
+              steps={steps.map((step) => {
+                return { label: step };
+              })}
+              activeStep={activeStep}
+            />
+          </div>
+        </div>
+
+        <Box sx={{ mt: 4 }}>{children}</Box>
+      </Box>
+    </StepContext.Provider>
     // </FormProvider>
   );
 }

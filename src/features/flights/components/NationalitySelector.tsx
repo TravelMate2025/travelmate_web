@@ -1,24 +1,16 @@
-
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo,  } from "react";
 import { X, Search } from "lucide-react";
 import {
-
   Drawer,
- 
-  Paper,
-
-  useMediaQuery,
-  useTheme,
- 
-  InputAdornment,
-  TextField,
-} from "@mui/material";
-import {
- 
+  Menu,
   MenuItem,
   Divider,
   ListItemIcon,
   ListItemText,
+  useMediaQuery,
+  useTheme,
+  InputAdornment,
+  TextField,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 
@@ -37,10 +29,8 @@ export function NationalitySelector({
 }: NationalitySelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { data: countries } = useGetNationsQuery();
-  const [open, setOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
- const anchorRef = useRef<HTMLButtonElement | null>(null);
- const dropdownRef = useRef<HTMLDivElement | null>(null);
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const filteredCountries = useMemo(() => {
@@ -54,7 +44,7 @@ export function NationalitySelector({
 
   const handleSelect = (code: string) => {
     onChange(code);
-    setOpen(false);
+    handleClose();
     setSearchQuery("");
   };
 
@@ -64,51 +54,36 @@ export function NationalitySelector({
   }, [value, countries]);
 
   const handleClose = () => {
-    setOpen(false);
+    setAnchorEl(null);
     setSearchQuery("");
   };
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !anchorRef.current?.contains(event.target as Node)
-      ) {
-        setOpen(false);
-      }
-    }
-    if (open) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
+  const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
 
+  // Content inside menu/drawer
   const content = (
-    <div className="flex flex-col h-[400px] max-h-[80vh]">
+    <div className="flex flex-col h-[400px] max-h-[80vh] ">
       {/* Search Input */}
       <div className="p-3 border-b border-gray-200">
         <div className="relative">
           <TextField
             value={searchQuery}
             autoFocus
-            slotProps={{
-              input: {
-                
-                startAdornment:(
-                  <InputAdornment position="start">
-                    <Search className="h-5 w-5 text-gray-400" />
-                  </InputAdornment>
-                ),
-                sx: {
-                  height:"2rem"
-                }
-              }
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </InputAdornment>
+              ),
+              sx: {
+                height: "2rem",
+              },
             }}
-            
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search countries..."
-            className="pl-10 pr-10 w-full h-10 "
-
+            className="pl-10 pr-10 w-full h-10"
           />
           {searchQuery && (
             <X
@@ -120,22 +95,13 @@ export function NationalitySelector({
       </div>
 
       {/* Countries List */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 w-full">
         <div className="p-2">
           {/* All Countries option */}
-          <button
-            onClick={() => handleSelect("All Countries")}
-            className="w-full text-left px-3 py-2 hover:bg-gray-100 hover:text-gray-900 rounded-md transition-colors"
-          >
-            All Countries
-          </button>
-
-          {/* Filtered countries */}
-
-          <MenuItem onClick={() => handleSelect("All Countries")}>
-        
+          <MenuItem onClick={() => handleSelect("All Countries")} sx={{width:"100%"}} disabled>
+            <ListItemText>All Countries</ListItemText>
             {value === "All Countries" && (
-              <ListItemIcon sx={{ minWidth: 24 }}>
+              <ListItemIcon sx={{ minWidth: 24, width:"100%" }}>
                 <CheckIcon fontSize="small" />
               </ListItemIcon>
             )}
@@ -147,7 +113,7 @@ export function NationalitySelector({
             <div key={country.code}>
               <MenuItem onClick={() => handleSelect(country.code)}>
                 <ListItemText>{country.name}</ListItemText>
-                {value === country.name && (
+                {value === country.code && (
                   <ListItemIcon sx={{ minWidth: 24 }}>
                     <CheckIcon fontSize="small" />
                   </ListItemIcon>
@@ -170,9 +136,8 @@ export function NationalitySelector({
   return (
     <>
       <Button
-        onClick={() => setOpen((prev) => !prev)} // Toggle open state
+        onClick={handleButtonClick}
         variant="outline"
-        ref={anchorRef}
         type="button"
         className="w-full justify-start text-left"
       >
@@ -182,7 +147,7 @@ export function NationalitySelector({
       {isMobile ? (
         <Drawer
           anchor="bottom"
-          open={open}
+          open={Boolean(anchorEl)}
           onClose={handleClose}
           PaperProps={{
             className: "rounded-t-lg max-h-[80vh]",
@@ -191,17 +156,17 @@ export function NationalitySelector({
           {content}
         </Drawer>
       ) : (
-        <div>
-          {open && (
-            <Paper
-              ref={dropdownRef}
-              className="shadow-lg rounded-lg overflow-hidden w-full"
-              elevation={1}
-            >
-              <div>{content}</div>
-            </Paper>
-          )}
-        </div>
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+          PaperProps={{ style: { maxHeight: "80vh", width: 500 } }}
+          MenuListProps={{ style: { padding: 0 } }}
+          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          transformOrigin={{ vertical: "top", horizontal: "left" }}
+        >
+          {content}
+        </Menu>
       )}
     </>
   );

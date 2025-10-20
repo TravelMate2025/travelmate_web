@@ -47,16 +47,36 @@ import { format } from "date-fns";
 import { useAppSelector } from "../../../../hooks/redux";
 import { RootState } from "../../../../store";
 
+const yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
+const today = new Date();
+today.setHours(0, 0, 0, 0);
 
 // Validation Schema for a single passenger
 const passengerSchema = yup.object().shape({
   title: yup.string().required("Title is required"),
   firstName: yup.string().required("First name is required"),
   lastName: yup.string().required("Last name is required"),
-  dob: yup.date().nullable().required("Date of birth is required"),
+  dob: yup
+    .date()
+    .nullable()
+    .required("Date of birth is required")
+    .max(yesterday, "Date of birth cannot be today or in the future"),
   gender: yup.string().required("Gender is required"),
-  passportNumber: yup.string().required("Passport number is required"),
-  passportExpiry: yup.date().nullable().required("Passport expiry is required"),
+  passportNumber: yup
+    .string()
+    .required("Passport number is required")
+    .max(9, "Passport must not be more than 9 characters")
+    .matches(
+      /^[a-zA-Z0-9]{1,9}$/,
+      "Passport can only contain letters and numbers"
+    ),
+
+  passportExpiry: yup
+    .date()
+    .nullable()
+    .required("Passport expiry is required")
+    .min(today, "Passport expiry date cannot be in the past"),
   nationality: yup.string().required("Nationality is required"),
 });
 
@@ -107,7 +127,7 @@ const Step2: React.FC = () => {
   const { user,  } = useAppSelector(
     (state: RootState) => state.auth
   );
-  console.log(user);
+
 
   const [useProfile, setUseProfile] = useState(false);
   const [createSession, ] = useCreateCheckoutSessionMutation();
@@ -128,7 +148,7 @@ const Step2: React.FC = () => {
     control,
     handleSubmit,
     setValue,
-    formState: { errors, isSubmitting, isValid },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -673,7 +693,7 @@ const Step2: React.FC = () => {
             type="submit"
             variant="contained"
             fullWidth
-            disabled={isSubmitting || !isValid}
+            disabled={isSubmitting }
             sx={{
               bgcolor: "#003C96",
               py: 1.5,

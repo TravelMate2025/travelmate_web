@@ -8,7 +8,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 export type Flight = {
-  id: number;
+  id?: number;
   from: Airport | null;
   to: Airport | null;
   date: string;
@@ -20,7 +20,22 @@ export interface PassengerCounts {
 }
 
 export type DateSelection = Date | { startDate: Date; endDate: Date } | null;
-
+ 
+export type SearchData =  {
+    from: Airport | undefined;
+    to: Airport | undefined;
+    formattedDate: string;
+    date: DateSelection | undefined;
+    flightClass: string;
+    passengers: PassengerCounts;
+    tripType: string;
+    country: string;
+    flights: Flight[] | {
+        from: Airport | undefined;
+        to: Airport | undefined;
+        date: DateSelection | undefined;
+    }[] | undefined;
+}
 export const useFlightBooking = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -101,16 +116,9 @@ const [flights, setFlights] = useState<Flight[]>(() => {
     []
   );
 
-const addFlight = useCallback(() => {
-  setFlights((prev) => [
-    ...prev,
-    { id: Date.now(), from: null, to: null, date: "" },
-  ]);
-}, []);
 
-  const removeFlight = useCallback((id: number) => {
-    setFlights((prev) => prev.filter((flight) => flight.id !== id));
-  }, []);
+
+
 
   const getFormattedDate = (date?: DateSelection) => {
     if (!date) return "";
@@ -158,7 +166,7 @@ const addFlight = useCallback(() => {
       tripType,
       selectedFrom,
       selectedTo,
-      selectedDate,
+  
 
       selectedClass,
       passengerCounts,
@@ -199,8 +207,7 @@ const isCountryReady =
     setSelectedClass,
     setPassengerCounts,
     updateFlight,
-    addFlight,
-    removeFlight,
+
     handleSearch,
   };
 };
