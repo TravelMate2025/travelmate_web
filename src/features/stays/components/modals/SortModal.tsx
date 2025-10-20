@@ -18,7 +18,7 @@ export default function SortModal({ selectedSort, onClose, onSelect }: SortModal
         {options.map((option, index) => (
           <button
             key={option}
-            className={`w-full py-4 text-lg ${
+            className={`w-full py-4 text-lg cursor-pointer ${
               selectedSort === option ? "bg-[#023E8A] text-white" : "bg-white text-black"
             } ${index === 0 ? "rounded-t-lg" : ""} ${index === options.length - 1 ? "rounded-b-lg" : ""}`}
             onClick={() => {

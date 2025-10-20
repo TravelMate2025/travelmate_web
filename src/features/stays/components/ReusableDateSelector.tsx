@@ -7,7 +7,7 @@ import { addDays, format } from "date-fns";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import { Typography, Box } from "@mui/material";
+import { Typography, Box, useMediaQuery } from "@mui/material";
 
 interface DateRangeType {
   startDate: Date;
@@ -40,6 +40,7 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
   const [selectedDate, setSelectedDate] = useState<string>(initialValue);
   const [monthsToShow, setMonthsToShow] = useState(2);
   const [, setOpened] = useState(false);
+    const isMobile = useMediaQuery("(max-width:640px)");
 
   useEffect(() => {
     const updateMonths = () => {
@@ -129,6 +130,7 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
               flexDirection: "column",
               alignItems: "center",
               paddingBottom: "20px",
+              width: isMobile ? "100vw" : "auto",
             }}
           >
             <Box sx={{ p: 2, width: '100%', textAlign: 'center' }}>

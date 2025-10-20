@@ -51,6 +51,7 @@ const PriceRange = ({
             variant="outlined"
             type="text"
             size="small"
+            typeof="number"
             placeholder="Enter your price"
             value={new Intl.NumberFormat().format(miniprice)}
             onChange={(e) => handlePriceChange("min", e)}
@@ -76,6 +77,7 @@ const PriceRange = ({
             variant="outlined"
             type="text"
             size="small"
+            typeof="number"
             placeholder="Enter your price"
             value={new Intl.NumberFormat().format(maxprice)}
             onChange={(e) => handlePriceChange("max", e)}

@@ -8,22 +8,23 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 
 export const fetchDestinations = async (search?: string, token?: string | null): Promise<Destination[]> => {
-    try {
-        const params = search ? { search } : {};
-        const response = await axios.get(`${BASE_URL}/hotels/destinations/`, {
-            params,
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
-        });
-        return response.data;
-    } catch (error) {
-        if (axios.isAxiosError(error)) {
-            const errorMessage = error.response?.data?.error || error.message;
-            console.error('Error fetching destinations:', errorMessage);
-        } else {
-            console.error('Error fetching destinations:', error);
-        }
-        return [];
+  try {
+    const params = search ? { search } : {};
+    const response = await axios.get(`${BASE_URL}/hotels/destinations/`, {
+      params,
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    console.log(response.data)
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.error || error.message;
+      console.error('Error fetching destinations:', errorMessage);
+    } else {
+      console.error('Error fetching destinations:', error);
     }
+    return [];
+  }
 };
 
 

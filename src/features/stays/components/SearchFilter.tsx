@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import ReusableDateSelector from "./ReusableDateSelector";
-import LocationDropdown from './booking-progress/LocationDropdown';
-import HotelGuestSelector from './HotelGuestSelector';
+import LocationDropdown from "./booking-progress/LocationDropdown";
+import HotelGuestSelector from "./HotelGuestSelector";
 import { useDispatch, useSelector } from "react-redux";
-import { clearStaysCache, setSearchParams } from "../slice";
+import { clearStaysCache, setLocationDetails, setSearchParams } from "../slice";
 import { AppDispatch, RootState } from "../../../store";
-import { fetchDestinations } from '../api';
+import { fetchDestinations } from "../api";
 
 interface Destination {
   code: string;
@@ -21,7 +21,7 @@ interface SearchParams {
   checkOut: string;
   adults: number;
   children: number;
-  rooms: number; 
+  rooms: number;
 }
 
 const SearchFilter: React.FC = () => {
@@ -29,11 +29,16 @@ const SearchFilter: React.FC = () => {
   const [destination, setDestination] = useState("");
   const [locations, setLocations] = useState<Destination[]>([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
-  const [checkIn, setCheckIn] = useState('');
-  const [checkOut, setCheckOut] = useState('');
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [guestText, setGuestText] = useState("1 Room, 2 Guests");
-  const [counts, setCounts] = useState({ rooms: 1, adults: 2, children: 0, infants: 0 });
+  const [counts, setCounts] = useState({
+    rooms: 1,
+    adults: 2,
+    children: 0,
+    infants: 0,
+  });
   const { accessToken } = useSelector((state: RootState) => state.auth);
 
   const navigate = useNavigate();
@@ -41,15 +46,15 @@ const SearchFilter: React.FC = () => {
 
   useEffect(() => {
     const loadDestinations = async () => {
-        try {
+      try {
         setLoadingLocations(true);
-        const data = await fetchDestinations(undefined, accessToken,);
+        const data = await fetchDestinations(undefined, accessToken);
         setLocations(data);
-        } catch (error) {
-        console.error('Error fetching destinations:', error);
-        } finally {
+      } catch (error) {
+        console.error("Error fetching destinations:", error);
+      } finally {
         setLoadingLocations(false);
-        }
+      }
     };
 
     loadDestinations();
@@ -57,7 +62,7 @@ const SearchFilter: React.FC = () => {
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    return date.toISOString().split("T")[0]; // YYYY-MM-DD format
   };
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -73,9 +78,14 @@ const SearchFilter: React.FC = () => {
       children: totalChildren,
       rooms: counts.rooms,
     };
-    
+    dispatch(
+      setLocationDetails({
+        name: destination,
+        code: destinationCode,
+      })
+    );
     dispatch(setSearchParams(searchParams));
-    navigate('/stays-search-result');
+    navigate("/stays-search-result");
   };
 
   const handleDateChange = (startDate: string, endDate: string) => {
@@ -91,34 +101,42 @@ const SearchFilter: React.FC = () => {
     setCounts((prev) => ({ ...prev, [key]: Math.max(prev[key] - 1, 0) }));
   };
 
-  const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchor(e.currentTarget);
+  const handleOpen = (e: React.MouseEvent<HTMLElement>) =>
+    setAnchor(e.currentTarget);
   const handleClose = () => setAnchor(null);
 
   const updateGuestText = () => {
     const totalGuests = counts.adults + counts.children + counts.infants;
-    setGuestText(`${counts.rooms} Room${counts.rooms > 1 ? "s" : ""}, ${totalGuests} Guest${totalGuests !== 1 ? "s" : ""}`);
+    setGuestText(
+      `${counts.rooms} Room${
+        counts.rooms > 1 ? "s" : ""
+      }, ${totalGuests} Guest${totalGuests !== 1 ? "s" : ""}`
+    );
     handleClose();
   };
 
   return (
     <div className="py-4">
       <div className="max-w-full mx-auto">
-        <form onSubmit={handleSubmit} className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
+        >
           {/* Destination */}
           <div className="flex flex-col w-full md:w-auto">
-              <LocationDropdown
-                label="Destination"
-                selectedValue={destination}
-                  setSelectedValue={(value, code) => {
-                    setDestination(value); // Keep name for display
-                    setDestinationCode(code); // Store code for search
-                }}
-                locations={locations.map(loc => ({
-                    name: loc.name,
-                    code: loc.code
-                }))} 
-                loading={loadingLocations}           
-              />
+            <LocationDropdown
+              label="Destination"
+              selectedValue={destination}
+              setSelectedValue={(value, code) => {
+                setDestination(value); // Keep name for display
+                setDestinationCode(code); // Store code for search
+              }}
+              locations={locations.map((loc) => ({
+                name: loc.name,
+                code: loc.code,
+              }))}
+              loading={loadingLocations}
+            />
           </div>
 
           <div className="flex flex-col w-full md:w-auto">
@@ -136,18 +154,29 @@ const SearchFilter: React.FC = () => {
 
           {/* Date */}
           <div className="flex flex-col w-full md:w-auto">
-            <label className="text-sm font-medium text-gray-700 mb-1">Check-in - Check-out</label>
-            <ReusableDateSelector onDateChange={handleDateChange} initialValue={""} />
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              Check-in - Check-out
+            </label>
+            <ReusableDateSelector
+              onDateChange={handleDateChange}
+              initialValue={""}
+            />
           </div>
 
           {/* Submit Button */}
           <div className="flex-grow"></div>
           <button
             type="submit"
-            className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg cursor-pointer hover:bg-[#0450A2]"
-            disabled={loadingLocations}
+            className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg cursor-pointer hover:bg-[#0450A2] disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={
+              loadingLocations ||
+              !guestText ||
+              !destination ||
+              !checkIn ||
+              !checkOut
+            }
           >
-            {loadingLocations ? 'Loading...' : 'Search'}
+            {loadingLocations ? "Loading..." : "Search"}
           </button>
         </form>
       </div>
