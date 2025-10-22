@@ -9,6 +9,7 @@ import { PersistPartial } from "redux-persist/es/persistReducer";
 import { flightsApi } from "../features/flights/api/flightApi";
 import { nationsApi } from "../features/flights/api/nationalityApi";
 import { locationApi } from "../features/flights/api/locationApi";
+import carsReducer from "../features/car_rentals/carPaymentSlice";
 // 1. Combine all your reducers
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
   [flightsApi.reducerPath]: flightsApi.reducer,
   [nationsApi.reducerPath]: nationsApi.reducer,
   [locationApi.reducerPath]: locationApi.reducer,
+  cars: carsReducer,
 });
 
 // 2. Persist config
