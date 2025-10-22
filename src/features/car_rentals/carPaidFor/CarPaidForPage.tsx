@@ -40,7 +40,6 @@ const CarPaidForPage = () => {
           console.log(res);
           setBooking(res?.data?.bookings);
         } else {
-          toast.error("Booking falied please try again!");
           return <CarFailedPayment />;
         }
       } catch (error) {
@@ -56,7 +55,8 @@ const CarPaidForPage = () => {
   if (loading) return <SkeletonConfirm />;
   if (!booking)
     return (
-      <div className="text-center pt-12 flex flex-col gap-6">
+      <div className="text-center pt-32 flex flex-col gap-6 ">
+        <Navbar/>
         <p>No booking found for this session.</p>
         <div className="mx-6 lg:mx-8  lg:order-6">
           <Link to="/">

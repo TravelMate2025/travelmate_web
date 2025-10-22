@@ -248,14 +248,10 @@ const DisplayCars: React.FC = () => {
       return;
     }
 
-    if (isMobile) {
-      setForm(false);
-      return;
-    }
-
     setSubmitError(null);
     try {
       setLoading(true);
+
       setLoadingSkeleton(true);
       const params = transferService.convertFormToApiParams({
         ...formData,
@@ -271,6 +267,9 @@ const DisplayCars: React.FC = () => {
         throw new Error(result.error || "No transfer results found");
       }
       updateField("searchResults", result?.data?.results?.services || []);
+      if (isMobile) {
+        setForm(false);
+      }
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Search failed");
       console.error("Search failed:", error);

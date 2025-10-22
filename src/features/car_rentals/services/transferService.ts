@@ -199,8 +199,9 @@ class TransferService {
                 success: true,
                 data: response.data,
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error('Get booking by session failed:', error);
+            toast.error(error?.response?.data?.error)
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Failed to instance.get booking details',
