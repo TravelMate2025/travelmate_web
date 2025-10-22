@@ -12,9 +12,6 @@ import "react-date-range/dist/theme/default.css";
 import { addDays, format } from "date-fns";
 import { useLocation, useNavigate } from "react-router-dom";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-// import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
-// import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import { MdArrowDropDown } from "react-icons/md";
 import Passengers from "../carsFirstScreen/modals/Passengers";
 import PriceRange from "../carsFirstScreen/modals/PriceRange";
@@ -26,6 +23,7 @@ import SearchLocation from "../carsFirstScreen/modals/SearchLoaction";
 
 import { useMediaQuery } from "react-responsive";
 import EmptyState from "./EmptyState";
+import { useFormPersistence } from "../hooks/useFormPersistence";
 
 interface DateRangeType {
   startDate: Date;
@@ -74,29 +72,21 @@ const DisplayCars = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [form, setForm] = useState(isMobile ? false : true);
   const {
-    from: stateFrom = "",
-    to: stateTo = "",
-    departureDate: stateDepartureDate = "",
-    times: stateTimes = { pickUpTime: "", dropOffTime: "" },
-    priceRange: statePriceRange = { miniprice: 0, maxprice: 0 },
-    selectedRide: stateRide = "",
-    passengerCounts: statePassengers = { adults: 0, children: 0, infant: 0 },
-  } = (state || {}) as LocationState;
+    formData,
+    setFormData,
+    errors,
+    isValid,
+    loading,
+    updateField,
+    setLoading,
+    submitError,
+    setSubmitError,
+  } = useBookingForm(initialData);
 
-  const [from, setFrom] = useState(stateFrom);
-  const [to, setTo] = useState(stateTo);
-  const [departureDate, setDepartureDate] = useState(stateDepartureDate);
-  const [times, setTimes] = useState(stateTimes);
-  const [priceRange, setPriceRange] = useState(statePriceRange);
-  const [selectedRide, setSelectedRide] = useState(stateRide);
-  const [passengerCounts, setPassengerCounts] = useState(statePassengers);
+  // Persist form data to localStorage
+  useFormPersistence(formData, "carBookingForm");
 
-  const [openPassengerModal, setOpenPassengerModal] = useState(false);
-  const [rideTypeModal, setRideTypeModal] = useState(false);
-  const [openClick, setOpenClick] = useState(false);
-  const [openNoModal, setOpenNoModal] = useState(false);
-
-  const [searchPickOrDrop, setSearchPickOrDrop] = useState(false);
+  const { modals, openModal, closeModal } = useModalState();
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
 
   // const [locations, setLocations] = useState([
@@ -273,66 +263,42 @@ const DisplayCars = () => {
 
               {/* Departure Date */}
               <div className="flex flex-col gap-2 w-full">
-                <label>Pick Up Date</label>
-                <TextField
-                  variant="outlined"
-                  size="small"
-                  className="w-full lg:w-auto"
-                  value={departureDate}
-                  onClick={handleClick}
-                  InputProps={{
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <CalendarMonthOutlinedIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    "& .MuiInputBase-root": {
-                      height: "44px",
-                      borderRadius: "8px",
-                    },
-                    "& .MuiOutlinedInput-input": {
-                      cursor: "pointer",
-                    },
-                  }}
-                />
-                <Popper
-                  id={id}
-                  open={open}
-                  anchorEl={anchorEl}
-                  placement="bottom-start"
-                >
-                  <ClickAwayListener onClickAway={handleClose}>
-                    <Paper elevation={3} sx={{ p: 2, maxWidth: 850 }}>
-                      <DateRange
-                        editableDateInputs
-                        onChange={(item: RangeKeyDict) => {
-                          setDateRange([
-                            {
-                              startDate: item.selection.startDate ?? new Date(),
-                              endDate: item.selection.endDate ?? new Date(),
-                              key: item.selection.key ?? "selection",
-                            },
-                          ]);
-                        }}
-                        moveRangeOnFirstSelection={false}
-                        ranges={dateRange}
-                        rangeColors={["#FF6F1E"]}
-                        months={2}
-                        direction="horizontal"
-                        showDateDisplay={false}
-                      />
-                      <button
-                        className="mt-4 w-full h-[44px] bg-[#023E8A] text-white rounded-md"
-                        onClick={handleSelectDate}
-                      >
-                        Select Date
-                      </button>
-                    </Paper>
-                  </ClickAwayListener>
-                </Popper>
+                <label className="font-medium text-sm text-gray-700">
+                  Pick Up Date
+                </label>
+
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    value={
+                      formData.pickupDate ? dayjs(formData.pickupDate) : null
+                    }
+                    onChange={(newValue) => {
+                      if (newValue) {
+                        updateField(
+                          "pickupDate",
+                          newValue.toISOString().split("T")[0]
+                        );
+                      }
+                    }}
+                    slotProps={{
+                      textField: {
+                        size: "small",
+                        variant: "outlined",
+                        InputProps: {
+                          readOnly: true,
+                        },
+                        sx: {
+                          "& .MuiInputBase-root": {
+                            height: "44px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            width: "100%",
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
               </div>
             </div>
 

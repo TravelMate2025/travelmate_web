@@ -9,16 +9,13 @@ import { PersistGate } from "redux-persist/integration/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import "react-toastify/dist/ReactToastify.css";
 
-
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId="835700903107-utp8i9h2ouv4e82le40o2441rkrloeaf.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId="801961826535-5q7gufshvp0hd5jni2i5igdu949c7j54.apps.googleusercontent.com">
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <BrowserRouter>
-            {/* <LocalizationProvider dateAdapter={AdapterDateFns}> */}
-              <App />
-            {/* </LocalizationProvider> */}
+            <App />
           </BrowserRouter>
         </PersistGate>
       </Provider>

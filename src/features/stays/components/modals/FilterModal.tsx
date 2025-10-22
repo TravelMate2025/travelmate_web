@@ -36,11 +36,11 @@ export default function FilterModal({ isOpen, onClose, onApplyFilter }: FilterMo
 
                 {/* Header */}
                 <div className="p-6 flex justify-between items-center border-b border-gray-300">
-                    <button className="text-[#023E8A] text-sm font-semibold" onClick={handleClearAll}>
+                    <button className="text-[#023E8A] text-sm font-semibold cursor-pointer" onClick={handleClearAll}>
                         Clear All
                     </button>
                     <h2 className="text-lg font-semibold">Filter By</h2>
-                    <button className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-md" onClick={onClose}>
+                    <button className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-md cursor-pointer" onClick={onClose}>
                         ✖
                     </button>
                 </div>
@@ -134,7 +134,7 @@ export default function FilterModal({ isOpen, onClose, onApplyFilter }: FilterMo
                 {/* Apply Button Fixed at Bottom */}
                 <div className="p-4 border-t border-gray-300 bg-white sticky bottom-0">
                     <button
-                        className="w-full bg-[#023E8A] text-white py-3 rounded-lg"
+                        className="w-full bg-[#023E8A] text-white py-3 rounded-lg cursor-pointer"
                         onClick={handleApply}
                     >
                         Apply

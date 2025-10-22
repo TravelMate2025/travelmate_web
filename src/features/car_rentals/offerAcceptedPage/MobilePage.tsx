@@ -62,7 +62,114 @@ const MobilePage = ({
     }));
   };
   const [showAllModal, setShowAllModal] = useState(false);
-  const [loggedIn] = useState(false);
+  const [countryCodes, setCountryCodes] = useState<any[]>([]);
+  const loggedIn = localStorage.getItem("accessToken");
+  const location = useLocation();
+  const { car, departureInfo } = location.state || {};
+  // ...existing code...
+  const handleProfileSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    setState((prev: any) => ({ ...prev, jason: checked }));
+    handleChange(e);
+
+    const userInfo = JSON.parse(localStorage.getItem("persist:root") || "{}");
+    const profileStr = userInfo.profile || "{}";
+    console.log;
+
+    type Profile = {
+      // profile: {
+      first_name: string;
+      last_name: string;
+      date_of_birth: string;
+      email: string;
+      mobile_number: string;
+      // };
+    };
+    let profile: Profile = {
+      first_name: "",
+      last_name: "",
+      date_of_birth: "",
+      email: "",
+      mobile_number: "",
+    };
+    try {
+      profile = JSON.parse(profileStr).profile;
+    } catch {
+      // keep defaults
+    }
+    if (checked) {
+      setPassFormData({
+        firstName: profile?.first_name || "",
+        lastName: profile?.last_name || "",
+        dateOfBirth: profile?.date_of_birth || "",
+        email: profile?.email || "",
+        phoneNumber: profile?.mobile_number || "",
+        countryCode: "",
+      });
+    } else {
+      setPassFormData({
+        firstName: "",
+        lastName: "",
+        dateOfBirth: "",
+        email: "",
+        phoneNumber: "",
+        countryCode: "",
+      });
+      console.log(profile);
+    }
+  };
+
+  const addDurationToTime = (pickupTime: string, durationStr: string) => {
+    const [h, m] = pickupTime.split(":").map(Number);
+    let totalMin = h * 60 + m;
+
+    // Try to extract hours and minutes if specified
+    const hourMatch = durationStr.match(/(\d+)\s*hour(s)?/i);
+    const minMatch = durationStr.match(/(\d+)\s*min/i);
+
+    if (hourMatch) totalMin += parseInt(hourMatch[1]) * 60;
+    if (minMatch) totalMin += parseInt(minMatch[1]);
+
+    // If only a plain number is provided (like "35"), treat as minutes
+    if (!hourMatch && !minMatch && !isNaN(Number(durationStr))) {
+      totalMin += Number(durationStr);
+    }
+
+    const newH = Math.floor(totalMin / 60) % 24;
+    const newM = totalMin % 60;
+
+    return `${newH.toString().padStart(2, "0")}:${newM
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  useEffect(() => {
+    const fetchCodes = async () => {
+      try {
+        const response = await axios.get(
+          "https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags"
+        );
+        const filtered = response.data.filter(
+          (c: any) =>
+            c.idd && c.idd.root && c.idd.suffixes && c.idd.suffixes.length > 0
+        );
+        const mapped = filtered.map((c: any) => ({
+          ...c,
+          dialCode: `${c.idd.root}${c.idd.suffixes[0]}`,
+        }));
+        // ✅ Sort alphabetically by country name
+        const sorted = mapped.sort((a: any, b: any) =>
+          a.name.common.localeCompare(b.name.common)
+        );
+
+        setCountryCodes(sorted);
+      } catch (error) {
+        console.error("Error fetching country codes:", error);
+      }
+    };
+    fetchCodes();
+  }, []);
+
   return (
     <div>
       {showAllModal && <Complete closeDialog={() => setShowAllModal(false)} />}
@@ -195,7 +302,10 @@ const MobilePage = ({
                 <div className="flex gap-5 items-center ml-3">
                   {" "}
                   <div className="border-l-2 border-l-[#4E4F52] h-16" />{" "}
-                  <p className="text-[#4E4F52]">Estimated Time: 90 minutes</p>{" "}
+                  <p className="text-[#4E4F52]">
+                    {car.content.transferDetailInfo[0].value}{" "}
+                    {car.content.transferDetailInfo[0].description}
+                  </p>{" "}
                 </div>
                 <div className="flex justify-normal gap-4 items-center">
                   <div className="w-6 h-6 bg-[#D72638] rounded-full" />
@@ -206,7 +316,13 @@ const MobilePage = ({
                       <p>February 10, 2025</p>
                       <Dot fill="#4E4F52" />
                       <FaRegClock />
-                      <p>3:30pm</p>
+
+                      <p>
+                        {addDurationToTime(
+                          departureInfo.pickupTime,
+                          car.content.transferDetailInfo[0].value
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -236,42 +352,34 @@ const MobilePage = ({
                     </div>
                   </div>
 
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                        Seats
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[14px] text-[#181818]">3 Seats</p>
-                    </div>
-                  </div>
+                <div className="flex justify-between w-full items-center">
+                  <p className="text-sm font-inter font-normal text-[#4E4F52]">
+                    Seats
+                  </p>
 
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                        Luggages
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[#181818] text-[14px] font-inter">
-                        Up to 4 Luggages
-                      </p>
-                    </div>
-                  </div>
+                  <p className="text-sm text-[#181818]">
+                    {car.maxPaxCapacity} Seats
+                  </p>
+                </div>
 
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                        Plate Number
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[#181818] text-[14px] font-inter">
-                        AA1234FT
-                      </p>
-                    </div>
-                  </div>
+                <div className="flex justify-between items-start w-full text-right">
+                  <p className="text-sm font-inter font-normal text-[#4E4F52]">
+                    Bags
+                  </p>
+                  <p className="text-[#181818] text-sm font-inter">
+                    Up to {car.content.transferDetailInfo[3].value}{" "}
+                    {car.content.transferDetailInfo[3].description}
+                  </p>
+                </div>
+
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-sm font-inter font-normal text-[#4E4F52]">
+                    Provider 
+                  </p>
+
+                  <p className="text-[#181818] text-[14px] font-inter">
+                    {car?.supplier || "Holiday Taxi"}
+                  </p>
                 </div>
               </div>
             </div>

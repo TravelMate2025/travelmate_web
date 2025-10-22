@@ -2,7 +2,12 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { searchHotels, getHotelDetails, createBooking } from '../stays/api';
 import { BookingRequest, BookingResponse, Hotel, HotelSearchResponse } from './types';
 
-
+interface locationDetails{
+  name:string
+  country_name: string
+  country_code:string
+  code:string
+}
 interface BookingState {
   loading: boolean;
   error: string | null;
@@ -23,6 +28,7 @@ interface StaysState {
   loading: boolean;
   error: string | null;
   searchParams: SearchParams | null;
+  locationDetails: locationDetails|  null;
   selectedHotel: Hotel | null;
   detailsLoading: boolean;
   detailsError: string | null;
@@ -36,6 +42,7 @@ const initialState: StaysState = {
   searchParams: null,
   selectedHotel: null,
   detailsLoading: false,
+  locationDetails: null,
   detailsError: null,
   booking: {
     loading: false,
@@ -109,6 +116,9 @@ const staysSlice = createSlice({
     setSearchParams: (state, action: PayloadAction<SearchParams>) => {
       state.searchParams = action.payload;
     },
+    setLocationDetails: (state, action) => {
+      state.locationDetails = action.payload;
+    },
     clearStaysCache: (state) => {
       state.hotels = [];
       state.searchParams = null;
@@ -163,6 +173,6 @@ const staysSlice = createSlice({
   }
 });
 
-export const { setSearchParams, clearStaysCache, clearSelectedHotel } = staysSlice.actions;
+export const { setSearchParams, clearStaysCache, clearSelectedHotel, setLocationDetails } = staysSlice.actions;
 export default staysSlice.reducer;
 

@@ -414,14 +414,29 @@ const CarList: React.FC<CarListProps> = ({ departureInfo, OpenForm }) => {
                       }}
                     />
                     <div className="text-[14px]">
-                      {car.fuelIcon} {car.full}
+                      <AirlineSeatReclineNormalIcon />
+                      <span>
+                         {car.content.transferDetailInfo[2].value} {" "}
+                        Seats
+                      </span>
+                    </div>
+
+                    <div className="text-[14px]">
+                      <LuggageOutlinedIcon />
+                      <span>
+                         {car?.content?.transferDetailInfo[3]?.value || "2"} {car.content.transferDetailInfo[3].description}
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-2">
                     <div className="flex gap-2 items-center">
-                      <i className="">{car.timeIcon}</i>
-                      <p className="">{car.time}</p>
+                      <i className="">
+                        <Clock />
+                      </i>
+                      <p className="text-xs">
+                         {car.content.transferDetailInfo[0].value} {car.content.transferDetailInfo[0].description}
+                      </p>
                     </div>
                     <div className="flex gap-[2px] items-center">
                       <IoIosCheckmarkCircleOutline
@@ -682,31 +697,34 @@ const CarList: React.FC<CarListProps> = ({ departureInfo, OpenForm }) => {
                   <div className="flex justify-normal items-center  gap-3 pb-4">
                     <img src={car.image} alt="" />
                     <p className="mt-[10px] text-[#181818] text-[16px]">
-                      Private Car
+                      {car.vehicle.code} {car.vehicle.name}
                     </p>
                   </div>
+                  <div className="flex  gap-[3px] mb-[10px] mt-[10px]">
+                    <div className="text-[14px]">
+                      <AirlineSeatReclineNormalIcon />
+                      <span>
+                        {car.content.transferDetailInfo[2].value} {" "}
+                        Seats
+                      </span>
+                    </div>
 
-                  <div className="flex gap-[3px] mb-[10px] mt-[10px]">
-                    <p>
-                      {car.seatLeft} {car.spaceleft}
-                    </p>
-                    <CircleIcon
-                      sx={{
-                        width: "4px",
-                        height: "4px",
-                        marginTop: "10px",
-                        marginLeft: "2px",
-                      }}
-                    />
-                    <div>
-                      {car.fuelIcon} {car.full}
+                    <div className="text-[14px]">
+                      <LuggageOutlinedIcon />
+                      <span>
+                       {car?.content?.transferDetailInfo[3]?.value || "2"} {car.content.transferDetailInfo[3].description}
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-2">
                     <div className="flex gap-2 items-center">
-                      <div className=" ">{car.timeIcon}</div>
-                      <p className="">{car.time}</p>
+                      <i className="">
+                        <Clock />
+                      </i>
+                      <p className="">
+                        {car.content.transferDetailInfo[0].value} {car.content.transferDetailInfo[0].description}
+                      </p>
                     </div>
                     <div className="flex gap-[2px] items-center">
                       <IoIosCheckmarkCircleOutline

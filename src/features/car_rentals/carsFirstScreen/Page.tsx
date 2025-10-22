@@ -15,23 +15,22 @@ import "react-date-range/dist/theme/default.css";
 import { addDays, format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
-import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 
-interface DateRangeType {
-  startDate: Date;
-  endDate: Date;
-  key: string;
-}
+import { Info } from "lucide-react";
 
-import SearchLoaction from "./modals/SearchLoaction";
+// Custom hooks and utilities
+
+
+// Components
 import Passengers from "./modals/Passengers";
 import PriceRange from "./modals/PriceRange";
 import { MdArrowDropDown } from "react-icons/md";
 import RideType from "./modals/RideType";
-import { Info } from "lucide-react";
-const Page = () => {
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+
+const CarBookingFirstScreen: React.FC = () => {
   const navigate = useNavigate();
 
   const [, setSelectedValue] = useState<string>(() => {
@@ -88,103 +87,102 @@ const Page = () => {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(anchorEl ? null : event.currentTarget);
+  // const [locationPopper, setLocationPopper] = useState<{
+  //   from: { open: boolean; anchor: HTMLElement | null };
+  //   to: { open: boolean; anchor: HTMLElement | null };
+  // }>({
+  //   from: { open: false, anchor: null },
+  //   to: { open: false, anchor: null },
+  // });
+
+  // Sync with Redux store whenever formData changes
+  useEffect(() => {
+    const reduxData = {
+      pickupLocation: formData.pickupLocation,
+      pickupLocaDescription: formData.pickUpLocaDescription,
+      dropoffLocation: formData.dropoffLocation,
+      dropoffLocaDescription: formData.dropoffLocaDescription,
+      pickupDate: formData.pickupDate,
+      pickupTime: formData.pickupTime,
+      selectedRide: formData.selectedRide,
+      priceRange: formData.priceRange,
+      passengerCounts: formData.passengerCounts,
+      toLat: formData.toLat,
+      toLon: formData.toLon,
+      searchResults: carInfo?.searchResults || [],
+    };
+
+    dispatch(setCarInfo(reduxData));
+  }, [formData, dispatch, carInfo?.searchResults]);
+
+  // Event handlers
+  const handleDropLocationClick = useCallback(
+    (type: "drop") => {
+      setPickOrDrop(type);
+      openModal("searchDropLocation");
+    },
+    [openModal]
+  );
+  const handlePickLocationClick = useCallback(
+    (type: "pick") => {
+      setPickOrDrop(type);
+      openModal("searchPickLocation");
+    },
+    [openModal]
+  );
+
+  const handleRideClick = () => {
+    console.log("Clicked");
+    openModal("rideType");
   };
+  const handleLocationSelect = useCallback(
+    (location: string) => {
+      if (pickOrDrop === "pick") {
+        updateField("pickupLocation", location);
+      } else {
+        updateField("dropoffLocation", location);
+      }
+    },
+    [pickOrDrop, updateField, closeModal]
+  );
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const handleTimeChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      updateField("pickupTime", event.target.value);
+    },
+    [updateField]
+  );
 
-  const handleToClick = (event: React.MouseEvent<HTMLElement>) => {
-    setOpenTo((prev) => !prev);
-    setToClick(event.currentTarget);
-  };
+  const handlePriceChange = useCallback(
+    (
+      field: "min" | "max",
+      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+      const value = event.target.value.replace(/[^0-9]/g, "");
+      const parsedValue = value ? parseInt(value, 10) : 0;
+      updateField("priceRange", {
+        ...formData.priceRange,
+        [field]: parsedValue,
+      });
+    },
+    [updateField, formData.priceRange]
+  );
 
-  const handleCloseTo = () => {
-    setOpenTo(false);
-  };
+  const handlePriceSubmit = useCallback(
+    (min: number, max: number) => {
+      updateField("priceRange", { min, max });
+      closeModal("priceRange");
+    },
+    [updateField, openModal, closeModal]
+  );
 
-  const handleFromClick = (event: React.MouseEvent<HTMLElement>) => {
-    setOpenFrom((prev) => !prev);
-    setFromClick(event.currentTarget);
-  };
-
-  const handleFromOptionClick = (option: string) => {
-    setSelectedFrom(option);
-    setOpenFrom(false);
-  };
-
-  const handleToOptionClick = (option: string) => {
-    setSelectedTo(option);
-    setOpenTo(false);
-  };
-
-  const handleCloseFrom = () => {
-    setOpenFrom(false);
-  };
-
-  const open = Boolean(anchorEl);
-  const id = open ? "date-range-popper" : undefined;
-
-  const [locations, setLocations] = useState([
-    "Ibadan, Oyo",
-    "Abuja",
-    "Port Harcourt",
-  ]);
-
-  const handleRemoveOption = (locationToRemove: string) => {
-    setLocations(locations.filter((location) => location !== locationToRemove));
-  };
-  const handleSelectRide = (value: string) => {
-    setSelectedRide(value);
-  };
-
-  const formatDate = (date: Date) => format(date, "dd MMM yyyy");
-
-  const [, setOpens] = useState(false);
-
-  const handleSelectDate = () => {
-    if (dateRange[0].startDate) {
-      const startDateFormatted = formatDate(dateRange[0].startDate);
-      const endDateFormatted = dateRange[0].endDate
-        ? formatDate(dateRange[0].endDate)
-        : startDateFormatted;
-
-      const displayText =
-        startDateFormatted === endDateFormatted
-          ? startDateFormatted
-          : `${startDateFormatted} - ${endDateFormatted}`;
-
-      setSelectedDate(displayText);
-      setOpens(false);
-      handleClose();
-    }
-  };
-
-  const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setTimes({ ...times, [event.target.name]: event.target.value });
-  };
-
-  const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value.replace(/,/g, "");
-    if (!isNaN(Number(value)) && value !== "") {
-      const formattedValue = new Intl.NumberFormat().format(Number(value));
-      setMiniPrice(formattedValue);
-    } else {
-      setMiniPrice("");
-    }
-  };
-
-  const handleMaxPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value.replace(/,/g, "");
-    if (!isNaN(Number(value)) && value !== "") {
-      const formattedValue = new Intl.NumberFormat().format(Number(value));
-      setMaxPrice(formattedValue);
-    } else {
-      setMaxPrice("");
-    }
-  };
+  const handlePassengerUpdate = useCallback(
+    (newCounts: PassengerCounts) => {
+      updateField("passengerCounts", newCounts);
+      closeModal("passengers");
+    },
+    [updateField, closeModal]
+  );
 
   const handleCloseNoModal = () => {
     setOpenNoModal(false);
@@ -558,125 +556,38 @@ useEffect(()=> {
               </Popper>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label htmlFor="departure-date" className="mb-1">
-                Pick Up Date
-              </label>
-              <TextField
-                id="departure-date"
-                variant="outlined"
-                size="small"
-                placeholder="Select Date"
-                value={selectedDate}
-                onClick={handleClick}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CalendarMonthOutlinedIcon />
-                    </InputAdornment>
-                  ),
-                }}
-                // className="md:w-[23vw] lg:w-[23vw] w-full"
-                sx={{
-                  "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
-                  },
-                  "& .MuiOutlinedInput-input": {
-                    padding: "8px 10px",
-                    cursor: "pointer",
-                  },
-                }}
-              />
-
-              <Popper
-                id={id}
-                open={open}
-                anchorEl={anchorEl}
-                placement="bottom-start"
-                modifiers={[
-                  {
-                    name: "offset",
-                    options: {
-                      offset: [0, 10],
-                    },
-                  },
-                ]}
-              >
-                <ClickAwayListener onClickAway={handleClose}>
-                  <Paper
-                    elevation={3}
-                    sx={{
-                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                      width: {
-                        xs: "90vw", // Small screens
-                        sm: "500px", // Tablets
-                        md: "650px", // Medium screens
-                        lg: "850px", // Large screens
+            {/* Pick Up Date */}
+            <div className="flex flex-col gap-2 w-full">
+              <label htmlFor="pickup-date">Pick Up Date</label>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  value={
+                    formData.pickupDate ? dayjs(formData.pickupDate) : null
+                  }
+                  onChange={(newValue) => {
+                    if (newValue) {
+                      updateField("pickupDate", newValue.format("YYYY-MM-DD"));
+                    }
+                  }}
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      variant: "outlined",
+                      InputProps: {
+                        readOnly: true,
                       },
-                      maxWidth: "95vw",
-                      overflow: "hidden",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      p: 2,
-                    }}
-                  >
-                    <Box sx={{ width: "100%" }}>
-                      <DateRange
-                        editableDateInputs={true}
-                        onChange={(item: RangeKeyDict) => {
-                          setDateRange([
-                            {
-                              startDate: item.selection.startDate ?? new Date(),
-                              endDate: item.selection.endDate ?? new Date(),
-                              key: item.selection.key ?? "selection",
-                            },
-                          ]);
-                        }}
-                        moveRangeOnFirstSelection={false}
-                        ranges={dateRange}
-                        rangeColors={["#FF6F1E"]}
-                        months={window.innerWidth < 768 ? 1 : 2} // 1 month on small screens
-                        direction={
-                          window.innerWidth < 768 ? "vertical" : "horizontal"
-                        }
-                        showDateDisplay={false}
-                        className="w-full"
-                      />
-
-                      <Box sx={{ mt: 2, width: "100%" }}>
-                        <Typography
-                          variant="body2"
-                          align="center"
-                          fontWeight={600}
-                          gutterBottom
-                        >
-                          {dateRange[0].startDate
-                            ? `${formatDate(dateRange[0].startDate)}${
-                                dateRange[0].endDate
-                                  ? ` - ${formatDate(dateRange[0].endDate)}`
-                                  : ""
-                              }`
-                            : "Pick a date"}
-                        </Typography>
-
-                        <button
-                          className="w-full h-[52px] rounded-[4px] font-inter text-[14px] font-medium"
-                          style={{
-                            backgroundColor: "#023E8A",
-                            color: "white",
-                            marginTop: "12px",
-                          }}
-                          onClick={handleSelectDate}
-                        >
-                          Select Date
-                        </button>
-                      </Box>
-                    </Box>
-                  </Paper>
-                </ClickAwayListener>
-              </Popper>
+                      sx: {
+                        "& .MuiInputBase-root": {
+                          height: "44px",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          width: "100%",
+                        },
+                      },
+                    },
+                  }}
+                />
+              </LocalizationProvider>
             </div>
           </div>
 

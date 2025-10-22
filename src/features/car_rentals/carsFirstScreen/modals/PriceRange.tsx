@@ -64,6 +64,7 @@ const PriceRange = ({
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="mt-[75px]">
             <p className="mt-[24px] text-[#181818] font-medium text-[18px] font-inter">
               Minimum Price
@@ -117,6 +118,63 @@ const PriceRange = ({
           </div>
 
           <Dialog
+=======
+        <div className="flex-1 overflow-y-auto px-6">
+          <p className="mt-6 text-[#181818] font-medium text-[18px] font-inter">
+            Minimum Price
+          </p>
+          <TextField
+            id="minPrice"
+            variant="outlined"
+            type="text"
+            size="small"
+            typeof="number"
+            placeholder="Enter your price"
+            value={new Intl.NumberFormat().format(miniprice)}
+            onChange={(e) => handlePriceChange("min", e)}
+            sx={{
+              width: "100%",
+              mt: "10px",
+              mb: "24px",
+              "& .MuiInputBase-root": {
+                height: "44px",
+                borderRadius: "8px",
+              },
+              "& .MuiInputBase-input::placeholder": {
+                fontSize: "14px",
+              },
+            }}
+          />
+
+          <p className="text-[#181818] font-medium text-[18px] font-inter">
+            Maximum Price
+          </p>
+          <TextField
+            id="maxPrice"
+            variant="outlined"
+            type="text"
+            size="small"
+            typeof="number"
+            placeholder="Enter your price"
+            value={new Intl.NumberFormat().format(maxprice)}
+            onChange={(e) => handlePriceChange("max", e)}
+            sx={{
+              width: "100%",
+              mt: "10px",
+              mb: "24px",
+              "& .MuiInputBase-root": {
+                height: "44px",
+                borderRadius: "8px",
+              },
+              "& .MuiInputBase-input::placeholder": {
+                fontSize: "14px",
+              },
+            }}
+          />
+        </div>
+        {/* 
+          <div
+>>>>>>> faef228b45d9f50114db72334e670f95e92494e4
             open={openNoModal}
             onClose={handleCloseNoModal}
             keepMounted
