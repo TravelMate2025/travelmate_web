@@ -178,6 +178,7 @@ export const PassengerSelector = memo<PassengerSelectorProps>(
               sx: {
                 borderTopLeftRadius: 16,
                 borderTopRightRadius: 16,
+                minHeight: "50vh",
               },
             }}
           >

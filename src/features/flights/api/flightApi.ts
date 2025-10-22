@@ -17,7 +17,7 @@ import { AxiosError, AxiosRequestConfig } from "axios";
 
 
 import dayjs from "dayjs";
-import { Flight } from "../hooks/useFlightBooking";
+import { DateSelection, Flight } from "../hooks/useFlightBooking";
 
 
 export type TripType = "one-way" | "round-trip" | "multi-city";
@@ -28,11 +28,7 @@ interface PassengerCounts {
   infants: number;
 }
 
-// interface FlightSegment {
-//   from: Flight;
-//   to: Flight;
-//   date: string; // "DD MMM YYYY"
-// }
+
 
 interface GetFlightParams {
   tripType: TripType;
@@ -40,7 +36,7 @@ interface GetFlightParams {
   initialTo: { id: string };
   selectedFrom?: { id: string };
   selectedTo?: { id: string };
-  date?: string | { startDate?: string; endDate?: string };
+  date?: DateSelection;
   passengerCounts: PassengerCounts;
   travelClass: string;
   currency?: string;
@@ -59,48 +55,51 @@ export function buildFlightPayload({
   currency = "USD",
   flights = [],
 }: GetFlightParams) {
+  // Common payload for all trip types
   const basePayload = {
     adults: passengerCounts.adults,
     children: passengerCounts.children,
     infants: passengerCounts.infants,
     travel_class: travelClass.toUpperCase(),
     currency,
+    non_stop: false,
   };
 
+  // Utility to format date to YYYY-MM-DD
+  const formatDate = (dateInput: any) => dayjs(dateInput).format("YYYY-MM-DD");
 
-  switch (tripType) {
+  switch (tripType as TripType) {
     case "one-way":
       return {
         ...basePayload,
         tripType: "ONE_WAY",
         origin: initialFrom.id,
         destination: initialTo.id,
-        departure_date: dayjs(date as string).format(
-          "YYYY-MM-DD"
-        ),
-        non_stop: false,
+        departure_date: formatDate(date),
       };
 
     case "round-trip":
-      const d = date as { startDate?: string; endDate?: string };
+      const { startDate, endDate } = date as {
+        startDate?: string;
+        endDate?: string;
+      };
       return {
         ...basePayload,
         tripType: "ROUND_TRIP",
-        origin: selectedFrom?.id || initialFrom.id,
-        destination: selectedTo?.id || initialTo.id,
-        departure_date: dayjs(d.startDate, "DD MMM YYYY").format("YYYY-MM-DD"),
-        return_date: dayjs(d.endDate, "DD MMM YYYY").format("YYYY-MM-DD"),
-        non_stop: false,
+        origin: selectedFrom?.id ?? initialFrom.id,
+        destination: selectedTo?.id ?? initialTo.id,
+        departure_date: formatDate(startDate),
+        return_date: formatDate(endDate),
       };
 
     case "multi-city":
       return {
         ...basePayload,
         tripType: "MULTI_CITY",
-        segments: flights.map((f:any) => ({
-          origin: f.from.iataCode,
-          destination: f.to.iataCode,
-          departure_date: dayjs(f.date, "DD MMM YYYY").format("YYYY-MM-DD"),
+        segments: flights.map((flight: any) => ({
+          origin: flight.from.iataCode,
+          destination: flight.to.iataCode,
+          departure_date: formatDate(flight.date),
         })),
       };
 
@@ -152,10 +151,20 @@ export const flightsApi = createApi({
   tagTypes: ["Airports", "Flights", "FlightDetails", "Bookings"], // ✅ define tags
   serializeQueryArgs: ({ endpointName, queryArgs }) => {
     if (endpointName === "fetchFlights") {
-      return JSON.stringify(queryArgs);
+      // Create a stable cache key
+      return JSON.stringify(
+        Object.keys(queryArgs as any)
+          .sort()
+          .reduce((obj, key) => {
+            // @ts-ignore
+            obj[key] = queryArgs[key];
+            return obj;
+          }, {})
+      );
     }
     return endpointName;
   },
+
   endpoints: (builder) => ({
     // ✈️ Fetch Airports
     fetchAirports: builder.query<Airport[], string>({

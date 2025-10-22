@@ -45,6 +45,8 @@ export const DateSelector = memo<DateSelectorProps>(
 
     // Sync with parent value
     useEffect(() => {
+      console.log(value);
+      
       if (!value || typeof value !== "string") return;
 
       if (range && (value.includes("to") || value.includes("-"))) {
@@ -84,7 +86,7 @@ export const DateSelector = memo<DateSelectorProps>(
       const formatted = format(date, "dd MMM yyyy");
       onChange?.(formatted);
       onDateChange(date);
-      if (isMobile) handleClose();
+       handleClose();
     };
 
     const handleSelectRange = (ranges: any) => {
@@ -205,6 +207,7 @@ export const DateSelector = memo<DateSelectorProps>(
                 borderTopLeftRadius: 16,
                 borderTopRightRadius: 16,
                 // overflow: "hidden",
+                minHeight: "80vh",  
                 transform: "scale(0.9)", // 👈 shrink to 90%
                 transformOrigin: "top center", // keep alignment
               },
