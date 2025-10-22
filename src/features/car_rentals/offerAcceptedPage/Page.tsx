@@ -8,6 +8,8 @@ import { transferService } from "../services/transferService";
 import toast from "react-hot-toast";
 import { RootState } from "../../../store";
 import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { resetForm } from "../carPaymentSlice";
 
 export type DeskProps = {
   handleBack: () => void;
@@ -70,6 +72,7 @@ const Page = () => {
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const [submitted, setSubmitted] = useState(false);
+  const dispatch = useDispatch();
 
   const steps = ["Booking Overview", "Passenger Information", "Payment"];
 
@@ -188,6 +191,7 @@ const Page = () => {
       if (result.success) {
         console.log("Booking confirmed!", result.data);
       } else {
+        dispatch(resetForm());
         navigate("/");
         return;
       }

@@ -128,7 +128,10 @@ const CarList: React.FC<CarListProps> = ({
           <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 ">
             {paginatedItems.length > 0 ? (
               paginatedItems.map((car: any) => (
-                <Card key={car?.id} className="p-[20px] w-[100%] cursor-pointer">
+                <Card
+                  key={car?.id}
+                  className="p-[20px] w-[100%] cursor-pointer"
+                >
                   {/* <div className="flex flex-col sm:flex-row gap-[10px]"> */}
                   <div className="flex justify-normal items-center  gap-3 pb-4">
                     <img
@@ -154,7 +157,6 @@ const CarList: React.FC<CarListProps> = ({
                           )}
                         {car?.content?.transferDetailInfo[2]?.description &&
                           `Seats`}
-                        Seats
                       </span>
                     </div>
 

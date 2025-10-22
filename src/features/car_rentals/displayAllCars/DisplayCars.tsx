@@ -248,14 +248,10 @@ const DisplayCars: React.FC = () => {
       return;
     }
 
-    if (isMobile) {
-      setForm(false);
-      return;
-    }
-
     setSubmitError(null);
     try {
       setLoading(true);
+
       setLoadingSkeleton(true);
       const params = transferService.convertFormToApiParams({
         ...formData,
@@ -264,13 +260,16 @@ const DisplayCars: React.FC = () => {
         throw new Error("Invalid pickup location code");
       }
       if (!params.tcode || params.tcode === "undefined,undefined") {
-        throw new Error("Invalid destination coordinates");
+        throw new Error("Invalid destination coordinates, enter drop off location again");
       }
       const result = await transferService.searchTransfers(params);
       if (!result?.data?.results?.services) {
         throw new Error(result.error || "No transfer results found");
       }
       updateField("searchResults", result?.data?.results?.services || []);
+      if (isMobile) {
+        setForm(false);
+      }
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Search failed");
       console.error("Search failed:", error);

@@ -128,6 +128,7 @@ const MobilePage = ({
   };
 
   const addDurationToTime = (pickupTime: string, durationStr: string) => {
+    console.log(durationStr)
     const [h, m] = pickupTime.split(":").map(Number);
     let totalMin = h * 60 + m;
 
@@ -329,7 +330,7 @@ const MobilePage = ({
                     Bags
                   </p>
                   <p className="text-[#181818] text-sm font-inter">
-                    Up to {car?.content?.transferDetailInfo[3]?.value}{" "}
+                    {car?.content?.transferDetailInfo[3]?.value}{" "}
                     {car?.content?.transferDetailInfo[3]?.description}
                   </p>
                 </div>

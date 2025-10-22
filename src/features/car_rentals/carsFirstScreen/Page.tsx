@@ -256,7 +256,7 @@ const CarBookingFirstScreen: React.FC = () => {
         throw new Error("Invalid pickup location code");
       }
       if (!params.tcode || params.tcode === "undefined,undefined") {
-        throw new Error("Invalid destination coordinates");
+        throw new Error("Invalid destination coordinates, enter drop off location again");
       }
       const result = await transferService.searchTransfers(params);
       if (!result?.data) {
@@ -309,10 +309,10 @@ const CarBookingFirstScreen: React.FC = () => {
     <div className="car-booking-first-screen">
       <ToastContainer />
       {/* Shared Ride Info */}
-      {formData.selectedRide === "Shared Ride" && (
-        <div className="flex items-center gap-3 bg-[#CCD8E880] p-2 rounded-md m-2">
+      {(formData.selectedRide === "Shared Ride" || formData.selectedRide ==="Private and Shared Ride") && (
+        <div className="flex items-center gap-3 bg-[#CCD8E880] p-2 rounded-md mb-2">
           <Info />
-          <p className="text-[#181818] text-xs font-sans">
+          <p className="text-[#181818] text-xs">
             Kindly note Shared rides don't go to private addresses. You'll be
             dropped at a nearby landmark.
           </p>
