@@ -33,6 +33,8 @@ import CreateNewPassword from "./features/account/pages/CreateNewPassword";
 import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailForPasswordReset";
 import PrivateRoute from "../src/routes/PrivateRoute";
 import PaymentFailed from "./features/flights/components/PaymentFailed";
+import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
+import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
 // import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
 // import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
 
@@ -114,21 +116,20 @@ function App() {
           path="/flights/payment-success"
           element={<FlightConfirmationPage />}
         />
-        <Route
-          path="/flights/payment-cancelled"
-          element={<PaymentFailed />}
-        />
+        <Route path="/flights/payment-cancelled" element={<PaymentFailed />} />
 
-
-       
+        {/* Cars-Section */}
         {/* Cars-Section */}
         <Route path="/cars-searchResults" element={<DisplayCars />} />
         <Route path="/offer-accepted-page" element={<Pages />} />
         <Route path="/car-confirmation" element={<Page />} />
         <Route path="/transfers/payment-success" element={<CarPaidForPage />} />
-         {/* <Route path="/transfers/payment-failure" element={<CarFailedPayment />} /> */}
+        <Route
+          path="/transfers/payment-failure"
+          element={<CarFailedPayment />}
+        />
         <Route path="/airport-taxi" element={<AirportTaxi />} />
-        {/* <Route path="/car-paid/download" element={<DownloadPage />} /> */}
+        <Route path="/car-paid/download" element={<DownloadPage />} />
 
         {/* Flight Section */}
         {/* <Route path="/flights" element={<Flight />} /> */}
