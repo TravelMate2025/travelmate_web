@@ -72,6 +72,7 @@ export default function CreateAccount() {
       try {
         const access_token = tokenResponse.access_token;
         console.log("Google Access Token:", access_token);
+        localStorage.setItem("google_access_token", access_token);
   
         if (!access_token) {
           toast.error("Google login failed: No access token received.");

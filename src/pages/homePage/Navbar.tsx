@@ -179,17 +179,19 @@ const Navbar: React.FC<NavbarProps> = ({
                 {/* MODIFIED: Bell icon for mobile view */}
                 {isLoggedIn && (
                   <div className="relative ml-4">
-                    <IconButton
-                      size="large"
-                      aria-label="notifications"
-                      onClick={onNotificationClick} // Direct click handles notification in mobile
-                      sx={{ color: "black", mt: 1 }}
-                    >
-                      <FaBell className="h-6 w-6" />
-                      {hasNewNotification && (
-                        <span className="absolute top-1 right-1 block h-3 w-3 rounded-full ring-2 ring-white bg-red-700"></span>
-                      )}
-                    </IconButton>
+                    <Link to='/notification'>
+                      <IconButton
+                        size="large"
+                        aria-label="notifications"
+                        onClick={onNotificationClick} // Direct click handles notification in mobile
+                        sx={{ color: "black", mt: 1 }}
+                      >
+                        <FaBell className="h-6 w-6" />
+                        {hasNewNotification && (
+                          <span className="absolute top-1 right-1 block h-3 w-3 rounded-full ring-2 ring-white bg-red-700"></span>
+                        )}
+                      </IconButton>
+                    </Link>
                     {hasNewNotification && (
                       <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-800 animate-fadeIn z-50">
                         <p className="font-semibold mb-1">New Notification!</p>
@@ -410,14 +412,16 @@ const Navbar: React.FC<NavbarProps> = ({
                   {/* NEW JSX: Notification Bell for Desktop */}
                   <div className="relative mr-4"> {/* MODIFIED: Added relative position */}
                     <Tooltip title="Notifications">
-                      <IconButton onClick={onNotificationClick} sx={{ p: 0 }}>
-                        <div className="bg-[#CCD8E81A] w-[40px] h-[40px] rounded-full border border-[#023E8A] text-center flex items-center justify-center relative"> {/* MODIFIED: Added flex, items-center, justify-center, relative */}
-                          <FaBell className="h-6 w-6 text-[#023E8A]" />
-                          {hasNewNotification && (
-                            <span className="absolute top-0 right-0 block h-3 w-3 rounded-full ring-2 ring-white bg-red-700"></span>
-                          )}
-                        </div>
-                      </IconButton>
+                      <Link to='/notification'>
+                        <IconButton onClick={onNotificationClick} sx={{ p: 0 }}>
+                          <div className="bg-[#CCD8E81A] w-[40px] h-[40px] rounded-full border border-[#023E8A] text-center flex items-center justify-center relative"> {/* MODIFIED: Added flex, items-center, justify-center, relative */}
+                            <FaBell className="h-6 w-6 text-[#023E8A]" />
+                            {hasNewNotification && (
+                              <span className="absolute top-0 right-0 block h-3 w-3 rounded-full ring-2 ring-white bg-red-700"></span>
+                            )}
+                          </div>
+                        </IconButton>
+                      </Link>
                     </Tooltip>
                     {hasNewNotification && (
                       <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-800 animate-fadeIn z-50">

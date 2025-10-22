@@ -40,6 +40,11 @@ import CreateNewPassword from "./features/account/pages/CreateNewPassword";
 import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailForPasswordReset";
 import PrivateRoute from "../src/routes/PrivateRoute";
 import PaymentFailed from "./features/flights/components/PaymentFailed";
+import Security from "./features/account/pages/Security";
+import UpdateEmailContainer from "./features/account/pages/UpdateEmailContainer";
+import UpdatePasswordContainer from "./features/account/pages/UpdatePasswordContainer";
+import NotificationContainer from "./features/account/pages/NotificationContainer";
+import NotPreferenceContainer from "./features/account/pages/NotPreferenceContainer";
 // import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
 // import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
 
@@ -82,6 +87,51 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/account/security"
+          element={
+            <PrivateRoute>
+              <Security/>
+            </PrivateRoute>
+          }
+          />
+
+         <Route
+          path="/account/update-email"
+          element={
+            <PrivateRoute>
+              <UpdateEmailContainer/>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/account/update-password"
+          element={
+            <PrivateRoute>
+              <UpdatePasswordContainer/>
+            </PrivateRoute>
+          }
+        />
+
+         <Route
+          path="/account/notifications"
+          element={
+            <PrivateRoute>
+              <NotPreferenceContainer/>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/notification"
+          element={
+            <PrivateRoute>
+              <NotificationContainer/>
+            </PrivateRoute>
+          }
+        />
+        
         <Route
           path="/booking-confirmation"
           element={
