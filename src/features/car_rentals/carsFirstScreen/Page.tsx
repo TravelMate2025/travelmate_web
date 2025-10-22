@@ -256,7 +256,7 @@ const CarBookingFirstScreen: React.FC = () => {
         throw new Error("Invalid pickup location code");
       }
       if (!params.tcode || params.tcode === "undefined,undefined") {
-        throw new Error("Invalid destination coordinates");
+        throw new Error("Invalid destination coordinates, enter drop off location again");
       }
       const result = await transferService.searchTransfers(params);
       if (!result?.data) {
