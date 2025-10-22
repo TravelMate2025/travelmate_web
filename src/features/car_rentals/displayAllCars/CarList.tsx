@@ -45,17 +45,17 @@ const CarList: React.FC<CarListProps> = ({
 
   const sortedCars = useMemo(() => {
     if (sortOrder === "Low to High") {
-      return [...cars].sort(
+      return [...cars]?.sort(
         (a, b) =>
-          (a.cancellationPolicies[0].amount ?? 0) -
-          (b.cancellationPolicies[0].amount ?? 0)
+          (a.cancellationPolicies[0]?.amount ?? 0) -
+          (b.cancellationPolicies[0]?.amount ?? 0)
       );
     }
     if (sortOrder === "High to Low") {
-      return [...cars].sort(
+      return [...cars]?.sort(
         (a, b) =>
-          (b.cancellationPolicies[0].amount ?? 0) -
-          (a.cancellationPolicies[0].amount ?? 0)
+          (b.cancellationPolicies[0]?.amount ?? 0) -
+          (a.cancellationPolicies[0]?.amount ?? 0)
       );
     }
     return cars; // recommended or default order
@@ -128,26 +128,32 @@ const CarList: React.FC<CarListProps> = ({
           <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 ">
             {paginatedItems.length > 0 ? (
               paginatedItems.map((car: any) => (
-                <Card key={car.id} className="p-[20px] w-[100%] cursor-pointer">
+                <Card key={car?.id} className="p-[20px] w-[100%] cursor-pointer">
                   {/* <div className="flex flex-col sm:flex-row gap-[10px]"> */}
                   <div className="flex justify-normal items-center  gap-3 pb-4">
                     <img
                       src={
-                        car?.content?.images[0].url || `../assets/carImage.png`
+                        car?.content?.images[0]?.url || `../assets/carImage.png`
                       }
                       alt=""
                       className="w-28 h-24 object-contain bg-[#0000001A] rounded-lg"
                     />
                     <p className="mt-[10px] text-[#181818] text-[16px]">
-                      {car.vehicle.code} {car.vehicle.name}
+                      {car?.vehicle.code} {car?.vehicle.name}
                     </p>
                   </div>
-                  {/* {car.content.transferDetailInfo.map((item: any) => ( */}
+                  {/* {car?.content?.transferDetailInfo.map((item: any) => ( */}
                   <div className="flex flex-col  gap-[3px] mb-[10px] mt-[10px]">
                     <div className="text-[14px]">
                       <AirlineSeatReclineNormalIcon />
                       <span>
-                         {car.content.transferDetailInfo[2].value} {" "}
+                        {car?.content?.transferDetailInfo[2]?.value ||
+                          car?.content?.transferDetailInfo[2]?.description.slice(
+                            0,
+                            2
+                          )}
+                        {car?.content?.transferDetailInfo[2]?.description &&
+                          `Seats`}
                         Seats
                       </span>
                     </div>
@@ -155,20 +161,22 @@ const CarList: React.FC<CarListProps> = ({
                     <div className="text-[14px]">
                       <LuggageOutlinedIcon />
                       <span>
-                         {car?.content?.transferDetailInfo[3]?.value || "2"} {car.content.transferDetailInfo[3].description}
+                        {car?.content?.transferDetailInfo[3]?.value}{" "}
+                        {car?.content?.transferDetailInfo[3]?.description}
                       </span>
                     </div>
                   </div>
                   {/* ))} */}
 
-                  {/* {car.content.transferDetailInfo.map((item:any) => ( */}
+                  {/* {car?.content?.transferDetailInfo.map((item:any) => ( */}
                   <div className="flex flex-col gap-2">
                     <div className="flex gap-2 items-center">
                       <i className="">
                         <Clock />
                       </i>
                       <p className="text-xs">
-                         {car.content.transferDetailInfo[0].value} {car.content.transferDetailInfo[0].description}
+                        {car?.content?.transferDetailInfo[0]?.value}{" "}
+                        {car?.content?.transferDetailInfo[0]?.description}
                       </p>
                     </div>
                     <div className="flex gap-[2px] items-center">
@@ -196,7 +204,7 @@ const CarList: React.FC<CarListProps> = ({
                     <div>
                       <p className="text-[13px]">Price</p>
                       <p className="text-[14px] font-bold">
-                        &#8364;{car.cancellationPolicies[0].amount}
+                        &#8364;{car?.cancellationPolicies[0]?.amount}
                       </p>
                     </div>
 
@@ -292,34 +300,40 @@ const CarList: React.FC<CarListProps> = ({
             {paginatedItems.length > 0 ? (
               paginatedItems.map((car: any) => (
                 <Card
-                  key={car.id}
+                  key={car?.id}
                   className="p-[20px] w-[100%] cursor-pointer "
                 >
                   <div className="flex justify-normal items-center  gap-3 pb-4">
                     <img
                       src={
-                        car?.content?.images[0].url || `../assets/carImage.png`
+                        car?.content?.images[0]?.url || `../assets/carImage.png`
                       }
                       alt=""
                       className="w-28 h-24 object-contain bg-[#0000001A] rounded-lg"
                     />
                     <p className="mt-[10px] text-[#181818] text-[16px]">
-                      {car.vehicle.code} {car.vehicle.name}
+                      {car?.vehicle.code} {car?.vehicle.name}
                     </p>
                   </div>
                   <div className="flex  gap-[3px] mb-[10px] mt-[10px]">
                     <div className="text-[14px]">
                       <AirlineSeatReclineNormalIcon />
                       <span>
-                        {car.content.transferDetailInfo[2].value} {" "}
-                        Seats
+                        {car?.content?.transferDetailInfo[2]?.value ||
+                          car?.content?.transferDetailInfo[2]?.description.slice(
+                            0,
+                            2
+                          )}
+                        {car?.content?.transferDetailInfo[2]?.description &&
+                          `Seats`}
                       </span>
                     </div>
 
                     <div className="text-[14px]">
                       <LuggageOutlinedIcon />
                       <span>
-                       {car?.content?.transferDetailInfo[3]?.value || "2"} {car.content.transferDetailInfo[3].description}
+                        {car?.content?.transferDetailInfo[3]?.value}{" "}
+                        {car?.content?.transferDetailInfo[3]?.description}
                       </span>
                     </div>
                   </div>
@@ -330,7 +344,8 @@ const CarList: React.FC<CarListProps> = ({
                         <Clock />
                       </i>
                       <p className="">
-                        {car.content.transferDetailInfo[0].value} {car.content.transferDetailInfo[0].description}
+                        {car?.content?.transferDetailInfo[0]?.value}{" "}
+                        {car?.content?.transferDetailInfo[0]?.description}
                       </p>
                     </div>
                     <div className="flex gap-[2px] items-center">
@@ -357,7 +372,7 @@ const CarList: React.FC<CarListProps> = ({
                     <div>
                       <p className="text-[13px]">Price</p>
                       <p className="text-[14px] font-bold">
-                        &#8364;{car.cancellationPolicies[0].amount}
+                        &#8364;{car?.cancellationPolicies[0]?.amount}
                       </p>
                     </div>
 
