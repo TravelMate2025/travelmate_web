@@ -235,7 +235,7 @@ const CarPaidForPage = () => {
                     </p>
 
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {cars.transfers[0]?.pickupInformation.time}
+                      {cars.transfers[0]?.pickupInformation.time || "Not Available"}
                     </p>
                   </div>
 
@@ -258,7 +258,7 @@ const CarPaidForPage = () => {
                       {
                         cars.transfers[0]?.content.transferDetailInfo[0]
                           .description
-                      }
+                      || "Not Available"}
                     </p>
                   </div>
                 </div>
@@ -305,7 +305,7 @@ const CarPaidForPage = () => {
                       {
                         cars.transfers[0]?.content.transferDetailInfo[3]
                           .description
-                      }
+                      || "Not Available"}
                     </p>
                   </div>
 
@@ -315,7 +315,7 @@ const CarPaidForPage = () => {
                     </p>
 
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {cars.supplier.name}
+                      {cars.supplier.name || "Not Available"}
                     </p>
                   </div>
                 </div>

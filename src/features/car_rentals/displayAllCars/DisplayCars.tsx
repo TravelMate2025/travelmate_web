@@ -182,22 +182,6 @@ const DisplayCars: React.FC = () => {
     },
     [updateField]
   );
-
-  const handlePriceChange = useCallback(
-    (
-      field: "min" | "max",
-      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-      const value = event.target.value.replace(/[^0-9]/g, "");
-      const parsedValue = value ? parseInt(value, 10) : 0;
-      updateField("priceRange", {
-        ...formData.priceRange,
-        [field]: parsedValue,
-      });
-    },
-    [updateField, formData.priceRange]
-  );
-
   const handlePriceSubmit = useCallback(
     (min: number, max: number) => {
       updateField("priceRange", { min, max });
@@ -260,7 +244,10 @@ const DisplayCars: React.FC = () => {
         throw new Error("Invalid pickup location code");
       }
       if (!params.tcode || params.tcode === "undefined,undefined") {
-        throw new Error("Invalid destination coordinates, enter drop off location again");
+        setFormData((prev) => ({ ...prev, dropoffLocaDescription: "" }));
+        throw new Error(
+          "Invalid destination coordinates, enter drop off location again"
+        );
       }
       const result = await transferService.searchTransfers(params);
       if (!result?.data?.results?.services) {
@@ -442,7 +429,7 @@ const DisplayCars: React.FC = () => {
                       if (newValue) {
                         updateField(
                           "pickupDate",
-                          newValue.toISOString().split("T")[0]
+                          newValue.format("YYYY-MM-DD")
                         );
                       }
                     }}
@@ -623,11 +610,9 @@ const DisplayCars: React.FC = () => {
           openClick={modals.priceRange}
           handleCloseClick={() => closeModal("priceRange")}
           openNoModal={modals.priceError}
-          handleCloseNoModal={() => closeModal("priceError")}
           miniprice={formData.priceRange.min}
           maxprice={formData.priceRange.max}
           handleSubmitOffer={handlePriceSubmit}
-          handlePriceChange={handlePriceChange}
         />
       )}
 
@@ -636,7 +621,7 @@ const DisplayCars: React.FC = () => {
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="flex gap-4 items-center p-4 border rounded-lg shadow-sm bg-white"
+              className="flex gap-4 items-center p-4  rounded-lg shadow-sm bg-white"
             >
               <Skeleton variant="rectangular" width={120} height={80} />
               <div className="flex-1 space-y-3">

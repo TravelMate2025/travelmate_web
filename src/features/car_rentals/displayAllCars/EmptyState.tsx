@@ -3,7 +3,7 @@ import { Link } from "react-router";
 
 const EmptyState = () => {
   return (
-    <div className="flex justify-center items-center flex-col gap-6 py-12 text-center mt-12 lg:mt-auto">
+    <div className="flex justify-center items-center flex-col gap-6 py-12 text-center mt-12 lg:mt-auto px-6 lg:px-0">
       <div className="bg-[#F5F5F5] border border-[#DEDFE1] rounded-full h-32 w-32 relative">
         <Search
           width={60}
