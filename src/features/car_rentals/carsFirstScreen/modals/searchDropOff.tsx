@@ -166,7 +166,7 @@ const SearchDropOffLocation = ({
             {loading ? (
               <div className="text-center py-4">Loading...</div>
             ) : dropSuggestions.length === 0 && !loading && query.length > 3 ? (
-              <div className="text-center py-4 text-red-400">
+              <div className="text-center py-4">
                 {error || "No items match your search"}
               </div>
             ) : (

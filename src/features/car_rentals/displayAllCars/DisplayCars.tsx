@@ -260,7 +260,10 @@ const DisplayCars: React.FC = () => {
         throw new Error("Invalid pickup location code");
       }
       if (!params.tcode || params.tcode === "undefined,undefined") {
-        throw new Error("Invalid destination coordinates, enter drop off location again");
+        setFormData((prev) => ({ ...prev, dropoffLocaDescription: "" }));
+        throw new Error(
+          "Invalid destination coordinates, enter drop off location again"
+        );
       }
       const result = await transferService.searchTransfers(params);
       if (!result?.data?.results?.services) {
@@ -636,7 +639,7 @@ const DisplayCars: React.FC = () => {
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="flex gap-4 items-center p-4 border rounded-lg shadow-sm bg-white"
+              className="flex gap-4 items-center p-4  rounded-lg shadow-sm bg-white"
             >
               <Skeleton variant="rectangular" width={120} height={80} />
               <div className="flex-1 space-y-3">
