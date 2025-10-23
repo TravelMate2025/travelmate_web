@@ -127,17 +127,27 @@ const SearchPickUpLocation = ({
   return (
     <div className="inset-0 fixed z-50">
       {/* Backdrop */}
-      <div className="fixed inset-0 " />
-      <div className="min-w-screen min-h-screen p-8 rounded-lg bg-white shadow-2xl fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 lg:min-h-[400px] lg:min-w-[90vh] block z-[99] mt-5">
-        <div className="flex justify-normal items-center my-5 w-full pt-12 lg:pt-0">
-          <div className="p-[8px] bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] cursor-pointer">
-            <X onClick={closeDialog} className="font-bold" />
+      <div className="fixed inset-0 " onClick={closeDialog}/>
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full lg:h-[450px] lg:w-[450px] lg:min-w-lg lg:max-w-sm bg-white lg:rounded-lg shadow-2xl z-[999] flex flex-col mt-6 lg:mt-0">
+        <div className="p-6 pb-0">
+          <div className="lg:hidden pt-12 pb-5 flex items-center gap-24 lg:border-b border-gray-200">
+            <div className="p-2 size-10 bg-white lg:border-[0.5px] lg:border-[#EBECED] shadow-md rounded-sm cursor-pointer">
+              <X onClick={closeDialog} className="font-bold" />
+            </div>
+            <h2 className="text-lg font-bold text-center lg:hidden block">
+              Pick Up
+            </h2>
           </div>
-          <h2 className="font-bold text-lg m-auto">
-            Pick Up
-          </h2>
+          <div className="lg:flex hidden  items-center pl-2">
+             <div className="p-2 size-10 bg-white lg:border-[0.5px] lg:border-[#EBECED] shadow-md rounded-sm cursor-pointer">
+              <X onClick={closeDialog} className="font-bold" />
+            </div>
+            <h2 className="flex-grow text-center font-bold">
+              Pick Up
+            </h2>
+          </div>
         </div>
-        <form className="mt-6">
+        <form className="mt-6 mx-5 lg:mx-8">
           <TextField
             id="from"
             variant="outlined"

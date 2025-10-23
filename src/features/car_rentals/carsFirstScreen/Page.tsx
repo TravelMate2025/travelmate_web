@@ -72,8 +72,8 @@ const CarBookingFirstScreen: React.FC = () => {
           children: 0,
           infant: 0,
         },
-        toLat: typeof carInfo.toLat === "number" ? carInfo.toLat : undefined,
-        toLon: typeof carInfo.toLon === "number" ? carInfo.toLon : undefined,
+        toLat: carInfo.toLat ? Number(carInfo.toLat) : undefined,
+        toLon: carInfo.toLon ? Number(carInfo.toLon) : undefined,
       };
     }
     return (
@@ -180,21 +180,6 @@ const CarBookingFirstScreen: React.FC = () => {
       updateField("pickupTime", event.target.value);
     },
     [updateField]
-  );
-
-  const handlePriceChange = useCallback(
-    (
-      field: "min" | "max",
-      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-      const value = event.target.value.replace(/[^0-9]/g, "");
-      const parsedValue = value ? parseInt(value, 10) : 0;
-      updateField("priceRange", {
-        ...formData.priceRange,
-        [field]: parsedValue,
-      });
-    },
-    [updateField, formData.priceRange]
   );
 
   const handlePriceSubmit = useCallback(
@@ -601,7 +586,6 @@ const CarBookingFirstScreen: React.FC = () => {
 
       {modals.rideType && (
         <RideType
-          // open={modals.rideType}
           closeModal={() => closeModal("rideType")}
           selectedRide={formData.selectedRide}
           handleSelectRide={handleRideSelect}
@@ -613,12 +597,9 @@ const CarBookingFirstScreen: React.FC = () => {
           openClick={modals.priceRange}
           handleCloseClick={() => closeModal("priceRange")}
           openNoModal={modals.priceError}
-          handleCloseNoModal={() => closeModal("priceError")}
           miniprice={formData.priceRange.min}
           maxprice={formData.priceRange.max}
           handleSubmitOffer={handlePriceSubmit}
-          // loading={loading}
-          handlePriceChange={handlePriceChange}
         />
       )}
     </div>
