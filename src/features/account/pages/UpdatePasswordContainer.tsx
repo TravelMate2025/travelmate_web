@@ -3,7 +3,7 @@ import UpdatePasswordPresenter from "./UpdatePasswordPresenter"
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import api from "../../../api/services/api";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -15,7 +15,7 @@ function UpdatePasswordContainer() {
     const [error, setError] = useState("");
     const [isOtpValid, setIsOtpValid] = useState(false);
 
-    const navigate = useNavigate()
+    // const navigate = useNavigate()
 
     const requestPasswordResetToken = async () => {
         setLoading(true);
@@ -153,9 +153,9 @@ function UpdatePasswordContainer() {
     
         if (res.status === 204) {
           console.log("Email updated successfully!");
-          setTimeout(() => {
-            navigate("/account/security");
-          }, 3000)
+          // setTimeout(() => {
+          //   navigate("/account/security");
+          // }, 3000)
         } else {
           setError("Unexpected response from server.");
         }

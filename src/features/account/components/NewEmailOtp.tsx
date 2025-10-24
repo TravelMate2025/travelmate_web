@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import SuccessModal from "./SuccessModal";
+import toast from "react-hot-toast";
+import { logoutUser } from "../api/auth";
+import { logout } from "../slices/authSlice";
+import { useNavigate } from "react-router-dom";
 
 type EmailOtpProps = {
   handleResendOtp: () => Promise<void>;
@@ -29,6 +33,32 @@ function NewEmailOtp({
   const inputRef = useRef<(HTMLInputElement | null)[]>([]);
   const [countDown, setCountDown] = useState(10);
 
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { accessToken } = useSelector((state: RootState) => state.auth);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
+
+  const handleLogout = async () => {
+    if (!accessToken) {
+      toast.error("User session expired. Login again to continue.");
+      return;
+    }
+  
+    setLogoutLoading(true);
+      try {
+        await logoutUser(accessToken);
+        dispatch(logout());
+        localStorage.clear();
+        navigate("/create-account");
+      } catch (error) {
+        console.error("Logout failed", error);
+        toast.error("Logout failed. Please try again.");
+      } finally {
+        setLogoutLoading(false);
+      }
+  };
+
   // Handle OTP input change
   function handleChange(value: string, index: number) {
     if (value.length > 1) return;
@@ -43,11 +73,15 @@ function NewEmailOtp({
       inputRef.current[index + 1]?.focus();
     }
 
-    // ✅ If last input filled, trigger validation automatically
+    // If last input filled, trigger validation automatically
     const combinedOtp = newOtp.join("");
     if (combinedOtp.length === otp.length && newOtp.every((d) => d !== "")) {
       handleConfirmEmail(NewEmail, combinedOtp);
       setEmailUpdatedSuccessfully(true)
+      navigate('/create-account')
+      setTimeout(() => {
+           handleLogout()
+      },1000)
     }
   }
 
@@ -88,6 +122,15 @@ function NewEmailOtp({
           </SuccessModal.Body>
         </SuccessModal>
       )}
+
+      {/* Loading State */}
+        {logoutLoading && (
+          <div className="flex justify-center items-center h-[50vh]">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+          </div>
+      )}
+
+
       <div className="text-center w-[370px] m-auto">
         <h2 className="font-semibold text-[18px] pb-1.5">Confirm Your Email</h2>
         <p className="text-gray-500 w-[350px] m-auto">

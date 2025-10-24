@@ -3,7 +3,7 @@ import UpdateEmailPresenter from "./UpdateEmailPresenter";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import api from "../../../api/services/api";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -12,7 +12,7 @@ function UpdateEmailContainer() {
 //   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   if (!user) return null;
 
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
 
   const [hasReceivedOtp, setHasReceivedOtp] = useState(false);
   const [hasReceiveNewOtp, setHasReceiveNewOtp] = useState(false)
@@ -177,7 +177,7 @@ const handleConfirmEmail = async (
 
     if (res.status === 204) {
       console.log("Email updated successfully!");
-      navigate("/account/security");
+      // navigate("/account/security");
     } else {
       setError("Unexpected response from server.");
     }

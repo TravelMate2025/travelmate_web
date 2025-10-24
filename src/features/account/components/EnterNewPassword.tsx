@@ -1,10 +1,13 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { FiLock } from "react-icons/fi";
 import { FaCheck, FaEye, FaEyeSlash, FaTimes } from "react-icons/fa";
 import { useState } from "react";
 import SuccessModal from "./SuccessModal";
 import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { logoutUser } from "../api/auth";
+import { logout } from "../slices/authSlice";
 
 type EnterNewPasswordProps = {
   setHasReceivedOtp: React.Dispatch<React.SetStateAction<boolean>>;
@@ -32,6 +35,10 @@ function EnterNewPassword({
   const [errors, setErrors] = useState<{ newPassword?: string; confirmPassword?: string }>({});
   const navigate = useNavigate();
 
+  const dispatch = useDispatch();
+  const { accessToken } = useSelector((state: RootState) => state.auth);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
   const passwordRules = [
     { label: "At Least 8 Characters", test: (pw: string) => pw.length >= 8 },
     { label: "One Uppercase Letter (A-Z)", test: (pw: string) => /[A-Z]/.test(pw) },
@@ -42,6 +49,26 @@ function EnterNewPassword({
 
   const user = useSelector((state: RootState) => state.auth.user);
   if (!user) return null;
+
+   const handleLogout = async () => {
+      if (!accessToken) {
+        toast.error("User session expired. Login again to continue.");
+        return;
+      }
+    
+      setLogoutLoading(true);
+        try {
+          await logoutUser(accessToken);
+          dispatch(logout());
+          localStorage.clear();
+          navigate("/create-account");
+        } catch (error) {
+          console.error("Logout failed", error);
+          toast.error("Logout failed. Please try again.");
+        } finally {
+          setLogoutLoading(false);
+        }
+    };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,8 +96,9 @@ function EnterNewPassword({
 
         setTimeout(() => {
           setPassUpdatedSuccessfully(false);
-          navigate("/account/security");
-        }, 3000);
+        },3000);
+        navigate("/create-account");
+        handleLogout()
       } catch (err) {
         console.error(err);
       }
@@ -115,7 +143,7 @@ function EnterNewPassword({
       </div>
 
       {/* Form */}
-      {loading ? (
+      {loading || logoutLoading ? (
         <div className="absolute inset-0 bg-white bg-opacity-60 flex justify-center items-center z-50">
           <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
