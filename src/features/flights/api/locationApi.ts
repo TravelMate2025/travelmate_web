@@ -7,7 +7,8 @@ interface LocationInfo {
 
 export const locationApi = createApi({
   reducerPath: "locationApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "/" }), // absolute URLs used
+  baseQuery: fetchBaseQuery({ baseUrl: "/" }),
+  tagTypes: ["Location"],
   endpoints: (builder) => ({
     getLocationInfo: builder.query<
       LocationInfo,
@@ -20,23 +21,20 @@ export const locationApi = createApi({
         fetchWithBQ
       ) {
         try {
-          // Step 1: Reverse geocode to get country name
+          // ✅ Step 1: Reverse geocode with BigDataCloud
           const geoRes: any = await fetchWithBQ({
-            url: `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=3&addressdetails=1`,
-          
-           
-            
+            url: `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
           });
 
           if (geoRes.error) throw geoRes.error;
 
-          const countryName = geoRes.data?.address?.country || "Unknown";
+          const countryName = geoRes.data?.countryName || "Unknown";
 
           if (countryName === "Unknown") {
             return { data: { country: "Nigeria", currency: "NGN" } };
           }
 
-          // Step 2: Get currency from RestCountries
+          // ✅ Step 2: Get currency from RestCountries
           const currencyRes: any = await fetchWithBQ(
             `https://restcountries.com/v3.1/name/${encodeURIComponent(
               countryName
@@ -49,10 +47,7 @@ export const locationApi = createApi({
           const firstCurrency = Object.keys(currencies)[0] ?? "NGN";
 
           return {
-            data: {
-              country: countryName,
-              currency: firstCurrency,
-            },
+            data: { country: countryName, currency: firstCurrency },
           };
         } catch (error: any) {
           return {
@@ -63,8 +58,16 @@ export const locationApi = createApi({
           };
         }
       },
+
+      // ✅ Cache & revalidation controls
+      providesTags: (result, _error, { latitude, longitude }) =>
+        result ? [{ type: "Location", id: `${latitude},${longitude}` }] : [],
+
+      // Cache lifetime in seconds
+      keepUnusedDataFor: 60 * 60 * 24, // ✅ Cache for 24 hours
     }),
   }),
 });
 
-export const { useLazyGetLocationInfoQuery } = locationApi;
+export const { useLazyGetLocationInfoQuery, useGetLocationInfoQuery } =
+  locationApi;

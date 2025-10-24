@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { Airport } from "../types";
-import axios from "axios";
+
 import toast from "react-hot-toast";
+import { useLazyGetLocationInfoQuery } from "../api/locationApi";
 
 export type Flight = {
   id?: number;
@@ -39,6 +40,7 @@ export type SearchData =  {
 export const useFlightBooking = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [getLocationInfo, {isLoading}] =  useLazyGetLocationInfoQuery()
 
   const [tripType, setTripType] = useState<string>(
     () => sessionStorage.getItem("tripType") || "round-trip"
@@ -79,15 +81,20 @@ const [flights, setFlights] = useState<Flight[]>(() => {
   
               try {
                 // Call OpenStreetMap Nominatim API to reverse geocode
-                const res = await axios.get(
-                  `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=3&addressdetails=1`
-                );
-                const data = await res.data;
+
+                const { data } = await getLocationInfo({ latitude, longitude })
+                console.log(data);
+                
+                // const 
+                // const res = await axios.get(
+                //   `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=3&addressdetails=1`
+                // );
+                // const data = await res.data;
               
                 
-                setCountry(data?.address?.country || "Unknown");
+                // setCountry(data?.address?.country || "Unknown");
               } catch (error) {
-                toast.error("Geolocation lookup failed:");
+                // toast.error("Geolocation lookup failed:");
                 setCountry("Error detecting country");
               }
             },
@@ -178,13 +185,7 @@ const [flights, setFlights] = useState<Flight[]>(() => {
   useEffect(() => {
     sessionStorage.setItem("tripType", tripType);
   }, [tripType]);
-const isCountryReady =
-  country &&
-  country !== "Detecting..." &&
-  country !== "Unknown" &&
-  !country.startsWith("Error") &&
-  country !== "Permission denied or unavailable" &&
-    country !== "Geolocation not supported";
+const isCountryReady = isLoading
 
   
   return {

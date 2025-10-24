@@ -56,6 +56,7 @@ import { buildFlightPayload } from "../../../features/flights/api/flightApi";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { SearchData } from "../../../features/flights/hooks/useFlightBooking";
+import { Airport } from "../../../features/flights/types";
 
 
 interface Departure {
@@ -86,7 +87,7 @@ const ITEMS_PER_PAGE = 4;
 const DeparturePage: React.FC<DepartureListProps> = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [fetchCoords, { data: locationData }] = useLazyGetLocationInfoQuery();
+  const [fetchCoords, { data: locationData={currency:"USD"} }] = useLazyGetLocationInfoQuery();
   const [fetchFlights, { data: flightResults, error, isLoading, isFetching }] =
     useLazyFetchFlightsQuery();
 
@@ -167,6 +168,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
       );
     }
   }, [fetchCoords]);
+
 
   // Reset form when searchData changes
   useEffect(() => {
@@ -288,6 +290,26 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
     ]
   );
 
+console.log(tripType);
+
+  useEffect(() => {
+    
+    if (tripType === "multi-city") {
+      const currentFlight = flights?.[currentSegment];
+      
+reset({
+  class: selectedClass,
+  date: currentFlight?.date as any,
+  from: currentFlight?.from as Airport,
+  to: (tripType === "multi-city" ? currentFlight?.to : selectedTo) as Airport,
+  passengers: selectedPassengers,
+  tripType: tripType as "round-trip" | "one-way" | "multi-city",
+});
+
+
+
+    }
+  },[tripType])
   const onSearch = handleSubmit((formData) => {
     sessionStorage.setItem(
       "trip",
@@ -303,6 +325,8 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
     );
     getFlight(formData);
   });
+
+
 
   // Flight filtering
   const filteredDepartures = useMemo(() => {
@@ -678,7 +702,11 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
                   open={isDialogOpen}
                   onClose={() => setIsDialogOpen(false)}
                   onChange={setFilters}
-                  onApply={() => setFilters({ ...filters })}
+                  onApply={() => {
+                    
+                    setFilters({ ...filters })
+                    setIsDialogOpen(false);
+                  }}
                 />
                 <Button
                   variant="outlined"

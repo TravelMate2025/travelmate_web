@@ -71,7 +71,7 @@ const WelcomePage = () => {
                           alt="stay"
                           style={{ width: 20, height: 20 }}
                         />
-                      }
+                      }   
                       iconPosition="start"
                       label="Stays"
                       value="1"
