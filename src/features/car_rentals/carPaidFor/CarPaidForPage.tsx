@@ -53,26 +53,7 @@ const CarPaidForPage = () => {
   }, [sessionId]);
 
   if (loading) return <SkeletonConfirm />;
-  if (!booking)
-    return (
-      <div className="text-center pt-32 flex flex-col gap-6 ">
-        <Navbar/>
-        <p>No booking found for this session.</p>
-        <div className="mx-6 lg:mx-8  lg:order-6">
-          <Link to="/">
-            <button
-              className="px-4 py-3 text-white rounded-[6px] cursor-pointer bg-[#023E8A]"
-              onClick={() => {
-                dispatch(resetForm());
-                clearSavedData();
-              }}
-            >
-              Back to home
-            </button>
-          </Link>
-        </div>
-      </div>
-    );
+  if (!booking) return <CarFailedPayment />;
 
   const handleDownload = (cars: any) => {
     try {
@@ -88,11 +69,24 @@ const CarPaidForPage = () => {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "confirmed":
+        return "text-[#2D9C5E]";
+      case "pending":
+        return "text-[#F2994A]";
+      case "failed":
+        return "text-[#EB5757]";
+      default:
+        return "text-[#4E4F52]";
+    }
+  };
+
   return (
     <div>
       <Navbar />
       <ToastContainer />
-      {booking?.map((cars: any, index:any) => (
+      {booking?.map((cars: any, index: any) => (
         <div className="lg:pt-32 pt-20" key={index}>
           {showShareModal && (
             <ShareModal
@@ -152,7 +146,7 @@ const CarPaidForPage = () => {
             </div>
           </div>
 
-          {cars.status === "CONFIRMED" && (
+          {cars.status.toLowerCase() === "confirmed" && (
             <div className="mb-8 px-6 lg:px-8 m-auto">
               <div className="border-1 border-[#2D9C5E] w-full bg-[#D5EBDF4D] pt-[10px] pb-[10px] pr-[10px] pl-[10px] rounded-[8px]">
                 <div className="flex gap-2 items-center">
@@ -185,7 +179,11 @@ const CarPaidForPage = () => {
                   <p className="text-[#4E4F52] text-[14px] font-normal">
                     Payment Status
                   </p>
-                  <p className="text-[#2D9C5E] text-[14px] font-normal">
+                  <p
+                    className={`text-[14px] font-normal ${getStatusColor(
+                      cars.status
+                    )}`}
+                  >
                     {cars.status}
                   </p>
                 </div>
@@ -235,7 +233,8 @@ const CarPaidForPage = () => {
                     </p>
 
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {cars.transfers[0]?.pickupInformation.time || "Not Available"}
+                      {cars.transfers[0]?.pickupInformation.time ||
+                        "Not Available"}
                     </p>
                   </div>
 
@@ -255,10 +254,8 @@ const CarPaidForPage = () => {
 
                     <p className="text-[#181818] text-[14px] font-inter">
                       {cars.transfers[0]?.content.transferDetailInfo[0].value}{" "}
-                      {
-                        cars.transfers[0]?.content.transferDetailInfo[0]
-                          .description
-                      || "Not Available"}
+                      {cars.transfers[0]?.content.transferDetailInfo[0]
+                        .description || "Not Available"}
                     </p>
                   </div>
                 </div>
@@ -302,10 +299,8 @@ const CarPaidForPage = () => {
 
                     <p className="text-[#181818] text-[14px] font-inter">
                       {cars.transfers[0]?.content.transferDetailInfo[3].value}{" "}
-                      {
-                        cars.transfers[0]?.content.transferDetailInfo[3]
-                          .description
-                      || "Not Available"}
+                      {cars.transfers[0]?.content.transferDetailInfo[3]
+                        .description || "Not Available"}
                     </p>
                   </div>
 

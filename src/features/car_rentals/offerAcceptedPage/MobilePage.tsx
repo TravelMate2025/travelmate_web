@@ -726,18 +726,18 @@ const MobilePage = ({
 
         {/* <----------------------------------------------------------------THIRD STEP ------------------------------------------> */}
         {activeStep === 2 && (
-          <div className="px-6 mt-12">
+          <div className="lg:px-6 px-4 mt-12">
             <div className="border-[#CDCED1] lg:border rounded-lg p-5">
               <div className="flex items-center gap-1 mb-4">
                 <img
                   src="src/assets/images/paypal.png"
                   alt="paypal icon"
-                  className="w-24 h-10 object-cover bg-white rounded-lg p-2 border-1 border-[#CDCED1]"
+                  className="lg:w-24 w-16 h-6 lg:h-10 object-cover bg-white rounded-lg p-2 border-1 border-[#CDCED1]"
                 />
                 <p className="font-bold text-lg">Stripe</p>
               </div>
               <div className="flex flex-col justify-center items-center gap-4 bg-[#FAFAFA] rounded-lg lg:p-26 p-12 ">
-                <ArrowRight className="font-bold w-12 h-12" />
+                <ArrowRight className="font-bold lg:w-12 lg:h-12 h-8 w-8" />
                 <p className="text-[#4E4F52]">
                   You'll be redirected to Stripe to complete your secure payment
                 </p>

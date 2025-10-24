@@ -48,8 +48,8 @@ const Passengers = ({
 
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full lg:h-auto lg:w-auto lg:min-w-sm lg:max-w-sm bg-white lg:rounded-lg shadow-2xl z-[99] flex flex-col mt-6 lg:mt-0">
         <div className="p-6 pb-0">
-          <div className="lg:hidden pt-12 pb-5 flex items-center gap-24 lg:border-b border-gray-200">
-            <div className="p-2 size-10 bg-white lg:border-[0.5px] lg:border-[#EBECED] shadow-md rounded-sm cursor-pointer">
+          <div className="lg:hidden pt-12 pb-8">
+            <div className="absolute left-6 p-2 size-10 bg-white lg:border-[0.5px] lg:border-[#EBECED] shadow-md rounded-sm cursor-pointer">
               <X onClick={closeModal} className="font-bold" />
             </div>
             <h2 className="text-lg font-bold text-center lg:hidden block">
