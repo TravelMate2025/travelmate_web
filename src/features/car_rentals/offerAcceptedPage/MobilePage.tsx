@@ -60,6 +60,7 @@ const MobilePage = ({
   setPassFormData,
   loadingSubmit,
   formData,
+  isTheFormValid,
   submitted,
 }: DeskProps) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,12 +129,13 @@ const MobilePage = ({
   };
 
   const addDurationToTime = (pickupTime: string, durationStr: string) => {
+    console.log(durationStr);
     const [h, m] = pickupTime.split(":").map(Number);
     let totalMin = h * 60 + m;
 
     // Try to extract hours and minutes if specified
-    const hourMatch = durationStr.match(/(\d+)\s*hour(s)?/i);
-    const minMatch = durationStr.match(/(\d+)\s*min/i);
+    const hourMatch = durationStr?.match(/(\d+)\s*hour(s)?/i);
+    const minMatch = durationStr?.match(/(\d+)\s*min/i);
 
     if (hourMatch) totalMin += parseInt(hourMatch[1]) * 60;
     if (minMatch) totalMin += parseInt(minMatch[1]);
@@ -232,12 +234,12 @@ const MobilePage = ({
           <div>
             <div className="flex items-center gap-4 p-6">
               <img
-                src={car?.content?.images[0].url || carImage}
+                src={car?.content?.images[0]?.url || carImage}
                 alt=""
                 className="w-28 h-28 p-2 object-contain bg-[#0000001A] rounded-lg"
               />
               <p className="text-[#67696D] text-[14px] ">
-                {car.vehicle.name} {car.vehicle.code}
+                {car?.vehicle.name} {car?.vehicle.code}
               </p>
             </div>
 
@@ -268,13 +270,13 @@ const MobilePage = ({
                   {" "}
                   <div className="border-l-2 border-l-[#4E4F52] h-16" />{" "}
                   <p className="text-[#4E4F52]">
-                    {car.content.transferDetailInfo[0].value}{" "}
-                    {car.content.transferDetailInfo[0].description}
+                    {car?.content?.transferDetailInfo[0]?.value}{" "}
+                    {car?.content?.transferDetailInfo[0]?.description}
                   </p>{" "}
                 </div>
                 <div className="flex justify-normal gap-4 items-center">
-                  <div className="size-6 bg-[#D72638] rounded-full object-contain" />
-                  <div>
+                  <div className="size-6 bg-[#D72638] rounded-full object-contain absolute" />
+                  <div className="relative left-10 text-wrap">
                     <p>{departureInfo.dropoffLocation}</p>
                     <div className="flex items-center justify-normal gap-1 text-gray-500 pt-3">
                       <FaRegCalendarAlt />
@@ -285,7 +287,7 @@ const MobilePage = ({
                       <p>
                         {addDurationToTime(
                           departureInfo.pickupTime,
-                          car.content.transferDetailInfo[0].value
+                          car?.content?.transferDetailInfo[0]?.value
                         )}
                       </p>
                     </div>
@@ -310,7 +312,7 @@ const MobilePage = ({
                   </p>
 
                   <p className="text-[#181818] text-sm font-inter">
-                    {car.category.name} Car
+                    {car?.category.name} Car
                   </p>
                 </div>
 
@@ -320,7 +322,9 @@ const MobilePage = ({
                   </p>
 
                   <p className="text-sm text-[#181818]">
-                    {car.maxPaxCapacity} Seats
+                    {car?.maxPaxCapacity ||
+                      car?.content?.transferDetailInfo[2]?.description}{" "}
+                    {car?.maxPaxCapacity && `Seats`}
                   </p>
                 </div>
 
@@ -329,14 +333,14 @@ const MobilePage = ({
                     Bags
                   </p>
                   <p className="text-[#181818] text-sm font-inter">
-                    Up to {car.content.transferDetailInfo[3].value}{" "}
-                    {car.content.transferDetailInfo[3].description}
+                    {car?.content?.transferDetailInfo[3]?.value}{" "}
+                    {car?.content?.transferDetailInfo[3]?.description}
                   </p>
                 </div>
 
                 <div className="flex justify-between items-center w-full">
                   <p className="text-sm font-inter font-normal text-[#4E4F52]">
-                    Provider 
+                    Provider
                   </p>
 
                   <p className="text-[#181818] text-[14px] font-inter">
@@ -361,7 +365,7 @@ const MobilePage = ({
 
                 <p className="text-[#181818] text-[14px] font-bold font-inter">
                   {" "}
-                  &#8364;{car.price.totalAmountWithFee}
+                  &#8364;{car?.price.totalAmountWithFee}
                 </p>
               </div>
             </div>
@@ -745,7 +749,9 @@ const MobilePage = ({
             </p>
             <div className="px-6  border-[#CDCED1] lg:border rounded-lg p-5 flex justify-between items-center w-full">
               <p className="font-bold text-[#4E4F52]">Total</p>
-              <p className="font-bold">&#8364;{car.price.totalAmountWithFee}</p>
+              <p className="font-bold">
+                &#8364;{car?.price.totalAmountWithFee}
+              </p>
             </div>
 
             <Divider
@@ -763,9 +769,9 @@ const MobilePage = ({
                 }
                 label={
                   <p className="text-[11px]">
-                    I agree to the{" "}
+                    I agree to the {" "}
                     <span className="text-[#023E8A]">
-                      booking conditions, TravelMate terms and conditions, and
+                       booking conditions, TravelMate terms and conditions, and
                       Privacy Policy.
                     </span>
                   </p>
@@ -775,7 +781,6 @@ const MobilePage = ({
           </div>
         )}
         {activeStep === 2 ? (
-          // <Link to="/car-payment-successful">
           <div className="mx-6 my-6 flex items-center justify-center">
             <button
               className={`flex items-center justify-center gap-5 w-full lg:w-96 text-white bg-[#023E8A] h-[56px] rounded-[6px] cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed
@@ -790,11 +795,14 @@ const MobilePage = ({
             </button>
           </div>
         ) : (
-          // {/* </Link> */}
           <div className="mx-6 mb-20 flex items-center justify-center">
             <button
               className="flex items-center justify-center gap-5 w-full lg:w-96 text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]  disabled:bg-gray-400 disabled:cursor-not-allowed"
-              disabled={!loggedIn || loadingSubmit}
+              disabled={
+                !loggedIn || 
+                loadingSubmit || 
+                (activeStep === 1 && !isTheFormValid)
+              }
               onClick={() => {
                 activeStep === 0 ? handleNext() : handleConfirm();
               }}

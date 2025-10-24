@@ -1,30 +1,46 @@
 import { TextField } from "@mui/material";
-import React from "react";
 import { X } from "lucide-react";
+import { useEffect, useState } from "react";
 type priceProps = {
   openClick: boolean;
   handleCloseClick: () => void;
-  handlePriceChange: (
-    field: "min" | "max",
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => void;
   openNoModal: boolean;
-  handleCloseNoModal: () => void;
   miniprice: number;
   maxprice: number;
   handleSubmitOffer: (min: number, max: number) => void;
 };
 const PriceRange = ({
   handleCloseClick,
-  handlePriceChange,
   miniprice,
   maxprice,
   handleSubmitOffer,
 }: priceProps) => {
+  const [localMin, setLocalMin] = useState(miniprice);
+  const [localMax, setLocalMax] = useState(maxprice);
+
+  useEffect(() => {
+    setLocalMin(miniprice);
+    setLocalMax(maxprice);
+  }, [miniprice, maxprice]);
+
+const handleLocalChange = (
+  field: "min" | "max",
+  event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+) => {
+  const rawInput = event.target.value;
+  const cleanedValue = rawInput.replace(/[^0-9]/g, ""); 
+  const numericValue = Number(cleanedValue);
+
+  if (field === "min") {
+    setLocalMin(numericValue);
+  } else {
+    setLocalMax(numericValue);
+  }
+};
   return (
     <div className="inset-0 fixed z-50">
       {/* Backdrop */}
-      <div className="fixed inset-0" />
+      <div className="fixed inset-0" onClick={handleCloseClick}/>
 
       {/* Modal Container */}
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full lg:h-auto lg:w-auto lg:min-w-sm lg:max-w-sm bg-white lg:rounded-lg shadow-2xl z-[99] flex flex-col mt-6 lg:mt-0">
@@ -53,8 +69,8 @@ const PriceRange = ({
             size="small"
             typeof="number"
             placeholder="Enter your price"
-            value={new Intl.NumberFormat().format(miniprice)}
-            onChange={(e) => handlePriceChange("min", e)}
+            value={new Intl.NumberFormat().format(localMin)}
+            onChange={(e) => handleLocalChange("min", e)}
             sx={{
               width: "100%",
               mt: "10px",
@@ -79,8 +95,8 @@ const PriceRange = ({
             size="small"
             typeof="number"
             placeholder="Enter your price"
-            value={new Intl.NumberFormat().format(maxprice)}
-            onChange={(e) => handlePriceChange("max", e)}
+            value={new Intl.NumberFormat().format(localMax)}
+            onChange={(e) => handleLocalChange("max", e)}
             sx={{
               width: "100%",
               mt: "10px",
@@ -95,74 +111,15 @@ const PriceRange = ({
             }}
           />
         </div>
-        {/* 
-          <div
-            open={openNoModal}
-            onClose={handleCloseNoModal}
-            keepMounted
-            sx={{
-              "& .MuiBackdrop-root": {
-                backgroundColor: "rgba(0, 0, 0, 0.3)",
-              },
-              "& .MuiPaper-root": {
-                backgroundColor: "white",
-                borderRadius: "20px",
-                display: "flex",
-                flexDirection: "column",
-                width: "100%",
-              },
-            }}
-          >
-            <div
-              sx={{
-                // maxHeight: "80vh",
-                // paddingBottom: "5px",
-                width: "100%",
-              }}
-            >
-              <div
-                style={{
-                  textAlign: "center",
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                }}
-              >
-                <div className="w-[100%]">
-                  <div className="flex justify-end">
-                    <IconButton>
-                      <CloseOutlinedIcon
-                        onClick={handleCloseNoModal}
-                        className="w-[32px] h-[32px] p-[4px] font-bold bg-white border-[0.5px] border-[#EBECED] shadow-[0px_4px_4px_rgba(0,0,0,0.06)] rounded-[4px]"
-                      />
-                    </IconButton>
-                  </div>
-                  <div className="flex justify-center mt-[30px]">
-                    <img src={offerNot} alt="" />
-                  </div>
-                  <p className="text-[#181818] font-medium text-[20px] font-inter mt-[20px] text-center">
-                    No Cars Available in Your Price Range
-                  </p>
-                  <p className="text-[#67696D] font-normal text-[16px] mt-[16px] mb-[25px] text-center">
-                    Please increase your minimum price or adjust your maximum
-                    price to see available options.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div> */}
 
         <div className="p-6 pt-3 mb-12 lg:mb-0 lg:mt-12">
           <button
             onClick={() => {
-              handleSubmitOffer(miniprice, maxprice);
+              handleSubmitOffer(localMin, localMax);
               handleCloseClick();
             }}
-            disabled={!miniprice || !maxprice || (miniprice > maxprice)}
-            className={`w-full p-3 lg:p-2 rounded-[6px] text-white cursor-pointer ${
-              miniprice && maxprice
-                ? "bg-[#023E8A]"
-                : "bg-[#023E8A] cursor-not-allowed opacity-50"
-            }`}
+            disabled={!localMax || !localMin || localMin > localMax}
+            className="w-full p-3 lg:p-2 rounded-[6px] text-white cursor-pointer bg-[#023E8A] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Done
           </button>

@@ -8,6 +8,8 @@ import { transferService } from "../services/transferService";
 import toast from "react-hot-toast";
 import { RootState } from "../../../store";
 import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { resetForm } from "../carPaymentSlice";
 
 export type DeskProps = {
   handleBack: () => void;
@@ -70,6 +72,7 @@ const Page = () => {
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const [submitted, setSubmitted] = useState(false);
+  const dispatch = useDispatch();
 
   const steps = ["Booking Overview", "Passenger Information", "Payment"];
 
@@ -116,6 +119,11 @@ const Page = () => {
       newErrors.lastName = "Last name is required.";
     if (!passFormData.dateOfBirth.trim())
       newErrors.dateOfBirth = "Date of birth is required.";
+    if (
+      new Date(passFormData.dateOfBirth).toISOString() >
+      new Date().toISOString()
+    )
+      newErrors.dateOfBirth = "Date of Birth invalid!";
     if (!passFormData.email.trim()) newErrors.email = "Email is required.";
     else if (!/\S+@\S+\.\S+/.test(passFormData.email))
       newErrors.email = "Email is invalid.";
@@ -144,6 +152,11 @@ const Page = () => {
   const [activeStep, setActiveStep] = useState(0);
 
   const handleNext = () => {
+    if (activeStep === 1) {
+      if (!validatePersonalInfo()) {
+        return;
+      }
+    }
     if (activeStep < steps.length - 1) {
       setActiveStep((prevStep) => prevStep + 1);
     }
@@ -186,8 +199,8 @@ const Page = () => {
         payload
       );
       if (result.success) {
-        console.log("Booking confirmed!", result.data);
       } else {
+        dispatch(resetForm());
         navigate("/");
         return;
       }
@@ -210,10 +223,11 @@ const Page = () => {
       passFormData.firstName.trim() !== "" &&
       passFormData.lastName.trim() !== "" &&
       passFormData.email.trim() !== "" &&
-      /\S+@\S+\.\S+/.test(passFormData.email) && // Email validation
+      /\S+@\S+\.\S+/.test(passFormData.email) &&
       passFormData.phoneNumber.trim() !== "" &&
-      /^\d+$/.test(passFormData.phoneNumber) && // Ensures phone is numbers only
-      passFormData.dateOfBirth.trim() !== "";
+      /^\d+$/.test(passFormData.phoneNumber) &&
+      passFormData.dateOfBirth.trim() !== "" &&
+      passFormData.countryCode.trim() !== "";
 
     setIsTheFormValid(isValid);
   }, [passFormData]);

@@ -72,8 +72,8 @@ const CarBookingFirstScreen: React.FC = () => {
           children: 0,
           infant: 0,
         },
-        toLat: typeof carInfo.toLat === "number" ? carInfo.toLat : undefined,
-        toLon: typeof carInfo.toLon === "number" ? carInfo.toLon : undefined,
+        toLat: carInfo.toLat ? Number(carInfo.toLat) : undefined,
+        toLon: carInfo.toLon ? Number(carInfo.toLon) : undefined,
       };
     }
     return (
@@ -182,21 +182,6 @@ const CarBookingFirstScreen: React.FC = () => {
     [updateField]
   );
 
-  const handlePriceChange = useCallback(
-    (
-      field: "min" | "max",
-      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-      const value = event.target.value.replace(/[^0-9]/g, "");
-      const parsedValue = value ? parseInt(value, 10) : 0;
-      updateField("priceRange", {
-        ...formData.priceRange,
-        [field]: parsedValue,
-      });
-    },
-    [updateField, formData.priceRange]
-  );
-
   const handlePriceSubmit = useCallback(
     (min: number, max: number) => {
       updateField("priceRange", { min, max });
@@ -256,7 +241,10 @@ const CarBookingFirstScreen: React.FC = () => {
         throw new Error("Invalid pickup location code");
       }
       if (!params.tcode || params.tcode === "undefined,undefined") {
-        throw new Error("Invalid destination coordinates");
+        setFormData((prev) => ({ ...prev, dropoffLocaDescription: "" }));
+        throw new Error(
+          "Invalid destination coordinates, enter drop off location again"
+        );
       }
       const result = await transferService.searchTransfers(params);
       if (!result?.data) {
@@ -309,10 +297,11 @@ const CarBookingFirstScreen: React.FC = () => {
     <div className="car-booking-first-screen">
       <ToastContainer />
       {/* Shared Ride Info */}
-      {formData.selectedRide === "Shared Ride" && (
-        <div className="flex items-center gap-3 bg-[#CCD8E880] p-2 rounded-md m-2">
+      {(formData.selectedRide === "Shared Ride" ||
+        formData.selectedRide === "Private and Shared Ride") && (
+        <div className="flex items-center gap-3 bg-[#CCD8E880] p-2 rounded-md mb-2">
           <Info />
-          <p className="text-[#181818] text-xs font-sans">
+          <p className="text-[#181818] text-xs">
             Kindly note Shared rides don't go to private addresses. You'll be
             dropped at a nearby landmark.
           </p>
@@ -597,7 +586,6 @@ const CarBookingFirstScreen: React.FC = () => {
 
       {modals.rideType && (
         <RideType
-          // open={modals.rideType}
           closeModal={() => closeModal("rideType")}
           selectedRide={formData.selectedRide}
           handleSelectRide={handleRideSelect}
@@ -609,12 +597,9 @@ const CarBookingFirstScreen: React.FC = () => {
           openClick={modals.priceRange}
           handleCloseClick={() => closeModal("priceRange")}
           openNoModal={modals.priceError}
-          handleCloseNoModal={() => closeModal("priceError")}
           miniprice={formData.priceRange.min}
           maxprice={formData.priceRange.max}
           handleSubmitOffer={handlePriceSubmit}
-          // loading={loading}
-          handlePriceChange={handlePriceChange}
         />
       )}
     </div>

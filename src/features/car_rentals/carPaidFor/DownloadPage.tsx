@@ -244,7 +244,7 @@ const DownloadPage = () => {
         <Divider sx={{ marginTop: "150px", marginBottom: "30px" }} />
 
         <p className="text-center text-[#BDBDBD] text-[12px]">
-          {` &copy; ${new Date().getFullYear()} TravelMate. All rights reserved.`}
+          {` © ${new Date().getFullYear()} TravelMate. All rights reserved.`}
         </p>
       </div>
     </div>
