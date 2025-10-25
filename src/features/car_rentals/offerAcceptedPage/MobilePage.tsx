@@ -731,7 +731,7 @@ const MobilePage = ({
               <div className="flex items-center gap-1 mb-4">
                 <img
                   src="src/assets/images/paypal.png"
-                  alt="paypal icon"
+                  alt="stripe icon"
                   className="lg:w-24 w-16 h-6 lg:h-10 object-cover bg-white rounded-lg p-2 border-1 border-[#CDCED1]"
                 />
                 <p className="font-bold text-lg">Stripe</p>
