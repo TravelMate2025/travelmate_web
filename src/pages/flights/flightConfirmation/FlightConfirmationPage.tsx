@@ -91,6 +91,106 @@ import { Flight, PassengerCounts } from "../../../features/flights/hooks/useFlig
 import ShareModal from "../../../features/flights/components/ShareModal";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { Skeleton, } from "@mui/material";
+
+const SkeletonLine = ({
+  width = "100%",
+  height = 24,
+}: {
+  width?: number | string;
+  height?: number;
+}) => (
+  <Skeleton
+    variant="rectangular"
+    width={width}
+    height={height}
+    sx={{ borderRadius: "4px", mb: 1 }}
+  />
+);
+
+const SectionCardSkeleton = () => (
+  <div className="md:border border-[#CDCED1] md:p-[24px] rounded-[12px] mb-4">
+    <SkeletonLine width="60%" />
+    <SkeletonLine width="40%" />
+    <SkeletonLine width="80%" />
+    <SkeletonLine width="70%" />
+  </div>
+);
+
+const FlightCardSkeleton = () => (
+  <div className="mt-[16px]">
+    <Skeleton variant="text" width={200} height={28} />
+    <div className="md:border border-[#CDCED1] md:p-[24px] rounded-[12px]">
+      <SkeletonLine width="50%" />
+      <SkeletonLine width="80%" />
+      <SkeletonLine width="90%" />
+      <SkeletonLine width="70%" />
+      <SkeletonLine width="60%" />
+      <SkeletonLine width="75%" />
+    </div>
+  </div>
+);
+
+const FlightConfirmationPageSkeleton = () => {
+  return (
+    <div className="w-[90%] m-auto mt-[100px]">
+      {/* Header Section */}
+      <div className="flex justify-between mb-[32px]">
+        <Skeleton variant="text" width={250} height={40} />
+        <div className="flex gap-3">
+          <Skeleton variant="rectangular" width={100} height={40} />
+          <Skeleton variant="rectangular" width={120} height={40} />
+        </div>
+      </div>
+
+      {/* Confirmation Banner */}
+      <div className="border border-[#2D9C5E] bg-[#D5EBDF4D] p-[16px] rounded-[8px] mb-[32px]">
+        <Skeleton variant="text" width="80%" height={20} />
+      </div>
+
+      <div className="flex max-md:flex-col gap-[40px]">
+        <div className="flex-1">
+          {/* Confirmation Details */}
+          <Skeleton variant="text" width={200} height={28} sx={{ mb: 2 }} />
+          <SectionCardSkeleton />
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* Contact Details */}
+          <Skeleton variant="text" width={200} height={28} sx={{ mb: 2 }} />
+          <SectionCardSkeleton />
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* Passenger Details */}
+          <Skeleton variant="text" width={250} height={28} sx={{ mb: 2 }} />
+          <SectionCardSkeleton />
+          <SectionCardSkeleton />
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* Flights */}
+          <FlightCardSkeleton />
+          <Divider sx={{ my: 3 }} />
+          <FlightCardSkeleton />
+        </div>
+
+        {/* Price Summary Placeholder */}
+        <div className="flex-1 grid max-h-[350px]">
+          <Skeleton
+            variant="rectangular"
+            width="100%"
+            height={250}
+            sx={{ borderRadius: "12px" }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+
 
 const FlightCard = ({
   title,
@@ -231,7 +331,7 @@ const [open, setOpen] = useState(false)
 
 
  // Fetch booking by id from localStorage
- const { data } = useFetchBookingByIdQuery(bookingId.toString(), {
+ const { data, isFetching } = useFetchBookingByIdQuery(bookingId.toString(), {
    skip: !bookingId,
  });
 
@@ -253,9 +353,9 @@ const [open, setOpen] = useState(false)
     }
   }
     
-  if (!data) {
-      return 
-    };
+ if (isFetching) {
+   return <FlightConfirmationPageSkeleton />;
+ }
 
   
   if (data?.payment_details.payment_status === "REFUNDED") {
@@ -416,7 +516,7 @@ const [open, setOpen] = useState(false)
                       </p>
                       <p
                         className={`${getStatusColor(
-                          data?.booking?.status?.toLowerCase()
+                          data?.booking?.status?.toLowerCase() as string
                         )} md:text-lg text-sm capitalize`}
                       >
                         {data?.booking?.status?.toLowerCase()}

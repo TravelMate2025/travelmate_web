@@ -56,7 +56,7 @@ export const LocationSelector = memo<LocationSelectorProps>(
       useLazyFetchAirportsQuery();
 
     // 🕐 Debounce delay time (ms)
-    const DEBOUNCE_DELAY = 500;
+    const DEBOUNCE_DELAY = 800;
     const [debouncedValue, setDebouncedValue] = useState(value);
 
     // Update debounced value after delay
@@ -104,7 +104,7 @@ export const LocationSelector = memo<LocationSelectorProps>(
       onSelect?.(location);
       handleClose();
     };
-const filteredLocations =  locations.filter((loc=>loc.type === "AIRPORT"));
+// const filteredLocations =  locations.filter((loc=>loc.type === "AIRPORT"));
     const resultsList = (
       <>
         {isFetching ? (
@@ -116,7 +116,7 @@ const filteredLocations =  locations.filter((loc=>loc.type === "AIRPORT"));
               <Typography color="textSecondary">No location found</Typography>
           </Box>
         ) : (
-          filteredLocations.map((location, index) => (
+          locations.map((location, index) => (
             <React.Fragment key={location.id}>
               <div 
                 className="flex justify-between pl-6 pt-4 pr-6 cursor-pointer"

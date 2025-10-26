@@ -3,29 +3,12 @@ import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
 import Navbar from "../../../pages/homePage/Navbar";
 import Footer from "../../../components/2Footer";
 import { Link } from "react-router-dom";
-import {  useCreateCheckoutSessionMutation } from "../api/flightApi";
+
 
 export default function PaymentFailed() {
 
-  const data = localStorage.getItem("bookingData") ? JSON.parse(localStorage.getItem("bookingData") || '{}') : null;
-  console.log(data);
- const [createSession, {isLoading} ] = useCreateCheckoutSessionMutation();
-  const handleRetry = async() => {
-    try {
 
- 
-      const result = await createSession({ id: data.booking.id });
 
-      if (result.data) {
-         window.location.href = result.data.checkout_url;
-      }
-      
-    } catch (error) {
-      console.log(error);
-      
-    }
-   
-  }
   
   return (
 
@@ -91,8 +74,9 @@ export default function PaymentFailed() {
       <Stack spacing={2} width="100%" maxWidth={785}>
         <Button
             variant="contained"
-            onClick={handleRetry}
-            disabled={isLoading}
+            component={Link}
+            to={"/flight/departure"}
+          
           sx={{
             bgcolor: "#003087",
             "&:hover": { bgcolor: "#00246b" },

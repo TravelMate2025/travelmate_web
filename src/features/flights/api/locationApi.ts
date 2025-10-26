@@ -31,7 +31,7 @@ export const locationApi = createApi({
           const countryName = geoRes.data?.countryName || "Unknown";
 
           if (countryName === "Unknown") {
-            return { data: { country: "Nigeria", currency: "NGN" } };
+            return { data: { country: "United State", currency: "USD" } };
           }
 
           // ✅ Step 2: Get currency from RestCountries

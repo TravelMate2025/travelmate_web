@@ -178,6 +178,9 @@ const Step2: React.FC = () => {
     name: "passengers",
   });
 
+  console.log(location.state);
+  
+
   const onSubmit = handleSubmit(async (formData) => {
     console.log("✅ Form Data:", formData);
     console.log("Location state:", location.state);
@@ -187,25 +190,19 @@ const Step2: React.FC = () => {
     let tripType: BookingType = "ONE_WAY";
     if (location.state.tripType === "multi-city") {
             upsellOffer = location.state.multiCitySelections[0]?.upsell?.id || undefined;
-      flightIds = location.state.multiCitySelections.map((city) => {
-        return city.flight.id
-      })
+      flightIds = location.state.multiCitySelections[0].flight.id
       tripType = "MULTI_CITY";
     } else if (location.state.tripType === "round-trip") {
       upsellOffer = location.state?.departureUpsell?.id || undefined;
       flightIds = [
         location.state?.departureFlight.id,
-        ...(location.state?.returnFlight
-          ? [location.state.returnFlight.id]
-          : []),
+        
       ];
       tripType = "ROUND_TRIP";
     } else {
             flightIds = [
-              location.state?.departureFlight.id,
-              ...(location.state?.returnFlight
-                ? [location.state.returnFlight.id]
-                : []),
+              location.state.departureFlight.id,
+              
       ];
             upsellOffer = location.state?.departureUpsell?.id || undefined;
     }
@@ -234,9 +231,12 @@ const Step2: React.FC = () => {
     try {
       const res = await createBooking({
         booking_type: tripType,
-        flight_offer_ids: flightIds,
+        flight_offer_ids: flightIds as string[],
         upsell_offer_id: upsellOffer,
         passengers,
+        adults: location.state.passengers.adults,
+        children: location.state.passengers.children,
+        infants: location.state.passengers.infants,
       }).unwrap();
   
       if (res) {

@@ -206,6 +206,7 @@ export const PriceSummary = ({
     const departure = state?.departureFlight?.price;
     // const _departureUpsell = state?.departureUpsell?.total || 0;
     const returnFlight = state?.returnFlight;
+    
     // const _returnUpsell = state?.returnUpsell?.total || 0;
 
 
@@ -371,6 +372,7 @@ export const PriceSummary = ({
 const Step1 = () => {
   const { nextStep } = useStepContext();
   const locationState: LocationState = useLocation() as LocationState;
+
 
   return (
     <div>
