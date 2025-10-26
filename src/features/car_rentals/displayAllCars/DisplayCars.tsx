@@ -422,6 +422,7 @@ const DisplayCars: React.FC = () => {
 
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
+                  disablePast
                     value={
                       formData.pickupDate ? dayjs(formData.pickupDate) : null
                     }

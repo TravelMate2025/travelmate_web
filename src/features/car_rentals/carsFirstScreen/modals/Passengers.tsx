@@ -78,7 +78,11 @@ const Passengers = ({
               </div>
               <div className="flex justify-center items-center gap-3 border-1 border-[#023E8A] rounded-md px-3">
                 <Minus
-                  className="w-4 h-4 cursor-pointer"
+                  className={`w-4 h-4  ${
+                    localPassengers[type as keyof typeof localPassengers] === 0
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer"
+                  }`}
                   onClick={() => handleChange(type as any, false)}
                 />
                 <p>{localPassengers[type as keyof typeof localPassengers]}</p>

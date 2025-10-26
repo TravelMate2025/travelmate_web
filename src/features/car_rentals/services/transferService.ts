@@ -295,6 +295,18 @@ class TransferService {
         if (!formData.to) {
             throw new Error('Invalid dropoff location');
         }
+        if (new Date(formData.times?.pickUpTime).toISOString() < new Date().toISOString()) {
+            throw new Error('Pickup time must be in the future');
+        }
+        
+        const { departing } = this.formatDateTime(formData.departureDate, formData.times.pickUpTime);
+        const pickupDateTime = new Date(departing);
+        if (isNaN(pickupDateTime.getTime())) {
+            throw new Error('Invalid pickup date/time');
+        }
+        if (pickupDateTime.getTime() <= Date.now()) {
+            throw new Error('Pickup time must be in the future');
+        }
 
         const pickup_location = formData.from
         const dropoff_location = formData.endCountry?.toUpperCase() || formData.to.split(',')[0].trim();

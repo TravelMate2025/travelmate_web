@@ -23,8 +23,19 @@ export const validateBookingForm = (formData: BookingFormData): FormValidationRe
     if (!formData.selectedRide) {
         errors.selectedRide = "Ride type is required";
     }
+    if (!formData.priceRange.min || !formData.priceRange.max) {
+        errors.priceRange = "Price Range is required";
+    }
+    if (formData.pickupDate && formData.pickupTime) {
+        const dateTimeString = `${formData.pickupDate}T${formData.pickupTime}`;
+        const pickupDateTime = new Date(dateTimeString);
 
-
+        if (isNaN(pickupDateTime.getTime())) {
+            errors.pickupTime = "Invalid pickup date/time";
+        } else if (pickupDateTime.getTime() <= Date.now()) {
+            errors.pickupTime = "Pickup time must be in the future";
+        }
+    }
     if (formData.priceRange.min >= formData.priceRange.max && formData.priceRange.max > 0) {
         errors.priceRange = "Maximum price should be greater than minimum price";
     }
@@ -35,6 +46,10 @@ export const validateBookingForm = (formData: BookingFormData): FormValidationRe
 
     if (totalPassengers === 0) {
         errors.passengers = "At least one passenger is required";
+    }
+    if (formData.passengerCounts.adults === 0 &&
+        (formData.passengerCounts.children > 0 || formData.passengerCounts.infant > 0)) {
+        errors.passengers = "Children/infants must be accompanied by at least one adult";
     }
 
     return {

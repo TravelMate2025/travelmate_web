@@ -344,7 +344,7 @@ const MobilePage = ({
                   </p>
 
                   <p className="text-[#181818] text-[14px] font-inter">
-                    {car?.supplier || "Holiday Taxi"}
+                    {car?.supplier || "Not Available"}
                   </p>
                 </div>
               </div>

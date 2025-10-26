@@ -16,6 +16,7 @@ import { Info } from "lucide-react";
 import { useBookingForm } from "../hooks/useBookingForm";
 import { useFormPersistence } from "../hooks/useFormPersistence";
 import { useModalState } from "../hooks/useModalState";
+
 import {
   formatPassengerCount,
   formatPriceRange,
@@ -35,6 +36,7 @@ import RideType from "./modals/RideType";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import { validateBookingForm } from "../utilities/validation";
 
 const CarBookingFirstScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -100,9 +102,12 @@ const CarBookingFirstScreen: React.FC = () => {
   const {
     formData,
     setFormData,
-    // errors,
+    errors,
     isValid,
     loading,
+    touched,
+    handleBlur,
+    setTouched,
     updateField,
     setLoading,
     setSubmitError,
@@ -116,15 +121,6 @@ const CarBookingFirstScreen: React.FC = () => {
 
   // Location picker state
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
-  // const [locationPopper, setLocationPopper] = useState<{
-  //   from: { open: boolean; anchor: HTMLElement | null };
-  //   to: { open: boolean; anchor: HTMLElement | null };
-  // }>({
-  //   from: { open: false, anchor: null },
-  //   to: { open: false, anchor: null },
-  // });
-
-  // Sync with Redux store whenever formData changes
   useEffect(() => {
     const reduxData = {
       pickupLocation: formData.pickupLocation,
@@ -206,23 +202,17 @@ const CarBookingFirstScreen: React.FC = () => {
     [updateField, closeModal]
   );
   const handleSearch = useCallback(async () => {
-    console.log(formData);
+    setTouched({
+      pickupLocation: true,
+      dropoffLocation: true,
+      pickupDate: true,
+      pickupTime: true,
+      selectedRide: true,
+      priceRange: true,
+      passengers: true,
+    });
     const errors = [];
-    if (!formData.pickupLocation) {
-      errors.push("Please enter a valid pickup location");
-    }
-    if (!formData.dropoffLocation) {
-      errors.push("Please enter a valid dropoff location");
-    }
-    // if (!formData.toLat || !formData.toLon) {
-    //   errors.push("Dropoff location must have valid GPS coordinates");
-    // }
-    if (!formData.pickupDate) {
-      errors.push("Please select a pickup date");
-    }
-    if (!formData.pickupTime) {
-      errors.push("Please select a pickup time");
-    }
+    validateBookingForm(formData);
     if (!isValid) {
       errors.push("Please fill in all required fields correctly");
     }
@@ -321,8 +311,6 @@ const CarBookingFirstScreen: React.FC = () => {
                 size="small"
                 value={displayValues.rideType}
                 onClick={() => handleRideClick()}
-                // error={!!errors.selectedRide}
-                // helperText={errors.selectedRide}
                 className="cursor-pointer"
                 InputProps={{
                   readOnly: true,
@@ -353,8 +341,12 @@ const CarBookingFirstScreen: React.FC = () => {
                 placeholder="Search Pick up Location"
                 value={formData.pickUpLocaDescription}
                 onClick={() => handlePickLocationClick("pick")}
-                // error={!!errors.pickupLocation}
-                // helperText={errors.pickupLocation}
+                onBlur={() => handleBlur("pickupLocation")}
+                error={
+                  Boolean(touched.pickupLocation) &&
+                  Boolean(errors.pickupLocation)
+                }
+                helperText={touched.pickupLocation && errors.pickupLocation}
                 InputProps={{
                   readOnly: true,
                   startAdornment: (
@@ -383,8 +375,12 @@ const CarBookingFirstScreen: React.FC = () => {
                 placeholder="Search Destination"
                 value={formData.dropoffLocation}
                 onClick={() => handleDropLocationClick("drop")}
-                // error={!!errors.dropoffLocation}
-                // helperText={errors.dropoffLocation}
+                onBlur={() => handleBlur("dropoffpLocation")}
+                error={
+                  Boolean(touched.dropoffLocation) &&
+                  Boolean(errors.dropoffLocation)
+                }
+                helperText={touched.dropoffLocation && errors.dropoffLocation}
                 InputProps={{
                   readOnly: true,
                   startAdornment: (
@@ -408,6 +404,7 @@ const CarBookingFirstScreen: React.FC = () => {
               <label htmlFor="pickup-date">Pick Up Date</label>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
+                  disablePast
                   value={
                     formData.pickupDate ? dayjs(formData.pickupDate) : null
                   }
@@ -471,8 +468,11 @@ const CarBookingFirstScreen: React.FC = () => {
                 size="small"
                 value={displayValues.passengers}
                 onClick={() => openModal("passengers")}
-                // error={!!errors.passengers}
-                // helperText={errors.passengers}
+                onBlur={() => handleBlur("passengers")}
+                error={
+                  Boolean(touched.passengers) && Boolean(errors.passengers)
+                }
+                helperText={touched.passengers && errors.passengers}
                 placeholder="Select Passengers"
                 InputProps={{ readOnly: true }}
                 sx={{
