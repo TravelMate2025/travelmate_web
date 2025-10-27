@@ -412,7 +412,7 @@ const ReturnPage: React.FC<DepartureListProps> = () => {
             </div>
           </Link>
           <p className="text-center font-semibold text-[20px] mt-[90px]">
-            Departure Flight
+            Return Flight
           </p>
         </div>
 
@@ -611,7 +611,7 @@ const ReturnPage: React.FC<DepartureListProps> = () => {
                         } hover:text-[#023E8A]`}
                         onClick={() => setCurrentSegment(idx)}
                       >
-                        Departure Flight {idx + 1}
+                        Return Flight {idx + 1}
                       </span>
                     </React.Fragment>
                   ))
@@ -626,8 +626,8 @@ const ReturnPage: React.FC<DepartureListProps> = () => {
             <div className="w-[90%] m-auto flex justify-between">
               <p className="text-[24px] font-inter font-semibold max-md:hidden">
                 {isMultiCity && currentFlight?.from && currentFlight?.to
-                  ? `Departure Flight from ${currentFlight.from.cityName} (${currentFlight.from.iataCode}) to ${currentFlight.to.cityName} (${currentFlight.to.iataCode})`
-                  : "Departure Flight"}
+                  ? `Return Flight from ${currentFlight.from.cityName} (${currentFlight.from.iataCode}) to ${currentFlight.to.cityName} (${currentFlight.to.iataCode})`
+                  : "Return Flight"}
               </p>
               <Box sx={{ display: "flex", gap: "15px" }}>
                 <TextField
@@ -670,7 +670,11 @@ const ReturnPage: React.FC<DepartureListProps> = () => {
                   open={isDialogOpen}
                   onClose={() => setIsDialogOpen(false)}
                   onChange={setFilters}
-                  onApply={() => setFilters({ ...filters })}
+                  onApply={() => {
+                    
+                    setFilters({ ...filters })
+           setIsDialogOpen(false)
+                  }}
                 />
                 <Button
                   variant="outlined"
@@ -689,7 +693,10 @@ const ReturnPage: React.FC<DepartureListProps> = () => {
                   onClose={() => setIsSortOpen(false)}
                   isMobile={isMobile}
                   value={selectedSort}
-                  handleApplyFilters={() => {}}
+                  handleApplyFilters={() => {
+
+                    setIsSortOpen(false);
+                  }}
                 />
               </Box>
             </div>
@@ -818,7 +825,7 @@ const ReturnPage: React.FC<DepartureListProps> = () => {
                 setSelectedOption={() => {}} // Placeholder, adjust as needed
                 selectedDeparture={selectedDeparture}
                 returnFlight={isMultiCity ? currentSegment : 1}
-                title="Departure"
+                title="Return"
               />
             )}
           </div>

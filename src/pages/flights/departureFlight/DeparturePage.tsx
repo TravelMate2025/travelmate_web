@@ -725,7 +725,9 @@ reset({
                   onClose={() => setIsSortOpen(false)}
                   isMobile={isMobile}
                   value={selectedSort}
-                  handleApplyFilters={() => {}}
+                  handleApplyFilters={() => {
+                    setIsSortOpen(false);
+                  }}
                 />
               </Box>
             </div>
