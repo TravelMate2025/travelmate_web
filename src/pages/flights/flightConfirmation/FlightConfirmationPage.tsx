@@ -353,13 +353,13 @@ const [open, setOpen] = useState(false)
     }
   }
     
- if (isFetching) {
+ if (isFetching || !data) {
    return <FlightConfirmationPageSkeleton />;
  }
 
   
-  if (data?.payment_details.payment_status === "REFUNDED") {
-    window.location.href = data.payment_details.additional_details.cancel_url;
+  if (data?.payment_details?.payment_status === "REFUNDED") {
+    window.location.href = data?.payment_details.additional_details.cancel_url;
     return;
   }
   
@@ -478,7 +478,7 @@ const [open, setOpen] = useState(false)
                 </div>
                 <div className="max-md:text-xs ">
                   Payment Successful and Your flight is{" "}
-                  {data?.payment_details.payment_status}. E-ticket has been sent
+                  {data?.payment_details?.payment_status}. E-ticket has been sent
                   to {user?.email}
                 </div>
               </div>
@@ -538,7 +538,7 @@ const [open, setOpen] = useState(false)
                     <div className="flex justify-between mb-[10px]">
                       <p className="text-[#4E4F52] md:text-lg text-sm">Name</p>
                       <p className="text-[#181818] md:text-lg text-sm">
-                        {savedBooking.contact?.name}
+                        {savedBooking?.contact?.name}
                       </p>
                     </div>
 
@@ -547,7 +547,7 @@ const [open, setOpen] = useState(false)
                         Email Address
                       </p>
                       <p className="text-[#181818] md:text-lg text-sm">
-                        {savedBooking.contact?.email}
+                        {savedBooking?.contact?.email}
                       </p>
                     </div>
 
@@ -557,7 +557,7 @@ const [open, setOpen] = useState(false)
                       </p>
                       <p className="text-[#181818] md:text-lg text-sm">{""}</p>
                     </div>
-                    {savedBooking.contact.dob && (
+                    {savedBooking?.contact.dob && (
                       <div className="flex justify-between mb-[10px]">
                         <p className="text-[#4E4F52] md:text-lg text-sm">
                           Date Of Birth
@@ -607,7 +607,7 @@ const [open, setOpen] = useState(false)
                           Date Of Birth
                         </p>
                         <p className="text-[#181818] md:text-lg text-sm">
-                          {p.date_of_birth || "-"}
+                          {p?.date_of_birth || "-"}
                         </p>
                       </div>
 
@@ -616,7 +616,7 @@ const [open, setOpen] = useState(false)
                           Gender
                         </p>
                         <p className="text-[#181818] md:text-lg text-sm">
-                          {p.gender || "-"}
+                          {p?.gender || "-"}
                         </p>
                       </div>
 

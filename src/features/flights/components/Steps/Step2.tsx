@@ -190,7 +190,7 @@ const Step2: React.FC = () => {
     let tripType: BookingType = "ONE_WAY";
     if (location.state.tripType === "multi-city") {
             upsellOffer = location.state.multiCitySelections[0]?.upsell?.id || undefined;
-      flightIds = location.state.multiCitySelections[0].flight.id
+      flightIds = [location.state.multiCitySelections[0].flight.id]
       tripType = "MULTI_CITY";
     } else if (location.state.tripType === "round-trip") {
       upsellOffer = location.state?.departureUpsell?.id || undefined;
@@ -693,7 +693,7 @@ const Step2: React.FC = () => {
             type="submit"
             variant="contained"
             fullWidth
-            disabled={isSubmitting }
+            disabled={isSubmitting}
             sx={{
               bgcolor: "#003C96",
               py: 1.5,
@@ -702,7 +702,7 @@ const Step2: React.FC = () => {
               borderRadius: "8px",
             }}
           >
-            Continue
+            {isSubmitting ? "Submitting..." : "Continue"}
           </Button>
         </Grid2>
       </Grid2>

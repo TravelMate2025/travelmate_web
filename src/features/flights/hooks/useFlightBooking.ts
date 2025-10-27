@@ -5,7 +5,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { Airport } from "../types";
 
-import toast from "react-hot-toast";
 import { useLazyGetLocationInfoQuery } from "../api/locationApi";
 
 export type Flight = {
@@ -99,7 +98,7 @@ const [flights, setFlights] = useState<Flight[]>(() => {
               }
             },
             (_error) => {
-              toast.error("Geolocation error:", );
+    
               setCountry("Permission denied or unavailable");
             },
             {
@@ -107,7 +106,7 @@ const [flights, setFlights] = useState<Flight[]>(() => {
              }
           );
         } else {
-        toast.error("Geolocation is not supported by this browser.");
+        // toast.error("Geolocation is not supported by this browser.");
         }
       }, []);
 
