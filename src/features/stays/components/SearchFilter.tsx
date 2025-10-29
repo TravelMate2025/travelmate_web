@@ -7,13 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearStaysCache, setLocationDetails, setSearchParams } from "../slice";
 import { AppDispatch, RootState } from "../../../store";
 import { fetchDestinations } from "../api";
-
-interface Destination {
-  code: string;
-  name: string;
-  country_code: string;
-  city_name?: string;
-}
+import { Destination } from "../types";
 
 interface SearchParams {
   destination: string;
@@ -25,18 +19,23 @@ interface SearchParams {
 }
 
 const SearchFilter: React.FC = () => {
-  const [destinationCode, setDestinationCode] = useState("");
-  const [destination, setDestination] = useState("");
+  const { searchParams, locationDetails } = useSelector(
+    (state: RootState) => state.stays
+  );
+  const [destinationCode, setDestinationCode] = useState(
+    searchParams?.destination || ""
+  );
+  const [destination, setDestination] = useState(locationDetails?.name || "");
+  const [checkIn, setCheckIn] = useState(searchParams?.checkIn || "");
+  const [checkOut, setCheckOut] = useState(searchParams?.checkOut || "");
   const [locations, setLocations] = useState<Destination[]>([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [guestText, setGuestText] = useState("1 Room, 2 Guests");
   const [counts, setCounts] = useState({
-    rooms: 1,
-    adults: 2,
-    children: 0,
+    rooms: searchParams?.rooms || 1,
+    adults: searchParams?.adults || 2,
+    children: searchParams?.children || 0,
     infants: 0,
   });
   const { accessToken } = useSelector((state: RootState) => state.auth);
@@ -48,7 +47,7 @@ const SearchFilter: React.FC = () => {
     const loadDestinations = async () => {
       try {
         setLoadingLocations(true);
-        const data = await fetchDestinations(undefined, accessToken);
+        const data = await fetchDestinations(destination, accessToken);
         setLocations(data);
       } catch (error) {
         console.error("Error fetching destinations:", error);
@@ -58,7 +57,7 @@ const SearchFilter: React.FC = () => {
     };
 
     loadDestinations();
-  }, [accessToken]);
+  }, [accessToken, destination]);
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -114,6 +113,9 @@ const SearchFilter: React.FC = () => {
     );
     handleClose();
   };
+  useEffect(() => {
+    updateGuestText();
+  }, [counts]);
 
   return (
     <div className="py-4">
@@ -126,12 +128,13 @@ const SearchFilter: React.FC = () => {
           <div className="flex flex-col w-full md:w-auto">
             <LocationDropdown
               label="Destination"
+              token={accessToken}
               selectedValue={destination}
               setSelectedValue={(value, code) => {
                 setDestination(value); // Keep name for display
                 setDestinationCode(code); // Store code for search
               }}
-              locations={locations.map((loc) => ({
+              locations={locations?.map((loc) => ({
                 name: loc.name,
                 code: loc.code,
               }))}
@@ -167,7 +170,7 @@ const SearchFilter: React.FC = () => {
           <div className="flex-grow"></div>
           <button
             type="submit"
-            className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg cursor-pointer hover:bg-[#0450A2] disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg cursor-pointer hover:bg-[#0450A2] disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400"
             disabled={
               loadingLocations ||
               !guestText ||

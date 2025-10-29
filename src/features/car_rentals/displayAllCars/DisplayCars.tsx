@@ -142,9 +142,6 @@ const DisplayCars: React.FC = () => {
     setSubmitError,
   } = useBookingForm(initialData);
 
-  // Persist form data to localStorage
-  useFormPersistence(formData, "carBookingForm");
-
   const { modals, openModal, closeModal } = useModalState();
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
 

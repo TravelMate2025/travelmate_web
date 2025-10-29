@@ -17,7 +17,7 @@ interface Destination {
 
 export default function UpdateSearchFilter() {
   const dispatch = useDispatch<AppDispatch>();
-  
+
   // Get data from Redux
   const { searchParams, locationDetails } = useSelector(
     (state: RootState) => state.stays
@@ -32,16 +32,17 @@ export default function UpdateSearchFilter() {
   const [destinationCode, setDestinationCode] = useState(
     locationDetails?.code || ""
   );
-  const [destination, setDestination] = useState(
-    locationDetails?.name || ""
-  );
+  const [destination, setDestination] = useState(locationDetails?.name || "");
   const [checkIn, setCheckIn] = useState(searchParams?.checkIn || "");
   const [checkOut, setCheckOut] = useState(searchParams?.checkOut || "");
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  
-  const totalGuests = (searchParams?.adults || 2) + (searchParams?.children || 0);
+
+  const totalGuests =
+    (searchParams?.adults || 2) + (searchParams?.children || 0);
   const [guestText, setGuestText] = useState(
-    `${searchParams?.rooms || 1} Room${(searchParams?.rooms || 1) > 1 ? "s" : ""}, ${totalGuests} Guest${totalGuests > 1 ? "s" : ""}`
+    `${searchParams?.rooms || 1} Room${
+      (searchParams?.rooms || 1) > 1 ? "s" : ""
+    }, ${totalGuests} Guest${totalGuests > 1 ? "s" : ""}`
   );
   const [counts, setCounts] = useState({
     rooms: searchParams?.rooms || 1,
@@ -55,17 +56,24 @@ export default function UpdateSearchFilter() {
     const loadDestinations = async () => {
       try {
         setLoadingLocations(true);
-        const data = await fetchDestinations(undefined, accessToken);
-        setLocations(data);
+        if (destination.length >= 2) {
+          const data = await fetchDestinations(destination, accessToken);
+          setLocations(data);
+        } else if (!destination) {
+          const data = await fetchDestinations(undefined, accessToken);
+          setLocations(data);
+        }
       } catch (error) {
         console.error("Error fetching destinations:", error);
+        setLocations([]);
       } finally {
         setLoadingLocations(false);
       }
     };
 
-    loadDestinations();
-  }, [accessToken]);
+    const timeoutId = setTimeout(loadDestinations, 300);
+    return () => clearTimeout(timeoutId);
+  }, [destination,accessToken]);
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -73,42 +81,46 @@ export default function UpdateSearchFilter() {
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    dispatch(clearStaysCache());
+  const handleSubmit = async (e: React.FormEvent) => {
+    try {
+      e.preventDefault();
+      setLoadingLocations(true);
+      dispatch(clearStaysCache());
 
-    // Find the full destination object
-    const selectedDestination = locations.find(
-      (loc) => loc.code === destinationCode
-    );
-
-    const totalChildren = counts.children + counts.infants;
-    const updatedSearchParams = {
-      destination: destinationCode,
-      checkIn: formatDate(checkIn),
-      checkOut: formatDate(checkOut),
-      adults: counts.adults,
-      children: totalChildren,
-      rooms: counts.rooms,
-    };
-
-    // Dispatch location details
-    if (selectedDestination) {
-      dispatch(
-        setLocationDetails({
-          name: selectedDestination.name,
-          code: selectedDestination.code,
-          country_code: selectedDestination.country_code,
-          country_name:
-            selectedDestination.country_name || selectedDestination.name,
-        })
+      // Find the full destination object
+      const selectedDestination = locations.find(
+        (loc) => loc.code === destinationCode
       );
-    }
 
-    dispatch(setSearchParams(updatedSearchParams));
-    
-    // Optionally reload the page or just let the useEffect in StaysSearchResults handle it
-    // navigate('/stays-search-result'); // Remove this if you're already on the page
+      const totalChildren = counts.children + counts.infants;
+      const updatedSearchParams = {
+        destination: destinationCode,
+        checkIn: formatDate(checkIn),
+        checkOut: formatDate(checkOut),
+        adults: counts.adults,
+        children: totalChildren,
+        rooms: counts.rooms,
+      };
+
+      // Dispatch location details
+      if (selectedDestination) {
+        dispatch(
+          setLocationDetails({
+            name: selectedDestination.name,
+            code: selectedDestination.code,
+            country_code: selectedDestination.country_code,
+            country_name:
+              selectedDestination.country_name || selectedDestination.name,
+          })
+        );
+      }
+
+      await dispatch(setSearchParams(updatedSearchParams));
+    } catch (error) {
+      console.error("Error updating search parameters:", error);
+    } finally {
+      setLoadingLocations(false);
+    }
   };
 
   const handleDateChange = (startDate: string, endDate: string) => {
@@ -131,9 +143,9 @@ export default function UpdateSearchFilter() {
   const updateGuestText = () => {
     const totalGuests = counts.adults + counts.children + counts.infants;
     setGuestText(
-      `${counts.rooms} Room${counts.rooms > 1 ? "s" : ""}, ${totalGuests} Guest${
-        totalGuests !== 1 ? "s" : ""
-      }`
+      `${counts.rooms} Room${
+        counts.rooms > 1 ? "s" : ""
+      }, ${totalGuests} Guest${totalGuests !== 1 ? "s" : ""}`
     );
     handleClose();
   };
@@ -161,6 +173,7 @@ export default function UpdateSearchFilter() {
                   code: loc.code,
                 }))}
                 loading={loadingLocations}
+                token={accessToken}
               />
             </div>
 
@@ -185,7 +198,7 @@ export default function UpdateSearchFilter() {
               <ReusableDateSelector
                 onDateChange={handleDateChange}
                 initialValue={
-                  checkIn && checkOut ? `${checkIn} - ${checkOut}` : ""
+                  checkIn && checkOut ? `${formatDate(checkIn)} - ${formatDate(checkOut)}` : ""
                 }
               />
             </div>
@@ -194,7 +207,7 @@ export default function UpdateSearchFilter() {
             <div className="flex-grow"></div>
             <button
               type="submit"
-              className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg hover:bg-[#0450A2]"
+              className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg hover:bg-[#0450A2] disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400 cursor-pointer"
               disabled={loadingLocations}
             >
               {loadingLocations ? "Loading..." : "Update"}

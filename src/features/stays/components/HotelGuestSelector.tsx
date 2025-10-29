@@ -76,10 +76,6 @@ const HotelGuestSelector: React.FC<HotelGuestSelectorProps> = ({
                 borderRadius: "10px",
                 boxShadow: 3,
                 width: 320,
-                position: "absolute",
-                top: 100, // adjust this or calculate from guestAnchor
-                left: "50%",
-                transform: "translateX(-50%)",
                 },
             }}
             >

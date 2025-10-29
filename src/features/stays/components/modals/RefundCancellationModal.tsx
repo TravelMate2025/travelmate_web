@@ -49,23 +49,25 @@ const RefundCancellationModal: React.FC<RefundCancellationModalProps> = ({
   refundableUntil,
 }) => {
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 bg-opacity-40 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-3xl h-[80vh] max-h-[100vh] overflow-y-auto rounded-lg shadow-xl p-4 md:p-6 relative">
+    <div className="fixed inset-0 z-50  bg-opacity-40 flex items-center justify-center ">
+      <div className="bg-white w-full max-w-3xl h-full max-h-[100vh] overflow-y-auto rounded-lg shadow-xl md:p-6 p-6 relative">
         {/* Close */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 left-4 text-gray-600 border border-gray-300 rounded-md p-1 hover:text-red-500"
-        >
-          <FaTimes size={20} />
-        </button>
+        <div className="flex justify-normal items-center gap-12 pb-6">
+          <button
+            onClick={onClose}
+            className=" text-gray-600 border border-gray-300 rounded-md p-1 hover:text-red-500"
+          >
+            <FaTimes size={20} />
+          </button>
 
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold ml-15">Refund & Cancellations</h2>
+          
+            <h2 className="text-xl font-bold ">Refund & Cancellations</h2>
+       
         </div>
 
-        <div className="space-y-6 border-t border-b md:border border-gray-300 md:rounded-lg p-6">
+        <div className="space-y-6 border-t border-b md:border border-gray-300 md:rounded-lg lg:p-6 ">
           <ResponsiveFlexContainer>
-            <p className="font-medium mb-4 md:mr-60">Refunds</p>
+            <p className="font-medium mb-4 md:mr-60 pt-6">Refunds</p>
             <ul className="text-gray-700 ml-4 list-disc">
               <li>Fully Refundable before {refundableUntil}</li>
             </ul>

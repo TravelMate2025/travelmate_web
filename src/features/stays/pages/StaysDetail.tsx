@@ -36,16 +36,9 @@ import RefundCancellation from "../components/booking-progress/RefundCancellatio
 
 import { useMediaQuery } from "react-responsive";
 import PartialPolicies from "../components/booking-progress/PartialPolicies";
+import StaysDetailSkeleton from "./StaysDetailsSkeleton";
+import { getReviews } from "../api";
 
-// Remove StaysDetailProps interface as data will come from Redux
-// interface StaysDetailProps {
-//     hotel: {
-//       images: string[];
-//       shareLink: string;
-//     };
-//   }
-
-// No longer needs props, fetches data from Redux
 const StaysDetail: React.FC = () => {
   const { hotelId } = useParams<{ hotelId: string }>(); // Get hotelId from URL
   const navigate = useNavigate();
@@ -73,10 +66,10 @@ const StaysDetail: React.FC = () => {
   const formattedTime = "11:59 PM";
   const [isOpen, setIsOpen] = useState(false);
 
-  const isLargeScreen = useMediaQuery({ minWidth: 1024 });
-  const visibleCount = isLargeScreen ? 10 : 4;
+  const visibleCount = 8;
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
+  const [reviews, setReviews] = useState<any[]>([]);
   // Effect to fetch hotel details when component mounts or hotelId/accessToken changes
   useEffect(() => {
     if (hotelId && accessToken && searchParams) {
@@ -186,17 +179,29 @@ const StaysDetail: React.FC = () => {
     )}`;
   };
 
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await getReviews(hotelId || "");
+        setReviews(response);
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+      }
+    };
+    fetchReviews();
+  }, [hotelId]);
+
   // Use actual images from selectedHotel or placeholders
   const hotelImages = selectedHotel?.images?.map((img) => img.url) || [
     StayImagePlaceholder,
     StayImage2Placeholder,
     StayImageCopyPlaceholder,
-  ]; // Fallback placeholders
+  ];
 
   // Use actual rooms from selectedHotel or empty array
   const availableRooms = selectedHotel?.rooms || [];
+  console.log(selectedHotel)
 
-  // Breadcrumb Navigation - dynamically set hotel name
   const breadcrumbs = [
     { name: "Home", link: "/" },
     {
@@ -204,36 +209,18 @@ const StaysDetail: React.FC = () => {
       link: `/locations/${selectedHotel?.destination?.code || ""}`,
     },
     { name: "Search Results", link: "/stays-search-result" },
-    { name: selectedHotel?.name || "Hotel Details" }, // Use hotel name if available
+    { name: selectedHotel?.name || "Hotel Details" },
   ];
 
-  // Dummy amenities for now, replace with actual hotel amenities if available in backend response
-  // const amenities = [
-  //     { icon: <FaWifi className="text-blue-600" />, name: "Wifi" },
-  //     { icon: <FaSwimmingPool className="text-blue-600" />, name: "Pool" },
-  //     { icon: <FaSnowflake className="text-blue-600" />, name: "Air Conditioning" },
-  //     { icon: <FaCar className="text-blue-600" />, name: "Free Parking" },
-  //     { icon: <FaCheckCircle className="text-blue-600" />, name: "24-hour Room Service" },
-  //     { icon: <FaCheckCircle className="text-blue-600" />, name: "Fitness Center" },
-  //     { icon: <FaCheckCircle className="text-blue-600" />, name: "Restaurant" },
-  //     { icon: <FaCheckCircle className="text-blue-600" />, name: "Bar & Lounge" },
-  //     { icon: <FaCheckCircle className="text-blue-600" />, name: "Laundry Service" },
-  //     { icon: <FaCheckCircle className="text-blue-600" />, name: "Business Center" },
-  //   ];
-
   const amenities =
-    selectedHotel?.amenities?.slice(0, 10).map((amenity) => ({
+    selectedHotel?.amenities?.map((amenity) => ({
       icon: <FaCheckCircle className="text-blue-600" />,
       name: amenity,
     })) || [];
 
   // Conditional Rendering for Loading/Error states
   if (detailsLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-xl font-semibold">Loading hotel details...</p>
-      </div>
-    );
+    return <StaysDetailSkeleton />;
   }
 
   if (detailsError) {
@@ -348,7 +335,7 @@ const StaysDetail: React.FC = () => {
             </div>
 
             {/* Photo Indicator - Displayed Below the Image */}
-            <div className="absolute bottom-6 right-3 flex items-center border border-white gap-2 bg-opacity-75 px-3 py-1 rounded-md">
+            <div className="absolute bottom-6 right-3 flex items-center border border-white gap-2 bg-opacity-75 px-3 py-1 rounded-md ">
               <span className="text-white text-sm">
                 {currentIndex + 1} out of {hotelImages.length}
               </span>
@@ -356,7 +343,7 @@ const StaysDetail: React.FC = () => {
           </div>
 
           {/* Navigation Dots */}
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mt-4 overflow-x-scroll flex-wrap">
             {hotelImages.map((_, index) => (
               <button
                 key={index}
@@ -383,35 +370,46 @@ const StaysDetail: React.FC = () => {
         )}
       </div>
 
-      <div className="w-[93%] mx-auto px-4">
+      <div className="relative w-[93%] mx-auto px-4">
         {/* Navigation Tabs */}
-        <div className="border-b border-gray-300 hidden md:block">
-          <ul className="flex gap-6 text-gray-600 text-sm font-medium w-full justify-between px-6">
-            {sections.map((section) => (
-              <li
-                key={section.name}
-                className={`cursor-pointer pb-3 ${
-                  activeTab === section.name
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : ""
-                }`}
-                onClick={() => {
-                  setActiveTab(section.name);
-                  const sectionElement = document.getElementById(section.name);
-                  if (sectionElement) {
-                    window.scrollTo({
-                      top: sectionElement.offsetTop - 70,
-                      behavior: "smooth",
-                    });
-                  }
-                }}
-              >
-                {section.name}
-              </li>
-            ))}
-          </ul>
-        </div>
 
+        {/* Navigation Tabs */}
+        <div className="sticky top-0 bg-white z-50 border-b border-gray-300 hidden md:block">
+          <div className="px-6 mx-auto">
+            <ul className="flex gap-6 text-gray-600 text-sm font-medium w-full justify-between px-6">
+              {sections.map((section) => (
+                <li
+                  key={section.name}
+                  className={`cursor-pointer pb-3 ${
+                    activeTab === section.name
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : ""
+                  }`}
+                  onClick={() => {
+                    setActiveTab(section.name);
+                    const sectionElement = document.getElementById(
+                      section.name
+                    );
+                    if (sectionElement) {
+                      const offset = 70; // Adjust this value based on your header height
+                      const elementPosition =
+                        sectionElement.getBoundingClientRect().top;
+                      const offsetPosition =
+                        elementPosition + window.pageYOffset - offset;
+
+                      window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth",
+                      });
+                    }
+                  }}
+                >
+                  {section.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
         <section id="Overview">
           {/* Overview Section */}
           <div id="Overview" className="py-6 border-b border-gray-300">
@@ -432,20 +430,27 @@ const StaysDetail: React.FC = () => {
               <span className="text-yellow-500 flex items-center gap-1">
                 <FaStar />
                 {selectedHotel &&
+                  reviews.length > 0 &&
                   parseInt(selectedHotel.category?.match(/\d+/)?.[0] || "0")}
               </span>
-              <span className="text-gray-600">(180)</span>
-              <button
-                className="text-blue-600 underline cursor-pointer"
-                onClick={() => setOpenModal(true)}
-              >
-                Show all 180 reviews
-              </button>
+              <span className="text-gray-600">({reviews?.length || "0"})</span>
+              {reviews.length > 0 && (
+                <button
+                  className="text-blue-600 underline cursor-pointer"
+                  onClick={() => setOpenModal(true)}
+                >
+                  Show all {reviews?.length || "0"} reviews
+                </button>
+              )}
             </div>
-            {openModal && <ReviewsModal onClose={() => setOpenModal(false)} />}
+            {openModal && (
+              <ReviewsModal
+                onClose={() => setOpenModal(false)}
+                reviews={reviews}
+              />
+            )}
           </div>
         </section>
-
         <section id="About">
           {/* About Section */}
           <div id="About" className="py-6 border-b border-gray-300">
@@ -457,7 +462,6 @@ const StaysDetail: React.FC = () => {
             </p>
           </div>
         </section>
-
         <section id="Amenities" className="py-6 border-b border-gray-300">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">
@@ -472,17 +476,26 @@ const StaysDetail: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-4 mt-2 md:grid-cols-3 lg:grid-cols-4">
-            {amenities.slice(0, visibleCount).map((item, index) => (
-              <p key={index} className="flex items-center gap-2">
-                {item.icon} {item.name}
-              </p>
-            ))}
+            {!isMobile &&
+              amenities.map((item:any, index:any) => (
+                <p key={index} className="flex items-center gap-2">
+                  {item.icon} {item.name}
+                </p>
+              ))}
+            {isMobile &&
+              amenities.slice(0, visibleCount).map((item, index) => (
+                <p key={index} className="flex items-center gap-2">
+                  {item.icon} {item.name}
+                </p>
+              ))}
           </div>
         </section>
-
         {/* Show the modal */}
-        <AmenitiesModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
-
+        <AmenitiesModal
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          amenities={amenities}
+        />
         <section id="Select a room" className="mt-10">
           <h3 className="font-semibold mx-1 my-2 text-xl">Select a room</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -499,7 +512,7 @@ const StaysDetail: React.FC = () => {
                 return (
                   <div
                     key={room.code}
-                    className="w-full sm:w-[411px] h-auto bg-white shadow-lg rounded-lg p-4 border border-gray-200"
+                    className="w-full h-auto bg-white shadow-lg rounded-lg p-4 border border-gray-200"
                   >
                     {/* Room Image - with better fallbacks */}
                     <div className="relative h-[234px] bg-gray-100 rounded-lg overflow-hidden">
@@ -587,8 +600,9 @@ const StaysDetail: React.FC = () => {
 
                       {/* Select Button */}
                       <button
-                        className="mt-4 w-full bg-[#023E8A] text-white py-2 rounded-lg hover:bg-[#023E9E] transition-colors"
-                        onClick={() =>
+                        className="mt-4 w-full bg-[#023E8A] text-white py-2 rounded-lg hover:bg-[#023E9E] transition-colors cursor-pointer"
+                        onClick={() =>{
+                          console.log(room)
                           navigate("/booking-progress", {
                             state: {
                               selectedRoom: room,
@@ -596,7 +610,8 @@ const StaysDetail: React.FC = () => {
                               checkIn: searchParams?.checkIn,
                               checkOut: searchParams?.checkOut,
                             },
-                          })
+                            
+                          })}
                         }
                       >
                         Select
@@ -612,12 +627,14 @@ const StaysDetail: React.FC = () => {
             )}
           </div>
         </section>
-
         <section id="Reviews" className="mt-10">
           <hr className="text-gray-300" />
-          <Reviews />
+          <Reviews
+            reviews={reviews}
+            closeModal={() => setOpenModal(false)}
+            openModal={() => setOpenModal(true)}
+          />
         </section>
-
         <section id="Refund and cancellations" className="mt-10">
           <hr className="text-gray-300 mb-8" />
           <RefundCancellation
@@ -626,7 +643,6 @@ const StaysDetail: React.FC = () => {
             refundableUntil={formattedTime}
           />
         </section>
-
         <section id="Policies" className="mt-10 mb-10">
           <hr className="text-gray-300 mb-8" />
 

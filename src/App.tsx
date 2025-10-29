@@ -41,6 +41,8 @@ import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailFor
 import PrivateRoute from "../src/routes/PrivateRoute";
 import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
 import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
+import Bookings from "./features/stays/pages/Bookings";
+import Favorites from "./features/stays/pages/Favorites";
 
 function App() {
   return (
@@ -105,6 +107,22 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/bookings"
+          element={
+            <PrivateRoute>
+              <Bookings />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/favorites"
+          element={
+            <PrivateRoute>
+              <Favorites />
+            </PrivateRoute>
+          }
+        />
 
         {/* round-trip-section */}
         <Route
@@ -158,7 +176,10 @@ function App() {
         <Route path="/offer-accepted-page" element={<Pages />} />
         <Route path="/car-confirmation" element={<Page />} />
         <Route path="/transfers/payment-success" element={<CarPaidForPage />} />
-         <Route path="/transfers/payment-failure" element={<CarFailedPayment />} />
+        <Route
+          path="/transfers/payment-failure"
+          element={<CarFailedPayment />}
+        />
         <Route path="/airport-taxi" element={<AirportTaxi />} />
         <Route path="/car-paid/download" element={<DownloadPage />} />
 

@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { searchHotels, getHotelDetails, createBooking } from '../stays/api';
+import { searchHotels, getHotelDetails, createCheckoutSession } from '../stays/api';
 import { BookingRequest, BookingResponse, Hotel, HotelSearchResponse } from './types';
 
-interface locationDetails{
-  name:string
+interface locationDetails {
+  name: string
   country_name: string
-  country_code:string
-  code:string
+  country_code: string
+  code: string
 }
 interface BookingState {
   loading: boolean;
@@ -28,11 +28,12 @@ interface StaysState {
   loading: boolean;
   error: string | null;
   searchParams: SearchParams | null;
-  locationDetails: locationDetails|  null;
+  locationDetails: locationDetails | null;
   selectedHotel: Hotel | null;
   detailsLoading: boolean;
   detailsError: string | null;
   booking: BookingState;
+  guestInfo: GuestInfoProps | null;
 }
 
 const initialState: StaysState = {
@@ -48,8 +49,17 @@ const initialState: StaysState = {
     loading: false,
     error: null,
     booking: null
-  }
+  },
+  guestInfo: null
 };
+export interface GuestInfoProps {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  countryCode: string;
+}
 
 export const fetchHotelsAsync = createAsyncThunk(
   'stays/fetchHotels',
@@ -99,10 +109,10 @@ export const fetchHotelDetailsAsync = createAsyncThunk(
 );
 
 export const createBookingAsync = createAsyncThunk(
-  'stays/createBooking',
+  'stays/createCheckoutSession',
   async (params: { bookingData: BookingRequest; token?: string }, { rejectWithValue }) => {
     try {
-      return await createBooking(params.bookingData, params.token);
+      return await createCheckoutSession(params.bookingData, params.token);
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
@@ -118,6 +128,9 @@ const staysSlice = createSlice({
     },
     setLocationDetails: (state, action) => {
       state.locationDetails = action.payload;
+    },
+    setGuestInfo: (state, action) => {
+      state.guestInfo = action.payload
     },
     clearStaysCache: (state) => {
       state.hotels = [];
@@ -173,6 +186,6 @@ const staysSlice = createSlice({
   }
 });
 
-export const { setSearchParams, clearStaysCache, clearSelectedHotel, setLocationDetails } = staysSlice.actions;
+export const { setSearchParams, setGuestInfo, clearStaysCache, clearSelectedHotel, setLocationDetails } = staysSlice.actions;
 export default staysSlice.reducer;
 

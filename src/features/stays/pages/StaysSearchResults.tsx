@@ -95,7 +95,6 @@ export default function StaysSearchResults() {
     setFilters(newFilters);
   };
 
-  // Get data from Redux instead of navigation state
   const breadcrumbs = [
     { name: "Home", link: "/" },
     {
@@ -105,7 +104,6 @@ export default function StaysSearchResults() {
     { name: "Search Results" },
   ];
 
-  // Calculate dates display
   const formatDateRange = () => {
     if (!searchParams?.checkIn || !searchParams?.checkOut) return "Select dates";
     

@@ -113,9 +113,6 @@ const CarBookingFirstScreen: React.FC = () => {
     setSubmitError,
   } = useBookingForm(initialData);
 
-  // Persist form data
-  useFormPersistence(formData);
-
   // Modal management
   const { modals, openModal, closeModal } = useModalState();
 
@@ -284,7 +281,7 @@ const CarBookingFirstScreen: React.FC = () => {
   );
 
   return (
-    <div className="car-booking-first-screen">
+    <div className="">
       <ToastContainer />
       {/* Shared Ride Info */}
       {(formData.selectedRide === "Shared Ride" ||
@@ -298,7 +295,7 @@ const CarBookingFirstScreen: React.FC = () => {
         </div>
       )}
 
-      <div className="flex lg:flex-row flex-col justify-normal lg:items-center gap-8 lg:min-w-full">
+      <div className="flex lg:flex-row flex-col justify-normal lg:justify-center lg:items-center gap-8 lg:min-w-full lg:max-w-full ">
         <div className="flex flex-col">
           {/* First Row */}
           <div className="flex lg:flex-row flex-col justify-between lg:items-center gap-4 w-full">
@@ -338,7 +335,7 @@ const CarBookingFirstScreen: React.FC = () => {
                 id="pickup-location"
                 variant="outlined"
                 size="small"
-                placeholder="Search Pick up Location"
+                placeholder="Search Terminal"
                 value={formData.pickUpLocaDescription}
                 onClick={() => handlePickLocationClick("pick")}
                 onBlur={() => handleBlur("pickupLocation")}

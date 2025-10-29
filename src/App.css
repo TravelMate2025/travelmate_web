@@ -5,4 +5,10 @@
   font-family: "Inter";
 }
 
-
+button {
+  cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none; /* Optional: further remove default styling */
+}

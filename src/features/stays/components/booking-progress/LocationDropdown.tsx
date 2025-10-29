@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   TextField,
   Popper,
@@ -13,15 +13,17 @@ import {
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+import { fetchRecommendedHotels } from "../../api";
 
 interface LocationDropdownProps {
   label: string;
   placeholder?: string;
   selectedValue: string;
   setSelectedValue: (name: string, code: string) => void;
-  locations: Array<{name: string, code: string}>;
+  locations: Array<{ name: string; code: string }>;
   loading?: boolean;
   onRemoveLocation?: (location: string) => void;
+  token?: string | null;
 }
 
 const LocationDropdown: React.FC<LocationDropdownProps> = ({
@@ -32,17 +34,40 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
   locations,
   loading = false,
   onRemoveLocation,
+  token,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [recommendedLocations, setRecommendedLocations] = useState<
+    Array<{ name: string; code: string }>
+  >([]);
+  const [isLoadingRecommended, setIsLoadingRecommended] = useState(false);
   const open = Boolean(anchorEl);
+
+  useEffect(() => {
+    const loadRecommendedHotels = async () => {
+      if (open && !searchQuery) {
+        setIsLoadingRecommended(true);
+        try {
+          const recommended = await fetchRecommendedHotels(token);
+          setRecommendedLocations(recommended);
+        } catch (error) {
+          console.error("Error loading recommended hotels:", error);
+        } finally {
+          setIsLoadingRecommended(false);
+        }
+      }
+    };
+
+    loadRecommendedHotels();
+  }, [open, searchQuery, token]);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedValue(e.target.value, ""); // Pass empty code for free text input
+    setSelectedValue(e.target.value, "");
     setSearchQuery(e.target.value);
   };
 
@@ -50,16 +75,23 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
     setAnchorEl(null);
   };
 
-  const handleOptionClick = (location: {name: string, code: string}) => {
+  const handleOptionClick = (location: { name: string; code: string }) => {
     setSelectedValue(location.name, location.code);
     handleClose();
   };
 
-  const filteredLocations = (locations || []).filter((location): location is {name: string, code: string} => {
-    return !!location && typeof location.name === 'string';
-  }).filter(location => 
-    location.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredLocations = (locations || [])
+    .filter((location): location is { name: string; code: string } => {
+      return !!location && typeof location.name === "string";
+    })
+    .filter((location) =>
+      location.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+  const displayedLocations = searchQuery
+    ? filteredLocations
+    : recommendedLocations;
+  const isLoading = loading || isLoadingRecommended;
 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
@@ -77,7 +109,7 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
               <LocationOnIcon />
             </InputAdornment>
           ),
-          endAdornment: loading ? (
+          endAdornment: isLoading ? (
             <InputAdornment position="end">
               <CircularProgress size={20} />
             </InputAdornment>
@@ -89,17 +121,18 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
         }}
       />
 
-      <Popper 
-        open={open} 
-        anchorEl={anchorEl} 
+      <Popper
+        open={open}
+        anchorEl={anchorEl}
         placement="bottom-start"
-        style={{ zIndex: 1300 }} // Ensure dropdown appears above other elements
+        style={{ zIndex: 1300 }}
       >
         <ClickAwayListener onClickAway={handleClose}>
           <Paper
+            className="w-full md:w-[23vw] lg:w-[23vw]"
             elevation={3}
             sx={{
-              width: "317px",
+              width: "370px",
               borderRadius: "6px",
               backgroundColor: "white",
               boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
@@ -108,34 +141,49 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
               overflowY: "auto",
             }}
           >
-            {loading ? (
+            {isLoading ? (
               <Box display="flex" justifyContent="center" p={3}>
                 <CircularProgress size={24} />
               </Box>
             ) : (
-              <>
-                <Typography variant="subtitle1" className="font-inter text-[#343537] text-lg p-4">
-                  Available Destinations
+              <div className="w-full">
+                <Typography
+                  variant="subtitle1"
+                  className="font-inter text-[#343537] text-lg p-4"
+                >
+                  {searchQuery
+                    ? "Available Destinations"
+                    : "Recommended Hotels"}
                 </Typography>
 
-                {filteredLocations.length === 0 ? (
-                  <Typography sx={{ textAlign: "center", padding: "20px", color: "#777" }} className="font-inter">
-                    {searchQuery ? "No matching destinations" : "No destinations available"}
+                {displayedLocations.length === 0 ? (
+                  <Typography
+                    sx={{ textAlign: "center", padding: "20px", color: "#777" }}
+                    className="font-inter"
+                  >
+                    {searchQuery
+                      ? "No matching destinations"
+                      : "No recommendations available"}
                   </Typography>
                 ) : (
-                  filteredLocations.map((location, index) => (
+                  displayedLocations.map((location, index) => (
                     <React.Fragment key={location.code}>
                       <div className="flex justify-between items-center px-6 py-3 cursor-pointer hover:bg-gray-50">
-                        <div 
-                          className="flex gap-2 w-full" 
+                        <div
+                          className="flex gap-2 w-full"
                           onClick={() => handleOptionClick(location)}
                         >
                           <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] flex items-center justify-center">
-                            <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "16px" }} />
+                            <RoomOutlinedIcon
+                              className="text-[#FF6F1E]"
+                              sx={{ fontSize: "16px" }}
+                            />
                           </div>
                           <div className="flex flex-col">
                             <p className="font-medium">{location.name}</p>
-                            <p className="text-sm text-gray-500">{location.code}</p>
+                            <p className="text-sm text-gray-500">
+                              {location.code}
+                            </p>
                           </div>
                         </div>
                         {onRemoveLocation && (
@@ -149,11 +197,13 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
                           />
                         )}
                       </div>
-                      {index !== filteredLocations.length - 1 && <Divider sx={{ marginTop: "15px" }} />}
+                      {index !== displayedLocations.length - 1 && (
+                        <Divider sx={{ marginTop: "15px" }} />
+                      )}
                     </React.Fragment>
                   ))
                 )}
-              </>
+              </div>
             )}
           </Paper>
         </ClickAwayListener>
