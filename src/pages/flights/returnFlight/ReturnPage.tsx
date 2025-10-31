@@ -421,7 +421,7 @@ const [loading, setLoading] =  useState(false)
         </div>
 
         {/* Desktop form */}
-        <div className="hidden md:block w-[90%] m-auto">
+        <div className="hidden md:block w-[90%] m-auto py-10">
           <form onSubmit={onSearch}>
             <FormControl sx={{ width: "100%" }}>
               <Grid container spacing={2}>
@@ -675,9 +675,8 @@ const [loading, setLoading] =  useState(false)
                   onClose={() => setIsDialogOpen(false)}
                   onChange={setFilters}
                   onApply={() => {
-                    
-                    setFilters({ ...filters })
-           setIsDialogOpen(false)
+                    setFilters({ ...filters });
+                    setIsDialogOpen(false);
                   }}
                 />
                 <Button
@@ -698,7 +697,6 @@ const [loading, setLoading] =  useState(false)
                   isMobile={isMobile}
                   value={selectedSort}
                   handleApplyFilters={() => {
-
                     setIsSortOpen(false);
                   }}
                 />
