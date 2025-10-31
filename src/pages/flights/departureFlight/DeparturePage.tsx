@@ -298,7 +298,7 @@ setLoading(true)
     ]
   );
 
-console.log(tripType);
+
 
   useEffect(() => {
     

@@ -728,22 +728,19 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                       departureUpsell: upsell,
                       departureCounts: counts,
                       departureFlightOption: selectedOption,
-                   
                     };
-                     
                   } else if (location.pathname === "/flight/return") {
                     state = {
                       ...searchState,
                       ...location.state,
                       returnTotal: price,
                       returnUpsell: upsell,
-                   
+
                       returnFlight: selectedDeparture,
                       returnCounts: counts,
                       returnFlightOption: selectedOption,
                     };
                     console.log("return,", state);
-                    
                   } else {
                     state = {
                       ...searchState,
@@ -753,18 +750,23 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                     };
 
                     console.log("any", state);
-                    
                   }
-
 
                   navigate(checkRoute(), { state });
                 }
               : undefined
           }
         >
-          Select for{" "}
-          {price ? Number(price + upsell.total).toLocaleString() : "—"}{" "}
-          {selectedDeparture?.price.currency}
+          {title === "Return" ? (
+            <>Select</>
+          ) : (
+            <>
+              {" "}
+              Select for{" "}
+              {price ? Number(price + upsell.total).toLocaleString() : "—"}{" "}
+              {selectedDeparture?.price.currency}
+            </>
+          )}
         </button>
       </div>
     );

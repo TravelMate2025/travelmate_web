@@ -89,7 +89,7 @@ const ReturnPage: React.FC<DepartureListProps> = () => {
   const [fetchCoords, { data: locationData }] = useLazyGetLocationInfoQuery();
   const [fetchFlights, { data: flightResults, error, isLoading, isFetching }] =
     useLazyFetchFlightsQuery();
-
+const [loading, setLoading] =  useState(false)
 
   // Form setup
   const {
@@ -255,6 +255,7 @@ const ReturnPage: React.FC<DepartureListProps> = () => {
     (formData?: SimpleTripFormValues) => {
 
       try {
+        setLoading(true)
 
         const t  =     tripType as "round-trip" | "one-way" | "multi-city"
         const payload = buildFlightPayload({
@@ -272,8 +273,11 @@ const ReturnPage: React.FC<DepartureListProps> = () => {
         });
         // @ts-ignore
         fetchFlights(payload);
+        
       } catch (err) {
         console.error("Failed to fetch flights:", err);
+      } finally {
+        setLoading(false)
       }
     },
     [
