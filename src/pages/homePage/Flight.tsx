@@ -85,15 +85,14 @@ export const simpleTripSchema = yup.object({
     .required("Date is required")
     .test("future-date", "Date must be in the future", (value) => {
       if (!value) return false;
-
+      
+      console.log("value", value);
       if (value instanceof Date) {
         return !isBefore(startOfDay(value), today);
       }
 
       if (
-        typeof value === "object" &&
-        "startDate" in value &&
-        value.startDate instanceof Date
+      Object.keys(value).length > 0
       ) {
         return !isBefore(startOfDay(value.startDate), today);
       }

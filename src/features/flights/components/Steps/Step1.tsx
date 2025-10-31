@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 import { PassengerCounts } from "../../hooks/useFlightBooking";
 import { useStepContext } from "./StepLayout";
 import { getCity } from "../../utils/functions";
+import { useState } from "react";
 export interface LocationState {
   pathname: string;
   search: string;
@@ -154,7 +155,7 @@ export const PriceSummary = ({
   state?:FlightReviewState
 }) => {
 
-
+const [check, setCheck] =  useState(false)
 
   let baseFare = 0;
   let taxes = 0;
@@ -204,7 +205,9 @@ export const PriceSummary = ({
     });
   } else {
     const departure = state?.departureFlight?.price;
-    // const _departureUpsell = state?.departureUpsell?.total || 0;
+    const departureUpsell = state?.departureUpsell?.total || 0;
+    console.log(state);
+    
     const returnFlight = state?.returnFlight;
     
     // const _returnUpsell = state?.returnUpsell?.total || 0;
@@ -227,7 +230,8 @@ export const PriceSummary = ({
       if (price.totalWithFee) {
         serviceFee +=
           parseFloat(price.totalWithFee.toString()) -
-          parseFloat(price.grandTotal || "0");
+          parseFloat(price.grandTotal || "0") +
+          +departureUpsell;
       }
       airlineFees = serviceFee + taxes 
     });
@@ -318,7 +322,12 @@ export const PriceSummary = ({
       <div className="mt-auto max-md:mt-10">
         {confirm && (
           <FormControlLabel
-            control={<Checkbox />}
+            control={
+              <Checkbox
+                checked={check}
+                onChange={(event) => setCheck(event.target.checked)}
+              />
+            }
             label={
               <Typography color="#67696D">
                 I agree to the{" "}
@@ -359,7 +368,8 @@ export const PriceSummary = ({
           </div>
         )}
         <button
-          className="w-full mt-auto text-white h-[56px] rounded-[6px] bg-[#023E8A] cursor-pointer"
+          className="w-full mt-auto text-white h-[56px] rounded-[6px] disabled:bg-zinc-600 bg-[#023E8A] cursor-pointer"
+          disabled={confirm && !check}
           onClick={nextStep}
         >
           {final ? "Back to Home" : "  Continue"}

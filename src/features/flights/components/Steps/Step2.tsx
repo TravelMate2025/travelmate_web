@@ -182,8 +182,7 @@ const Step2: React.FC = () => {
   
 
   const onSubmit = handleSubmit(async (formData) => {
-    console.log("✅ Form Data:", formData);
-    console.log("Location state:", location.state);
+
     let flightIds;
     let upsellOffer;
     // Map trip type
@@ -193,7 +192,9 @@ const Step2: React.FC = () => {
       flightIds = [location.state.multiCitySelections[0].flight.id]
       tripType = "MULTI_CITY";
     } else if (location.state.tripType === "round-trip") {
-      upsellOffer = location.state?.departureUpsell?.id || undefined;
+      upsellOffer = location.state?.departureUpsell?.upsell.id || undefined;
+    
+      
       flightIds = [
         location.state?.departureFlight.id,
         
@@ -204,7 +205,8 @@ const Step2: React.FC = () => {
               location.state.departureFlight.id,
               
       ];
-            upsellOffer = location.state?.departureUpsell?.id || undefined;
+            upsellOffer =
+              location.state?.departureUpsell?.upsell.id || undefined;
     }
 
     // console.log("flightids", flightIds);

@@ -148,7 +148,7 @@ const axiosBaseQuery =
 export const flightsApi = createApi({
   reducerPath: "flightsApi",
   baseQuery: axiosBaseQuery({ baseUrl: "" }),
-  tagTypes: ["Airports", "Flights", "FlightDetails", "Bookings"], // ✅ define tags
+  tagTypes: ["Airports", "Flights", "FlightDetails", "Bookings", "Upsell"], // ✅ define tags
   serializeQueryArgs: ({ endpointName, queryArgs }) => {
     if (endpointName === "fetchFlights") {
       // Create a stable cache key
@@ -234,7 +234,7 @@ export const flightsApi = createApi({
         method: "POST",
         data: body,
       }),
-      invalidatesTags: ["Flights"],
+      invalidatesTags: ["Upsell",],
     }),
 
     // ✈️ Create Booking

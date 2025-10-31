@@ -98,6 +98,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
     handleSubmit,
     formState: { errors },
     reset,
+  
   } = useForm<SimpleTripFormValues>({
     resolver: yupResolver(simpleTripSchema),
     defaultValues: {
@@ -173,6 +174,8 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   // Reset form when searchData changes
   useEffect(() => {
     if (!date) return;
+
+    
   reset({
     class: selectedClass,
     date,
@@ -193,6 +196,8 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
     tripType,
   ]);
 
+
+  
   // Fetch flights on mount
   useEffect(() => {
     if (locationData?.currency) {
@@ -438,7 +443,7 @@ reset({
         </div>
 
         {/* Desktop form */}
-        <div className="hidden md:block w-[90%] m-auto">
+        <div className="hidden md:block w-[90%] m-auto py-10">
           <form onSubmit={onSearch}>
             <FormControl sx={{ width: "100%" }}>
               <Grid container spacing={2}>
@@ -496,13 +501,15 @@ reset({
                     control={control}
                     render={({ field }) => {
               
+              console.log(field.value);
+              
                       
                    return (
                      <>
                        <DateSelector
                          id="departure-date"
                          label="Date"
-                         value={
+                         value={ 
                            typeof field.value === "string"
                              ? format(new Date(field.value), "dd MMM yyyy")
                              : //  @ts-ignore
@@ -519,14 +526,18 @@ reset({
                              : ""
                          }
                          //  defaultDate={date}
-                         onDateChange={(val) =>
+                         onDateChange={(val) => {
+                           console.log(val);
+                           
+                           
                            field.onChange(
                              val instanceof Date
-                               ? val
+                               ? val.toISOString()
                                : val?.startDate && val?.endDate
                                ? val
                                : null
                            )
+                         }
                          }
                          range={tripType === "round-trip"}
                        />

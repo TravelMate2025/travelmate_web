@@ -30,10 +30,10 @@ const DepartCard: React.FC<DepartCardProps> = ({ depart, onClick , segment = 0})
   const firstSegment = firstItinerary.segments[0];
   const lastSegment =
     firstItinerary.segments[firstItinerary.segments.length - 1];
+  const firstFareDetail =
+    depart.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
+  const cabinClass = firstFareDetail?.cabin; // e.g. "ECONOMY"
 
-
-
-  
 
   return (
     <div key={depart.id} className="group" onClick={() => onClick(depart)}>
@@ -63,7 +63,7 @@ const DepartCard: React.FC<DepartCardProps> = ({ depart, onClick , segment = 0})
               sx={{ width: "4px", height: "4px" }}
               className="text-[#4E4F52]"
             />
-            <span>{depart.pricingOptions.fareType[0]}</span>
+            <span>{cabinClass}</span>
           </div>
         </div>
 
@@ -77,9 +77,10 @@ const DepartCard: React.FC<DepartCardProps> = ({ depart, onClick , segment = 0})
                   minute: "2-digit",
                 })} */}
 
-                {new Intl.DateTimeFormat("en-Us", {hour:"2-digit", minute:"2-digit"}).format(
-                  new Date(firstSegment.departure.at)
-                )}
+                {new Intl.DateTimeFormat("en-Us", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }).format(new Date(firstSegment.departure.at))}
               </p>
               <p className="text-[#4E4F52]">
                 {/* {firstSegment.departure.terminal} */}

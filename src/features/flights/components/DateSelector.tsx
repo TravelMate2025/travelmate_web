@@ -45,8 +45,7 @@ export const DateSelector = memo<DateSelectorProps>(
 
     // Sync with parent value
     useEffect(() => {
-      console.log(value);
-      
+  
       if (!value || typeof value !== "string") return;
 
       if (range && (value.includes("to") || value.includes("-"))) {
@@ -65,6 +64,7 @@ export const DateSelector = memo<DateSelectorProps>(
         }
       } else {
         const parsed = parse(value, "dd MMM yyyy", new Date());
+
         if (!isNaN(parsed.getTime())) {
           setSelectedDate(parsed);
         }
@@ -82,8 +82,12 @@ export const DateSelector = memo<DateSelectorProps>(
     };
 
     const handleSelectDate = (date: Date) => {
+      console.log("date selected", date);
+      
       setSelectedDate(date);
       const formatted = format(date, "dd MMM yyyy");
+  
+      
       onChange?.(formatted);
       onDateChange(date);
        handleClose();
@@ -99,6 +103,9 @@ export const DateSelector = memo<DateSelectorProps>(
       onChange?.(formatted);
       onDateChange({ startDate, endDate });
     };
+
+    console.log(selectedDate, value);
+    
 
     const CalendarContent = (
       <Box p={2}>

@@ -27,11 +27,14 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import FlightClassOutlinedIcon from "@mui/icons-material/FlightClassOutlined";
 import { MdArrowDropDown } from "react-icons/md";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FlightOffer, FlightUpsellOfferResponse,  UpsellFlightOfferResponse,  } from "../types";
+import {
+  FlightOffer,
+  FlightUpsellOfferResponse,
+  UpsellFlightOfferResponse,
+} from "../types";
 import { formatDuration, formatStops, getCity } from "../utils/functions";
 
 import { useEffect, useState, memo } from "react";
-
 
 import dayjs from "dayjs";
 import FlightDetails from "./FlightDetails";
@@ -40,7 +43,7 @@ import { SearchData } from "../hooks/useFlightBooking";
 
 export function formatDateRange(range: string) {
   console.log(range);
-  
+
   const [start, end] = range.split(" to ");
   const startDate = dayjs(start);
   const endDate = dayjs(end);
@@ -96,12 +99,10 @@ interface FlightDrawerProps {
   options: Option[];
   onNext?: () => void;
   multiCitySelections?: MultiCitySelection[];
-  searchState:SearchData
+  searchState: SearchData;
   selectedOption: string | null;
   setMultiCitySelections?: React.Dispatch<
-    React.SetStateAction<
-    MultiCitySelection[]
-    >
+    React.SetStateAction<MultiCitySelection[]>
   >;
   setSelectedOption: (id: string) => void;
   counts: Counts;
@@ -119,25 +120,24 @@ export const FlightDrawer = memo<FlightDrawerProps>(
     openClick,
     handleCloseClick,
     selectedDeparture,
-    
+
     onNext,
     selectedOption,
-  searchState,
+    searchState,
     counts,
     multiCitySelections,
     setMultiCitySelections,
-  
+
     returnFlight,
     title,
   }) => {
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-    
 
     const extraBagPrice = 10000;
 
-    let firstSegment:any, lastSegment, itinerary, price:any;
+    let firstSegment: any, lastSegment, itinerary, price: any;
     if (selectedDeparture) {
       itinerary = selectedDeparture.itineraries?.[returnFlight]; // departure itinerary
       firstSegment = itinerary?.segments?.[0];
@@ -145,26 +145,22 @@ export const FlightDrawer = memo<FlightDrawerProps>(
       price = Number(selectedDeparture.price?.grandTotal);
     }
 
-    
-    const [upsell, setUpsell] =  useState<{upsell?:FlightUpsellOfferResponse , total:number}>({total:0})
+    const [upsell, setUpsell] = useState<{
+      upsell?: FlightUpsellOfferResponse;
+      total: number;
+    }>({ total: 0 });
 
-    const [upsellFlightOffer, { data,  }] =
-      useUpsellFlightOfferMutation();
+    const [upsellFlightOffer, { data }] = useUpsellFlightOfferMutation();
 
-   
-const  location = useLocation()
+    const location = useLocation();
     // Helper function to get segment details
-  
-
-   
 
     useEffect(() => {
       if (selectedDeparture) {
         const handleUpsell = async () => {
-          const res = await upsellFlightOffer({
+           await upsellFlightOffer({
             flight_offer_id: selectedDeparture.id,
           }).unwrap();
-          console.log("Upsell result:", res);
         };
 
         handleUpsell();
@@ -187,12 +183,9 @@ const  location = useLocation()
           counts: { ...counts },
           flight: selectedDeparture,
           option: selectedOption,
-          upsell
+          upsell,
         },
       ];
-
-      // Log for debugging
-      console.log("Current returnFlight index:", returnFlight);
 
       // Update the state
       setMultiCitySelections?.(updatedSelections);
@@ -211,9 +204,9 @@ const  location = useLocation()
       }
 
       // If last segment, navigate to review page
-    
+
       navigate("/flight/review", {
-        state: { ...searchState, multiCitySelections: updatedSelections,  },
+        state: { ...searchState, multiCitySelections: updatedSelections },
       });
     };
 
@@ -252,21 +245,19 @@ const  location = useLocation()
         <div className="mt-[75px] ">
           <div className="w-full border-1 border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] mb-[16px] ">
             <div className="items-center p-2">
-       
-                <>
-                  <p className=" text-[14px] md:text-[18px] text-[#181818] font-inter font-medium">
-                    {
-                      getCity(firstSegment?.departure.iataCode as string)
-                        ?.municipality
-                    }{" "}
-                    to{" "}
-                    {
-                      getCity(lastSegment?.arrival.iataCode as string)
-                        ?.municipality
-                    }
-                  </p>
-                </>
-             
+              <>
+                <p className=" text-[14px] md:text-[18px] text-[#181818] font-inter font-medium">
+                  {
+                    getCity(firstSegment?.departure.iataCode as string)
+                      ?.municipality
+                  }{" "}
+                  to{" "}
+                  {
+                    getCity(lastSegment?.arrival.iataCode as string)
+                      ?.municipality
+                  }
+                </p>
+              </>
 
               <p className="text-[14px] text-[#4E4F52] ">
                 {/* {formatDateRange(location.state.departureDate)},{" "} */}
@@ -613,7 +604,7 @@ const  location = useLocation()
                           </div>
 
                           <Stack direction="row" flexWrap="wrap">
-                            {firstSegment.amenities?.map((a:any, i:any) => (
+                            {firstSegment.amenities?.map((a: any, i: any) => (
                               <Box
                                 key={i}
                                 display="flex"
@@ -697,7 +688,7 @@ const  location = useLocation()
       </DialogContent>
     );
 
-    const state = searchState ;
+    const state = searchState;
 
     const checkRoute = (): string => {
       switch (location.pathname) {
@@ -729,8 +720,7 @@ const  location = useLocation()
               ? () => {
                   let state;
 
-                if (location.pathname === "/flight/departure") {
-                   
+                  if (location.pathname === "/flight/departure") {
                     state = {
                       ...searchState,
                       departureFlight: selectedDeparture,
@@ -738,36 +728,42 @@ const  location = useLocation()
                       departureUpsell: upsell,
                       departureCounts: counts,
                       departureFlightOption: selectedOption,
-                      upsell,
+                   
                     };
+                     
                   } else if (location.pathname === "/flight/return") {
                     state = {
                       ...searchState,
                       ...location.state,
                       returnTotal: price,
                       returnUpsell: upsell,
-                      upsell,
+                   
                       returnFlight: selectedDeparture,
                       returnCounts: counts,
                       returnFlightOption: selectedOption,
                     };
+                    console.log("return,", state);
+                    
                   } else {
-                  
-                        state = {
-                          ...searchState,
-                          ...location.state,
-                          total: price,
-                          upsell,
-                        };
+                    state = {
+                      ...searchState,
+                      ...location.state,
+                      total: price,
+                      upsell,
+                    };
+
+                    console.log("any", state);
+                    
                   }
-           
+
 
                   navigate(checkRoute(), { state });
                 }
               : undefined
           }
         >
-          Select for {price ? Number(price + upsell.total).toLocaleString() : "—"}{" "}
+          Select for{" "}
+          {price ? Number(price + upsell.total).toLocaleString() : "—"}{" "}
           {selectedDeparture?.price.currency}
         </button>
       </div>
