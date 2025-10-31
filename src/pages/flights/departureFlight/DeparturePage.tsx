@@ -88,7 +88,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [fetchCoords, { data: locationData   }] = useLazyGetLocationInfoQuery();
-  const [fetchFlights, { data: flightResults, error, isLoading, isFetching }] =
+  const [fetchFlights, { data: flightResults, error,  isFetching }] =
     useLazyFetchFlightsQuery();
 
 const [loading, setLoading] =  useState(false)

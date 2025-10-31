@@ -87,7 +87,7 @@ const ReturnPage: React.FC<DepartureListProps> = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [fetchCoords, { data: locationData }] = useLazyGetLocationInfoQuery();
-  const [fetchFlights, { data: flightResults, error, isLoading, isFetching }] =
+  const [fetchFlights, { data: flightResults, error,  isFetching }] =
     useLazyFetchFlightsQuery();
 const [loading, setLoading] =  useState(false)
 
@@ -706,7 +706,7 @@ const [loading, setLoading] =  useState(false)
           </div>
 
           <div className="mt-[24px] w-[90%] m-auto cursor-pointer">
-            {isLoading || isFetching ? (
+            {loading|| isFetching ? (
               <div className="flex justify-center mt-20">
                 Loading flights...
               </div>
