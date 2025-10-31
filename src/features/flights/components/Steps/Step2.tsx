@@ -244,7 +244,7 @@ const Step2: React.FC = () => {
       if (res) {
         // @ts-ignore
         const result = await createSession({ id: res.id });
-        toast.success("Flight booked");
+        toast.success("success");
 
         // Build booking object
         const bookingData = {

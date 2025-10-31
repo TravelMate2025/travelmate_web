@@ -91,7 +91,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
   const [fetchFlights, { data: flightResults, error, isLoading, isFetching }] =
     useLazyFetchFlightsQuery();
 
-
+const [loading, setLoading] =  useState(false)
   // Form setup
   const {
     control,
@@ -261,7 +261,7 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
     (formData?: SimpleTripFormValues) => {
 
       try {
-
+setLoading(true)
         const t  =     tripType as "round-trip" | "one-way" | "multi-city"
         const payload = buildFlightPayload({
           tripType: formData?.tripType || t || "round-trip",
@@ -279,7 +279,10 @@ const DeparturePage: React.FC<DepartureListProps> = () => {
         // @ts-ignore
         fetchFlights(payload);
       } catch (err) {
+        setLoading(false);
         console.error("Failed to fetch flights:", err);
+      } finally {
+        setLoading(false)
       }
     },
     [
@@ -501,7 +504,7 @@ reset({
                     control={control}
                     render={({ field }) => {
               
-              console.log(field.value);
+        
               
                       
                    return (
@@ -746,7 +749,7 @@ reset({
           </div>
 
           <div className="mt-[24px] w-[90%] m-auto cursor-pointer">
-            {isLoading || isFetching ? (
+            {loading || isFetching ? (
               <div className="flex justify-center mt-20">
                 Loading flights...
               </div>
