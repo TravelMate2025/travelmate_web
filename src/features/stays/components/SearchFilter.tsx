@@ -21,7 +21,7 @@ interface SearchParams {
   checkOut: string;
   adults: number;
   children: number;
-  rooms: number;
+  rooms: number;  
 }
 
 const SearchFilter: React.FC = () => {
@@ -48,8 +48,10 @@ const SearchFilter: React.FC = () => {
     const loadDestinations = async () => {
       try {
         setLoadingLocations(true);
-        const data = await fetchDestinations(undefined, accessToken);
-        setLocations(data);
+        const data = await fetchDestinations(undefined, accessToken) as any;
+        console.log(data,"");
+        
+        setLocations(data.results as any);
       } catch (error) {
         console.error("Error fetching destinations:", error);
       } finally {
@@ -131,7 +133,7 @@ const SearchFilter: React.FC = () => {
                 setDestination(value); // Keep name for display
                 setDestinationCode(code); // Store code for search
               }}
-              locations={locations.map((loc) => ({
+              locations={locations?.map((loc) => ({
                 name: loc.name,
                 code: loc.code,
               }))}

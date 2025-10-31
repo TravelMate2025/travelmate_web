@@ -64,7 +64,7 @@ const FlightItineraryPDF = ({ bookingData }:{bookingData:LocalState}) => {
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={{ justifyContent: "center", flexDirection: "row" }}>
-          <Image src={Logo} style={{ width: 100, height: 80,  }} />
+          <Image src={Logo} style={{ width: 100, height: 80 }} />
         </View>
         <Text style={[styles.text, styles.bold]}>
           Booking Reference: {bookingData.booking.amadeus_reference}
@@ -172,6 +172,10 @@ const FlightItineraryPDF = ({ bookingData }:{bookingData:LocalState}) => {
           <Text style={styles.text}>
             E-ticket will be sent to: {passenger?.email}
           </Text>
+        </View>
+
+        <View style={{flexDirection:"row", alignItems:"center", justifyContent:"center"}}>
+          <Text>©{new Date().getFullYear()} TravelMate Company. All rights reserved.</Text>
         </View>
       </Page>
     </Document>

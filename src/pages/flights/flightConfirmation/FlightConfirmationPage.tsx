@@ -8,6 +8,8 @@ export interface LocalState {
   state: State;
   booking: BookingWrapper;
 }
+
+
 export interface BookingWrapper {
   id: number;
   booking: Booking;
@@ -70,7 +72,8 @@ import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import CheckIcon from "@mui/icons-material/Check";
 import { Divider } from "@mui/material";
-import { Link,  } from "react-router-dom";
+import { Link, useNavigate,  } from "react-router-dom";
+import { DocumentProps, pdf } from "@react-pdf/renderer";
 
 import line3 from "../../../assets/arrow2.svg";
 
@@ -89,9 +92,20 @@ import { Booking, FlightOffer, Passenger, UpsellFlightOffer,  } from "../../../f
 import { DateRange } from "react-date-range";
 import { Flight, PassengerCounts } from "../../../features/flights/hooks/useFlightBooking";
 import ShareModal from "../../../features/flights/components/ShareModal";
-import { useState } from "react";
+import { ReactElement, useState } from "react";
 import toast from "react-hot-toast";
 import { Skeleton, } from "@mui/material";
+const generatePdfFile = async (bookingData: any, bookingId: number) => {
+  const blob = await pdf(
+    (
+      <FlightItineraryPDF bookingData={bookingData} />
+    ) as ReactElement<DocumentProps>
+  ).toBlob();
+
+  return new File([blob], `flight-confirmation-${bookingId}.pdf`, {
+    type: "application/pdf",
+  });
+};
 
 const SkeletonLine = ({
   width = "100%",
@@ -319,7 +333,7 @@ const FlightCard = ({
 };
 const FlightConfirmationPage = () => {
 const [open, setOpen] = useState(false)
-
+const navigate = useNavigate()
 
  const { user } = useAppSelector((state) => state.auth);
 
@@ -368,7 +382,7 @@ const [open, setOpen] = useState(false)
       <div>
         <Navbar />
       </div>
-      <ShareModal
+      {/* <ShareModal
         onClose={() => setOpen(false)}
         open={open}
         onShareWhatsApp={() => {
@@ -389,7 +403,68 @@ const [open, setOpen] = useState(false)
           setOpen(false);
           toast.success("Link copied to clipboard!");
         }}
+      /> */}
+      <ShareModal
+        onClose={() => setOpen(false)}
+        open={open}
+        onShareWhatsApp={async () => {
+          try {
+            const file = await generatePdfFile(savedBooking, bookingId);
+
+            // ✅ If Web Share API supports file sharing
+            if (navigator.share && navigator.canShare?.({ files: [file] })) {
+              await navigator.share({
+                title: "Flight Confirmation",
+                text: "Here’s my flight confirmation details.",
+                files: [file],
+              });
+            } else {
+              // ❌ Fallback: open WhatsApp with the page link
+              const shareUrl = encodeURIComponent(window.location.href);
+              window.open(`https://wa.me/?text=${shareUrl}`, "_blank");
+              toast("Sharing as link (file share not supported)");
+            }
+          } catch (err) {
+            console.error(err);
+            toast.error("Unable to share PDF file.");
+          } finally {
+            setOpen(false);
+          }
+        }}
+        onShareMail={async () => {
+          try {
+            const file = await generatePdfFile(savedBooking, bookingId);
+
+            // ✅ If Web Share API supports files (on mobile Safari/Chrome)
+            if (navigator.share && navigator.canShare?.({ files: [file] })) {
+              await navigator.share({
+                title: "Flight Confirmation",
+                text: "Here’s my flight confirmation details.",
+                files: [file],
+              });
+            } else {
+              // ❌ Fallback: mailto link with page URL
+              const subject = encodeURIComponent("Your Flight Confirmation");
+              const body = encodeURIComponent(
+                `Please find your flight confirmation attached.\n\nView online: ${window.location.href}`
+              );
+              window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
+              toast("File attached not supported — shared link instead.");
+            }
+          } catch (err) {
+            console.error(err);
+            toast.error("Unable to share PDF file.");
+          } finally {
+            setOpen(false);
+          }
+        }}
+        onCopyLink={() => {
+          navigator.clipboard.writeText(window.location.href);
+          setOpen(false);
+          toast.success("Link copied to clipboard!");
+        }}
       />
+
       <div className="mt-[85px]  ">
         <div className="w-[90%] m-auto mt-[90px] max-md:flex hidden justify-between">
           <Link to="/">
@@ -478,11 +553,11 @@ const [open, setOpen] = useState(false)
                 </div>
                 <div className="max-md:text-xs ">
                   Payment Successful and Your flight is{" "}
-                  {data?.payment_details?.payment_status}. E-ticket has been sent
-                  to {user?.email}
+                  {data?.payment_details?.payment_status}. E-ticket has been
+                  sent to {user?.email}
                 </div>
               </div>
-            </div> 
+            </div>
           </div>
 
           <div className="flex max-md:flex-col gap-[40px]">
@@ -669,7 +744,11 @@ const [open, setOpen] = useState(false)
             </div>
             <Divider sx={{ my: 3 }} />
             <div className="flex-1  grid max-h-[350px]">
-              <PriceSummary state={savedBooking.state as any} final />
+              <PriceSummary
+                state={savedBooking.state as any}
+                final
+                nextStep={() => navigate("/")}
+              />
 
               {/* <Divider sx={{ my: 3 }} /> */}
               {/*
