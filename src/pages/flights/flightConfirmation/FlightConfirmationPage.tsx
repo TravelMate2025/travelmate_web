@@ -553,7 +553,7 @@ const navigate = useNavigate()
                 </div>
                 <div className="max-md:text-xs ">
                   Payment Successful and Your flight is{" "}
-                  {data?.payment_details?.payment_status}. E-ticket has been
+                  {data?.booking.status}. E-ticket has been
                   sent to {user?.email}
                 </div>
               </div>
@@ -594,7 +594,7 @@ const navigate = useNavigate()
                           data?.booking?.status?.toLowerCase() as string
                         )} md:text-lg text-sm capitalize`}
                       >
-                        {data?.booking?.status?.toLowerCase()}
+                        {data?.payment_details.payment_status?.toLowerCase()}
                       </p>
                     </div>
                   </div>

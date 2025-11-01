@@ -201,12 +201,11 @@ const Step2: React.FC = () => {
       ];
       tripType = "ROUND_TRIP";
     } else {
-            flightIds = [
-              location.state.departureFlight.id,
-              
-      ];
+      console.log(location.state);
+      
+            flightIds = [location.state?.departureFlight.id];
             upsellOffer =
-              location.state?.departureUpsell?.upsell.id || undefined;
+              location.state?.departureUpsell?.upsell?.id || undefined;
     }
 
     // console.log("flightids", flightIds);
@@ -293,6 +292,7 @@ const Step2: React.FC = () => {
   );
   const infantPassengers = fields.slice(totalAdults + totalChildren);
   
+
   
   useEffect(() => {
 

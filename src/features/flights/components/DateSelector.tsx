@@ -82,7 +82,7 @@ export const DateSelector = memo<DateSelectorProps>(
     };
 
     const handleSelectDate = (date: Date) => {
-      console.log("date selected", date);
+   
       
       setSelectedDate(date);
       const formatted = format(date, "dd MMM yyyy");
@@ -104,7 +104,7 @@ export const DateSelector = memo<DateSelectorProps>(
       onDateChange({ startDate, endDate });
     };
 
-    console.log(selectedDate, value);
+    
     
 
     const CalendarContent = (
