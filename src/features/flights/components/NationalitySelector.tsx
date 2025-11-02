@@ -28,7 +28,7 @@ export function NationalitySelector({
   value,
 }: NationalitySelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: countries } = useGetNationsQuery();
+  const { data: countries,  isFetching } = useGetNationsQuery();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -96,6 +96,11 @@ export function NationalitySelector({
 
       {/* Countries List */}
       <ScrollArea className="flex-1 w-full">
+        {isFetching ?
+          <div className="">
+            <p>Loading...</p>
+          </div> :
+          
         <div className="p-2">
           {/* All Countries option */}
           <MenuItem onClick={() => handleSelect("All Countries")} sx={{width:"100%"}} disabled>
@@ -129,6 +134,8 @@ export function NationalitySelector({
             </div>
           )}
         </div>
+      }
+
       </ScrollArea>
     </div>
   );

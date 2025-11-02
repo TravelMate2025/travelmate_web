@@ -23,10 +23,12 @@ export interface DateSelectorProps {
   onChange?: (value: string) => void;
   onDateChange: (date: Date | { startDate: Date; endDate: Date }) => void;
   range?: boolean;
+  disablePast?: boolean;
+  disableFuture?: boolean;
 }
 
 export const DateSelector = memo<DateSelectorProps>(
-  ({ id, label, value, onChange, onDateChange, range = false }) => {
+  ({ id, label, value, onChange, onDateChange, range = false,  disableFuture, disablePast }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -106,7 +108,9 @@ export const DateSelector = memo<DateSelectorProps>(
 
     
     
-
+    const today = new Date();
+    const minDate = disablePast ? today : undefined;
+    const maxDate = disableFuture ? today : undefined;
     const CalendarContent = (
       <Box p={2}>
         {range ? (
@@ -115,7 +119,8 @@ export const DateSelector = memo<DateSelectorProps>(
             editableDateInputs
             onChange={handleSelectRange}
             months={2}
-            
+            minDate={minDate}
+            maxDate={maxDate}
             showMonthAndYearPickers={false}
             moveRangeOnFirstSelection={false}
             direction={isMobile ? "vertical" : "horizontal"}
@@ -128,6 +133,8 @@ export const DateSelector = memo<DateSelectorProps>(
             date={selectedDate || new Date()}
             onChange={handleSelectDate}
             color="#FF6F1E"
+            minDate={minDate}
+            maxDate={maxDate}
           />
         )}
 

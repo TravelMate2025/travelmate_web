@@ -36,7 +36,7 @@ import { useLocation,  } from "react-router-dom";
 import { LocationState } from "./Step1";
 import {
   useCreateBookingMutation,
-  useCreateCheckoutSessionMutation,
+
 } from "../../api/flightApi";
 import { BookingType, Passenger } from "../../types";
 import toast from "react-hot-toast";
@@ -130,7 +130,7 @@ const Step2: React.FC = () => {
 
 
   const [useProfile, setUseProfile] = useState(false);
-  const [createSession, ] = useCreateCheckoutSessionMutation();
+
   const { nextStep, updateBooking } = useStepContext();
   const [createBooking] = useCreateBookingMutation();
 
@@ -201,7 +201,7 @@ const Step2: React.FC = () => {
       ];
       tripType = "ROUND_TRIP";
     } else {
-      console.log(location.state);
+ 
       
             flightIds = [location.state?.departureFlight.id];
             upsellOffer =
@@ -242,7 +242,7 @@ const Step2: React.FC = () => {
   
       if (res) {
         // @ts-ignore
-        const result = await createSession({ id: res.id });
+    
         toast.success("success");
 
         // Build booking object
@@ -250,7 +250,7 @@ const Step2: React.FC = () => {
           state:{...location.state},
           id: res.id,
           booking: res,
-          checkoutUrl: result.data.checkout_url,
+          // checkoutUrl: result.data.checkout_url,
           passengers,
           contact: {
             email: formData.email,
@@ -403,6 +403,7 @@ const Step2: React.FC = () => {
           control={control}
           render={({ field }) => (
             <DateSelector
+              disableFuture
               id=""
               label=""
               range={false}
@@ -472,6 +473,7 @@ const Step2: React.FC = () => {
               control={control}
               render={({ field }) => (
                 <DateSelector
+                  disablePast
                   label=""
                   value={field.value ? format(field.value, "dd MMM yyyy") : ""}
                   onDateChange={(val) => {
@@ -520,7 +522,7 @@ const Step2: React.FC = () => {
         {/* Left Panel */}
 
         <Grid2 size={{ xs: 12, md: 7 }} gap={2}>
-          <div className="flex justify-between mb-3">
+          <div className="flex justify-between mb-3 pl-3">
             <div>
               <p className="text-[16px] font-inter font-medium text-[#181818]">
                 Use my Profile Information

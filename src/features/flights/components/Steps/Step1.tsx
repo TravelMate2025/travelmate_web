@@ -145,13 +145,15 @@ const FlightCard = ({
 // ✅ Price summary component
 export const PriceSummary = ({
   confirm = false,
+loading=false,
   nextStep,
   state,
   final
 }: {
   confirm?: boolean;
     nextStep?: () => void;
-    final?:boolean
+    final?: boolean
+    loading?:boolean
   state?:FlightReviewState
 }) => {
 
@@ -369,7 +371,7 @@ const [check, setCheck] =  useState(false)
         )}
         <button
           className="w-full mt-auto text-white h-[56px] rounded-[6px] disabled:bg-zinc-600 bg-[#023E8A] cursor-pointer"
-          disabled={confirm && !check}
+          disabled={(confirm && !check) || loading}
           onClick={nextStep}
         >
           {final ? "Back to Home" : "  Continue"}

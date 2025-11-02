@@ -481,6 +481,7 @@ const [loading, setLoading] =  useState(false)
                       <DateSelector
                         id="departure-date"
                         label="Date"
+                        disablePast
                         value={
                           field.value
                             ? field.value instanceof Date

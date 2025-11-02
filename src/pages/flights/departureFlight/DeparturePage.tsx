@@ -511,6 +511,7 @@ reset({
                      <>
                        <DateSelector
                          id="departure-date"
+                         disablePast
                          label="Date"
                          value={ 
                            typeof field.value === "string"
@@ -745,7 +746,7 @@ reset({
                 />
               </Box>
             </div>
-            <Divider />
+            <Divider className="mt-2" sx={{mt:1}}/>
           </div>
 
           <div className="mt-[24px] w-[90%] m-auto cursor-pointer">

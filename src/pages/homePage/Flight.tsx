@@ -310,6 +310,7 @@ const FlightBookingForm: React.FC = () => {
                     <DateSelector
                       id="departure-date"
                       label="Date"
+                      disablePast
                       value={
                         field.value
                           ? field.value instanceof Date
@@ -537,6 +538,7 @@ const FlightBookingForm: React.FC = () => {
                       control={multiForm.control}
                       render={({ field }) => (
                         <DateSelector
+                          disablePast
                           id={`date-${index}`}
                           label="Date"
                           value={getFormattedDate(field.value as any)}

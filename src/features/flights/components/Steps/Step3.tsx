@@ -6,13 +6,14 @@ import { useLocation,  } from "react-router-dom";
 import { useStepContext } from "./StepLayout";
 
 import { Icon } from "@iconify/react/dist/iconify.js";
+import { useCreateCheckoutSessionMutation } from "../../api/flightApi";
 
 const Step3 = () => {
  
   const { booking,  } = useStepContext();
-
+  const [createSession, {isLoading} ] = useCreateCheckoutSessionMutation();
   const location = useLocation();
-  booking.checkoutUrl;
+
  
 
  
@@ -20,10 +21,17 @@ const Step3 = () => {
  
   // 🔹 Submit or confirm action
   const handleConfirm = async () => {
- 
+
+    if (booking.booking) {
+      
+      const result = await createSession({ id: booking?.booking.id.toString() });
+      if (result.data) {
+            window.location.href = result.data.checkout_url;
+      }
+    }
 
     // window.open(booking.checkoutUrl);
-    window.location.href = booking.checkoutUrl;
+
 
     // console.log("Payment Data:", formData);
     // navigate("/flightInfo-confirmation");
@@ -50,7 +58,7 @@ const Step3 = () => {
 
       {/* Price Summary Section */}
       <div className="max-h-[521px] h-full grid">
-        <PriceSummary confirm nextStep={handleConfirm} state={location.state} />
+        <PriceSummary confirm nextStep={handleConfirm} state={location.state} loading={isLoading} />
       </div>
     </div>
   );

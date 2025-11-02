@@ -7,6 +7,7 @@ import { IconButton,  } from "@mui/material";
 import { Icon } from "@iconify/react";
 import CustomStepper from "./CustomStepper";
 import { BookingResponse, Passenger } from "../../types";
+import { useNavigate } from "react-router-dom";
 
 const steps = ["Flight Overview", "Passenger Information", "Payment"];
 
@@ -75,11 +76,17 @@ const [booking, setBooking] = React.useState<{
   };
 }>({ id: "", checkoutUrl: "" });
 
-
+const navigate =  useNavigate()
   const nextStep = () =>
     setActiveStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
 
-  const prevStep = () => setActiveStep((prev) => (prev > 0 ? prev - 1 : prev));
+  const prevStep = () => {
+    if (activeStep === 0) {
+      navigate(-1)
+      return
+    }
+    setActiveStep((prev) => (prev > 0 ? prev - 1 : prev))
+  };
 
   const updateBooking = (booking: {
     id: string;
@@ -142,7 +149,7 @@ const [booking, setBooking] = React.useState<{
         </div>
         <div className="flex items-center">
           <IconButton
-            disabled={activeStep === 0}
+            // disabled={activeStep === 0}
             onClick={prevStep}
             sx={{
               borderRadius: 2,
@@ -163,7 +170,7 @@ const [booking, setBooking] = React.useState<{
               icon="ic:outline-arrow-back-ios-new"
               width="24"
               height="24"
-              color={activeStep === 0 ? "#9e9e9e" : "black"} // adjust icon color when disabled
+              color={ "black"} // adjust icon color when disabled
             />
           </IconButton>
 
