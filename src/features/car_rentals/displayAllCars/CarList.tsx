@@ -89,7 +89,7 @@ const CarList: React.FC<CarListProps> = ({
       <div className="mb-4 px-6 py-4 border-[#023E8A] rounded-md lg:mt-20 border flex justify-between items-start lg:hidden mt-20 mx-4">
         <div>
           <p>
-            {departureInfo.pickUpLocaDescription} to{" "}
+            {departureInfo.pickupLocaDescription} to{" "}
             {departureInfo.dropoffLocation}
           </p>
           <div className="flex text-xs text-[#67696D] gap-3 items-center">
@@ -206,7 +206,7 @@ const CarList: React.FC<CarListProps> = ({
                     <div>
                       <p className="text-[13px]">Price</p>
                       <p className="text-[14px] font-bold">
-                        &#8364;{car?.cancellationPolicies[0]?.amount}
+                        €{car?.cancellationPolicies[0]?.amount}
                       </p>
                     </div>
 
@@ -374,7 +374,7 @@ const CarList: React.FC<CarListProps> = ({
                     <div>
                       <p className="text-[13px]">Price</p>
                       <p className="text-[14px] font-bold">
-                        &#8364;{car?.cancellationPolicies[0]?.amount}
+                        €{car?.cancellationPolicies[0]?.amount}
                       </p>
                     </div>
 

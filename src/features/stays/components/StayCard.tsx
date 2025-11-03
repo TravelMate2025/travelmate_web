@@ -75,15 +75,14 @@ const StayCard: React.FC<StayCardProps> = ({
   const formatPrice = (amount?: string | number) => {
     if (amount === undefined) return "N/A";
     const num = typeof amount === "string" ? parseFloat(amount) : amount;
-    return `N${num.toLocaleString()}`;
+    return `€${num.toLocaleString()}`;
   };
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     try {
-      await addOrRemoveFavorite(hotel.code, accessToken);
-      // await toggleFavorite(hotel.code, favorite);
+      await addOrRemoveFavorite(hotel.code, setFavorite, favorite, accessToken);
       const newFavorite = !favorite;
       setFavorite(newFavorite);
       toast.success(
@@ -101,7 +100,7 @@ const StayCard: React.FC<StayCardProps> = ({
         const target = e.target as HTMLElement;
         if (!target.closest("button")) {
           navigate(`/stays-detail/${hotel.code}`, {
-            state: { checkIn, checkOut },
+            state: { checkIn, checkOut, selectedHotel: hotel },
           });
         }
       }}
@@ -151,8 +150,11 @@ const StayCard: React.FC<StayCardProps> = ({
           className="absolute top-3 right-3 bg-white rounded-md p-2 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
           aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
         >
-          {favorite ? (
-            <FaHeart className="text-red-600 text-2xl" />
+          {!favorite && hotel.is_favorite ? (
+            <FaHeart
+              fill="oklch(57.7% 0.245 27.325)"
+              className="text-red-600 text-2xl"
+            />
           ) : (
             <FaRegHeart className="text-blue-900 text-2xl" />
           )}

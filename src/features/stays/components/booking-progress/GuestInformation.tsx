@@ -15,7 +15,7 @@ interface GuestInformationProps {
   formData: GuestInfoProps;
   setFormData: (data: GuestInfoProps) => void;
   errors: GuestInfoProps;
-  // submitted: boolean;
+ guestAdults:number
 }
 
 const GuestInformation: React.FC<GuestInformationProps> = ({
@@ -23,7 +23,7 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
   formData,
   setFormData,
   errors,
-  // submitted,
+  // guestAdults
 }) => {
   const [useProfileInfo, setUseProfileInfo] = useState(false);
   const [modal, setModal] = useState(false);
@@ -45,6 +45,7 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
     const checked = e.target.checked;
     setState((prev: any) => ({ ...prev, jason: checked }));
     handleChange(e);
+
 
     const userInfo = JSON.parse(localStorage.getItem("persist:root") || "{}");
     const profileStr = userInfo.profile || "{}";

@@ -1,6 +1,6 @@
 export interface PassengerCounts {
   adults: number;
-  children:number;
+  children: number;
   infant: number;
 }
 
@@ -22,7 +22,7 @@ export interface DateRangeType {
 
 export interface BookingFormData {
   pickupLocation: string;
-  pickUpLocaDescription: string;
+  pickupLocaDescription: string;
   dropoffLocation: string;
   dropoffLocaDescription: string
   pickupDate: string;
@@ -30,14 +30,9 @@ export interface BookingFormData {
   selectedRide: string;
   passengerCounts: PassengerCounts;
   priceRange: { min: number; max: number };
-  endAddress?: string;
-  endCity?: string;
-  endCountry?: string;
-  fromLat?: number;
-  fromLon?: number;
   toLat?: number;
   toLon?: number;
-  searchResults?: any[]; 
+  searchResults?: any[];
   search_id?: string;
   rate_key?: string;
 }

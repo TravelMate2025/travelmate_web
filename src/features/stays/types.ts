@@ -1,11 +1,10 @@
-// src/types/stays.ts
 
 export interface Destination {
-    code: string;
-    name: string;
-    country_code: string;
-    city_name?: string;
-    token?: string;
+  code: string;
+  name: string;
+  country_code: string;
+  city_name?: string;
+  token?: string;
 }
 
 export interface HotelImage {
@@ -39,6 +38,7 @@ export interface Rate {
   adults?: number;
   children?: number;
   paymentType?: string;
+  price_with_commission?: string
 }
 
 
@@ -68,6 +68,7 @@ export interface Hotel {
   images: HotelImage[];
   available?: boolean;
   rooms?: Room[];
+  is_favorite?: boolean;
 }
 
 
@@ -78,27 +79,59 @@ export interface HotelSearchResponse {
 
 
 
-export interface BookingRequest {
-  hotelCode: string;
-  roomCode: string;
-  rateKey: string;
-  checkIn: string;
-  checkOut: string;
-  adults: number;
-  children: number;
-  guestInfo: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  };
-  paymentMethod: string;
+export interface BookStaysRequest {
+  rate_key?: string;
+  customer?: Customer;
+  hold_suite?: boolean;
 }
 
-export interface BookingResponse {
-  bookingId: string;
-  status: string;
-  confirmationNumber: string;
-  totalAmount: number;
-  currency: string;
+export interface Customer {
+  name?: string;
+  surname?: string;
+  email?: string;
+  phone?: string;
+  age?: number;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+  children?: Child[];
+}
+
+export interface Child {
+  name?: string;
+  surname?: string;
+  age?: number;
+  room_id?: number;
+}
+export interface BookStaysResponse {
+  success: boolean
+  checkout_url: string;
+}
+
+export interface BookingStaysVerifyDetails {
+  success: boolean;
+  error?: string
+  data?: {
+    id: number;
+    reference: string;
+    hotel_code: string;
+    hotel_name: string;
+    check_in: string; 
+    check_out: string; 
+    currency: string;
+    payment_status: string;
+    status: string;
+    total_price: string; 
+    created_at: string; 
+    user: string;
+    cancellation_fee: string;
+    refund_amount: string;
+    refund_status: string;
+    cancellation_reason: string;
+    hotel_location: string;
+    rooms_details: string;
+    guest_details: string;
+  }
+
 }

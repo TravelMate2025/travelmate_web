@@ -111,7 +111,6 @@ class TransferService {
 
 
             const response = await axios.get(`${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
-            console.log('Transfer search response:', response.data);
             return {
                 success: true,
                 data: response?.data || [],
@@ -298,7 +297,7 @@ class TransferService {
         if (new Date(formData.times?.pickUpTime).toISOString() < new Date().toISOString()) {
             throw new Error('Pickup time must be in the future');
         }
-        
+
         const { departing } = this.formatDateTime(formData.departureDate, formData.times.pickUpTime);
         const pickupDateTime = new Date(departing);
         if (isNaN(pickupDateTime.getTime())) {

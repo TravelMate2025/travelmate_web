@@ -1,11 +1,13 @@
-import { BookingRequest, BookingResponse, Destination, Hotel, HotelSearchResponse } from './types';
+import { BookingStaysVerifyDetails, BookStaysRequest, BookStaysResponse, Destination, Hotel, HotelSearchResponse } from './types';
 import api from '../../api/services/api';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
-
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://travelmate-backend-0suw.onrender.com/api';
 
 export const fetchDestinations = async (search?: string, token?: string | null): Promise<Destination[]> => {
   try {
-    const response = await api.get(`/hotels/destinations/?search=${search?.toLowerCase()}`, {
+    const response = await axios.get(`${BASE_URL}/hotels/destinations/?search=${search?.toLowerCase()}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
     return response.data.results;
@@ -13,8 +15,7 @@ export const fetchDestinations = async (search?: string, token?: string | null):
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
     console.error('Error fetching destinations:', errorMessage);
-    throw new Error(errorMessage); // Better to throw than return empty array
-    throw new Error('Unexpected error while fetching destinations');
+    throw new Error(errorMessage);
   }
 };
 
@@ -22,7 +23,7 @@ export const fetchRecommendedHotels = async (
   token?: string | null
 ): Promise<Destination> => {
   try {
-    const response = await api.get('/hotels/recommend/', {
+    const response = await axios.get(`${BASE_URL}/hotels/recommend/`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
     console.log(response.data)
@@ -32,8 +33,6 @@ export const fetchRecommendedHotels = async (
     const errorMessage = error.response?.data?.error || error.message;
     console.error('Error fetching recommended hotels:', errorMessage);
     throw new Error(errorMessage);
-
-    throw new Error('Unexpected error while fetching recommended hotels');
   }
 };
 
@@ -47,7 +46,7 @@ export const searchHotels = async (
   token?: string
 ): Promise<HotelSearchResponse> => {
   try {
-    const response = await api.get('/hotels/search/', {
+    const response = await axios.get(`${BASE_URL}/hotels/search/`, {
       params: {
         destination,
         check_in: checkIn,
@@ -65,7 +64,6 @@ export const searchHotels = async (
     const errorMessage = error.response?.data?.error || error.message;
     console.error('Search error:', errorMessage);
     throw new Error(errorMessage);
-    throw new Error('Failed to search hotels');
   }
 };
 
@@ -79,7 +77,7 @@ export const getHotelDetails = async (
   token?: string | null
 ): Promise<Hotel> => {
   try {
-    const response = await api.get('/hotels/${hotelId}/details/', {
+    const response = await axios.get(`${BASE_URL}/hotels/${hotelId}/details/`, {
       params: {
         check_in: checkIn,
         check_out: checkOut,
@@ -104,23 +102,44 @@ export const getHotelDetails = async (
 
 
 export const createCheckoutSession = async (
-  bookingData: BookingRequest,
-  token?: string
-): Promise<BookingResponse> => {
+  bookingData: BookStaysRequest,
+  token?: string,
+  setLoading?: (loading: boolean) => void
+): Promise<BookStaysResponse> => {
   try {
-    const response = await api.post('/api/hotels/checkout/', bookingData, {
+    setLoading?.(true);
+    const response = await api.post('/hotels/checkout/', bookingData, {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
     return response.data;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message;
+    const errorMessage = error.response?.data?.error || error.message || error;
     console.error('Booking error:', errorMessage);
     throw new Error(errorMessage);
 
+  } finally {
+    setLoading?.(false);
   }
 };
 
 
+export const verifyHotelBooking = async (sessionId: string | null): Promise<BookingStaysVerifyDetails> => {
+  try {
+    const response = await api.get(`/hotels/verify-booking/?session_id=${sessionId}`);
+    console.log(response.data)
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error: any) {
+    console.error('Get booking by session failed:', error);
+    toast.error(error?.response?.data?.error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get booking details',
+    };
+  }
+}
 
 
 
@@ -180,12 +199,14 @@ export const fetchFavorites = async (token?: string | null) => {
   }
 };
 
-export const addOrRemoveFavorite = async (hotelId: string | null, token?: string | null) => {
+export const addOrRemoveFavorite = async (hotelId: string | null, setIsFavorite: (data: boolean) => void, favorite: boolean, token?: string | null) => {
   try {
     const response = await api.post('/hotels/favorites/toggle/', { hotel_id: hotelId }, {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
+    setIsFavorite(!favorite);
     return response.data;
+
   }
   catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;

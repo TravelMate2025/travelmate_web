@@ -10,7 +10,6 @@ import { X } from "lucide-react";
 
 // Custom hooks and utilities
 import { useBookingForm } from "../hooks/useBookingForm";
-import { useFormPersistence } from "../hooks/useFormPersistence";
 import { useModalState } from "../hooks/useModalState";
 import {
   formatPassengerCount,
@@ -32,26 +31,8 @@ import SearchPickUpLocation from "../carsFirstScreen/modals/searchPickUp";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-
-interface LocationState {
-  pickupLocation?: string;
-  pickUpLocaDescription?: string;
-  dropoffLocation?: string;
-  pickupDate?: string;
-  pickupTime?: string;
-  selectedRide?: string;
-  priceRange?: { min: number; max: number };
-  passengerCounts?: PassengerCounts;
-  endAddress?: string;
-  endCity?: string;
-  endCountry?: string;
-  fromLat?: number;
-  fromLon?: number;
-  toLat?: number;
-  toLon?: number;
-  searchResults?: any[];
-  search_id?: string;
-}
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store";
 
 const DisplayCars: React.FC = () => {
   const { state } = useLocation();
@@ -77,10 +58,10 @@ const DisplayCars: React.FC = () => {
 
   // Extract state data with proper defaults
   const stateData = useMemo(() => {
-    const locationState = (state || {}) as LocationState;
+    const locationState = (state || {}) as BookingFormData;
     return {
       pickupLocation: locationState.pickupLocation || "",
-      pickUpLocaDescription: locationState.pickUpLocaDescription || "",
+      pickupLocaDescription: locationState.pickupLocaDescription || "",
       dropoffLocation: locationState.dropoffLocation || "",
       pickupDate: locationState.pickupDate || "",
       pickupTime: locationState.pickupTime || "",
@@ -90,11 +71,6 @@ const DisplayCars: React.FC = () => {
         max: locationState.priceRange?.max,
       },
       passengerCounts: locationState.passengerCounts,
-      endAddress: locationState.endAddress || undefined,
-      endCity: locationState.endCity || undefined,
-      endCountry: locationState.endCountry || undefined,
-      fromLat: locationState.fromLat,
-      fromLon: locationState.fromLon,
       toLat: locationState.toLat,
       toLon: locationState.toLon,
       searchResults: locationState.searchResults || [],
@@ -102,33 +78,34 @@ const DisplayCars: React.FC = () => {
     };
   }, [state]);
 
-  const { loadSavedData } = useFormPersistence(
-    {} as BookingFormData,
-    "carBookingForm"
-  );
+  const carInfo = useSelector((state: RootState) => state.cars.carInfo);
 
   const initialData = useMemo(() => {
-    const savedData = loadSavedData() || {};
-    const merged =
-      state && (stateData.pickupLocation || stateData.dropoffLocation)
-        ? { ...savedData, ...stateData }
-        : { ...stateData, ...savedData };
+    const reduxData = carInfo;
 
-    // Ensure priceRange.min and priceRange.max are numbers (not undefined)
     return {
-      ...merged,
+      pickupLocation: reduxData?.pickupLocation || "",
+      pickupLocaDescription: reduxData?.pickupLocaDescription || "",
+      dropoffLocation: reduxData?.dropoffLocation || "",
+      dropoffLocaDescription: reduxData?.dropoffLocaDescription || "",
+      pickupDate: reduxData?.pickupDate || "",
+      pickupTime: reduxData?.pickupTime || "",
+      selectedRide: reduxData?.selectedRide || "",
       priceRange: {
-        min:
-          typeof merged.priceRange?.min === "number"
-            ? merged.priceRange.min
-            : 0,
-        max:
-          typeof merged.priceRange?.max === "number"
-            ? merged.priceRange.max
-            : 0,
+        min: reduxData?.priceRange?.min ?? 0,
+        max: reduxData?.priceRange?.max ?? 0,
       },
-    };
-  }, [state, stateData, loadSavedData]);
+      passengerCounts: reduxData?.passengerCounts || {
+        adults: 0,
+        children: 0,
+        infant: 0,
+      },
+      toLat: reduxData?.toLat,
+      toLon: reduxData?.toLon,
+      searchResults: stateData.searchResults,
+      search_id: stateData.search_id,
+    } as BookingFormData;
+  }, [carInfo, stateData]);
 
   const {
     formData,
@@ -357,7 +334,7 @@ const DisplayCars: React.FC = () => {
                   size="small"
                   className="w-full lg:w-auto"
                   placeholder="Enter Pick Up Location"
-                  value={formData.pickUpLocaDescription}
+                  value={formData.pickupLocaDescription}
                   onClick={() => handlePickLocationClick("pick")}
                   error={!!errors.pickupLocation}
                   helperText={errors.pickupLocation}
@@ -419,7 +396,7 @@ const DisplayCars: React.FC = () => {
 
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
-                  disablePast
+                    disablePast
                     value={
                       formData.pickupDate ? dayjs(formData.pickupDate) : null
                     }
@@ -450,6 +427,7 @@ const DisplayCars: React.FC = () => {
                     }}
                   />
                 </LocalizationProvider>
+                {errors.pickupDate && <p className="text-xs text-red-700 pl-3">{errors.pickupDate}</p>}
               </div>
             </div>
 
@@ -542,20 +520,15 @@ const DisplayCars: React.FC = () => {
       {modals.searchPickLocation && (
         <SearchPickUpLocation
           closeDialog={() => closeModal("searchPickLocation")}
-          value={formData.pickUpLocaDescription}
+          value={formData.pickupLocaDescription}
           setValue={handleLocationSelect}
           ChangeValue={(query) =>
             setFormData((prev) => ({
               ...prev,
-              pickUpLocaDescription: query,
+              pickupLocaDescription: query,
             }))
           }
           setExtraFields={(fields) => {
-            updateField("endAddress", fields.endAddress);
-            updateField("endCity", fields.endCity);
-            updateField("endCountry", fields.endCountry);
-            updateField("fromLat", fields.fromLat);
-            updateField("fromLon", fields.fromLon);
             updateField("toLat", fields.toLat);
             updateField("toLon", fields.toLon);
           }}
@@ -574,11 +547,6 @@ const DisplayCars: React.FC = () => {
             }))
           }
           setExtraFields={(fields) => {
-            updateField("endAddress", fields.endAddress);
-            updateField("endCity", fields.endCity);
-            updateField("endCountry", fields.endCountry);
-            updateField("fromLat", fields.fromLat);
-            updateField("fromLon", fields.fromLon);
             updateField("toLat", fields.toLat);
             updateField("toLon", fields.toLon);
           }}
@@ -631,11 +599,11 @@ const DisplayCars: React.FC = () => {
             </div>
           ))}
         </div>
-      ) : (formData?.searchResults?.length ?? 0) > 0 ? (
+      ) : (carInfo?.searchResults?.length ?? 0) > 0 ? (
         <CarList
           departureInfo={{
             pickupLocation: formData.pickupLocation,
-            pickUpLocaDescription: formData.pickUpLocaDescription,
+            pickupLocaDescription: formData.pickupLocaDescription,
             dropoffLocaDescription: formData.dropoffLocaDescription,
             dropoffLocation: formData.dropoffLocation,
             pickupDate: formData.pickupDate,
@@ -643,22 +611,21 @@ const DisplayCars: React.FC = () => {
             priceRange: formData.priceRange,
             selectedRide: formData.selectedRide,
             passengerCounts: formData.passengerCounts,
-            endAddress: formData.endAddress,
-            endCity: formData.endCity,
-            endCountry: formData.endCountry,
-            fromLat: formData.fromLat,
-            fromLon: formData.fromLon,
             toLat: formData.toLat,
             toLon: formData.toLon,
             search_id: formData.search_id,
           }}
-          searchResults={formData.searchResults || stateData.searchResults}
+          searchResults={carInfo?.searchResults || stateData.searchResults}
           OpenForm={() => setForm(true)}
           loading={loading}
           rate_key={formData.rate_key ?? ""}
         />
       ) : (
-        <EmptyState />
+        <EmptyState
+          content=" Looks like there are no available Taxi that match your search. Try
+        updating your location, date, time or price range and search again."
+          title="No Taxi Avaiable"
+        />
       )}
     </div>
   );

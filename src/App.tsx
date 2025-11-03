@@ -83,8 +83,9 @@ function App() {
             </PrivateRoute>
           }
         />
+
         <Route
-          path="/booking-confirmation"
+          path="/booking/success"
           element={
             <PrivateRoute>
               <BookingConfirmationPage />

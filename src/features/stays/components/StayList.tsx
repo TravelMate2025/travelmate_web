@@ -4,7 +4,7 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { Hotel } from "../types"; // Updated import path
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
-
+import EmptyState from "../../car_rentals/displayAllCars/EmptyState";
 interface StayListProps {
   hotels: Hotel[];
 }
@@ -35,11 +35,17 @@ const StayList: React.FC<StayListProps> = ({ hotels }) => {
     } else {
       pageNumbers.push(1, 2);
 
-      let startPage = Math.max(3, currentPage - Math.floor(middlePagesCount / 2));
-      let endPage = Math.min(totalPages - 1, currentPage + Math.floor(middlePagesCount / 2));
+      let startPage = Math.max(
+        3,
+        currentPage - Math.floor(middlePagesCount / 2)
+      );
+      let endPage = Math.min(
+        totalPages - 1,
+        currentPage + Math.floor(middlePagesCount / 2)
+      );
 
       if (startPage > 3) pageNumbers.push("...");
-      
+
       for (let i = 0; i < Math.min(middlePagesCount, totalPages - 4); i++) {
         if (startPage + i < endPage) pageNumbers.push(startPage + i);
       }
@@ -64,18 +70,25 @@ const StayList: React.FC<StayListProps> = ({ hotels }) => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-
       {/* Stays Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {currentStays.map((hotel) => (
-          <StayCard
-            key={hotel.code}  // Using hotel.code as unique identifier
-            hotel={hotel}
-            checkIn={searchParams?.checkIn}
-            checkOut={searchParams?.checkOut}
-          />
-        ))}
-      </div>
+      {currentStays.length === 0 ? (
+        <EmptyState
+          content="Looks like there are no available stays that match your search. Try
+        changing the location, dates and search again."
+          title="No Stays Available"
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {currentStays.map((hotel) => (
+            <StayCard
+              key={hotel.code} // Using hotel.code as unique identifier
+              hotel={hotel}
+              checkIn={searchParams?.checkIn}
+              checkOut={searchParams?.checkOut}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Pagination - Only show if there are multiple pages */}
       {totalPages > 1 && (
@@ -92,7 +105,9 @@ const StayList: React.FC<StayListProps> = ({ hotels }) => {
           {renderPagination()}
 
           <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             className="p-2 border border-gray-500 shadow-md shadow-gray-400 rounded text-black disabled:opacity-50"
             disabled={currentPage === totalPages}
             aria-label="Next page"

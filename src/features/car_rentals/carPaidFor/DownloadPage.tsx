@@ -200,7 +200,7 @@ const DownloadPage = () => {
                 Total:
               </p>
               <p className="text-[#181818] text-[14px] font-inter">
-                &#8364;{bookingData?.totalNetAmount}
+                €{bookingData?.totalNetAmount}
               </p>
             </div>
           </div>

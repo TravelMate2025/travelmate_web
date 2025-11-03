@@ -17,6 +17,8 @@ import { createBookingAsync } from "../slice";
 import { RootState, AppDispatch } from "../../../store";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
+import { Info, Loader } from "lucide-react";
+import { BookStaysRequest } from "../types";
 
 const BookingProgress: React.FC = () => {
   const cancellationDate = new Date();
@@ -28,17 +30,17 @@ const BookingProgress: React.FC = () => {
   const formattedTime = "11:59 PM";
 
   const dispatch = useDispatch<AppDispatch>();
-  const { loading, error } = useSelector(
-    (state: RootState) => state.stays.booking
-  );
-  const { selectedHotel, searchParams } = useSelector(
-    (state: RootState) => state.stays
-  );
+  const { searchParams } = useSelector((state: RootState) => state.stays);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedRoom } = location.state || {};
-
+  const { selectedRoom, selectedRate, guestsAdults } = location.state || {};
+  console.log(selectedRate);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isChecked, setIsChecked] = useState(false);
+  // const [isValid, setIsValid] = useState(false);
+  const loggedIn = localStorage.getItem("accessToken");
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [guestInfo, setGuestInfo] = useState({
     firstName: "",
     lastName: "",
@@ -47,9 +49,6 @@ const BookingProgress: React.FC = () => {
     dateOfBirth: "",
     countryCode: "",
   });
-
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isChecked, setIsChecked] = useState(false);
 
   const [errors, setErrors] = useState({
     firstName: "",
@@ -79,7 +78,9 @@ const BookingProgress: React.FC = () => {
     if (!guestInfo.countryCode.trim())
       newErrors.countryCode = "Country code is required.";
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    // setIsValid(isValid);
+    return isValid;
   };
 
   const handleNext = () => {
@@ -101,23 +102,15 @@ const BookingProgress: React.FC = () => {
     }
   };
   const handleSubmit = async () => {
-    if (!selectedHotel || !searchParams || !accessToken || !selectedRoom)
-      return;
+    if (!searchParams || !accessToken || !selectedRoom) return;
 
-    const bookingData = {
-      // hotelCode: selectedHotel.code,
-      // roomCode: selectedRoom.code,
+    const bookingData: BookStaysRequest = {
       rate_key: selectedRoom.rates?.[0]?.rateKey || "",
-      // checkIn: searchParams.checkIn,
-      // checkOut: searchParams.checkOut,
-      adults: searchParams.adults,
-      children: searchParams.children,
-      guestInfo,
       customer: {
         name: guestInfo.firstName,
         surname: guestInfo.lastName,
         email: guestInfo.email,
-        phone: guestInfo.phone,
+        phone: `${guestInfo.countryCode}${guestInfo.phone}`,
         age: new Date(guestInfo.dateOfBirth).getFullYear()
           ? new Date().getFullYear() -
             new Date(guestInfo.dateOfBirth).getFullYear()
@@ -126,18 +119,31 @@ const BookingProgress: React.FC = () => {
         city: "New York",
         postal_code: "10001",
         country: "US",
+        children: [],
       },
-      hold_suite: false,
+      hold_suite: true,
     };
+    console.log(bookingData);
 
     try {
-      await dispatch(
-        createBookingAsync({ bookingData, token: accessToken })
+      setSubmitLoading(true);
+      const response = await dispatch(
+        createBookingAsync({
+          bookingData,
+          token: accessToken,
+        })
       ).unwrap();
-      navigate("/booking-confirmation");
+      console.log(response);
+      if (response.success && response.checkout_url) {
+        window.location.href = response.checkout_url;
+      } else {
+        console.error("Payment failed or invalid response:", response);
+      }
     } catch (error) {
       console.error("Booking failed:", error);
       toast.error(`Booking failed: ${(error as Error).message}`);
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -181,79 +187,101 @@ const BookingProgress: React.FC = () => {
           />
         </div>
 
-        {/* Notification */}
-        <div className="bg-blue-100 border border-[#023E8A] px-4 py-2 rounded-lg flex flex-row items-start sm:items-center gap-3 mx-4 sm:mx-0">
-          <div className="pt-1 sm:pt-0 flex justify-center sm:justify-start items-center">
-            <GrStatusGood size={24} className="text-green-600 mt-5 md:mt-0" />
-          </div>
-          <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
-            Cancellations made after {formattedTime} on {formattedDate} or
-            no-shows are subject to a fee equal to 100% of the amount paid for
-            the reservation.
-          </p>
-        </div>
-
-        {error && (
+        {/* {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mx-4 sm:mx-0">
             {error}
           </div>
-        )}
+        )} */}
 
         <div className="px-1 space-y-4">
           {currentStep === 0 && (
             <>
+              <div className="bg-blue-100 border border-[#023E8A] px-4 py-2 rounded-lg flex flex-row justify-normal items-center gap-3 ">
+                <GrStatusGood className="text-green-600 size-12 lg:size-6" />
+
+                <p className=" lg:text-base text-gray-800 leading-relaxed text-sm">
+                  Cancellations made after {formattedTime} on {formattedDate} or
+                  no-shows are subject to a fee equal to 100% of the amount paid
+                  for the reservation.
+                </p>
+              </div>
+
+              {!loggedIn && (
+                <div className="bg-red-100 border border-red-400 px-4 py-2 rounded-lg flex flex-row items-start sm:items-center gap-3 mx-4 sm:mx-0">
+                  <Info stroke="#D72638" />
+
+                  <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
+                    To confirm your booking, please create an account or log in.
+                  </p>
+                </div>
+              )}
+
               <HotelCard
                 imageUrl={
                   selectedRoom?.images[0].url ||
                   "src/assets/images/StayImage3.png"
                 }
                 roomDetails={selectedRoom?.description || "---"}
-                name={selectedRoom?.name || "---"}
+                name={selectedRoom?.bed_type || "---"}
                 location="80 Ademola Adetokumbo Street, Victoria Island Lagos."
                 refundableUntil={formattedTime || "---"}
               />
-              <BookingDetails
-                roomType={selectedRoom?.name}
-                bedType={selectedRoom?.bed_type}
-                checkIn={searchParams?.checkIn}
-                checkOut={searchParams?.checkOut}
-                guests={`${searchParams?.adults} Adults${
-                  searchParams?.children
-                    ? `, ${searchParams.children} Children`
-                    : ""
-                }`}
-              />
-              <PriceSummary
-                roomPrice={
-                  selectedRoom?.rates?.[0]?.net
-                    ? parseFloat(selectedRoom.rates[0].net)
-                    : 0
-                }
-                nights={
-                  searchParams
-                    ? Math.ceil(
-                        (new Date(searchParams.checkOut).getTime() -
-                          new Date(searchParams.checkIn).getTime()) /
-                          (1000 * 60 * 60 * 24)
-                      )
-                    : 1
-                }
-                taxes={
-                  selectedRoom?.rates?.[0]?.net
-                    ? parseFloat(selectedRoom.rates[0].net) * 0.15
-                    : 0
-                }
-              />
-              <RefundCancellation
-                formattedTime={formattedTime}
-                formattedDate={formattedDate}
-                refundableUntil={formattedTime}
-              />
-              <Policies />
-              <div className="flex justify-center items-center">
+              <div className="lg:grid grid-cols-2 gap-4 items-start">
+                <BookingDetails
+                  roomType={selectedRoom?.description}
+                  bedType={selectedRoom?.bed_type}
+                  checkIn={searchParams?.checkIn}
+                  checkOut={searchParams?.checkOut}
+                  guests={`${searchParams?.adults} Adults${
+                    searchParams?.children
+                      ? `, ${searchParams.children} Children`
+                      : ""
+                  }`}
+                />
+                <div className="lg:order-5">
+                  <PriceSummary
+                    roomPrice={
+                      selectedRate?.net ? parseFloat(selectedRate?.net) : 0
+                    }
+                    nights={
+                      searchParams
+                        ? Math.ceil(
+                            (new Date(searchParams.checkOut).getTime() -
+                              new Date(searchParams.checkIn).getTime()) /
+                              (1000 * 60 * 60 * 24)
+                          )
+                        : 1
+                    }
+                    roomType={selectedRoom?.description}
+                    numberOfRooms={searchParams?.rooms}
+                  />
+                  <div className="lg:flex  hidden justify-center items-center ">
+                    <button
+                      onClick={handleNext}
+                      className="bg-[#023E8A] text-white p-3 mt-12 rounded-lg w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      disabled={!loggedIn}
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+                <div className="lg:order-3">
+                  <RefundCancellation
+                    formattedTime={formattedTime}
+                    formattedDate={formattedDate}
+                    refundableUntil={formattedTime}
+                  />
+                </div>
+                <div className="lg:order-4">
+                  {" "}
+                  <Policies />
+                </div>
+              </div>
+              <div className="flex justify-center items-center lg:hidden">
                 <button
                   onClick={handleNext}
                   className="bg-[#023E8A] text-white p-3 mt-12 rounded-lg lg:w-[40%] w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  disabled={!loggedIn}
                 >
                   Continue
                 </button>
@@ -268,11 +296,13 @@ const BookingProgress: React.FC = () => {
                 formData={guestInfo}
                 setFormData={setGuestInfo}
                 errors={errors}
+                guestAdults={guestsAdults}
               />
               <div className="flex justify-center items-center">
                 <button
                   onClick={handleNext}
                   className="bg-[#023E8A] text-white p-3 mt-12 rounded-lg lg:w-[40%] w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  // disabled={!isValid}
                 >
                   Continue
                 </button>
@@ -285,18 +315,27 @@ const BookingProgress: React.FC = () => {
               <PaymentMethod
                 checked={isChecked}
                 toggleCheck={() => setIsChecked(!isChecked)}
+                roomPrice={
+                  selectedRate?.net ? parseFloat(selectedRate?.net) : 0
+                }
               />
               <div className="flex justify-center items-center">
                 <button
                   onClick={handleSubmit}
-                  disabled={!isChecked || loading}
-                  className={` p-3 rounded-lg mt-12 lg:w-[40%] w-full text-white disabled:bg-gray-400 disabled:cursor-not-allowed ${
-                    isChecked && !loading
+                  disabled={!isChecked || submitLoading}
+                  className={`p-3 rounded-lg mt-12 lg:w-[40%] w-full text-white disabled:bg-gray-400 disabled:cursor-not-allowed ${
+                    isChecked && !submitLoading
                       ? "bg-[#023E8A] hover:bg-blue-700"
-                      : "bg-gray-400 cursor-not-allowed"
+                      : "bg-gray-400"
                   }`}
                 >
-                  {loading ? "Processing..." : "Make Payment"}
+                  {submitLoading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      Processing... <Loader className="animate-spin" />
+                    </div>
+                  ) : (
+                    "Make Payment"
+                  )}
                 </button>
               </div>
             </div>

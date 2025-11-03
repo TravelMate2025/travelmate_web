@@ -28,6 +28,7 @@ export default function StaysSearchResults() {
     (state: RootState) => state.stays
   );
   const { accessToken } = useSelector((state: RootState) => state.auth);
+  console.log( hotels);
 
   // State for modals and visibility
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);

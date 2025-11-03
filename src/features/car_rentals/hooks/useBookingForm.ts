@@ -15,7 +15,7 @@ interface TouchedFields {
 export const useBookingForm = (initialData?: Partial<BookingFormData>) => {
   const [formData, setFormData] = useState<BookingFormData>({
     pickupLocation: initialData?.pickupLocation || "",
-    pickUpLocaDescription: initialData?.pickUpLocaDescription || "",
+    pickupLocaDescription: initialData?.pickupLocaDescription || "",
     dropoffLocation: initialData?.dropoffLocation || "",
     dropoffLocaDescription: initialData?.dropoffLocaDescription || "",
     pickupDate: initialData?.pickupDate || "",
@@ -23,9 +23,6 @@ export const useBookingForm = (initialData?: Partial<BookingFormData>) => {
     selectedRide: initialData?.selectedRide || "",
     priceRange: initialData?.priceRange || { min: 0, max: 0 },
     passengerCounts: initialData?.passengerCounts || { adults: 0, children: 0, infant: 0 },
-    endAddress: initialData?.endAddress || "",
-    endCity: initialData?.endCity || "",
-    endCountry: initialData?.endCountry || "",
     toLat: initialData?.toLat || undefined,
     toLon: initialData?.toLon || undefined,
     searchResults: initialData?.searchResults || [],
@@ -71,7 +68,7 @@ export const useBookingForm = (initialData?: Partial<BookingFormData>) => {
   const resetForm = useCallback(() => {
     setFormData({
       pickupLocation: "",
-      pickUpLocaDescription: "",
+      pickupLocaDescription: "",
       dropoffLocation: "",
       dropoffLocaDescription: "",
       pickupDate: "",
@@ -79,9 +76,6 @@ export const useBookingForm = (initialData?: Partial<BookingFormData>) => {
       selectedRide: "",
       priceRange: { min: 0, max: 0 },
       passengerCounts: { adults: 0, children: 0, infant: 0 },
-      endAddress: "",
-      endCity: "",
-      endCountry: "",
     });
     setErrors({});
     setSubmitError(null);

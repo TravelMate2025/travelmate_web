@@ -9,11 +9,10 @@ interface BookingDetailsProps {
 }
 
 const BookingDetails: React.FC<BookingDetailsProps> = ({
-  // roomType,
+  roomType,
   checkIn,
   checkOut,
   guests,
-  bedType,
 
 }) => {
   const formatDateString = (dateStr?: string) => {
@@ -28,14 +27,14 @@ const BookingDetails: React.FC<BookingDetailsProps> = ({
   return (
     <div className="w-full space-y-4">
       {/* Title */}
-      <h3 className="text-lg font-semibold ml-5">Booking Details</h3>
+      <h3 className="text-lg font-semibold ml-3">Booking Details</h3>
 
       {/* Body */}
-      <div className="md:border border-gray-300 rounded-lg p-6 space-y-4">
+      <div className="md:border border-gray-300 border-b mb-4 lg:rounded-lg lg:p-6 p-4 space-y-4">
         {/* Room Type */}
         <div className="flex justify-between">
           <p className="font-medium">Room Type:</p>
-          <span className="text-gray-700">{bedType || "---"}</span>
+          <span className="text-gray-700 capitalize">{roomType?.toLocaleLowerCase() || "---"}</span>
         </div>
 
         {/* Check-in Date */}

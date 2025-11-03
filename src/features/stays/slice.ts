@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { searchHotels, getHotelDetails, createCheckoutSession } from '../stays/api';
-import { BookingRequest, BookingResponse, Hotel, HotelSearchResponse } from './types';
+import { searchHotels, createCheckoutSession } from '../stays/api';
+import { BookStaysRequest, BookStaysResponse, Hotel, HotelSearchResponse } from './types';
 
 interface locationDetails {
   name: string
@@ -11,7 +11,7 @@ interface locationDetails {
 interface BookingState {
   loading: boolean;
   error: string | null;
-  booking: BookingResponse | null;
+  booking: BookStaysResponse | null;
 }
 
 interface SearchParams {
@@ -81,40 +81,22 @@ export const fetchHotelsAsync = createAsyncThunk(
   }
 );
 
-export const fetchHotelDetailsAsync = createAsyncThunk(
-  'stays/fetchHotelDetails',
-  async (params: {
-    hotelId: string;
-    checkIn: string;
-    checkOut: string;
-    adults: number;
-    children: number;
-    rooms: number;
-    token?: string;
-  }, { rejectWithValue }) => {
-    try {
-      return await getHotelDetails(
-        params.hotelId,
-        params.checkIn,
-        params.checkOut,
-        params.adults,
-        params.children,
-        params.rooms,
-        params.token
-      );
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
 export const createBookingAsync = createAsyncThunk(
   'stays/createCheckoutSession',
-  async (params: { bookingData: BookingRequest; token?: string }, { rejectWithValue }) => {
+  async (params: { bookingData: BookStaysRequest; token?: string }, { rejectWithValue }) => {
     try {
-      return await createCheckoutSession(params.bookingData, params.token);
+      const response = await createCheckoutSession(params.bookingData, params.token);
+      return {
+        checkout_url: response?.checkout_url,
+        success: true,
+
+      };
     } catch (error: any) {
-      return rejectWithValue(error.message);
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue("Failed to create Booking");
+
     }
   }
 );
@@ -152,23 +134,12 @@ const staysSlice = createSlice({
       .addCase(fetchHotelsAsync.fulfilled, (state, action: PayloadAction<HotelSearchResponse>) => {
         state.loading = false;
         state.hotels = action.payload.results;
+
       })
       .addCase(fetchHotelsAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
-      // Hotel Details
-      .addCase(fetchHotelDetailsAsync.pending, (state) => {
-        state.detailsLoading = true;
-        state.detailsError = null;
-      })
-      .addCase(fetchHotelDetailsAsync.fulfilled, (state, action: PayloadAction<Hotel>) => {
-        state.detailsLoading = false;
-        state.selectedHotel = action.payload;
-      })
-      .addCase(fetchHotelDetailsAsync.rejected, (state, action) => {
-        state.detailsLoading = false;
-        state.detailsError = action.payload as string;
+
       })
       //Bookings
       .addCase(createBookingAsync.pending, (state) => {

@@ -4,12 +4,17 @@ import { Checkbox, Divider, FormControlLabel } from "@mui/material";
 interface PaymentMethodProps {
   checked: boolean;
   toggleCheck: () => void;
+  roomPrice?: number;
 }
 
-const PaymentMethod = ({ checked, toggleCheck }: PaymentMethodProps) => {
+const PaymentMethod = ({
+  checked,
+  toggleCheck,
+  roomPrice,
+}: PaymentMethodProps) => {
   return (
     <div className="lg:px-6 px-1 mt-12">
-      <div className="border-[#CDCED1] lg:border rounded-lg p-5">
+      <div className="border-[#CDCED1] lg:border rounded-lg lg:p-5">
         <div className="flex items-center gap-1 mb-4">
           <img
             src="src/assets/images/paypal.png"
@@ -18,9 +23,9 @@ const PaymentMethod = ({ checked, toggleCheck }: PaymentMethodProps) => {
           />
           <p className="font-bold text-lg">Stripe</p>
         </div>
-        <div className="flex flex-col justify-center items-center gap-4 bg-[#FAFAFA] rounded-lg lg:p-26 p-12 ">
+        <div className="flex flex-col justify-center items-center gap-4 bg-[#FAFAFA] rounded-lg lg:p-26 p-6 py-12  ">
           <ArrowRight className="font-bold lg:w-12 lg:h-12 h-8 w-8" />
-          <p className="text-[#4E4F52]">
+          <p className="text-[#4E4F52] text-center">
             You'll be redirected to Stripe to complete your secure payment
           </p>
         </div>
@@ -31,7 +36,7 @@ const PaymentMethod = ({ checked, toggleCheck }: PaymentMethodProps) => {
       </p>
       <div className="px-6  border-[#CDCED1] lg:border rounded-lg p-5 flex justify-between items-center w-full">
         <p className="font-bold text-[#4E4F52]">Total</p>
-        <p className="font-bold">&#8364; {"---"}</p>
+        <p className="font-bold">€{roomPrice?.toFixed(2) || "----"}</p>
       </div>
 
       <Divider

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom"; // Import useParams
-import { useSelector, useDispatch } from "react-redux"; // Import Redux hooks
-import { RootState, AppDispatch } from "../../../store";
-import { fetchHotelDetailsAsync, clearSelectedHotel } from "../slice"; // Import the new thunk and action
+import { useSelector } from "react-redux"; // Import Redux hooks
+import { RootState } from "../../../store";
+// import { fetchHotelDetailsAsync, clearSelectedHotel } from "../slice"; // Import the new thunk and action
 import UpdateSearchFilter from "../components/UpdateSearchFilter";
 import Breadcrumbs from "../../../components/Breadcrumbs";
 import {
@@ -38,17 +38,17 @@ import { useMediaQuery } from "react-responsive";
 import PartialPolicies from "../components/booking-progress/PartialPolicies";
 import StaysDetailSkeleton from "./StaysDetailsSkeleton";
 import { getReviews } from "../api";
+import SelectOptions from "../components/modals/SelectOptions";
+import { Rate } from "../types";
 
 const StaysDetail: React.FC = () => {
   const { hotelId } = useParams<{ hotelId: string }>(); // Get hotelId from URL
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
-
   // Get hotel details and loading/error states from Redux store
-  const { selectedHotel, detailsLoading, detailsError, searchParams } =
-    useSelector((state: RootState) => state.stays);
-  const { accessToken } = useSelector((state: RootState) => state.auth);
-
+  const { detailsLoading, detailsError, searchParams, hotels } = useSelector(
+    (state: RootState) => state.stays
+  );
+  const selectedHotel = hotels.find((hotel) => hotel.code === hotelId);
   const [activeTab, setActiveTab] = useState("Overview");
   const [openModal, setOpenModal] = useState(false);
   const [showPhotosModal, setShowPhotosModal] = useState(false);
@@ -65,40 +65,15 @@ const StaysDetail: React.FC = () => {
   });
   const formattedTime = "11:59 PM";
   const [isOpen, setIsOpen] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [selectedRate, setSelectedRate] = useState<Rate | null>(null);
 
   const visibleCount = 8;
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
   const [reviews, setReviews] = useState<any[]>([]);
   // Effect to fetch hotel details when component mounts or hotelId/accessToken changes
-  useEffect(() => {
-    if (hotelId && accessToken && searchParams) {
-      dispatch(clearSelectedHotel()); // Clear previous details
-      dispatch(
-        fetchHotelDetailsAsync({
-          hotelId,
-          checkIn: searchParams.checkIn,
-          checkOut: searchParams.checkOut,
-          adults: searchParams.adults,
-          children: searchParams.children,
-          rooms: searchParams.rooms,
-          token: accessToken,
-        })
-      );
-      console.log("Search parameters:", searchParams);
-    } else if (!hotelId) {
-      console.error("Hotel ID is missing in URL parameters.");
-      navigate("/stays-search-result");
-    } else if (!accessToken) {
-      console.error("Authentication token missing. Please login again.");
-      // Optionally redirect to login or show a message
-    } else if (!searchParams) {
-      console.error(
-        "Search parameters missing. Cannot fetch hotel details without them."
-      );
-      navigate("/stays-search-result"); // Redirect if search params are missing
-    }
-  }, [hotelId, accessToken, searchParams, dispatch, navigate]);
 
   // Sync the carousel with the current index when a navigation dot is clicked
   const handleSelectImage = (index: number) => {
@@ -200,7 +175,6 @@ const StaysDetail: React.FC = () => {
 
   // Use actual rooms from selectedHotel or empty array
   const availableRooms = selectedHotel?.rooms || [];
-  console.log(selectedHotel)
 
   const breadcrumbs = [
     { name: "Home", link: "/" },
@@ -218,31 +192,58 @@ const StaysDetail: React.FC = () => {
       name: amenity,
     })) || [];
 
+  const handleRateSelection = (rate: Rate) => {
+    setSelectedRate(rate);
+    navigate("/booking-progress", {
+      state: {
+        selectedRate: rate,
+        selectedRoom: availableRooms.find(
+          (room) => room.code === selectedRoomId
+        ),
+        hotel: selectedHotel,
+        checkIn: searchParams?.checkIn,
+        checkOut: searchParams?.checkOut,
+        guestsAdults: searchParams?.adults,
+        guestsChild: searchParams?.children
+      },
+    });
+  };
   // Conditional Rendering for Loading/Error states
   if (detailsLoading) {
     return <StaysDetailSkeleton />;
   }
 
-  if (detailsError) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-xl font-semibold text-red-600">
-          Error: {detailsError}
-        </p>
-      </div>
-    );
-  }
+  // if (detailsError) {
+  //   return (
+  //     <div className="flex justify-center items-center h-screen">
+  //       <p className="text-xl font-semibold text-red-600">
+  //         Error: {detailsError}
+  //       </p>
+  //     </div>
+  //   );
+  // }
 
-  if (!selectedHotel) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-xl font-semibold">No hotel details found.</p>
-      </div>
-    );
-  }
+  // if (!selectedHotel) {
+  //   return (
+  //     <div className="flex justify-center items-center h-screen">
+  //       <p className="text-xl font-semibold">No hotel details found.</p>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div>
+      {showOptions && selectedRoomId && (
+        <SelectOptions
+          closeDialog={() => {
+            setShowOptions(false);
+            setSelectedRoomId(null);
+          }}
+          rooms={availableRooms}
+          roomId={selectedRoomId}
+          onRateSelect={handleRateSelection}
+        />
+      )}
       {/* Navbar - Hidden on mobile */}
       {!isMobile && <Navbar />}
 
@@ -264,7 +265,7 @@ const StaysDetail: React.FC = () => {
           <div className="relative">
             <img
               src={hotelImages[0] || StayImagePlaceholder} // Use first image or placeholder
-              alt={selectedHotel.name}
+              alt={selectedHotel?.name}
               className="w-full h-[445px] object-cover rounded-lg"
               onError={(e) => (e.currentTarget.src = StayImagePlaceholder)} // Fallback on error
             />
@@ -282,7 +283,7 @@ const StaysDetail: React.FC = () => {
               <img
                 key={index}
                 src={image || StayImage2Placeholder} // Use image or placeholder
-                alt={`${selectedHotel.name} ${index + 2}`}
+                alt={`${selectedHotel?.name} ${index + 2}`}
                 className="w-full h-[214px] object-cover rounded-lg"
                 onError={(e) => (e.currentTarget.src = StayImage2Placeholder)} // Fallback on error
               />
@@ -327,7 +328,7 @@ const StaysDetail: React.FC = () => {
                 <img
                   key={index}
                   src={image || StayImagePlaceholder} // Use image or placeholder
-                  alt={`${selectedHotel.name} ${index + 1}`}
+                  alt={`${selectedHotel?.name} ${index + 1}`}
                   className="w-full h-full object-cover flex-shrink-0 snap-center"
                   onError={(e) => (e.currentTarget.src = StayImagePlaceholder)} // Fallback on error
                 />
@@ -343,7 +344,7 @@ const StaysDetail: React.FC = () => {
           </div>
 
           {/* Navigation Dots */}
-          <div className="flex gap-2 mt-4 overflow-x-scroll flex-wrap">
+          <div className="flex gap-2 mt-4 overflow-x-scroll flex-wrap px-12">
             {hotelImages.map((_, index) => (
               <button
                 key={index}
@@ -365,7 +366,7 @@ const StaysDetail: React.FC = () => {
         {showShareModal && selectedHotel && (
           <ShareModal
             onClose={() => setShowShareModal(false)}
-            shareLink={`/stays-detail/${selectedHotel.code}`}
+            shareLink={`/stays-detail/${selectedHotel?.code}`}
           />
         )}
       </div>
@@ -414,11 +415,11 @@ const StaysDetail: React.FC = () => {
           {/* Overview Section */}
           <div id="Overview" className="py-6 border-b border-gray-300">
             <h1 className="text-2xl font-bold text-black">
-              {selectedHotel.name}
+              {selectedHotel?.name}
             </h1>
             <p className="text-gray-700 flex items-center gap-2 mt-2">
               <FaMapMarkerAlt className="text-gray-500" />
-              {selectedHotel.address}
+              {selectedHotel?.address}
             </p>
             {/* Refundability info is not directly in HotelDetail, you might need to infer from rooms */}
             <p className="text-green-600 flex items-center gap-2 mt-2">
@@ -431,7 +432,7 @@ const StaysDetail: React.FC = () => {
                 <FaStar />
                 {selectedHotel &&
                   reviews.length > 0 &&
-                  parseInt(selectedHotel.category?.match(/\d+/)?.[0] || "0")}
+                  parseInt(selectedHotel?.category?.match(/\d+/)?.[0] || "0")}
               </span>
               <span className="text-gray-600">({reviews?.length || "0"})</span>
               {reviews.length > 0 && (
@@ -456,7 +457,7 @@ const StaysDetail: React.FC = () => {
           <div id="About" className="py-6 border-b border-gray-300">
             <h2 className="text-xl font-semibold">About this Hotel</h2>
             <p className="text-gray-700 mt-2">
-              {selectedHotel.description || "No description available."}
+              {selectedHotel?.description || "No description available."}
               <br />
               <strong>Check-in:</strong> 3pm, <strong>Check-out:</strong> 12pm.
             </p>
@@ -477,7 +478,7 @@ const StaysDetail: React.FC = () => {
 
           <div className="grid grid-cols-1 gap-4 mt-2 md:grid-cols-3 lg:grid-cols-4">
             {!isMobile &&
-              amenities.map((item:any, index:any) => (
+              amenities.map((item: any, index: any) => (
                 <p key={index} className="flex items-center gap-2">
                   {item.icon} {item.name}
                 </p>
@@ -519,7 +520,7 @@ const StaysDetail: React.FC = () => {
                       <img
                         src={
                           room.images?.[0]?.url ||
-                          selectedHotel.images?.[0]?.url ||
+                          selectedHotel?.images?.[0]?.url ||
                           StayImage2Placeholder
                         }
                         alt={room.name}
@@ -577,7 +578,8 @@ const StaysDetail: React.FC = () => {
                           {firstRate?.net && (
                             <>
                               <p className="text-xl font-bold">
-                                N{parseFloat(firstRate.net).toLocaleString()}
+                                €
+                                {parseFloat(firstRate.net).toLocaleString()}
                               </p>
                               <span className="text-gray-500 text-sm">
                                 per night
@@ -589,7 +591,7 @@ const StaysDetail: React.FC = () => {
                         {totalPrice && (
                           <div className="text-right">
                             <p className="text-lg font-bold">
-                              N{totalPrice.toLocaleString()}
+                             €{totalPrice.toLocaleString()}
                             </p>
                             <span className="text-gray-500 text-sm">
                               {nights > 1 ? `for ${nights} nights` : "total"}
@@ -601,18 +603,10 @@ const StaysDetail: React.FC = () => {
                       {/* Select Button */}
                       <button
                         className="mt-4 w-full bg-[#023E8A] text-white py-2 rounded-lg hover:bg-[#023E9E] transition-colors cursor-pointer"
-                        onClick={() =>{
-                          console.log(room)
-                          navigate("/booking-progress", {
-                            state: {
-                              selectedRoom: room,
-                              hotel: selectedHotel,
-                              checkIn: searchParams?.checkIn,
-                              checkOut: searchParams?.checkOut,
-                            },
-                            
-                          })}
-                        }
+                        onClick={() => {
+                          setShowOptions(true);
+                          setSelectedRoomId(room.code);
+                        }}
                       >
                         Select
                       </button>

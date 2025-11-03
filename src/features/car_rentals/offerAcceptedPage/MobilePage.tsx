@@ -7,11 +7,6 @@ import {
   InputAdornment,
   TextField,
   FormControlLabel,
-  FormControl,
-  Select,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
 } from "@mui/material";
 
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
@@ -20,14 +15,14 @@ import Switch from "@mui/material/Switch";
 import { Checkbox } from "@mui/material";
 import { useLocation } from "react-router-dom";
 import { styled } from "@mui/material/styles";
-import { FaRegCalendarAlt, FaRegClock } from "react-icons/fa";
+import { FaCaretDown, FaRegCalendarAlt, FaRegClock } from "react-icons/fa";
 import { ArrowRight, ChevronRight, Dot, Info, Loader } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Complete from "./Complete";
 import { FiPhone } from "react-icons/fi";
 import { DeskProps } from "./Page";
 import { ToastContainer } from "react-toastify";
-import axios from "axios";
+import CountryCodeModal from "../../stays/components/modals/CountryCodeModal";
 
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .MuiStepConnector-line`]: {
@@ -71,11 +66,10 @@ const MobilePage = ({
     });
   };
   const [showAllModal, setShowAllModal] = useState(false);
-  const [countryCodes, setCountryCodes] = useState<any[]>([]);
   const loggedIn = localStorage.getItem("accessToken");
   const location = useLocation();
   const { car, departureInfo } = location.state || {};
-  // ...existing code...
+  const [countryModal, setCountryModal] = useState(false);
   const handleProfileSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
     setState((prev: any) => ({ ...prev, jason: checked }));
@@ -112,7 +106,7 @@ const MobilePage = ({
         lastName: profile?.last_name || "",
         dateOfBirth: profile?.date_of_birth || "",
         email: profile?.email || "",
-        phoneNumber: profile?.mobile_number || "",
+        phone: profile?.mobile_number || "",
         countryCode: "",
       });
     } else {
@@ -121,7 +115,7 @@ const MobilePage = ({
         lastName: "",
         dateOfBirth: "",
         email: "",
-        phoneNumber: "",
+        phone: "",
         countryCode: "",
       });
       console.log(profile);
@@ -129,7 +123,6 @@ const MobilePage = ({
   };
 
   const addDurationToTime = (pickupTime: string, durationStr: string) => {
-    console.log(durationStr);
     const [h, m] = pickupTime.split(":").map(Number);
     let totalMin = h * 60 + m;
 
@@ -153,38 +146,18 @@ const MobilePage = ({
       .padStart(2, "0")}`;
   };
 
-  useEffect(() => {
-    const fetchCodes = async () => {
-      try {
-        const response = await axios.get(
-          "https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags"
-        );
-        const filtered = response.data.filter(
-          (c: any) =>
-            c.idd && c.idd.root && c.idd.suffixes && c.idd.suffixes.length > 0
-        );
-        const mapped = filtered.map((c: any) => ({
-          ...c,
-          dialCode: `${c.idd.root}${c.idd.suffixes[0]}`,
-        }));
-        // ✅ Sort alphabetically by country name
-        const sorted = mapped.sort((a: any, b: any) =>
-          a.name.common.localeCompare(b.name.common)
-        );
-
-        setCountryCodes(sorted);
-      } catch (error) {
-        console.error("Error fetching country codes:", error);
-      }
-    };
-    fetchCodes();
-  }, []);
-
   return (
     <div>
       <ToastContainer />
       {showAllModal && (
         <Complete closeDialog={() => setShowAllModal(false)} car={car} />
+      )}
+      {countryModal && (
+        <CountryCodeModal
+          closeDialog={() => setCountryModal(false)}
+          formData={passFormData}
+          setFormData={setPassFormData}
+        />
       )}
       <div className="mt-4">
         <div className="lg:pt-20 pt-20 mb-6 flex justify-normal items-center px-6 gap-8">
@@ -256,7 +229,7 @@ const MobilePage = ({
                 <div className="flex justify-normal gap-4 items-center">
                   <div className="size-6 bg-[#023E8A] rounded-full" />
                   <div>
-                    <p>{departureInfo.pickUpLocaDescription}</p>
+                    <p>{departureInfo.pickupLocaDescription}</p>
                     <div className="flex items-center justify-normal gap-1 text-gray-500">
                       <FaRegCalendarAlt />
                       <p>{departureInfo.pickupDate}</p>
@@ -365,7 +338,7 @@ const MobilePage = ({
 
                 <p className="text-[#181818] text-[14px] font-bold font-inter">
                   {" "}
-                  &#8364;{car?.price.totalAmountWithFee}
+                  €{car?.price.totalAmountWithFee}
                 </p>
               </div>
             </div>
@@ -611,74 +584,47 @@ const MobilePage = ({
                           >
                             Country Code
                           </label>
-                          <FormControl
-                            fullWidth
-                            size="small"
+
+                          <TextField
+                            id="countryCode"
+                            name="countryCode"
+                            variant="outlined"
+                            value={passFormData.countryCode}
+                            onChange={(e) => {
+                              handleInputChange({
+                                target: {
+                                  id: "countryCode",
+                                  value: e.target.value,
+                                },
+                              } as any);
+                            }}
+                            InputProps={{
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <FaCaretDown />
+                                </InputAdornment>
+                              ),
+                            }}
                             sx={{
-                              "& .MuiOutlinedInput-root": {
-                                borderRadius: "8px",
+                              width: "100%",
+                              "& .MuiInputBase-root": {
                                 height: "44px",
+                                borderRadius: "8px",
                               },
                             }}
-                          >
-                            <Select
-                              labelId="countryCode-label"
-                              id="countryCode"
-                              name="countryCode"
-                              value={passFormData.countryCode}
-                              onChange={(e) => {
-                                handleInputChange({
-                                  target: {
-                                    id: "countryCode",
-                                    value: e.target.value,
-                                  },
-                                } as any);
-                              }}
-                              renderValue={(value) => value || "Select Code"}
-                              error={!!errors.countryCode && submitted}
-                              MenuProps={{
-                                PaperProps: {
-                                  style: { maxHeight: 300 },
-                                },
-                              }}
-                            >
-                              {countryCodes.map((country) => (
-                                <MenuItem
-                                  key={country.cca2}
-                                  value={country.dialCode}
-                                >
-                                  <ListItemIcon>
-                                    {country.flag ? (
-                                      <img
-                                        src={country.flag}
-                                        alt={country.name.common}
-                                        style={{
-                                          width: 24,
-                                          height: 16,
-                                          borderRadius: 2,
-                                          objectFit: "cover",
-                                        }}
-                                      />
-                                    ) : (
-                                      <span>🌍</span>
-                                    )}
-                                  </ListItemIcon>
-                                  <ListItemText
-                                    primary={`${country.name.common} (${country.dialCode})`}
-                                    primaryTypographyProps={{
-                                      fontSize: 14,
-                                      color: "#181818",
-                                    }}
-                                  />
-                                </MenuItem>
-                              ))}
-                            </Select>
-                            {submitted && errors.countryCode && (
-                              <p className="text-red-500 text-[12px] mt-1">
-                                {errors.countryCode}
-                              </p>
-                            )}
-                          </FormControl>
+                            slotProps={{
+                              input: {
+                                readOnly: true,
+                              },
+                            }}
+                            onFocus={() => setCountryModal(true)}
+                            error={!!errors.countryCode && submitted}
+                          />
+                          {submitted && errors.countryCode && (
+                            <p className="text-red-500 text-[12px] mt-1">
+                              {errors.countryCode}
+                            </p>
+                          )}
                         </div>
 
                         <div className="flex flex-col mb-[10px]">
@@ -689,13 +635,13 @@ const MobilePage = ({
                             Phone Number
                           </label>
                           <TextField
-                            id="phoneNumber"
+                            id="phone"
                             variant="outlined"
                             size="small"
                             placeholder="Enter Phone Number"
-                            value={passFormData.phoneNumber}
-                            error={!!errors.phoneNumber && submitted}
-                            helperText={submitted ? errors.phoneNumber : ""}
+                            value={passFormData.phone}
+                            error={!!errors.phone && submitted}
+                            helperText={submitted ? errors.phone : ""}
                             onChange={handleInputChange}
                             InputProps={{
                               startAdornment: (
@@ -749,9 +695,7 @@ const MobilePage = ({
             </p>
             <div className="px-6  border-[#CDCED1] lg:border rounded-lg p-5 flex justify-between items-center w-full">
               <p className="font-bold text-[#4E4F52]">Total</p>
-              <p className="font-bold">
-                &#8364;{car?.price.totalAmountWithFee}
-              </p>
+              <p className="font-bold">€{car?.price.totalAmountWithFee}</p>
             </div>
 
             <Divider
@@ -769,9 +713,9 @@ const MobilePage = ({
                 }
                 label={
                   <p className="text-[11px]">
-                    I agree to the {" "}
+                    I agree to the{" "}
                     <span className="text-[#023E8A]">
-                       booking conditions, TravelMate terms and conditions, and
+                      booking conditions, TravelMate terms and conditions, and
                       Privacy Policy.
                     </span>
                   </p>
@@ -799,8 +743,8 @@ const MobilePage = ({
             <button
               className="flex items-center justify-center gap-5 w-full lg:w-96 text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]  disabled:bg-gray-400 disabled:cursor-not-allowed"
               disabled={
-                !loggedIn || 
-                loadingSubmit || 
+                !loggedIn ||
+                loadingSubmit ||
                 (activeStep === 1 && !isTheFormValid)
               }
               onClick={() => {

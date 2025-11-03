@@ -370,7 +370,7 @@ const CarPaidForPage = () => {
                     Total
                   </p>
                   <p className="text-[#181818] text-[14px] font-inter">
-                    &#8364;{cars.totalNetAmount}
+                    €{cars.totalNetAmount}
                   </p>
                 </div>
               </div>

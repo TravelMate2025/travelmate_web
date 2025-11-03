@@ -27,6 +27,7 @@ export default function UpdateSearchFilter() {
   // State for locations
   const [locations, setLocations] = useState<Destination[]>([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   // Initialize form state from Redux
   const [destinationCode, setDestinationCode] = useState(
@@ -73,7 +74,7 @@ export default function UpdateSearchFilter() {
 
     const timeoutId = setTimeout(loadDestinations, 300);
     return () => clearTimeout(timeoutId);
-  }, [destination,accessToken]);
+  }, [destination, accessToken]);
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -82,9 +83,9 @@ export default function UpdateSearchFilter() {
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      e.preventDefault();
-      setLoadingLocations(true);
+      setUpdateLoading(true);
       dispatch(clearStaysCache());
 
       // Find the full destination object
@@ -119,7 +120,7 @@ export default function UpdateSearchFilter() {
     } catch (error) {
       console.error("Error updating search parameters:", error);
     } finally {
-      setLoadingLocations(false);
+      setUpdateLoading(false);
     }
   };
 
@@ -198,7 +199,9 @@ export default function UpdateSearchFilter() {
               <ReusableDateSelector
                 onDateChange={handleDateChange}
                 initialValue={
-                  checkIn && checkOut ? `${formatDate(checkIn)} - ${formatDate(checkOut)}` : ""
+                  checkIn && checkOut
+                    ? `${formatDate(checkIn)} - ${formatDate(checkOut)}`
+                    : ""
                 }
               />
             </div>
@@ -208,9 +211,15 @@ export default function UpdateSearchFilter() {
             <button
               type="submit"
               className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg hover:bg-[#0450A2] disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400 cursor-pointer"
-              disabled={loadingLocations}
+              disabled={
+                updateLoading ||
+                !guestText ||
+                !destination ||
+                !checkIn ||
+                !checkOut
+              }
             >
-              {loadingLocations ? "Loading..." : "Update"}
+              {updateLoading ? "Updating..." : "Update"}
             </button>
           </form>
         </div>

@@ -16,7 +16,7 @@ const RefundCancellation: React.FC<RefundCancellationProps> = ({
   const isMobile = useMediaQuery({ maxWidth: 767 });
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 px-2 pt-4 lg:pt-0">
       {/* Title and Mobile Show All Button */}
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Refund & Cancellations</h3>

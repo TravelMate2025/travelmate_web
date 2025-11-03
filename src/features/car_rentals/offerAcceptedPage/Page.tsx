@@ -37,7 +37,7 @@ export type DeskProps = {
     firstName: string;
     lastName: string;
     email: string;
-    phoneNumber: string;
+    phone: string;
     dateOfBirth: string;
     countryCode: string;
   };
@@ -45,7 +45,7 @@ export type DeskProps = {
     firstName: string;
     lastName: string;
     email: string;
-    phoneNumber: string;
+    phone: string;
     dateOfBirth: string;
     countryCode: string;
     [key: string]: any;
@@ -59,7 +59,7 @@ export type DeskProps = {
     lastName: string;
     dateOfBirth: string;
     email: string;
-    phoneNumber: string;
+    phone: string;
     countryCode: string;
   };
   submitted: boolean;
@@ -99,7 +99,7 @@ const Page = () => {
     firstName: "",
     lastName: "",
     email: "",
-    phoneNumber: "",
+    phone: "",
     dateOfBirth: "",
     countryCode: "",
   });
@@ -108,7 +108,7 @@ const Page = () => {
     lastName: "",
     dateOfBirth: "",
     email: "",
-    phoneNumber: "",
+    phone: "",
     countryCode: "",
   });
   const validatePersonalInfo = () => {
@@ -127,8 +127,8 @@ const Page = () => {
     if (!passFormData.email.trim()) newErrors.email = "Email is required.";
     else if (!/\S+@\S+\.\S+/.test(passFormData.email))
       newErrors.email = "Email is invalid.";
-    if (!passFormData.phoneNumber.trim())
-      newErrors.phoneNumber = "Phone number is required.";
+    if (!passFormData.phone.trim())
+      newErrors.phone = "Phone number is required.";
     if (!passFormData.countryCode.trim())
       newErrors.countryCode = "Country code is required.";
     setErrors(newErrors);
@@ -186,7 +186,7 @@ const Page = () => {
         dob: passFormData.dateOfBirth,
         email: passFormData.email,
         country_code: passFormData.countryCode,
-        phone: passFormData.phoneNumber,
+        phone: passFormData.phone,
       };
 
       if (!accessToken) {
@@ -224,8 +224,8 @@ const Page = () => {
       passFormData.lastName.trim() !== "" &&
       passFormData.email.trim() !== "" &&
       /\S+@\S+\.\S+/.test(passFormData.email) &&
-      passFormData.phoneNumber.trim() !== "" &&
-      /^\d+$/.test(passFormData.phoneNumber) &&
+      passFormData.phone.trim() !== "" &&
+      /^\d+$/.test(passFormData.phone) &&
       passFormData.dateOfBirth.trim() !== "" &&
       passFormData.countryCode.trim() !== "";
 
