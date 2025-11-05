@@ -99,6 +99,8 @@ interface LookupResult {
 
 class TransferService {
     private baseUrl = 'https://travelmate-backend-0suw.onrender.com/api';
+    private terminalCache: Map<string, LookupResult['data']> = new Map();
+
 
     async searchTransfers(params: TransferSearchParams): Promise<TransferResult> {
         try {
@@ -207,15 +209,28 @@ class TransferService {
             };
         }
     }
+
+
     async lookupTerminal(name: string): Promise<LookupResult> {
+        const cacheKey = name.toLowerCase().trim(); 
+        if (this.terminalCache.has(cacheKey)) {
+            console.log(`Cache hit for terminal: ${name}`);
+            return {
+                success: true,
+                data: this.terminalCache.get(cacheKey),
+            };
+        }
+
         try {
             const response = await axios.get(`${this.baseUrl}/flights/search/search_airports/?keyword=${encodeURIComponent(name)}`);
+            const results = response.data?.results || response.data?.data || response.data || [];
+            this.terminalCache.set(cacheKey, results);
+            console.log(`Cache set for terminal: ${name}`);
 
             return {
                 success: true,
-                data: response.data?.results || response.data?.data || response.data || [],
+                data: results,
             };
-
 
         } catch (error) {
             console.error('Terminal lookup failed:', error);
@@ -225,6 +240,9 @@ class TransferService {
             };
         }
     }
+
+
+
 
 
     convertFormToApiParams(formData: BookingFormData): TransferSearchParams {
