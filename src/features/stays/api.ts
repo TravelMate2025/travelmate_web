@@ -40,7 +40,7 @@ export const searchHotels = async (
   destination: string,
   checkIn: string,
   checkOut: string,
-  adults: number = 2,
+  adults: number = 1,
   children: number = 0,
   rooms: number = 1,
   token?: string
@@ -71,7 +71,7 @@ export const getHotelDetails = async (
   hotelId: string,
   checkIn: string,
   checkOut: string,
-  adults: number = 2,
+  adults: number = 1,
   children: number = 0,
   rooms: number = 1,
   token?: string | null

@@ -5,17 +5,19 @@ import {
   FaCalendarAlt,
   FaCaretDown,
   FaPhoneAlt,
+  FaCity,
 } from "react-icons/fa";
 import { GuestInfoProps } from "../../slice";
 import { FormControlLabel, Switch } from "@mui/material";
 import CountryCodeModal from "../modals/CountryCodeModal";
+import { MdLocationOn } from "react-icons/md";
+import { PiSignpostFill } from "react-icons/pi";
 
 interface GuestInformationProps {
   onGuestInfoChange: (info: GuestInfoProps) => void;
   formData: GuestInfoProps;
   setFormData: (data: GuestInfoProps) => void;
   errors: GuestInfoProps;
- guestAdults:number
 }
 
 const GuestInformation: React.FC<GuestInformationProps> = ({
@@ -45,7 +47,6 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
     const checked = e.target.checked;
     setState((prev: any) => ({ ...prev, jason: checked }));
     handleChange(e);
-
 
     const userInfo = JSON.parse(localStorage.getItem("persist:root") || "{}");
     const profileStr = userInfo.profile || "{}";
@@ -78,6 +79,9 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
         email: profile?.email || "",
         phone: profile?.mobile_number || "",
         countryCode: "",
+        postal: "",
+        address: "",
+        city: "",
       });
     } else {
       setFormData({
@@ -87,6 +91,9 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
         email: "",
         phone: "",
         countryCode: "",
+        postal: "",
+        address: "",
+        city: "",
       });
     }
   };
@@ -291,6 +298,83 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
                   />
                 </div>
                 {errors.phone && <p className="text-red-600">{errors.phone}</p>}
+              </div>
+            </div>
+          </div>
+          <div className="mt-5">
+            <h5 className="py-4 font-bold text-lg">Address Details</h5>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 border-[1px] border-gray-300 rounded-lg p-6">
+              {/* Residential Address */}
+              <div className="flex flex-col gap-2  lg:col-span-2">
+                <p className="font-semibold text-base">Resedential Address</p>
+                <div
+                  className={`flex items-center border  ${
+                    errors.email ? `border-red-600` : `border-gray-300`
+                  }  p-2 rounded-lg`}
+                >
+                  <MdLocationOn className="text-gray-500 mr-2" />
+                  <input
+                    type="text"
+                    placeholder="Enter Permanent Address"
+                    className="w-full outline-none bg-transparent capitalize"
+                    value={formData.address}
+                    name="address"
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                {errors.postal && (
+                  <p className="text-red-600">{errors.address}</p>
+                )}
+              </div>
+              {/* City  */}
+              <div className="flex flex-col gap-2">
+                <p className="font-semibold text-base">City</p>
+                <div
+                  className={`flex items-center border  ${
+                    errors.email ? `border-red-600` : `border-gray-300`
+                  }  p-2 rounded-lg`}
+                >
+                  <FaCity className="text-gray-500 mr-2" />
+                  <input
+                    type="text"
+                    placeholder="e.g Paris"
+                    className="w-full outline-none bg-transparent capitalize placeholder:lowercase"
+                    value={formData.city}
+                    name="city"
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                {errors.city && (
+                  <p className="text-red-600">{errors.city}</p>
+                )}
+              </div>
+
+              {/* Postal Code*/}
+              <div className="flex flex-col gap-2">
+                <p className="font-semibold text-base">Postal Code</p>
+                <div
+                  className={`flex items-center border  ${
+                    errors.phone ? `border-red-600` : `border-gray-300`
+                  }  p-2 rounded-lg`}
+                >
+                  <PiSignpostFill className="text-gray-500 mr-2" />
+                  <input
+                    type="number"
+                    placeholder="Enter Postal Code"
+                    className="w-full outline-none bg-transparent"
+                    value={formData.postal}
+                    name="postal"
+                    onChange={handleChange}
+                    required
+                    pattern="^\+?[0-9]{10,15}$" // Phone number pattern validation (basic)
+                  />
+                </div>
+                {errors.postal && (
+                  <p className="text-red-600">{errors.postal}</p>
+                )}
               </div>
             </div>
           </div>

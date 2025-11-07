@@ -59,6 +59,9 @@ export interface GuestInfoProps {
   phone: string;
   dateOfBirth: string;
   countryCode: string;
+  address: string
+  postal: string
+  city: string
 }
 
 export const fetchHotelsAsync = createAsyncThunk(

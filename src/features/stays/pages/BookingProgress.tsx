@@ -48,6 +48,9 @@ const BookingProgress: React.FC = () => {
     phone: "",
     dateOfBirth: "",
     countryCode: "",
+    address: "",
+    postal: "",
+    city: "",
   });
 
   const [errors, setErrors] = useState({
@@ -57,6 +60,9 @@ const BookingProgress: React.FC = () => {
     email: "",
     phone: "",
     countryCode: "",
+    address: "",
+    postal: "",
+    city: "",
   });
   const validatePersonalInfo = () => {
     const newErrors: any = {};
@@ -77,6 +83,9 @@ const BookingProgress: React.FC = () => {
     if (!guestInfo.phone.trim()) newErrors.phone = "Phone number is required.";
     if (!guestInfo.countryCode.trim())
       newErrors.countryCode = "Country code is required.";
+    if (!guestInfo.address.trim()) newErrors.address = "Address is required.";
+    if (!guestInfo.postal.trim()) newErrors.postal = "Postal code is required.";
+    if (!guestInfo.city.trim()) newErrors.city = "City is required.";
     setErrors(newErrors);
     const isValid = Object.keys(newErrors).length === 0;
     // setIsValid(isValid);
@@ -115,9 +124,9 @@ const BookingProgress: React.FC = () => {
           ? new Date().getFullYear() -
             new Date(guestInfo.dateOfBirth).getFullYear()
           : 0,
-        address: "123 Main St",
+        address: guestInfo.address,
         city: "New York",
-        postal_code: "10001",
+        postal_code: guestInfo.postal,
         country: "US",
         children: [],
       },
@@ -296,7 +305,6 @@ const BookingProgress: React.FC = () => {
                 formData={guestInfo}
                 setFormData={setGuestInfo}
                 errors={errors}
-                guestAdults={guestsAdults}
               />
               <div className="flex justify-center items-center">
                 <button
