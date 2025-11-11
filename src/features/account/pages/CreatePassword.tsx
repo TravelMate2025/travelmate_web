@@ -40,7 +40,6 @@ export default function CreatePassword() {
   
     if (res.Status === 200 || res.Status === 201) {
       setSuccess(true);
-      console.log("Access:", res.tokens.access);
       dispatch(
         loginSuccess({
           accessToken: res.tokens.access,

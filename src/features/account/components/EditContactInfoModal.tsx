@@ -52,8 +52,6 @@ export default function EditContactInfoModal({ isOpen, onClose, currentUserInfo 
         mobile_number: phone,
         address: address,
       };
-
-      console.log("Sending contact update:", updatedData);
       await updateUserProfile(profileId, updatedData);
       onClose();
       window.location.reload();

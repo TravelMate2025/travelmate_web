@@ -58,7 +58,7 @@ export interface Hotel {
   reviewsCount: any;
   code: string;
   name: string;
-  accommodation_type: string;
+  accommodation_type?: string;
   description?: string | null;
   address: string;
   category?: string;

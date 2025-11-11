@@ -31,8 +31,6 @@ export default function CreateAccount() {
       }
   
       const res = await submitEmail(email);
-      console.log("📥 Backend Response:", res);
-  
       if (res?.Error === false && res?.Message) {
         toast.success(res.Message || "Verification OTP sent to your email.");
         localStorage.setItem("verify_email", email);
@@ -71,7 +69,6 @@ export default function CreateAccount() {
       
       try {
         const access_token = tokenResponse.access_token;
-        console.log("Google Access Token:", access_token);
   
         if (!access_token) {
           toast.error("Google login failed: No access token received.");
@@ -87,7 +84,6 @@ export default function CreateAccount() {
           });
           const googleUser = await userInfoRes.json();
           googleEmail = googleUser?.email || "";
-          console.log("Fetched Google email:", googleEmail);
         } catch (err) {
           console.error("Failed to fetch Google user info:", err);
         }
@@ -95,8 +91,7 @@ export default function CreateAccount() {
         const res = await socialGoogleLogin(access_token);
   
         // Check if response contains expected access/refresh tokens
-        toast.success("Logging In...");
-        console.log("Google login success response:", res);
+        toast.success("User successfully Logged in!");
         if (res?.access && res?.refresh) {
           dispatch(
             loginSuccess({

@@ -73,8 +73,8 @@ export const fetchHotelsAsync = createAsyncThunk(
         searchParams.destination,
         searchParams.checkIn,
         searchParams.checkOut,
-        searchParams.adults,
-        searchParams.children,
+        searchParams.adults = 1,
+        searchParams.children = 0,
         searchParams.rooms,
         token
       );

@@ -11,6 +11,8 @@ import toast from "react-hot-toast";
 import { Hotel } from "../types";
 import { addOrRemoveFavorite } from "../api";
 import { getAccessToken } from "../../../api/services/authUtils";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store";
 
 interface StayCardProps {
   hotel: Hotel;
@@ -30,6 +32,9 @@ const StayCard: React.FC<StayCardProps> = ({
   const [showTooltip, setShowTooltip] = useState(false);
   const [imageError, setImageError] = useState(false);
   const accessToken = getAccessToken();
+  const { searchParams} = useSelector(
+    (state: RootState) => state.stays
+  );
 
   // Extract all relevant data
   const firstRoom = hotel.rooms?.[0];
@@ -81,6 +86,7 @@ const StayCard: React.FC<StayCardProps> = ({
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    setFavorite(!favorite);
     try {
       await addOrRemoveFavorite(hotel.code, setFavorite, favorite, accessToken);
       const newFavorite = !favorite;
@@ -99,9 +105,16 @@ const StayCard: React.FC<StayCardProps> = ({
       onClick={(e) => {
         const target = e.target as HTMLElement;
         if (!target.closest("button")) {
-          navigate(`/stays-detail/${hotel.code}`, {
-            state: { checkIn, checkOut, selectedHotel: hotel },
-          });
+          navigate(
+            `/stays-detail/${hotel.code}?location=${
+              searchParams?.destination
+            }&stay=${encodeURIComponent(hotel.name)}&available=${
+              hotel.available
+            }&favorite=${hotel.is_favorite}`,
+            {
+              state: { checkIn, checkOut, selectedHotel: hotel },
+            }
+          );
         }
       }}
     >
@@ -150,13 +163,13 @@ const StayCard: React.FC<StayCardProps> = ({
           className="absolute top-3 right-3 bg-white rounded-md p-2 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
           aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
         >
-          {!favorite && hotel.is_favorite ? (
+          {favorite && hotel.is_favorite ? (
             <FaHeart
               fill="oklch(57.7% 0.245 27.325)"
               className="text-red-600 text-2xl"
             />
           ) : (
-            <FaRegHeart className="text-blue-900 text-2xl" />
+            <FaRegHeart className="text-black text-2xl" />
           )}
         </button>
       </div>

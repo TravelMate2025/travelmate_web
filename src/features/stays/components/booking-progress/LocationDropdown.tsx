@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useState } from "react";
 import {
   TextField,
   Popper,
@@ -13,14 +13,22 @@ import {
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
-import { fetchRecommendedHotels } from "../../api";
+import { useMediaQuery } from "react-responsive";
 
+interface Destination {
+  name: string;
+  code: string;
+}
 interface LocationDropdownProps {
   label: string;
   placeholder?: string;
   selectedValue: string;
-  setSelectedValue: (name: string, code: string) => void;
-  locations: Array<{ name: string; code: string }>;
+  setSelectedValue: (
+    name: string,
+    code: string,
+    isHotelNavigation?: boolean
+  ) => void;
+  locations: Destination[];
   loading?: boolean;
   onRemoveLocation?: (location: string) => void;
   token?: string | null;
@@ -34,33 +42,13 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
   locations,
   loading = false,
   onRemoveLocation,
-  token,
+
 }) => {
+  const isMobile = useMediaQuery({ maxWidth: 768 });
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [recommendedLocations, setRecommendedLocations] = useState<
-    Array<{ name: string; code: string }>
-  >([]);
-  const [isLoadingRecommended, setIsLoadingRecommended] = useState(false);
   const open = Boolean(anchorEl);
 
-  useEffect(() => {
-    const loadRecommendedHotels = async () => {
-      if (open && !searchQuery) {
-        setIsLoadingRecommended(true);
-        try {
-          const recommended = await fetchRecommendedHotels(token);
-          setRecommendedLocations(recommended);
-        } catch (error) {
-          console.error("Error loading recommended hotels:", error);
-        } finally {
-          setIsLoadingRecommended(false);
-        }
-      }
-    };
-
-    loadRecommendedHotels();
-  }, [open, searchQuery, token]);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -75,23 +63,22 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
     setAnchorEl(null);
   };
 
-  const handleOptionClick = (location: { name: string; code: string }) => {
+  const handleOptionClick = (location: Destination) => {
     setSelectedValue(location.name, location.code);
     handleClose();
   };
 
   const filteredLocations = (locations || [])
-    .filter((location): location is { name: string; code: string } => {
+    .filter((location): location is Destination => {
       return !!location && typeof location.name === "string";
     })
     .filter((location) =>
       location.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-  const displayedLocations = searchQuery
-    ? filteredLocations
-    : recommendedLocations;
-  const isLoading = loading || isLoadingRecommended;
+  const isLoading = loading 
+
+
 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
@@ -132,7 +119,7 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
             className="w-full md:w-[23vw] lg:w-[23vw]"
             elevation={3}
             sx={{
-              width: "370px",
+              width: isMobile ? "100%" : "300px",
               borderRadius: "6px",
               backgroundColor: "white",
               boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
@@ -156,7 +143,7 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
                     : "Recommended Hotels"}
                 </Typography>
 
-                {displayedLocations.length === 0 ? (
+                {filteredLocations.length === 0 ? (
                   <Typography
                     sx={{ textAlign: "center", padding: "20px", color: "#777" }}
                     className="font-inter"
@@ -166,11 +153,11 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
                       : "No recommendations available"}
                   </Typography>
                 ) : (
-                  displayedLocations.map((location, index) => (
+                  filteredLocations.map((location, index) => (
                     <React.Fragment key={location.code}>
                       <div className="flex justify-between items-center px-6 py-3 cursor-pointer hover:bg-gray-50">
                         <div
-                          className="flex gap-2 w-full"
+                          className="flex gap-4 w-full items-center justify-normal"
                           onClick={() => handleOptionClick(location)}
                         >
                           <div className="h-[28px] w-[28px] rounded-[4px] border border-[#FF6F1E] bg-[#FF6F1E0A] flex items-center justify-center">
@@ -180,7 +167,9 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
                             />
                           </div>
                           <div className="flex flex-col">
-                            <p className="font-medium">{location.name}</p>
+                            <p className="font-medium">
+                              {location.name}
+                            </p>
                             <p className="text-sm text-gray-500">
                               {location.code}
                             </p>
@@ -197,7 +186,7 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
                           />
                         )}
                       </div>
-                      {index !== displayedLocations.length - 1 && (
+                      {index !== filteredLocations.length - 1 && (
                         <Divider sx={{ marginTop: "15px" }} />
                       )}
                     </React.Fragment>

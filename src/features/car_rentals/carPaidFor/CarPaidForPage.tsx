@@ -37,7 +37,6 @@ const CarPaidForPage = () => {
         setLoading(true);
         if (isSuccess) {
           const res = await transferService.getBookingBySession(sessionId);
-          console.log(res);
           setBooking(res?.data?.bookings);
         } else {
           return <CarFailedPayment />;

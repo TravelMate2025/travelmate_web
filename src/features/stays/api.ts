@@ -4,13 +4,42 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://travelmate-backend-0suw.onrender.com/api';
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const recommendedHotelsCache: { [key: string]: CacheEntry<Destination[]> } = {};
+const CACHE_DURATION_MS = 60 * 60 * 1000;
+
 
 export const fetchDestinations = async (search?: string, token?: string | null): Promise<Destination[]> => {
+  const now = Date.now();
+
+  // 1. FIX: Create a search-specific cache key
+  const normalizedSearch = search?.toLowerCase().trim() || 'default';
+  const cacheKey = `hotel_destinations_${normalizedSearch}`;
+
+  const cachedEntry = recommendedHotelsCache[cacheKey];
+
+  if (cachedEntry && now - cachedEntry.timestamp < CACHE_DURATION_MS) {
+    return cachedEntry.data;
+  }
+
   try {
-    const response = await axios.get(`${BASE_URL}/hotels/destinations/?search=${search?.toLowerCase()}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    });
-    return response.data.results;
+    if (search && search.length > 2) {
+      const response = await axios.get(`${BASE_URL}/hotels/destinations/?search=${normalizedSearch}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+
+      const results: Destination[] = response.data.results
+      recommendedHotelsCache[cacheKey] = {
+        data: results,
+        timestamp: now
+      }
+      return results;
+    }
+    return [];
 
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
@@ -19,22 +48,6 @@ export const fetchDestinations = async (search?: string, token?: string | null):
   }
 };
 
-export const fetchRecommendedHotels = async (
-  token?: string | null
-): Promise<Destination> => {
-  try {
-    const response = await axios.get(`${BASE_URL}/hotels/recommend/`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    });
-    console.log(response.data)
-    return response.data.results;
-
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message;
-    console.error('Error fetching recommended hotels:', errorMessage);
-    throw new Error(errorMessage);
-  }
-};
 
 export const searchHotels = async (
   destination: string,
@@ -58,7 +71,6 @@ export const searchHotels = async (
       },
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
-    console.log('Search Result:', response.data);
     return response.data;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
@@ -87,7 +99,6 @@ export const getHotelDetails = async (
       },
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
-    console.log('Hotel Details Result:', response.data);
     return response.data;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || `Failed to get details for hotel ${hotelId}`;
@@ -126,7 +137,6 @@ export const createCheckoutSession = async (
 export const verifyHotelBooking = async (sessionId: string | null): Promise<BookingStaysVerifyDetails> => {
   try {
     const response = await api.get(`/hotels/verify-booking/?session_id=${sessionId}`);
-    console.log(response.data)
     return {
       success: true,
       data: response.data,
@@ -193,7 +203,6 @@ export const fetchFavorites = async (token?: string | null) => {
   catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
     console.error('Error fetching favorites:', errorMessage);
-    console.log(error)
     throw new Error(errorMessage);
 
   }

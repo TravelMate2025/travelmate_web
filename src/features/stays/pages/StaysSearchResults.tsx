@@ -100,7 +100,7 @@ export default function StaysSearchResults() {
     { name: "Home", link: "/" },
     {
       name: locationDetails?.name || searchParams?.destination || "Search",
-      link: `/locations/${locationDetails?.code || searchParams?.destination || ""}`,
+      // link: `/locations/${locationDetails?.code || searchParams?.destination || ""}`,
     },
     { name: "Search Results" },
   ];

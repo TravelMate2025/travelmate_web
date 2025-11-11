@@ -6,6 +6,7 @@ import { getAccessToken } from "../../../api/services/authUtils";
 import EmptyState from "../components/EmptyFavorite";
 import { Rating } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { Loader } from "lucide-react";
 
 interface FavoriteApiItem {
   id: number;
@@ -92,7 +93,7 @@ const Favorites = () => {
         <Navbar />
         <div className="lg:px-10 px-4">
           <div className="py-20 flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+            <Loader className="animate-spin  h-20 w-20" />
           </div>
         </div>
       </div>

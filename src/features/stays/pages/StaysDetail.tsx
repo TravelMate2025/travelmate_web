@@ -45,7 +45,7 @@ const StaysDetail: React.FC = () => {
   const { hotelId } = useParams<{ hotelId: string }>(); // Get hotelId from URL
   const navigate = useNavigate();
   // Get hotel details and loading/error states from Redux store
-  const { detailsLoading, detailsError, searchParams, hotels } = useSelector(
+  const { detailsLoading, searchParams, hotels } = useSelector(
     (state: RootState) => state.stays
   );
   const selectedHotel = hotels.find((hotel) => hotel.code === hotelId);
@@ -67,7 +67,6 @@ const StaysDetail: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-  const [selectedRate, setSelectedRate] = useState<Rate | null>(null);
 
   const visibleCount = 8;
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -180,9 +179,12 @@ const StaysDetail: React.FC = () => {
     { name: "Home", link: "/" },
     {
       name: selectedHotel?.destination?.name || "Location",
-      link: `/locations/${selectedHotel?.destination?.code || ""}`,
+      // link: `/${}/${selectedHotel?.destination?.code || ""}`,
     },
-    { name: "Search Results", link: "/stays-search-result" },
+    {
+      name: "Search Results",
+      link: `/stays-search-result?location=${selectedHotel?.destination?.code}&checkin=${searchParams?.checkIn}&checkout=${searchParams?.checkOut}&adults=${searchParams?.adults}&children=${searchParams?.children}&rooms=${searchParams?.rooms}`,
+    },
     { name: selectedHotel?.name || "Hotel Details" },
   ];
 
@@ -193,7 +195,6 @@ const StaysDetail: React.FC = () => {
     })) || [];
 
   const handleRateSelection = (rate: Rate) => {
-    setSelectedRate(rate);
     navigate("/booking-progress", {
       state: {
         selectedRate: rate,
@@ -204,7 +205,7 @@ const StaysDetail: React.FC = () => {
         checkIn: searchParams?.checkIn,
         checkOut: searchParams?.checkOut,
         guestsAdults: searchParams?.adults,
-        guestsChild: searchParams?.children
+        guestsChild: searchParams?.children,
       },
     });
   };
@@ -578,8 +579,7 @@ const StaysDetail: React.FC = () => {
                           {firstRate?.net && (
                             <>
                               <p className="text-xl font-bold">
-                                €
-                                {parseFloat(firstRate.net).toLocaleString()}
+                                €{parseFloat(firstRate.net).toLocaleString()}
                               </p>
                               <span className="text-gray-500 text-sm">
                                 per night
@@ -591,7 +591,7 @@ const StaysDetail: React.FC = () => {
                         {totalPrice && (
                           <div className="text-right">
                             <p className="text-lg font-bold">
-                             €{totalPrice.toLocaleString()}
+                              €{totalPrice.toLocaleString()}
                             </p>
                             <span className="text-gray-500 text-sm">
                               {nights > 1 ? `for ${nights} nights` : "total"}

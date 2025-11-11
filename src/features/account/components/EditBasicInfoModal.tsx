@@ -58,7 +58,6 @@ export default function EditBasicInfoModal({
       }
 
       const userData = { first_name: firstName, last_name: lastName, gender: gender, date_of_birth: dob, };
-      console.log("Sending profile update:", userData);
       await createUserProfile(userData, accessToken, profileId);
       onClose();
       window.location.reload();

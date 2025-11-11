@@ -6,6 +6,7 @@ import LocationDropdown from "./booking-progress/LocationDropdown";
 import { setSearchParams, setLocationDetails, clearStaysCache } from "../slice";
 import { AppDispatch, RootState } from "../../../store";
 import { fetchDestinations } from "../api";
+import { useNavigate } from "react-router";
 
 interface Destination {
   code: string;
@@ -13,23 +14,22 @@ interface Destination {
   country_code: string;
   country_name?: string;
   city_name?: string;
+  accommodation_type?: string;
 }
 
 export default function UpdateSearchFilter() {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
-  // Get data from Redux
   const { searchParams, locationDetails } = useSelector(
     (state: RootState) => state.stays
   );
   const { accessToken } = useSelector((state: RootState) => state.auth);
 
-  // State for locations
   const [locations, setLocations] = useState<Destination[]>([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [updateLoading, setUpdateLoading] = useState(false);
 
-  // Initialize form state from Redux
   const [destinationCode, setDestinationCode] = useState(
     locationDetails?.code || ""
   );
@@ -38,13 +38,6 @@ export default function UpdateSearchFilter() {
   const [checkOut, setCheckOut] = useState(searchParams?.checkOut || "");
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
 
-  const totalGuests =
-    (searchParams?.adults || 2) + (searchParams?.children || 0);
-  const [guestText, setGuestText] = useState(
-    `${searchParams?.rooms || 1} Room${
-      (searchParams?.rooms || 1) > 1 ? "s" : ""
-    }, ${totalGuests} Guest${totalGuests > 1 ? "s" : ""}`
-  );
   const [counts, setCounts] = useState({
     rooms: searchParams?.rooms || 1,
     adults: searchParams?.adults || 2,
@@ -52,7 +45,12 @@ export default function UpdateSearchFilter() {
     infants: 0,
   });
 
-  // Fetch destinations
+  const [guestText, setGuestText] = useState(
+    ` ${searchParams?.rooms} rooms, ${
+      counts.adults + counts.children + counts.infants
+    } guests, ` || ""
+  );
+
   useEffect(() => {
     const loadDestinations = async () => {
       try {
@@ -63,12 +61,16 @@ export default function UpdateSearchFilter() {
         } else if (!destination) {
           const data = await fetchDestinations(undefined, accessToken);
           setLocations(data);
+        } else {
+          setLoadingLocations(false);
         }
       } catch (error) {
         console.error("Error fetching destinations:", error);
         setLocations([]);
       } finally {
-        setLoadingLocations(false);
+        if (destination.length >= 2 || !destination) {
+          setLoadingLocations(false);
+        }
       }
     };
 
@@ -81,14 +83,36 @@ export default function UpdateSearchFilter() {
     return date.toISOString().split("T")[0];
   };
 
-  // Handle form submission
+  const updateGuestText = () => {
+    const totalGuests = counts.adults + counts.children + counts.infants;
+    setGuestText(
+      `${counts.rooms} Room${
+        counts.rooms > 1 ? "s" : ""
+      }, ${totalGuests} Guest${totalGuests !== 1 ? "s" : ""}`
+    );
+    handleClose();
+  };
+
+  const handleLocationSelect = (value: string, code: string) => {
+    setDestination(value);
+    setDestinationCode(code);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (
+        !destinationCode ||
+        !checkIn ||
+        !checkOut ||
+        counts.adults < 1 ||
+        counts.rooms < 1
+      ) {
+        return;
+      }
+
       setUpdateLoading(true);
       dispatch(clearStaysCache());
-
-      // Find the full destination object
       const selectedDestination = locations.find(
         (loc) => loc.code === destinationCode
       );
@@ -103,7 +127,6 @@ export default function UpdateSearchFilter() {
         rooms: counts.rooms,
       };
 
-      // Dispatch location details
       if (selectedDestination) {
         dispatch(
           setLocationDetails({
@@ -112,11 +135,26 @@ export default function UpdateSearchFilter() {
             country_code: selectedDestination.country_code,
             country_name:
               selectedDestination.country_name || selectedDestination.name,
+            accommodation_type: selectedDestination.accommodation_type || "",
           })
+        );
+      } else {
+        dispatch(
+          setLocationDetails({ name: destination, code: destinationCode })
         );
       }
 
       await dispatch(setSearchParams(updatedSearchParams));
+
+      navigate(
+        `/stays-search-result?location=${encodeURIComponent(
+          destination
+        )}&checkin=${formatDate(checkIn)}&checkout=${formatDate(
+          checkOut
+        )}&adults=${counts.adults}&children=${totalChildren}&rooms=${
+          counts.rooms
+        }`
+      );
     } catch (error) {
       console.error("Error updating search parameters:", error);
     } finally {
@@ -141,16 +179,6 @@ export default function UpdateSearchFilter() {
     setAnchor(e.currentTarget);
   const handleClose = () => setAnchor(null);
 
-  const updateGuestText = () => {
-    const totalGuests = counts.adults + counts.children + counts.infants;
-    setGuestText(
-      `${counts.rooms} Room${
-        counts.rooms > 1 ? "s" : ""
-      }, ${totalGuests} Guest${totalGuests !== 1 ? "s" : ""}`
-    );
-    handleClose();
-  };
-
   return (
     <div>
       {/* Search Filter Section */}
@@ -165,13 +193,11 @@ export default function UpdateSearchFilter() {
               <LocationDropdown
                 label="Destination"
                 selectedValue={destination}
-                setSelectedValue={(value, code) => {
-                  setDestination(value);
-                  setDestinationCode(code);
-                }}
+                setSelectedValue={handleLocationSelect}
                 locations={locations.map((loc) => ({
                   name: loc.name,
                   code: loc.code,
+                  accommodation_type: loc?.accommodation_type || "",
                 }))}
                 loading={loadingLocations}
                 token={accessToken}
@@ -199,9 +225,7 @@ export default function UpdateSearchFilter() {
               <ReusableDateSelector
                 onDateChange={handleDateChange}
                 initialValue={
-                  checkIn && checkOut
-                    ? `${formatDate(checkIn)} - ${formatDate(checkOut)}`
-                    : ""
+                  checkIn && checkOut ? `${checkIn} - ${checkOut}` : ""
                 }
               />
             </div>
@@ -216,7 +240,9 @@ export default function UpdateSearchFilter() {
                 !guestText ||
                 !destination ||
                 !checkIn ||
-                !checkOut
+                !checkOut ||
+                counts.adults < 1 ||
+                counts.rooms < 1
               }
             >
               {updateLoading ? "Updating..." : "Update"}
