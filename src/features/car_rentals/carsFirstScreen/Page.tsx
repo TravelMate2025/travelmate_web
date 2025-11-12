@@ -14,7 +14,7 @@ import { Info } from "lucide-react";
 
 // Custom hooks and utilities
 import { useBookingForm } from "../hooks/useBookingForm";
-// import { useFormPersistence } from "../hooks/useFormPersistence"; // REMOVED
+import { useFormPersistence } from "../hooks/useFormPersistence";
 import { useModalState } from "../hooks/useModalState";
 
 import {
@@ -58,21 +58,21 @@ const CarBookingFirstScreen: React.FC = () => {
     }));
   };
   // Initialize form with Redux data or saved data
-  // const { loadSavedData } = useFormPersistence({} as BookingFormData); // REMOVED
+  // const { loadSavedData } = useFormPersistence({} as BookingFormData);
 
-  const initialData = useMemo(() => {
-    // Determine the base source: Redux > Default
-    let baseData: Partial<BookingFormData> = {};
+const initialData = useMemo(() => {
+    const savedData = localStorage.getItem('carBookingForm');
+    const persistedData = savedData ? JSON.parse(savedData) : null;
 
-    if (carInfo) {
+    let baseData: Partial<BookingFormData>;
+    if (persistedData && Object.keys(persistedData).length > 0) {
+      baseData = persistedData;
+    } else if (carInfo && carInfo.pickupLocation) {
       baseData = carInfo;
     } else {
-      // NO LOCAL STORAGE FALLBACK. Use strict defaults if Redux is empty.
       baseData = {};
     }
 
-    // FIX: Ensure date is correctly formatted when read from storage/state
-    // to prevent time zone shifts when initializing Dayjs.
     const safePickupDate = baseData.pickupDate
       ? dayjs(baseData.pickupDate).format("YYYY-MM-DD")
       : "";
@@ -81,7 +81,7 @@ const CarBookingFirstScreen: React.FC = () => {
       pickupLocation: baseData.pickupLocation || "",
       pickupLocaDescription: baseData.pickupLocaDescription || "",
       dropoffLocation: baseData.dropoffLocation || "",
-      // Use the safely formatted date string
+      dropoffLocaDescription: baseData.dropoffLocaDescription || "",
       pickupDate: safePickupDate,
       pickupTime: baseData.pickupTime || "",
       selectedRide: baseData.selectedRide || "",
@@ -93,8 +93,9 @@ const CarBookingFirstScreen: React.FC = () => {
       },
       toLat: baseData.toLat ? Number(baseData.toLat) : undefined,
       toLon: baseData.toLon ? Number(baseData.toLon) : undefined,
+      searchResults: baseData.searchResults || [],
     } as BookingFormData;
-  }, [carInfo]);
+  }, [])
 
   const {
     formData,
@@ -110,13 +111,13 @@ const CarBookingFirstScreen: React.FC = () => {
     setSubmitError,
   } = useBookingForm(initialData);
 
+   useFormPersistence(formData);
   // Modal management
   const { modals, openModal, closeModal } = useModalState();
 
   // Location picker state
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
 
-  // Redux Sync: CRITICAL for making Redux the single source of truth.
   useEffect(() => {
     const reduxData = {
       pickupLocation: formData.pickupLocation,
@@ -237,7 +238,13 @@ const CarBookingFirstScreen: React.FC = () => {
       }
       dispatch(setSearchResults(result?.data?.results?.services || []));
       console.log("Search results:", result?.data?.results?.services);
-      navigate("/cars-searchResults");
+      navigate(
+        `/cars-searchResults?ride=${encodeURIComponent(
+          formData.selectedRide
+        )}&from=${formData.pickupLocaDescription}&to=${
+          formData.dropoffLocaDescription
+        }&time=${formData.pickupDate}&pricerange=${formData.priceRange}`
+      );
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Search failed");
       toast.error(error instanceof Error ? error.message : "Search failed");

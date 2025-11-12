@@ -174,7 +174,7 @@ function App() {
 
         {/* Cars-Section */}
         <Route path="/cars-searchResults" element={<DisplayCars />} />
-        <Route path="/offer-accepted-page" element={<Pages />} />
+        <Route path="/cars-booking" element={<Pages />} />
         <Route path="/car-confirmation" element={<Page />} />
         <Route path="/transfers/payment-success" element={<CarPaidForPage />} />
         <Route

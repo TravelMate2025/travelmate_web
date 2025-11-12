@@ -81,7 +81,7 @@ const Page = () => {
     jason: false,
     antoine: true,
   });
-  const { search_id } = location.state;
+  const { search_id, departureInfo } = location.state;
   const rate_key = location.state?.car?.rateKey || "";
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({
@@ -166,7 +166,13 @@ const Page = () => {
     if (activeStep > 0) {
       setActiveStep((prevStep) => prevStep - 1);
     } else {
-      navigate("/cars-searchResults");
+      navigate(
+        `/cars-searchResults?ride=${encodeURIComponent(
+          departureInfo.selectedRide
+        )}&from=${departureInfo.pickupLocaDescription}&to=${
+          departureInfo.dropoffLocaDescription
+        }&time=${departureInfo.pickupDate}&pricerange=${departureInfo.priceRange}`
+      );
     }
   };
 

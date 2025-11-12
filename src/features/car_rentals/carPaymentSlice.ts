@@ -83,7 +83,6 @@ const carPaymentSlice = createSlice({
                 state.carInfo.searchResults = action.payload;
             }
         },
-        // Add helper action to update specific car info fields
         updateCarInfoField: (state, action: PayloadAction<{ field: keyof CarInfo, value: any }>) => {
             if (state.carInfo) {
                 (state.carInfo as any)[action.payload.field] = action.payload.value;

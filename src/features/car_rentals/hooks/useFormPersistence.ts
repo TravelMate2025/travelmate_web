@@ -17,7 +17,13 @@ export const useFormPersistence = (
   const debouncedSave = useRef(
     debounce((data: BookingFormData) => {
       try {
-        localStorage.setItem(storageKey, JSON.stringify(data));
+        // Only save meaningful data
+        const dataToSave = {
+          ...data,
+          searchResults: [], // Don't persist search results
+        };
+        localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+        console.log('Saved to localStorage:', dataToSave);
       } catch (error) {
         console.error('Failed to save form data:', error);
       }
@@ -28,6 +34,7 @@ export const useFormPersistence = (
     if (
       formData.pickupLocation ||
       formData.dropoffLocation ||
+      formData.pickupLocaDescription ||
       formData.pickupDate
     ) {
       debouncedSave(formData);
@@ -37,7 +44,12 @@ export const useFormPersistence = (
   const loadSavedData = useCallback((): Partial<BookingFormData> | null => {
     try {
       const saved = localStorage.getItem(storageKey);
-      return saved ? JSON.parse(saved) : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        console.log('Loaded from localStorage:', parsed);
+        return parsed;
+      }
+      return null;
     } catch (error) {
       console.error('Failed to load saved form data:', error);
       return null;
@@ -47,6 +59,7 @@ export const useFormPersistence = (
   const clearSavedData = useCallback(() => {
     try {
       localStorage.removeItem(storageKey);
+      console.log('Cleared localStorage');
     } catch (error) {
       console.error('Failed to clear saved form data:', error);
     }

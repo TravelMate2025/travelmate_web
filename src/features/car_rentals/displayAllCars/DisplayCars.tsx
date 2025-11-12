@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { TextField, InputAdornment, Skeleton } from "@mui/material";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 
 // Icons
@@ -38,6 +38,12 @@ const DisplayCars: React.FC = () => {
   const { state } = useLocation();
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [loadingSkeleton, setLoadingSkeleton] = useState(false);
+  const navigate = useNavigate();
+  const { modals, openModal, closeModal } = useModalState();
+  const [form, setForm] = useState<boolean>(!isMobile);
+  const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
+  const carInfo = useSelector((state: RootState) => state.cars.carInfo);
+
   const collectTo = (
     data: string,
     data2: string,
@@ -52,11 +58,63 @@ const DisplayCars: React.FC = () => {
       toLon: longitude,
     }));
   };
+  const initialData = useMemo(() => {
+    if (!carInfo) {
+      return {
+        pickupLocation: "",
+        pickupLocaDescription: "",
+        dropoffLocation: "",
+        dropoffLocaDescription: "",
+        pickupDate: "",
+        pickupTime: "",
+        selectedRide: "",
+        priceRange: { min: 0, max: 0 },
+        passengerCounts: { adults: 0, children: 0, infant: 0 },
+        toLat: undefined,
+        toLon: undefined,
+        searchResults: [],
+        search_id: "",
+        rate_key: "",
+      } as BookingFormData;
+    }
 
-  // Form visibility state
-  const [form, setForm] = useState<boolean>(!isMobile);
+    return {
+      pickupLocation: carInfo.pickupLocation || "",
+      pickupLocaDescription: carInfo.pickupLocaDescription || "",
+      dropoffLocation: carInfo.dropoffLocation || "",
+      dropoffLocaDescription: carInfo.dropoffLocaDescription || "",
+      pickupDate: carInfo.pickupDate || "",
+      pickupTime: carInfo.pickupTime || "",
+      selectedRide: carInfo.selectedRide || "",
+      priceRange: {
+        min: carInfo.priceRange?.min ?? 0,
+        max: carInfo.priceRange?.max ?? 0,
+      },
+      passengerCounts: carInfo.passengerCounts || {
+        adults: 0,
+        children: 0,
+        infant: 0,
+      },
+      toLat: carInfo.toLat,
+      toLon: carInfo.toLon,
+      searchResults: carInfo.searchResults || [],
+      search_id: "",
+      rate_key: "",
+    } as BookingFormData;
+  }, [carInfo]);
 
-  // Extract state data with proper defaults
+  const {
+    formData,
+    setFormData,
+    errors,
+    isValid,
+    loading,
+    updateField,
+    setLoading,
+    submitError,
+    setSubmitError,
+  } = useBookingForm(initialData);
+
   const stateData = useMemo(() => {
     const locationState = (state || {}) as BookingFormData;
     return {
@@ -78,49 +136,12 @@ const DisplayCars: React.FC = () => {
     };
   }, [state]);
 
-  const carInfo = useSelector((state: RootState) => state.cars.carInfo);
-
-  const initialData = useMemo(() => {
-    const reduxData = carInfo;
-
-    return {
-      pickupLocation: reduxData?.pickupLocation || "",
-      pickupLocaDescription: reduxData?.pickupLocaDescription || "",
-      dropoffLocation: reduxData?.dropoffLocation || "",
-      dropoffLocaDescription: reduxData?.dropoffLocaDescription || "",
-      pickupDate: reduxData?.pickupDate || "",
-      pickupTime: reduxData?.pickupTime || "",
-      selectedRide: reduxData?.selectedRide || "",
-      priceRange: {
-        min: reduxData?.priceRange?.min ?? 0,
-        max: reduxData?.priceRange?.max ?? 0,
-      },
-      passengerCounts: reduxData?.passengerCounts || {
-        adults: 0,
-        children: 0,
-        infant: 0,
-      },
-      toLat: reduxData?.toLat,
-      toLon: reduxData?.toLon,
-      searchResults: stateData.searchResults,
-      search_id: stateData.search_id,
-    } as BookingFormData;
-  }, [carInfo, stateData]);
-
-  const {
-    formData,
-    setFormData,
-    errors,
-    isValid,
-    loading,
-    updateField,
-    setLoading,
-    submitError,
-    setSubmitError,
-  } = useBookingForm(initialData);
-
-  const { modals, openModal, closeModal } = useModalState();
-  const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
+  useEffect(() => {
+    if (!carInfo || !carInfo.pickupLocation) {
+      console.warn("No car search data found, redirecting to search page");
+      navigate("/");
+    }
+  }, [carInfo, navigate]);
 
   // Event handlers
   const handleDropLocationClick = useCallback(
@@ -427,7 +448,11 @@ const DisplayCars: React.FC = () => {
                     }}
                   />
                 </LocalizationProvider>
-                {errors.pickupDate && <p className="text-xs text-red-700 pl-3">{errors.pickupDate}</p>}
+                {errors.pickupDate && (
+                  <p className="text-xs text-red-700 pl-3">
+                    {errors.pickupDate}
+                  </p>
+                )}
               </div>
             </div>
 

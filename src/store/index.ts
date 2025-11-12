@@ -19,7 +19,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth", "profile", "stays"],
+  whitelist: ["auth", "profile", "stays", "cars"],
 };
 
 // 3. Persisted reducer

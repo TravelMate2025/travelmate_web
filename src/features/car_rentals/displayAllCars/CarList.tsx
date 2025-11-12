@@ -73,7 +73,7 @@ const CarList: React.FC<CarListProps> = ({
   }, [sortedCars, page]);
 
   const handleSubmitOffer = (car: any) => {
-    navigate("/offer-accepted-page", {
+    navigate(`/cars-booking?transfers=${car.vehicle.name}&from=${car?.pickupInformation.from.description}&to=${car?.pickupInformation.to.description}&price=${car?.cancellationPolicies[0]?.amount}`, {
       state: {
         car,
         search_id: departureInfo.search_id,

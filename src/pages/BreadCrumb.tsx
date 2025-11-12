@@ -24,7 +24,7 @@ const breadcrumbMap: { [key: string]: { label: string; path?: string }[] } = {
   ],
 
    "/cars-searchResults": [{ label: "Search Results" }],
-  "/offer-accepted-page": [
+  "/cars-booking": [
     { label: "Search Results", path: "/display-cars" },
     { label: "SUV( Ford Eco sport or Similar)" },
   ],
