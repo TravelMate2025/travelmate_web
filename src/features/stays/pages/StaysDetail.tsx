@@ -432,11 +432,11 @@ const StaysDetail: React.FC = () => {
               <span className="text-yellow-500 flex items-center gap-1">
                 <FaStar />
                 {selectedHotel &&
-                  reviews.length > 0 &&
+                  reviews?.length > 0 &&
                   parseInt(selectedHotel?.category?.match(/\d+/)?.[0] || "0")}
               </span>
               <span className="text-gray-600">({reviews?.length || "0"})</span>
-              {reviews.length > 0 && (
+              {reviews?.length > 0 && (
                 <button
                   className="text-blue-600 underline cursor-pointer"
                   onClick={() => setOpenModal(true)}
@@ -514,7 +514,7 @@ const StaysDetail: React.FC = () => {
                 return (
                   <div
                     key={room.code}
-                    className="w-full h-auto bg-white shadow-lg rounded-lg p-4 border border-gray-200"
+                    className="relative w-full h-auto flex flex-col bg-white shadow-lg rounded-lg p-4 border border-gray-200"
                   >
                     {/* Room Image - with better fallbacks */}
                     <div className="relative h-[234px] bg-gray-100 rounded-lg overflow-hidden">
@@ -539,7 +539,7 @@ const StaysDetail: React.FC = () => {
                     </div>
 
                     {/* Room Details */}
-                    <div className="mt-4">
+                    <div className="mt-4 flex flex-col flex-1">
                       <h3 className="text-lg font-bold">
                         {room.description || "Standard Room"}
                       </h3>
@@ -601,15 +601,18 @@ const StaysDetail: React.FC = () => {
                       </div>
 
                       {/* Select Button */}
-                      <button
-                        className="mt-4 w-full bg-[#023E8A] text-white py-2 rounded-lg hover:bg-[#023E9E] transition-colors cursor-pointer"
-                        onClick={() => {
-                          setShowOptions(true);
-                          setSelectedRoomId(room.code);
-                        }}
-                      >
-                        Select
-                      </button>
+                      <div className=" mt-auto pt-4 w-full">
+                        {" "}
+                        <button
+                          className=" w-full bg-[#023E8A] text-white py-2 rounded-lg hover:bg-[#023E9E] transition-colors cursor-pointer"
+                          onClick={() => {
+                            setShowOptions(true);
+                            setSelectedRoomId(room.code);
+                          }}
+                        >
+                          Select
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );

@@ -163,7 +163,7 @@ const StayCard: React.FC<StayCardProps> = ({
           className="absolute top-3 right-3 bg-white rounded-md p-2 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
           aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
         >
-          {favorite && hotel.is_favorite ? (
+          {hotel.is_favorite ? (
             <FaHeart
               fill="oklch(57.7% 0.245 27.325)"
               className="text-red-600 text-2xl"

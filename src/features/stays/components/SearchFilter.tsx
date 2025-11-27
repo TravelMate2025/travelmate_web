@@ -6,7 +6,7 @@ import HotelGuestSelector from "./HotelGuestSelector";
 import { useDispatch, useSelector } from "react-redux";
 import { clearStaysCache, setLocationDetails, setSearchParams } from "../slice";
 import { AppDispatch, RootState } from "../../../store";
-import { fetchDestinations } from "../api";
+import { fetchDestinations, fetchRecommendedHotels } from "../api";
 
 interface Destination {
   code: string;
@@ -39,7 +39,10 @@ const SearchFilter: React.FC = () => {
   const [locations, setLocations] = useState<Destination[]>([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const [guestText, setGuestText] = useState(`${searchParams?.adults} adults, ${searchParams?.rooms} rooms ` || "");
+  const [guestText, setGuestText] = useState(
+    `${searchParams?.adults || 2} adults, ${searchParams?.rooms || 1} rooms ` ||
+      ""
+  );
   const [counts, setCounts] = useState({
     rooms: searchParams?.rooms || 1,
     adults: searchParams?.adults || 2,
@@ -56,10 +59,10 @@ const SearchFilter: React.FC = () => {
       try {
         setLoadingLocations(true);
         if (destination.length >= 2) {
-          const data = await fetchDestinations(destination, accessToken);
+          const data = await fetchDestinations(destination);
           setLocations(data);
         } else if (!destination) {
-          const data = await fetchDestinations(undefined, accessToken);
+          const data = await fetchDestinations(undefined);
           setLocations(data);
         } else {
           setLoadingLocations(false);
@@ -83,14 +86,11 @@ const SearchFilter: React.FC = () => {
     return date.toISOString().split("T")[0];
   };
 
-  const handleLocationSelect = (
-    value: string,
-    code: string
-  ) => {
+  const handleLocationSelect = (value: string, code: string) => {
     setDestination(value);
     setDestinationCode(code);
   };
-  
+
   const handleDateChange = (startDate: string, endDate: string) => {
     setCheckIn(startDate);
     setCheckOut(endDate);
@@ -174,6 +174,9 @@ const SearchFilter: React.FC = () => {
       }`
     );
   };
+  useEffect(()=>{
+    fetchRecommendedHotels ()
+  },[])
 
   return (
     <div className="py-4">

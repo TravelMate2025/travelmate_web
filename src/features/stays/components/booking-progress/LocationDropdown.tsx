@@ -1,4 +1,4 @@
-import React, {useState } from "react";
+import React, { useState } from "react";
 import {
   TextField,
   Popper,
@@ -42,13 +42,11 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
   locations,
   loading = false,
   onRemoveLocation,
-
 }) => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const open = Boolean(anchorEl);
-
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -76,9 +74,7 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
       location.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-  const isLoading = loading 
-
-
+  const isLoading = loading;
 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
@@ -134,23 +130,19 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
               </Box>
             ) : (
               <div className="w-full">
-                <Typography
+                {/* <Typography
                   variant="subtitle1"
-                  className="font-inter text-[#343537] text-lg p-4"
+                  className="font-inter text-[#343537] text-lg p-4 text-center"
                 >
-                  {searchQuery
-                    ? "Available Destinations"
-                    : "Recommended Hotels"}
-                </Typography>
+                   {searchQuery.length>2 && "Available Destinations"}
+                </Typography> */}
 
                 {filteredLocations.length === 0 ? (
                   <Typography
                     sx={{ textAlign: "center", padding: "20px", color: "#777" }}
                     className="font-inter"
                   >
-                    {searchQuery
-                      ? "No matching destinations"
-                      : "No recommendations available"}
+                    {searchQuery.length>2 && "No matching destinations"}
                   </Typography>
                 ) : (
                   filteredLocations.map((location, index) => (
@@ -167,9 +159,7 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
                             />
                           </div>
                           <div className="flex flex-col">
-                            <p className="font-medium">
-                              {location.name}
-                            </p>
+                            <p className="font-medium">{location.name}</p>
                             <p className="text-sm text-gray-500">
                               {location.code}
                             </p>

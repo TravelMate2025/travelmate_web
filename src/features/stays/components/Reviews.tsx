@@ -31,7 +31,7 @@ const Reviews = ({ reviews, closeModal, openModal }: Props) => {
       {/* Title and Mobile Show All Button */}
       <div className="flex justify-between items-center mt-10">
         <h2 className="text-xl font-bold">Reviews</h2>
-        {isMobile && reviews.length > 0 && (
+        {isMobile && reviews?.length > 0 && (
           <button className="text-[#023E8A] font-medium" onClick={closeModal}>
             Show all &gt;
           </button>
@@ -39,7 +39,7 @@ const Reviews = ({ reviews, closeModal, openModal }: Props) => {
       </div>
 
       {/* Overall Rating */}
-      {!isMobile && reviews.length > 0 && (
+      {!isMobile && reviews?.length > 0 && (
         <div className="mt-2">
           <Rating
             name="read-only"
@@ -49,12 +49,12 @@ const Reviews = ({ reviews, closeModal, openModal }: Props) => {
             sx={{ color: "orange" }}
           />
           <p className="text-xl font-bold">4.8</p>
-          <p className="text-gray-600">Based on 80 reviews</p>
+          <p className="text-gray-600">Based on {reviews?.length} reviews</p>
         </div>
       )}
 
       {/* Category Ratings */}
-      {!isMobile && reviews.length > 0 && (
+      {!isMobile && reviews?.length > 0 && (
         <>
           <p className="mt-4 font-medium">Category Rating</p>
           <div className="grid grid-cols-3 gap-8 mt-2 border border-gray-300 p-6 rounded-xl">
@@ -84,39 +84,35 @@ const Reviews = ({ reviews, closeModal, openModal }: Props) => {
             : "grid grid-cols-3 gap-6"
         }`}
       >
-        {!reviews ? (
-          <div className="text-center">No Reviews found</div>
-        ) : (
-          reviews?.slice(0, 6).map((review) => (
-            <div
-              key={review?.id}
-              className={`p-4 border border-gray-300 rounded-lg shadow bg-white ${
-                isMobile ? "inline-block w-[85%] mr-4 max-w-full" : ""
-              }`}
-            >
-              <div className="flex justify-between items-center">
-                <Rating
-                  value={review?.rating}
-                  readOnly
-                  sx={{ color: "orange" }}
-                />
-                <span className="text-gray-500 text-sm">{review?.date}</span>
-              </div>
-              <h3 className="text-lg font-bold my-2">{review?.title}</h3>
-              <p className="text-gray-600 text-wrap line-clamp-2">
-                {review?.content}
-              </p>
-              <p className="text-sm font-medium mt-2">{review?.name}</p>
+        {reviews?.slice(0, 6).map((review) => (
+          <div
+            key={review?.id}
+            className={`p-4 border border-gray-300 rounded-lg shadow bg-white ${
+              isMobile ? "inline-block w-[85%] mr-4 max-w-full" : ""
+            }`}
+          >
+            <div className="flex justify-between items-center">
+              <Rating
+                value={review?.rating}
+                readOnly
+                sx={{ color: "orange" }}
+              />
+              <span className="text-gray-500 text-sm">{review?.date}</span>
             </div>
-          ))
-        )}
+            <h3 className="text-lg font-bold my-2">{review?.title}</h3>
+            <p className="text-gray-600 text-wrap line-clamp-2">
+              {review?.content}
+            </p>
+            <p className="text-sm font-medium mt-2">{review?.name}</p>
+          </div>
+        ))}
       </div>
 
       {/* Show All Button for Desktop */}
-      {reviews && reviews.length === 0 ? (
+      {!reviews || reviews?.length === 0 ? (
         <div className="text-center ">No reviews available</div>
       ) : (
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 hidden lg:flex justify-center">
           <button
             className="px-8 py-3 mt-10 bg-[#023E8A] text-white font-medium rounded-lg cursor-pointer"
             onClick={openModal}

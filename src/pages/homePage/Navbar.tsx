@@ -68,7 +68,7 @@ const menuItems = [
   },
 ];
 const menuItemsWeb = [
-  { text: "Account", icon: <PersonOutlinedIcon/>, path: "/account" },
+  { text: "Account", icon: <PersonOutlinedIcon />, path: "/account" },
   { text: "Bookings", icon: <ClassOutlinedIcon />, path: "/bookings" },
   {
     text: "Favorites",
@@ -78,7 +78,6 @@ const menuItemsWeb = [
   {
     text: "Log out",
     icon: <PiSignOutFill size={24} />,
-    path: "/logout",
   },
 ];
 
@@ -575,12 +574,11 @@ const Navbar: React.FC<NavbarProps> = ({
                     key={setting.text}
                     className="w-[200px]"
                     sx={{
-                      paddingY:"10px",
-                      
+                      paddingY: "10px",
                     }}
                     onClick={() => {
                       handleCloseUserMenu();
-                      if (setting.text === "Logout") {
+                      if (setting.text === "Log out") {
                         handleLogout();
                       } else {
                         navigate(`/${setting.text.toLowerCase()}`);
@@ -588,10 +586,17 @@ const Navbar: React.FC<NavbarProps> = ({
                     }}
                   >
                     <ListItemIcon>{setting.icon}</ListItemIcon>
-                    <Typography sx={{ textAlign: "center" , color: "#000000", fontSize: "14px"}}>
+                    <Typography
+                      sx={{
+                        textAlign: "center",
+                        color: "#000000",
+                        fontSize: "14px",
+                      }}
+                    >
                       {setting.text}
                     </Typography>
                   </MenuItem>
+                  
                 ))}
               </Menu>
             </Box>

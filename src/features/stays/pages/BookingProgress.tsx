@@ -34,8 +34,8 @@ const BookingProgress: React.FC = () => {
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedRoom, selectedRate, guestsAdults } = location.state || {};
-  console.log(selectedRate);
+  const { selectedRoom, selectedRate } = location.state || {};
+
   const [currentStep, setCurrentStep] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
   // const [isValid, setIsValid] = useState(false);

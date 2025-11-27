@@ -13,7 +13,7 @@ const recommendedHotelsCache: { [key: string]: CacheEntry<Destination[]> } = {};
 const CACHE_DURATION_MS = 60 * 60 * 1000;
 
 
-export const fetchDestinations = async (search?: string, token?: string | null): Promise<Destination[]> => {
+export const fetchDestinations = async (search?: string): Promise<Destination[]> => {
   const now = Date.now();
 
   // 1. FIX: Create a search-specific cache key
@@ -28,15 +28,15 @@ export const fetchDestinations = async (search?: string, token?: string | null):
 
   try {
     if (search && search.length > 2) {
-      const response = await axios.get(`${BASE_URL}/hotels/destinations/?search=${normalizedSearch}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
+      const response = await axios.get(`${BASE_URL}/hotels/destinations/?search=${normalizedSearch}`);
+      console.log(response)
 
       const results: Destination[] = response.data.results
       recommendedHotelsCache[cacheKey] = {
         data: results,
         timestamp: now
       }
+
       return results;
     }
     return [];
@@ -48,6 +48,25 @@ export const fetchDestinations = async (search?: string, token?: string | null):
   }
 };
 
+export const fetchRecommendedHotels = async (
+  // token?: string | null
+): Promise<Destination> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/hotels/recommend/`,
+      {
+        // headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+    console.log(response.data)
+    return response.data.results;
+
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.error || error.message;
+    console.error('Error fetching recommended hotels:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+
 
 export const searchHotels = async (
   destination: string,
@@ -56,7 +75,7 @@ export const searchHotels = async (
   adults: number = 1,
   children: number = 0,
   rooms: number = 1,
-  token?: string
+  // token?: string
 ): Promise<HotelSearchResponse> => {
   try {
     const response = await axios.get(`${BASE_URL}/hotels/search/`, {
@@ -68,8 +87,7 @@ export const searchHotels = async (
         children,
         rooms,
         include_details: true
-      },
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
+      }
     });
     return response.data;
   } catch (error: any) {
@@ -86,7 +104,7 @@ export const getHotelDetails = async (
   adults: number = 1,
   children: number = 0,
   rooms: number = 1,
-  token?: string | null
+  // token?: string | null
 ): Promise<Hotel> => {
   try {
     const response = await axios.get(`${BASE_URL}/hotels/${hotelId}/details/`, {
@@ -97,7 +115,7 @@ export const getHotelDetails = async (
         children,
         rooms
       },
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
+      // headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
     return response.data;
   } catch (error: any) {
@@ -160,7 +178,7 @@ export const verifyHotelBooking = async (sessionId: string | null): Promise<Book
 
 export const getReviews = async (hotelId: string) => {
   try {
-    const response = await api.get(`/hotels/${hotelId}/reviews/`)
+    const response = await axios.get(`/hotels/${hotelId}/reviews/`)
     return response.data.user_reviews
   } catch (error: any) {
     console.error('Failed to fetch reviews:', error.response?.data || error.message);
@@ -224,3 +242,37 @@ export const addOrRemoveFavorite = async (hotelId: string | null, setIsFavorite:
 
   }
 };
+
+export const fetchBookings = async (token?: string | null) => {
+  try {
+    const response = await api.get('/hotels/bookings/', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    console.log(response)
+    return response;
+  }
+  catch (error: any) {
+    const errorMessage = error.response?.data?.error || error.message;
+    console.error('Error fetching favorites:', errorMessage);
+    throw new Error(errorMessage);
+
+  }
+}
+export const CancelBookings = async (bookingId: string,
+  token?: string | null,
+  setLoading?: (loading: boolean) => void) => {
+  try {
+    setLoading?.(true);
+    const response = await api.post(`/hotels/${bookingId}/cancel-booking/`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return response.data;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.error || error.message || error;
+    console.error('Booking error:', errorMessage);
+    throw new Error(errorMessage);
+
+  } finally {
+    setLoading?.(false);
+  }
+}

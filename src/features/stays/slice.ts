@@ -18,7 +18,7 @@ interface SearchParams {
   destination: string;
   checkIn: string;
   checkOut: string;
-  adults: number;
+  adults: number ;
   children: number;
   rooms: number;
 }
@@ -76,7 +76,7 @@ export const fetchHotelsAsync = createAsyncThunk(
         searchParams.adults = 1,
         searchParams.children = 0,
         searchParams.rooms,
-        token
+        // token
       );
     } catch (error: any) {
       return rejectWithValue(error.message);
