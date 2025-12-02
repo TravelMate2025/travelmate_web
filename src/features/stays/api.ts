@@ -1,7 +1,7 @@
-import { BookingStaysVerifyDetails, BookStaysRequest, BookStaysResponse, Destination, Hotel, HotelSearchResponse } from './types';
+import {  BookingDetailsVerifyData, BookingStaysVerifyDetails, BookStaysRequest, BookStaysResponse, Destination, Hotel, HotelSearchResponse } from './types';
 import api from '../../api/services/api';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://travelmate-backend-0suw.onrender.com/api';
 interface CacheEntry<T> {
@@ -29,7 +29,7 @@ export const fetchDestinations = async (search?: string): Promise<Destination[]>
   try {
     if (search && search.length > 2) {
       const response = await axios.get(`${BASE_URL}/hotels/destinations/?search=${normalizedSearch}`);
-      console.log(response)
+
 
       const results: Destination[] = response.data.results
       recommendedHotelsCache[cacheKey] = {
@@ -56,7 +56,6 @@ export const fetchRecommendedHotels = async (
       {
         // headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
-    console.log(response.data)
     return response.data.results;
 
   } catch (error: any) {
@@ -143,7 +142,7 @@ export const createCheckoutSession = async (
     return response.data;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message || error;
-    console.error('Booking error:', errorMessage);
+    toast.error('Booking error:', errorMessage);
     throw new Error(errorMessage);
 
   } finally {
@@ -163,6 +162,7 @@ export const verifyHotelBooking = async (sessionId: string | null): Promise<Book
     console.error('Get booking by session failed:', error);
     toast.error(error?.response?.data?.error)
     return {
+      data: {} as BookingDetailsVerifyData,
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get booking details',
     };
@@ -253,7 +253,8 @@ export const fetchBookings = async (token?: string | null) => {
   }
   catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
-    console.error('Error fetching favorites:', errorMessage);
+    toast.error('Error fetching bookings:', errorMessage);
+
     throw new Error(errorMessage);
 
   }

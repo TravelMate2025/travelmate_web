@@ -1,34 +1,35 @@
-import React from "react";
+import { Customer } from "../../types";
 
-interface Guest {
-  name: string;
-  email: string;
-  phone: string;
-  dob: string;
+interface GuestDetailsProps {
+  guest: Customer;
 }
 
-const GuestDetails: React.FC<{ guests: Guest[] }> = ({ guests }) => {
+const GuestDetails = ({ guest }: GuestDetailsProps) => {
   return (
     <div className="bg-white">
       <h2 className="text-lg font-semibold mb-4">Guest Details</h2>
 
       <div className="space-y-6">
-        {guests.map((guest, index) => (
-          <div key={index} className="w-full sm:p-6 rounded-lg sm:border border-gray-300 space-y-3">
-            <p className="flex justify-between">
-              <span className="font-medium">Name</span> {guest.name}
-            </p>
-            <p className="flex justify-between">
-              <span className="font-medium">Email</span> {guest.email}
-            </p>
-            <p className="flex justify-between">
-              <span className="font-medium">Phone</span> {guest.phone}
-            </p>
-            <p className="flex justify-between">
-              <span className="font-medium">Date of Birth</span> {guest.dob}
+        <div className="w-full sm:p-6 rounded-lg sm:border border-gray-300 space-y-3">
+          <div className="flex justify-between items-center w-full">
+            <p className="font-medium">Name</p>
+            <p>
+              {guest?.name} {guest?.surname}
             </p>
           </div>
-        ))}
+          <div className="flex justify-between items-center w-full">
+            <p className="font-medium">Email</p>
+            <p>{guest?.email}</p>
+          </div>
+          <div className="flex justify-between items-center w-full">
+            <p className="font-medium">Phone</p>
+            <p>{guest?.phone}</p>
+          </div>
+          <div className="flex justify-between items-center w-full ">
+            <p className="font-medium flex justify-end">Address</p>
+            <p className="flex justify-end">{guest?.address}</p>
+          </div>
+        </div>
       </div>
     </div>
   );

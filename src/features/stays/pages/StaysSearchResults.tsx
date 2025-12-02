@@ -27,8 +27,6 @@ export default function StaysSearchResults() {
   const { hotels, loading, error, searchParams, locationDetails } = useSelector(
     (state: RootState) => state.stays
   );
-  const { accessToken } = useSelector((state: RootState) => state.auth);
-  console.log( hotels);
 
   // State for modals and visibility
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
@@ -81,16 +79,16 @@ export default function StaysSearchResults() {
       return;
     }
 
-    if (searchParams && accessToken) {
+    if (searchParams) {
       dispatch(
-        fetchHotelsAsync({ ...searchParams, ...filters, token: accessToken })
+        fetchHotelsAsync({ ...searchParams, ...filters})
       );
     } else {
       if (!searchParams) {
         console.error("No search parameters found. add search parameters");
       }
     }
-  }, [searchParams, filters, accessToken, dispatch]);
+  }, [searchParams, filters, dispatch]);
 
   const handleApplyFilter = (newFilters: FilterState) => {
     setFilters(newFilters);

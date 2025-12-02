@@ -16,14 +16,12 @@ import { PiSignpostFill } from "react-icons/pi";
 interface GuestInformationProps {
   onGuestInfoChange: (info: GuestInfoProps) => void;
   formData: GuestInfoProps;
-  setFormData: (data: GuestInfoProps) => void;
   errors: GuestInfoProps;
 }
 
 const GuestInformation: React.FC<GuestInformationProps> = ({
   onGuestInfoChange,
   formData,
-  setFormData,
   errors,
   // guestAdults
 }) => {
@@ -38,7 +36,7 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const newData = { ...formData, [name]: value };
-    setFormData(newData);
+    onGuestInfoChange(newData);
     onGuestInfoChange(newData);
   };
 
@@ -72,7 +70,7 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
       // keep defaults
     }
     if (checked) {
-      setFormData({
+      onGuestInfoChange({
         firstName: profile?.first_name || "",
         lastName: profile?.last_name || "",
         dateOfBirth: profile?.date_of_birth || "",
@@ -84,7 +82,7 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
         city: "",
       });
     } else {
-      setFormData({
+      onGuestInfoChange({
         firstName: "",
         lastName: "",
         dateOfBirth: "",
@@ -107,7 +105,7 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
         <CountryCodeModal
           closeDialog={() => setModal(false)}
           formData={formData}
-          setFormData={setFormData}
+          setFormData={onGuestInfoChange}
         />
       )}
       <div className="w-full">

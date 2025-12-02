@@ -77,8 +77,6 @@ const MobilePage = ({
 
     const userInfo = JSON.parse(localStorage.getItem("persist:root") || "{}");
     const profileStr = userInfo.profile || "{}";
-    ;
-
     type Profile = {
       // profile: {
       first_name: string;
@@ -118,7 +116,7 @@ const MobilePage = ({
         phone: "",
         countryCode: "",
       });
-      (profile);
+      profile;
     }
   };
 

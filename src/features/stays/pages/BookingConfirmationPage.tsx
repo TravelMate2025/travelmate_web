@@ -16,21 +16,15 @@ import CarFailedPayment from "../../car_rentals/carPaidFor/CarFailedPayment";
 import { toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
 import { verifyHotelBooking } from "../api";
-
-const guests = [
-  {
-    name: "Elvis Presley",
-    email: "elvis@gmail.com",
-    phone: "+234 800 123 4567",
-    dob: "11/08/2024",
-  },
-];
+import { BookingDetailsVerifyData } from "../types";
+import { Loader } from "lucide-react";
+// import { BookingStaysVerifyDetails } from "../types";
 
 const BookingConfirmationPage: React.FC = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [booking, setBooking] = useState<any>([]);
+  const [booking, setBooking] = useState<BookingDetailsVerifyData>();
   const searchParams = new URLSearchParams(location.search);
   const sessionId = searchParams?.get("session_id");
   const [downloadLoading, setDownloadLoading] = useState(false);
@@ -43,8 +37,7 @@ const BookingConfirmationPage: React.FC = () => {
         setLoading(true);
         if (isSuccess) {
           const res = await verifyHotelBooking(sessionId);
-          console.log(res);
-          setBooking(res?.data);
+          setBooking(res?.data || null);
         } else {
           return <CarFailedPayment />;
         }
@@ -59,13 +52,13 @@ const BookingConfirmationPage: React.FC = () => {
   }, [sessionId]);
 
   if (loading) return <SkeletonConfirm />;
-  if (!booking) return <CarFailedPayment />;
+  if (!booking) return <></>;
 
   const handleDownload = (cars: any) => {
     try {
       setDownloadLoading(true);
       window.open(
-        `/car-paid/download?data=${encodeURIComponent(JSON.stringify(cars))}`,
+        `/stays-paid/download?data=${encodeURIComponent(JSON.stringify(cars))}`,
         "_blank"
       );
     } catch (error) {
@@ -75,9 +68,9 @@ const BookingConfirmationPage: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | undefined) => {
     switch (status?.toLowerCase()) {
-      case "confirmed":
+      case "succeeded":
         return "text-[#2D9C5E]";
       case "pending":
         return "text-[#F2994A]";
@@ -105,8 +98,15 @@ const BookingConfirmationPage: React.FC = () => {
               <FaShareAlt size={18} />
               Share
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg">
-              <FaDownload size={18} />
+            <button
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg"
+              onClick={() => handleDownload(booking)}
+            >
+              {downloadLoading ? (
+                <Loader className="animate-spiner" />
+              ) : (
+                <FaDownload size={18} />
+              )}
               Download
             </button>
           </div>
@@ -119,7 +119,7 @@ const BookingConfirmationPage: React.FC = () => {
         </div>
 
         {/* Notification */}
-        {
+        {booking?.payment_status === "succeeded" && (
           <div className="bg-green-50 border border-green-600 px-4 py-2 mb-6 rounded-lg flex sm:flex-row items-start sm:items-center gap-3">
             <div className="pt-1 sm:pt-0 flex justify-center sm:justify-start items-center">
               <GrStatusGood size={24} className="text-green-600 mt-5 sm:mt-0" />
@@ -127,21 +127,28 @@ const BookingConfirmationPage: React.FC = () => {
             <p>
               <span className="font-semibold">Payment Successful</span> and your
               stay is confirmed. Booking confirmation will also be sent to{" "}
-              <span className="font-semibold">elvis@gmail.com</span>.
+              <span className="font-semibold">
+                {booking?.guest_details?.primary_guest?.email}
+              </span>
+              .
             </p>
           </div>
-        }
-
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-8 sm:space-y-4">
-            <ConfirmationDetails getStatusColor={getStatusColor} />
-            <GuestDetails guests={guests} />
+            <ConfirmationDetails
+              getStatusColor={getStatusColor}
+              confirmDetails={booking}
+            />
+            {booking?.guest_details?.primary_guest && (
+              <GuestDetails guest={booking.guest_details.primary_guest} />
+            )}
           </div>
 
           <div className="space-y-4">
-            <PriceSummary />
-            <RoomDetails />
-            <HotelDetails />
+            <PriceSummary booking={booking} />
+            <RoomDetails booking={booking} />
+            <HotelDetails booking={booking} />
             <ContactDetails />
             <BackHomeButton />
           </div>

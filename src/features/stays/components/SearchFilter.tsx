@@ -173,6 +173,7 @@ const SearchFilter: React.FC = () => {
         counts.rooms
       }`
     );
+    // console.log()
   };
   useEffect(()=>{
     fetchRecommendedHotels ()

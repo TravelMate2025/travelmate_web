@@ -16,7 +16,6 @@ const SelectOptions = ({
   onRateSelect,
 }: OptionsProps) => {
   const availableRooomsRate = rooms?.find((item) => item?.code === roomId);
-  console.log(availableRooomsRate?.rates);
   const [selectedRateKey, setSelectedRateKey] = useState<
     string | null | undefined
   >(
@@ -91,7 +90,7 @@ const SelectOptions = ({
           </div>
         </div>
 
-        {/* Scrollable Content */}
+        {/* MAIN */}
         <div className="flex-grow overflow-y-auto">
           <div className="px-4 py-3 flex flex-row items-start sm:items-center gap-3 w-full border-b border-b-gray-300 text-xs">
             <div className="pt-1">
@@ -103,8 +102,9 @@ const SelectOptions = ({
           </div>
 
           {availableRooomsRate?.rates.map((option) => (
-            <div
+            <label
               key={option.rateKey}
+              htmlFor={option.rateKey}
               className="flex justify-between items-start w-full px-6 py-4 cursor-pointer hover:bg-gray-100 border-b border-b-gray-300"
             >
               <div className="flex gap-4 items-start">
@@ -147,11 +147,10 @@ const SelectOptions = ({
               </div>
 
               <p className="font-bold">${option.price_with_commission}</p>
-            </div>
+            </label>
           ))}
         </div>
 
-        {/* Sticky Button at Bottom */}
         <div className=" bg-white p-4 flex-shrink-0 my-6">
           <button
             className="w-full bg-[#023E8A] text-white py-2 rounded-lg hover:bg-[#023E9E] transition-colors cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400"

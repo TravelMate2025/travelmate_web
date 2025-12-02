@@ -2,7 +2,7 @@ import Navbar from "../../../pages/homePage/Navbar";
 import { GrStatusGood } from "react-icons/gr";
 import HotelCard from "../components/BookingProgressHotelCard";
 import GuestInformation from "../components/booking-progress/GuestInformation";
-import PriceSummary from "../components/confirmation/PriceSummary";
+import PriceSummary from "../components/booking-progress/PriceSummary";
 import BookingDetails from "../components/booking-progress/BookingDetails";
 import PaymentMethod from "../components/booking-progress/PaymentMethod";
 import RefundCancellation from "../components/booking-progress/RefundCancellation";
@@ -220,7 +220,8 @@ const BookingProgress: React.FC = () => {
                   <Info stroke="#D72638" />
 
                   <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
-                    To confirm your booking, please create an account or log in.
+                    To continue your booking, please create an account or log
+                    in.
                   </p>
                 </div>
               )}
@@ -301,9 +302,20 @@ const BookingProgress: React.FC = () => {
           {currentStep === 1 && (
             <>
               <GuestInformation
-                onGuestInfoChange={setGuestInfo}
+                onGuestInfoChange={(info) =>
+                  setGuestInfo({
+                    firstName: info.firstName || "",
+                    lastName: info.lastName || "",
+                    email: info.email || "",
+                    phone: info.phone || "",
+                    dateOfBirth: info.dateOfBirth || "",
+                    countryCode: info.countryCode || "",
+                    address: info.address || "",
+                    postal: info.postal || "",
+                    city: info.city || "",
+                  })
+                }
                 formData={guestInfo}
-                setFormData={setGuestInfo}
                 errors={errors}
               />
               <div className="flex justify-center items-center">

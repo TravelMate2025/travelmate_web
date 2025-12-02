@@ -56,10 +56,10 @@ export default function UpdateSearchFilter() {
       try {
         setLoadingLocations(true);
         if (destination.length >= 2) {
-          const data = await fetchDestinations(destination, accessToken);
+          const data = await fetchDestinations(destination);
           setLocations(data);
         } else if (!destination) {
-          const data = await fetchDestinations(undefined, accessToken);
+          const data = await fetchDestinations(undefined);
           setLocations(data);
         } else {
           setLoadingLocations(false);

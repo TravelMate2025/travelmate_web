@@ -25,7 +25,15 @@ interface Bookings {
   total_price: number;
 }
 const Bookings = () => {
-  const [activeTab, setActiveTab] = useState("pending");
+  const bookingTabs = [
+    { name: "Ongoing", link: "/bookings?tab=pending" },
+    { name: "Completed", link: "/bookings?tab=completed" },
+    { name: "Cancelled", link: "/bookings?tab=cancelled" },
+    { name: "Failed", link: "/bookings?tab=failed" },
+  ];
+  const [activeTab, setActiveTab] = useState<string>(
+    bookingTabs[0].name.toLowerCase()
+  );
   const accessToken = getAccessToken();
   const [loading, setLoading] = useState(false);
   const [cancelingBookingId, setCancelingBookingId] = useState<string | null>(
@@ -33,12 +41,7 @@ const Bookings = () => {
   );
   const breadcrumbs = [{ name: "Home", link: "/" }, { name: "Bookings" }];
   const [bookings, setBookings] = useState<Bookings[]>([]);
-  const bookingTabs = [
-    { name: "Ongoing", link: "/bookings?tab=pending" },
-    { name: "Completed", link: "/bookings?tab=completed" },
-    { name: "Cancelled", link: "/bookings?tab=cancelled" },
-    { name: "Failed", link: "/bookings?tab=failed" },
-  ];
+
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -135,7 +138,7 @@ const Bookings = () => {
               {activeTab === "completed" && (
                 <Completed
                   bookings={bookings?.filter(
-                    (item) => item?.status.toLowerCase() === "completed"
+                    (item) => item?.status.toLowerCase() === "ongoing"
                   )}
                 />
               )}

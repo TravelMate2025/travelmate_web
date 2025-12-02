@@ -109,29 +109,57 @@ export interface BookStaysResponse {
   checkout_url: string;
 }
 
+export interface UserSummary {
+  id: number;
+  email?: string;
+  [key: string]: any;
+}
+export interface HotelLocationDetails {
+  address: string;
+  latitude: number;
+  longitude: number;
+  destination?: {
+    code?: string;
+    name?: string;
+    city_name?: string;
+    country_name?: string;                                
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+export interface GuestDetails {
+  primary_guest?: Customer;
+  additional_adults?: Customer[];
+  children?: Child[];
+  special_requests?: string;
+  [key: string]: any;
+}
+export interface BookingDetailsVerifyData { 
+  id: number;
+  reference: string;
+  hotel_code: string | number;
+  hotel_name: string;
+  check_in: string;
+  check_out: string;
+  currency: string;
+  payment_status: string;
+  status: string;
+  total_price: string;
+  created_at: string;
+  user: UserSummary;
+  cancellation_fee?: string | null;
+  cancellation_reason?: string | null;
+  refund_amount?: string | null;
+  refund_status?: string;
+  rooms_details?: any[]; // keep as any[] unless you have a concrete shape
+  guest_details?: GuestDetails | undefined;
+  hotel_location?: HotelLocationDetails;
+  [key: string]: any;
+}
 export interface BookingStaysVerifyDetails {
   success: boolean;
+  data: BookingDetailsVerifyData;
   error?: string
-  data?: {
-    id: number;
-    reference: string;
-    hotel_code: string;
-    hotel_name: string;
-    check_in: string; 
-    check_out: string; 
-    currency: string;
-    payment_status: string;
-    status: string;
-    total_price: string; 
-    created_at: string; 
-    user: string;
-    cancellation_fee: string;
-    refund_amount: string;
-    refund_status: string;
-    cancellation_reason: string;
-    hotel_location: string;
-    rooms_details: string;
-    guest_details: string;
-  }
 
 }

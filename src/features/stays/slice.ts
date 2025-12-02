@@ -18,7 +18,7 @@ interface SearchParams {
   destination: string;
   checkIn: string;
   checkOut: string;
-  adults: number ;
+  adults: number;
   children: number;
   rooms: number;
 }
@@ -59,9 +59,9 @@ export interface GuestInfoProps {
   phone: string;
   dateOfBirth: string;
   countryCode: string;
-  address: string
-  postal: string
-  city: string
+  address?: string
+  postal?: string
+  city?: string
 }
 
 export const fetchHotelsAsync = createAsyncThunk(
@@ -122,6 +122,21 @@ const staysSlice = createSlice({
       state.searchParams = null;
       state.error = null;
     },
+    clearSearchState: (state) => {
+      state.hotels = [];
+      state.searchParams = null;
+      state.locationDetails = null;
+      state.selectedHotel = null;
+      state.detailsLoading = false;
+      state.detailsError = null;
+      state.error = null;
+      state.guestInfo = null;
+      state.booking = {
+        loading: false,
+        error: null,
+        booking: null,
+      };
+    },
     clearSelectedHotel: (state) => {
       state.selectedHotel = null;
       state.detailsError = null;
@@ -160,6 +175,6 @@ const staysSlice = createSlice({
   }
 });
 
-export const { setSearchParams, setGuestInfo, clearStaysCache, clearSelectedHotel, setLocationDetails } = staysSlice.actions;
+export const { setSearchParams, setGuestInfo, clearStaysCache, clearSearchState, clearSelectedHotel, setLocationDetails } = staysSlice.actions;
 export default staysSlice.reducer;
 

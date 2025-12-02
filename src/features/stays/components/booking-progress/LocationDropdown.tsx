@@ -98,7 +98,7 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
             </InputAdornment>
           ) : null,
         }}
-        className="w-full md:w-[23vw] lg:w-[23vw]"
+        className="w-full md:w-[23vw]"
         sx={{
           "& .MuiInputBase-root": { height: "44px", borderRadius: "8px" },
         }}
@@ -112,10 +112,10 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({
       >
         <ClickAwayListener onClickAway={handleClose}>
           <Paper
-            className="w-full md:w-[23vw] lg:w-[23vw]"
+            className="w-full md:w-[23vw]"
             elevation={3}
             sx={{
-              width: isMobile ? "100%" : "300px",
+              width: isMobile ? "375px" : "300px",
               borderRadius: "6px",
               backgroundColor: "white",
               boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",

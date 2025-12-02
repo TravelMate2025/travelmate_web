@@ -43,6 +43,7 @@ import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
 import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
 import Bookings from "./features/stays/pages/Bookings";
 import Favorites from "./features/stays/pages/Favorites";
+import DownloadStaysPage from "./features/stays/components/confirmation/Download";
 
 function App() {
   return (
@@ -63,6 +64,7 @@ function App() {
         <Route path="/stays-search-result" element={<StaysSearchResults />} />
         <Route path="/booking-progress" element={<BookingProgress />} />
         <Route path="/stays-detail/:hotelId" element={<StaysDetail />} />
+         <Route path="/stays-paid/download" element={<DownloadStaysPage />} />
         <Route path="/faqs" element={<FaqPage />} />
         <Route path="/chat-with-us" element={<ChatPage />} />
 
