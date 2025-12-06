@@ -23,7 +23,6 @@ export const useFormPersistence = (
           searchResults: [], // Don't persist search results
         };
         localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-        console.log('Saved to localStorage:', dataToSave);
       } catch (error) {
         console.error('Failed to save form data:', error);
       }

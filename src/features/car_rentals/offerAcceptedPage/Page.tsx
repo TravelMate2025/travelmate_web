@@ -160,6 +160,7 @@ const Page = () => {
     if (activeStep < steps.length - 1) {
       setActiveStep((prevStep) => prevStep + 1);
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleBack = () => {
@@ -171,9 +172,12 @@ const Page = () => {
           departureInfo.selectedRide
         )}&from=${departureInfo.pickupLocaDescription}&to=${
           departureInfo.dropoffLocaDescription
-        }&time=${departureInfo.pickupDate}&pricerange=${departureInfo.priceRange}`
+        }&time=${departureInfo.pickupDate}&pricerange=${
+          departureInfo.priceRange
+        }`
       );
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleConfirm = async () => {
@@ -207,12 +211,12 @@ const Page = () => {
       if (result.success) {
       } else {
         dispatch(resetForm());
-        navigate("/");
+        navigate("/", { replace: true });
         return;
       }
       setActiveStep(2);
       setConfirmationId(result?.data?.id ?? "");
-      console.log(result);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error: any) {
       console.error("Booking failed:", error);
       toast.error(`${error?.response?.data?.detail[0]} Please search again`);

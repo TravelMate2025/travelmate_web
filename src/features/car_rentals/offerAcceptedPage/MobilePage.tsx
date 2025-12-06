@@ -23,6 +23,8 @@ import { FiPhone } from "react-icons/fi";
 import { DeskProps } from "./Page";
 import { ToastContainer } from "react-toastify";
 import CountryCodeModal from "../../stays/components/modals/CountryCodeModal";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store";
 
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .MuiStepConnector-line`]: {
@@ -66,7 +68,8 @@ const MobilePage = ({
     });
   };
   const [showAllModal, setShowAllModal] = useState(false);
-  const loggedIn = localStorage.getItem("accessToken");
+  const { accessToken } = useSelector((state: RootState) => state.auth);
+  // const loggedIn = localStorage.getItem("accessToken");
   const location = useLocation();
   const { car, departureInfo } = location.state || {};
   const [countryModal, setCountryModal] = useState(false);
@@ -192,7 +195,7 @@ const MobilePage = ({
             ))}
           </Stepper>
         </Box>
-        {!loggedIn && (
+        {!accessToken && (
           <div className="flex items-center gap-3 bg-red-50 p-2 rounded-md m-2 border border-[#D72638] mx-3 my-6">
             <Info stroke="#D72638" />
             <p className="text-[#181818] text-xs font-sans">
@@ -741,7 +744,7 @@ const MobilePage = ({
             <button
               className="flex items-center justify-center gap-5 w-full lg:w-96 text-white h-[56px] rounded-[6px] cursor-pointer bg-[#023E8A]  disabled:bg-gray-400 disabled:cursor-not-allowed"
               disabled={
-                !loggedIn ||
+                !accessToken ||
                 loadingSubmit ||
                 (activeStep === 1 && !isTheFormValid)
               }

@@ -73,10 +73,10 @@ export default function Login() {
   
       if (isProfileIncomplete) {
         toast.success(`Welcome back, ${fullName || "User"}!, Please navigate to the profile page to complete your profile`);
-        navigate("/");
+        navigate("/", {replace: true});
       } else {
         toast.success(`Welcome back, ${fullName || "User"}!`);
-        navigate("/");
+        navigate("/" , {replace: true});
       }
   
     } catch (err: any) {

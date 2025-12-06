@@ -39,7 +39,6 @@ const BookingProgress: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
   // const [isValid, setIsValid] = useState(false);
-  const loggedIn = localStorage.getItem("accessToken");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [guestInfo, setGuestInfo] = useState({
     firstName: "",
@@ -102,6 +101,7 @@ const BookingProgress: React.FC = () => {
     if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleBack = () => {
@@ -109,6 +109,7 @@ const BookingProgress: React.FC = () => {
     else {
       navigate(-1);
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const handleSubmit = async () => {
     if (!searchParams || !accessToken || !selectedRoom) return;
@@ -148,6 +149,7 @@ const BookingProgress: React.FC = () => {
       } else {
         console.error("Payment failed or invalid response:", response);
       }
+      
     } catch (error) {
       console.error("Booking failed:", error);
       toast.error(`Booking failed: ${(error as Error).message}`);
@@ -215,7 +217,7 @@ const BookingProgress: React.FC = () => {
                 </p>
               </div>
 
-              {!loggedIn && (
+              {!accessToken && (
                 <div className="bg-red-100 border border-red-400 px-4 py-2 rounded-lg flex flex-row items-start sm:items-center gap-3 mx-4 sm:mx-0">
                   <Info stroke="#D72638" />
 
@@ -269,7 +271,7 @@ const BookingProgress: React.FC = () => {
                     <button
                       onClick={handleNext}
                       className="bg-[#023E8A] text-white p-3 mt-12 rounded-lg w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
-                      disabled={!loggedIn}
+                      disabled={!accessToken}
                     >
                       Continue
                     </button>
@@ -291,7 +293,7 @@ const BookingProgress: React.FC = () => {
                 <button
                   onClick={handleNext}
                   className="bg-[#023E8A] text-white p-3 mt-12 rounded-lg lg:w-[40%] w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  disabled={!loggedIn}
+                  disabled={!accessToken}
                 >
                   Continue
                 </button>

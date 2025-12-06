@@ -108,7 +108,7 @@ export default function CreateAccount() {
           localStorage.setItem("accessToken", res.access);
           localStorage.setItem("refreshToken", res.refresh);
           localStorage.setItem("email", res.user?.email ?? googleEmail ?? "");
-          navigate("/");
+          navigate("/" , {replace: true});
         } else {
           toast.error("Unexpected response format. Please try again.");
           console.error("Unexpected Google login response:", res);

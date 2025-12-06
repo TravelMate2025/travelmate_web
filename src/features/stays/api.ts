@@ -1,4 +1,4 @@
-import {  BookingDetailsVerifyData, BookingStaysVerifyDetails, BookStaysRequest, BookStaysResponse, Destination, Hotel, HotelSearchResponse } from './types';
+import { BookingDetailsVerifyData, BookingStaysVerifyDetails, BookStaysRequest, BookStaysResponse, Destination, Hotel, HotelSearchResponse } from './types';
 import api from '../../api/services/api';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
@@ -44,6 +44,7 @@ export const fetchDestinations = async (search?: string): Promise<Destination[]>
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
     console.error('Error fetching destinations:', errorMessage);
+    toast.error(errorMessage);
     throw new Error(errorMessage);
   }
 };
@@ -91,7 +92,7 @@ export const searchHotels = async (
     return response.data;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
-    console.error('Search error:', errorMessage);
+    toast.error('Search error:', errorMessage);
     throw new Error(errorMessage);
   }
 };
@@ -119,7 +120,7 @@ export const getHotelDetails = async (
     return response.data;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || `Failed to get details for hotel ${hotelId}`;
-    console.error('Details error:', errorMessage);
+    toast.error(errorMessage);
     throw new Error(errorMessage);
 
   }
@@ -141,8 +142,9 @@ export const createCheckoutSession = async (
     });
     return response.data;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message || error;
-    toast.error('Booking error:', errorMessage);
+    const errorMessage = error.response?.data?.error || error.message || error || "Something went wrong!";
+    toast.error(errorMessage);
+    console.log(error)
     throw new Error(errorMessage);
 
   } finally {
@@ -159,8 +161,8 @@ export const verifyHotelBooking = async (sessionId: string | null): Promise<Book
       data: response.data,
     };
   } catch (error: any) {
-    console.error('Get booking by session failed:', error);
-    toast.error(error?.response?.data?.error)
+    const errorMessage = error.response?.data?.error || error.message || error || "Something went wrong!";
+    toast.error(errorMessage)
     return {
       data: {} as BookingDetailsVerifyData,
       success: false,
@@ -252,8 +254,8 @@ export const fetchBookings = async (token?: string | null) => {
     return response;
   }
   catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message;
-    toast.error('Error fetching bookings:', errorMessage);
+    const errorMessage = error.response?.data?.error || error.message || "Something went wrong!";
+    toast.error(errorMessage);
 
     throw new Error(errorMessage);
 

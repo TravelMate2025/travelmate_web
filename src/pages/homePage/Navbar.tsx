@@ -249,7 +249,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         "& .MuiDrawer-paper": {
                           width: "90%",
                           margin: "0 auto",
-                          height: "70%",
+                          height: "80%",
                           marginTop: "16%",
                           borderRadius: "12px",
                           boxShadow: "0px 4px 10px rgba(102, 71, 71, 0.1)",
@@ -395,6 +395,8 @@ const Navbar: React.FC<NavbarProps> = ({
                             sx={{
                               cursor: "pointer",
                               display: "flex",
+                              justifyContent: "end",
+
                               alignItems: "center",
                               marginTop: "26px",
                             }}
@@ -596,7 +598,6 @@ const Navbar: React.FC<NavbarProps> = ({
                       {setting.text}
                     </Typography>
                   </MenuItem>
-                  
                 ))}
               </Menu>
             </Box>

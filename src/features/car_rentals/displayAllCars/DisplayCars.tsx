@@ -139,7 +139,7 @@ const DisplayCars: React.FC = () => {
   useEffect(() => {
     if (!carInfo || !carInfo.pickupLocation) {
       console.warn("No car search data found, redirecting to search page");
-      navigate("/");
+      navigate("/" , {replace: true} );
     }
   }, [carInfo, navigate]);
 

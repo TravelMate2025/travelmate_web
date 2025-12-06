@@ -12,7 +12,7 @@ const BackHomeButton: React.FC = () => {
       className="bg-[#023E8A] w-full text-white px-6 py-2 rounded-lg mt-6 mb-15 hover:bg-blue-700"
       onClick={() => {
         dispatch(clearSearchState());                                            
-        navigate("/");
+        navigate("/" , {replace: true});
       }}
     >
       Back to Home
