@@ -98,7 +98,7 @@ const DisplayCars: React.FC = () => {
       toLat: carInfo.toLat,
       toLon: carInfo.toLon,
       searchResults: carInfo.searchResults || [],
-      search_id: "",
+      search_id: state.search_id,
       rate_key: "",
     } as BookingFormData;
   }, [carInfo]);
@@ -114,6 +114,7 @@ const DisplayCars: React.FC = () => {
     submitError,
     setSubmitError,
   } = useBookingForm(initialData);
+
 
   const stateData = useMemo(() => {
     const locationState = (state || {}) as BookingFormData;
@@ -277,6 +278,7 @@ const DisplayCars: React.FC = () => {
     }),
     [formData]
   );
+  console.log(formData)
 
   return (
     <div className="relative">

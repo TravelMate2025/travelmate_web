@@ -160,6 +160,7 @@ const MobilePage = ({
           setFormData={setPassFormData}
         />
       )}
+     
       <div className="mt-4">
         <div className="lg:pt-20 pt-20 mb-6 flex justify-normal items-center px-6 gap-8">
           <div className=" p-[8px]  bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px] ">

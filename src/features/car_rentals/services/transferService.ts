@@ -176,15 +176,29 @@ class TransferService {
 
     async cancelBooking(confirmationId: string): Promise<BookingFinalizeResult> {
         try {
-            const response = await axios.get(`${this.baseUrl}/transfers/booking/${confirmationId}/cancel/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
+            const response = await axios.post(`${this.baseUrl}/transfers/booking/${confirmationId}/cancel/`);
             return {
                 success: true,
                 data: response.data,
             };
         } catch (error) {
+            console.error('Cancel booking failed:', error);
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Failed to cancel booking',
+            };
+        }
+    }
+    async finalizeBooking(confirmationId: string): Promise<BookingFinalizeResult> {
+        try {
+            const response = await instance.post(`${this.baseUrl}/transfers/booking/finalize/${confirmationId}/`);
+            return {
+                success: true,
+                data: response.data
+
+
+            }
+        } catch (error: any) {
             console.error('Cancel booking failed:', error);
             return {
                 success: false,
@@ -212,7 +226,7 @@ class TransferService {
 
 
     async lookupTerminal(name: string): Promise<LookupResult> {
-        const cacheKey = name.toLowerCase().trim(); 
+        const cacheKey = name.toLowerCase().trim();
         if (this.terminalCache.has(cacheKey)) {
             return {
                 success: true,

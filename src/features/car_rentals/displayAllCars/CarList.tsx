@@ -42,6 +42,7 @@ const CarList: React.FC<CarListProps> = ({
   const [sortOrder, setSortOrder] = useState<
     "Recommended" | "Low to High" | "High to Low"
   >("Recommended");
+  console.log(departureInfo);
 
   const sortedCars = useMemo(() => {
     if (sortOrder === "Low to High") {
@@ -73,14 +74,18 @@ const CarList: React.FC<CarListProps> = ({
   }, [sortedCars, page]);
 
   const handleSubmitOffer = (car: any) => {
-    navigate(`/cars-booking?transfers=${car.vehicle.name}&from=${car?.pickupInformation.from.description}&to=${car?.pickupInformation.to.description}&price=${car?.cancellationPolicies[0]?.amount}`, {
-      state: {
-        car,
-        search_id: departureInfo.search_id,
-        rate_key,
-        departureInfo,
-      },
-    });
+    navigate(
+      `/cars-booking?transfers=${car.vehicle.name}&from=${car?.pickupInformation.from.description}&to=${car?.pickupInformation.to.description}&price=${car?.cancellationPolicies[0]?.amount}`,
+      {
+        state: {
+          car,
+          search_id: departureInfo.search_id,
+          rate_key,
+          departureInfo,
+          // confirmationId: departureInfo.confirmationId,
+        },
+      }
+    );
   };
 
   return (

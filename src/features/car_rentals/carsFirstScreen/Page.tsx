@@ -60,8 +60,8 @@ const CarBookingFirstScreen: React.FC = () => {
   // Initialize form with Redux data or saved data
   // const { loadSavedData } = useFormPersistence({} as BookingFormData);
 
-const initialData = useMemo(() => {
-    const savedData = localStorage.getItem('carBookingForm');
+  const initialData = useMemo(() => {
+    const savedData = localStorage.getItem("carBookingForm");
     const persistedData = savedData ? JSON.parse(savedData) : null;
 
     let baseData: Partial<BookingFormData>;
@@ -95,7 +95,7 @@ const initialData = useMemo(() => {
       toLon: baseData.toLon ? Number(baseData.toLon) : undefined,
       searchResults: baseData.searchResults || [],
     } as BookingFormData;
-  }, [])
+  }, []);
 
   const {
     formData,
@@ -111,7 +111,7 @@ const initialData = useMemo(() => {
     setSubmitError,
   } = useBookingForm(initialData);
 
-   useFormPersistence(formData);
+  useFormPersistence(formData);
   // Modal management
   const { modals, openModal, closeModal } = useModalState();
 
@@ -236,14 +236,16 @@ const initialData = useMemo(() => {
       if (!result?.data?.results?.services) {
         throw new Error(result.error || "No transfer results found");
       }
+
       dispatch(setSearchResults(result?.data?.results?.services || []));
-      console.log("Search results:", result?.data?.results?.services);
+      console.log("Search results:", result?.data);
       navigate(
         `/cars-searchResults?ride=${encodeURIComponent(
           formData.selectedRide
         )}&from=${formData.pickupLocaDescription}&to=${
           formData.dropoffLocaDescription
-        }&time=${formData.pickupDate}&pricerange=${formData.priceRange}`
+        }&time=${formData.pickupDate}&pricerange=${formData.priceRange}`,
+        { state: { search_id: result.data.search_id } }
       );
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Search failed");

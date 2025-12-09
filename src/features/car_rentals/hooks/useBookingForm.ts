@@ -28,6 +28,7 @@ export const useBookingForm = (initialData?: Partial<BookingFormData>) => {
     searchResults: initialData?.searchResults || [],
     search_id: initialData?.search_id || "",
     rate_key: initialData?.rate_key || "",
+    confirmationId: initialData?.confirmationId || ""
 
   });
   const [touched, setTouched] = useState<TouchedFields>({});
@@ -76,6 +77,9 @@ export const useBookingForm = (initialData?: Partial<BookingFormData>) => {
       selectedRide: "",
       priceRange: { min: 0, max: 0 },
       passengerCounts: { adults: 0, children: 0, infant: 0 },
+      confirmationId:"",
+      rate_key:"",
+      search_id:""
     });
     setErrors({});
     setSubmitError(null);

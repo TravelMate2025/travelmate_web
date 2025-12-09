@@ -8,8 +8,8 @@ import { transferService } from "../services/transferService";
 import toast from "react-hot-toast";
 import { RootState } from "../../../store";
 import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
-import { resetForm } from "../carPaymentSlice";
+// import { useDispatch } from "react-redux";
+// import { resetForm } from "../carPaymentSlice";
 
 export type DeskProps = {
   handleBack: () => void;
@@ -72,7 +72,7 @@ const Page = () => {
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const [submitted, setSubmitted] = useState(false);
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   const steps = ["Booking Overview", "Passenger Information", "Payment"];
 
@@ -209,14 +209,12 @@ const Page = () => {
         payload
       );
       if (result.success) {
+        setActiveStep(2);
+        setConfirmationId(result?.data?.id ?? "");
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        dispatch(resetForm());
-        navigate("/", { replace: true });
         return;
       }
-      setActiveStep(2);
-      setConfirmationId(result?.data?.id ?? "");
-      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error: any) {
       console.error("Booking failed:", error);
       toast.error(`${error?.response?.data?.detail[0]} Please search again`);

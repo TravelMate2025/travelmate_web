@@ -35,6 +35,7 @@ export interface BookingFormData {
   searchResults?: any[];
   search_id?: string;
   rate_key?: string;
+  confirmationId?: string
 }
 
 export interface FormValidationResult {
