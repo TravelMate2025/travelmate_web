@@ -55,6 +55,9 @@ export const LocationSelector = memo<LocationSelectorProps>(
     const [triggerFetchAirports, { data: locations = [], isFetching,  }] =
       useLazyFetchAirportsQuery();
 
+    const [lastSuccessfulLocations, setLastSuccessfulLocations] = useState<Airport[]>([]);
+    const [searchError, setSearchError] = useState(false);
+
     // 🕐 Debounce delay time (ms)
     const DEBOUNCE_DELAY = 800;
     const [debouncedValue, setDebouncedValue] = useState(value);
@@ -70,12 +73,16 @@ export const LocationSelector = memo<LocationSelectorProps>(
       };
     }, [value]);
 
-    // Fetch airports when debounced value changes
     useEffect(() => {
-      if (debouncedValue.trim()) {
-        triggerFetchAirports(debouncedValue);
-      }
+  if (debouncedValue.trim()) {
+    setSearchError(false); // reset error state
+    triggerFetchAirports(debouncedValue)
+      .unwrap()
+      .then((res: Airport[]) => setLastSuccessfulLocations(res))
+      .catch(() => setSearchError(true));
+  }
     }, [debouncedValue, triggerFetchAirports]);
+
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
       setAnchorEl(event.currentTarget);
@@ -105,44 +112,59 @@ export const LocationSelector = memo<LocationSelectorProps>(
       handleClose();
     };
 // const filteredLocations =  locations.filter((loc=>loc.type === "AIRPORT"));
-    const resultsList = (
-      <>
-        {isFetching ? (
-          <Box display="flex" justifyContent="center" py={4}>
-            <CircularProgress size={24} />
-          </Box>
-        ) : locations.length === 0 ? (
-          <Box display="flex" justifyContent="center" py={4}>
-              <Typography color="textSecondary">No location found</Typography>
-          </Box>
-        ) : (
-          locations.map((location, index) => (
-            <React.Fragment key={location.id}>
-              <div 
-                className="flex justify-between pl-6 pt-4 pr-6 cursor-pointer"
-                onClick={() => handleLocationSelect(location)}
-              >
-                <div className="flex gap-2 items-center">
-                  <div className="h-7 w-7 rounded border border-[#FF6F1E] bg-[#FF6F1E0A] flex items-center justify-center">
-                    <RoomOutlinedIcon sx={{ fontSize: 16, color: "#FF6F1E" }} />
-                  </div>
-                  <Typography>{location.displayName}</Typography>
-                </div>
-
-                <CloseOutlinedIcon
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveLocation(location.id as string);
-                  }}
-                  sx={{ cursor: "pointer", color: "black" }}
-                />
+   const resultsList = (
+  <>
+    {isFetching ? (
+      <Box display="flex" justifyContent="center" py={4}>
+        <CircularProgress size={24} />
+      </Box>
+    ) : searchError ? (
+      <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" py={4}>
+        <Typography color="textSecondary" mb={2}>
+          Failed to fetch locations
+        </Typography>
+        <button
+          onClick={() => triggerFetchAirports(debouncedValue)}
+          className="px-4 py-2 bg-orange-500 text-white rounded"
+        >
+          Retry
+        </button>
+      </Box>
+    ) : (locations.length === 0 && lastSuccessfulLocations.length === 0) ? (
+      <Box display="flex" justifyContent="center" py={4}>
+        <Typography color="textSecondary">No location found</Typography>
+      </Box>
+    ) : (
+      (locations.length > 0 ? locations : lastSuccessfulLocations).map((location, index) => (
+        <React.Fragment key={location.id}>
+          <div
+            className="flex justify-between pl-6 pt-4 pr-6 cursor-pointer"
+            onClick={() => handleLocationSelect(location)}
+          >
+            <div className="flex gap-2 items-center">
+              <div className="h-7 w-7 rounded border border-[#FF6F1E] bg-[#FF6F1E0A] flex items-center justify-center">
+                <RoomOutlinedIcon sx={{ fontSize: 16, color: "#FF6F1E" }} />
               </div>
-              {index !== locations.length - 1 && <Divider sx={{ mt: 2 }} />}
-            </React.Fragment>
-          ))
-        )}
-      </>
-    );
+              <Typography>
+                {location.displayName.replace(/^None\s*-\s*/i, "").replace(/\(None\)/i, "").trim()}
+              </Typography>
+            </div>
+
+            <CloseOutlinedIcon
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveLocation(location.id as string);
+              }}
+              sx={{ cursor: "pointer", color: "black" }}
+            />
+          </div>
+          {index !== (locations.length > 0 ? locations : lastSuccessfulLocations).length - 1 && <Divider sx={{ mt: 2 }} />}
+        </React.Fragment>
+      ))
+    )}
+  </>
+   );
+
 
     return (
       <div className="flex flex-col">
