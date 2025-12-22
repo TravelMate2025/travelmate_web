@@ -7,7 +7,7 @@ import TabPanel from "@mui/lab/TabPanel";
 import plane from "../../assets/plane.svg";
 import car from "../../assets/car.svg";
 import stay from "../../assets/stay.svg";
-import RoundTrip from "./RoundTrip";
+import RoundTrip from "./Flight";
 import SearchFilter from "../../features/stays/components/SearchFilter";
 import Page from "../../features/car_rentals/carsFirstScreen/Page";
 import { useMediaQuery } from "react-responsive";
@@ -71,7 +71,7 @@ const WelcomePage = () => {
                           alt="stay"
                           style={{ width: 20, height: 20 }}
                         />
-                      }
+                      }   
                       iconPosition="start"
                       label="Stays"
                       value="1"

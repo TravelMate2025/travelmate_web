@@ -5,9 +5,9 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 const breadcrumbMap: { [key: string]: { label: string; path?: string }[] } = {
   // Round-trip section
-  "/departure-flight": [{ label: "Departure Flight" }],
-  "/return-flight": [
-    { label: "Departure Flight", path: "/departure-flight" },
+  "/flight/departure": [{ label: "Departure Flight" }],
+  "/flight/return": [
+    { label: "Departure Flight", path: "/flightdeparture" },
     { label: "Return Flight" },
   ],
 

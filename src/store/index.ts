@@ -1,18 +1,24 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import authReducer from "../features/account/slices/authSlice";
 import profileReducer from "../features/account/slices/profileSlice";
-import staysReducer from "../features/stays/slice"; 
-import carsReducer from "../features/car_rentals/carPaymentSlice"
+import staysReducer from "../features/stays/slice";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { PersistPartial } from "redux-persist/es/persistReducer";
 
+import { flightsApi } from "../features/flights/api/flightApi";
+import { nationsApi } from "../features/flights/api/nationalityApi";
+import { locationApi } from "../features/flights/api/locationApi";
+import carsReducer from "../features/car_rentals/carPaymentSlice";
 // 1. Combine all your reducers
 const rootReducer = combineReducers({
   auth: authReducer,
   profile: profileReducer,
   stays: staysReducer,
-  cars: carsReducer
+  [flightsApi.reducerPath]: flightsApi.reducer,
+  [nationsApi.reducerPath]: nationsApi.reducer,
+  [locationApi.reducerPath]: locationApi.reducer,
+  cars: carsReducer,
 });
 
 // 2. Persist config
@@ -31,7 +37,10 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }),
+    })
+      .concat(flightsApi.middleware)
+      .concat(nationsApi.middleware)
+      .concat(locationApi.middleware),
 });
 
 // 5. Persistor

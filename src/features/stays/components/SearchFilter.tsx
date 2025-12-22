@@ -22,7 +22,7 @@ interface SearchParams {
   checkOut: string;
   adults: number;
   children: number;
-  rooms: number;
+  rooms: number;  
 }
 
 const SearchFilter: React.FC = () => {
