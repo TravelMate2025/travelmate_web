@@ -51,31 +51,6 @@ const CarPaidForPage = () => {
     if (sessionId) fetchBooking();
   }, [sessionId]);
 
-  useEffect(() => {
-    const finalizeBooking = async () => {
-      // Guard clause: We need booking data to find the ID
-      if (!booking || booking.length === 0) return;
-
-      // Assuming the booking object has an ID we need to finalize
-      const confirmationId = booking[0]?.bookingId || booking[0]?.reference;
-
-      if (!confirmationId) return;
-
-      try {
-        if (isSuccess) {
-          const res = await transferService.finalizeBooking(confirmationId);
-          console.log("Finalized:", res);
-        }
-      } catch (error) {
-        console.error("Error finalizing:", error);
-      }
-    };
-
-    if (isSuccess && booking.length > 0) {
-      finalizeBooking();
-    }
-  }, [booking, isSuccess]);
-
   if (loading) return <SkeletonConfirm />;
   if (!booking) return <CarFailedPayment />;
 

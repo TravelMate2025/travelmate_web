@@ -72,10 +72,6 @@ export default function StaysSearchResults() {
   // Effect to fetch hotel data based on filters and search parameters from Redux
   useEffect(() => {
     if (hotels.length > 0 && !loading) {
-      console.log("Loading stays from cache:", {
-        hotels: hotels,
-        totalResults: hotels.length,
-      });
       return;
     }
 

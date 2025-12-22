@@ -208,7 +208,9 @@ const StaysDetail: React.FC = () => {
         guestsChild: searchParams?.children,
       },
     });
+  
   };
+ 
   // Conditional Rendering for Loading/Error states
   if (detailsLoading) {
     return <StaysDetailSkeleton />;

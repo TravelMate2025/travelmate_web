@@ -36,6 +36,7 @@ const SelectOptions = ({
         closeDialog();
       }
     }
+
   };
   const isButtonEnabled = !!selectedRateKey;
 

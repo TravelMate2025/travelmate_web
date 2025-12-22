@@ -86,9 +86,9 @@ export const fetchHotelsAsync = createAsyncThunk(
 
 export const createBookingAsync = createAsyncThunk(
   'stays/createCheckoutSession',
-  async (params: { bookingData: BookStaysRequest; token?: string }, { rejectWithValue }) => {
+  async (params: { bookingData: BookStaysRequest}, { rejectWithValue }) => {
     try {
-      const response = await createCheckoutSession(params.bookingData, params.token);
+      const response = await createCheckoutSession(params.bookingData);
       return {
         checkout_url: response?.checkout_url,
         success: true,

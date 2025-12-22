@@ -53,7 +53,7 @@ const CountryCodeModal = ({
     <div className="inset-0 fixed z-50 lg:pt-6">
       {/* Backdrop */}
       <div className="fixed inset-0 " onClick={closeDialog} />
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full lg:h-[450px] lg:w-[450px] lg:min-w-lg lg:max-w-sm bg-white lg:rounded-lg shadow-2xl z-[999] flex flex-col mt-6 ">
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full lg:h-[450px] lg:w-[450px] lg:min-w-lg lg:max-w-sm bg-white lg:rounded-lg shadow-2xl z-[999] flex flex-col mt-6 pt-6 ">
         <div className=" pb-0 relative">
           <div className="px-6 lg:hidden pt-12 pb-5 lg:border-b border-gray-200">
             <div className="p-2 size-10 absolute left-6 bg-white lg:border-[0.5px] lg:border-[#EBECED] shadow-md rounded-sm cursor-pointer">

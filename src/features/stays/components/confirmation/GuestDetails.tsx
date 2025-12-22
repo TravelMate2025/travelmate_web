@@ -14,20 +14,20 @@ const GuestDetails = ({ guest }: GuestDetailsProps) => {
           <div className="flex justify-between items-center w-full">
             <p className="font-medium">Name</p>
             <p>
-              {guest?.name} {guest?.surname}
+              {guest?.name|| "N/A"} {guest?.surname}
             </p>
           </div>
           <div className="flex justify-between items-center w-full">
             <p className="font-medium">Email</p>
-            <p>{guest?.email}</p>
+            <p>{guest?.email|| "N/A"}</p>
           </div>
           <div className="flex justify-between items-center w-full">
             <p className="font-medium">Phone</p>
-            <p>{guest?.phone}</p>
+            <p>{guest?.phone|| "N/A"}</p>
           </div>
           <div className="flex justify-between items-center w-full ">
             <p className="font-medium flex justify-end">Address</p>
-            <p className="flex justify-end">{guest?.address}</p>
+            <p className="flex justify-end">{guest?.address|| "N/A"}</p>
           </div>
         </div>
       </div>

@@ -42,7 +42,7 @@ export default function ProfileInfo() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user, accessToken } = useSelector((state: RootState) => state.auth);
+  const {  accessToken } = useSelector((state: RootState) => state.auth);
 
   const dispatch = useDispatch();
 
@@ -68,7 +68,7 @@ export default function ProfileInfo() {
   };
 
   useEffect(() => {
-    console.log("📍 Checking user and token:", user?.id, accessToken);
+   
 
     if (!accessToken) {
       setIsLoading(false);
@@ -81,25 +81,25 @@ export default function ProfileInfo() {
       setError(null);
 
       try {
-        console.log("🚀 Loading user profile from API...");
+       
         const profileData = await fetchUserProfile(accessToken);
 
-        console.log("📦 Profile data received:", profileData);
+      
         setUserProfile(profileData);
 
         if (profileData?.first_name && profileData?.last_name) {
           const fullName = `${profileData.first_name} ${profileData.last_name}`;
           dispatch(updateUserName(fullName));
-          console.log("📝 Full name updated in Redux:", fullName);
+        
         }
 
         if (profileData?.id) {
           dispatch(updateProfileId(profileData.id));
-          console.log("📌 Profile ID saved in Redux:", profileData.id);
+         
         }
 
         dispatch(setProfileInRedux(profileData));
-        console.log("✅ Full user profile saved to Redux");
+       
       } catch (err: any) {
         console.error("⚠️ Error loading profile:", err);
         setError(err.message || "Failed to load profile information.");

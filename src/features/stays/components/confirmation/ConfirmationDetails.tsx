@@ -2,7 +2,7 @@ import { BookingDetailsVerifyData } from "../../types";
 
 type props = {
   getStatusColor: (data?: string) => string;
-  confirmDetails?: BookingDetailsVerifyData;
+  confirmDetails?: BookingDetailsVerifyData | undefined;
 };
 const ConfirmationDetails = ({ getStatusColor, confirmDetails }: props) => {
   return (
@@ -16,16 +16,17 @@ const ConfirmationDetails = ({ getStatusColor, confirmDetails }: props) => {
           {confirmDetails?.reference}
         </p>
         <p className="flex justify-between">
-          <span className="font-medium">Hotel Code</span>{confirmDetails?.hotel_code}
+          <span className="font-medium">Hotel Code</span>
+          {confirmDetails?.hotel_code || "N/A"}
         </p>
         <p className="flex justify-between">
           <span className="font-medium">Payment Status</span>{" "}
           <span
             className={`${getStatusColor(
-              confirmDetails?.payment_status
-            )} font-semibold capitalize`}
+              confirmDetails?.payment_status?.toUpperCase()
+            )} font-semibold uppercase`}
           >
-            {confirmDetails?.payment_status}
+            {confirmDetails?.payment_status || "N/A"}
           </span>
         </p>
         <p className="flex justify-between">

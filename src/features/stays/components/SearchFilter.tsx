@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearStaysCache, setLocationDetails, setSearchParams } from "../slice";
 import { AppDispatch, RootState } from "../../../store";
 import { fetchDestinations, fetchRecommendedHotels } from "../api";
-import api from "../../../api/services/api";
 
 interface Destination {
   code: string;
@@ -82,17 +81,7 @@ const SearchFilter: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [accessToken, destination]);
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const response = await api.get("/transfers/bookings/");
-        console.log(response);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchBookings()
-  },[]);
+
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -186,7 +175,6 @@ const SearchFilter: React.FC = () => {
         counts.rooms
       }`
     );
-    // console.log()
   };
   useEffect(() => {
     fetchRecommendedHotels();

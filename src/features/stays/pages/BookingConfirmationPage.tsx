@@ -43,6 +43,7 @@ const BookingConfirmationPage: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching booking:", error);
+        return <CarFailedPayment/>
       } finally {
         setLoading(false);
       }
@@ -52,7 +53,7 @@ const BookingConfirmationPage: React.FC = () => {
   }, [sessionId]);
 
   if (loading) return <SkeletonConfirm />;
-  if (!booking) return <></>;
+  if (!booking) return <CarFailedPayment/>;
 
   const handleDownload = (cars: any) => {
     try {

@@ -41,9 +41,12 @@ import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailFor
 import PrivateRoute from "../src/routes/PrivateRoute";
 import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
 import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
-import Bookings from "./features/stays/pages/Bookings";
-import Favorites from "./features/stays/pages/Favorites";
+import Bookings from "./pages/Bookings";
+
+import Favorites from "./pages/Favorites";
 import DownloadStaysPage from "./features/stays/components/confirmation/Download";
+import BookingStaysDetailsPage from "./pages/BookingsDetails/stays";
+import BookingTransfersDetails from "./pages/BookingsDetails/transfers";
 
 function App() {
   return (
@@ -64,7 +67,7 @@ function App() {
         <Route path="/stays-search-result" element={<StaysSearchResults />} />
         <Route path="/booking-progress" element={<BookingProgress />} />
         <Route path="/stays-detail/:hotelId" element={<StaysDetail />} />
-         <Route path="/stays-paid/download" element={<DownloadStaysPage />} />
+        <Route path="/stays-paid/download" element={<DownloadStaysPage />} />
         <Route path="/faqs" element={<FaqPage />} />
         <Route path="/chat-with-us" element={<ChatPage />} />
 
@@ -115,6 +118,23 @@ function App() {
           element={
             <PrivateRoute>
               <Bookings />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/bookings/stays-details"
+          element={
+            <PrivateRoute>
+             <BookingStaysDetailsPage/>
+            </PrivateRoute>
+          }
+
+        />
+         <Route
+          path="/bookings/transfers-details"
+          element={
+            <PrivateRoute>
+             <BookingTransfersDetails/>
             </PrivateRoute>
           }
         />
@@ -177,14 +197,39 @@ function App() {
         {/* Cars-Section */}
         <Route path="/cars-searchResults" element={<DisplayCars />} />
         <Route path="/cars-booking" element={<Pages />} />
-        <Route path="/car-confirmation" element={<Page />} />
-        <Route path="/transfers/payment-success" element={<CarPaidForPage />} />
+        <Route
+          path="/car-confirmation"
+          element={
+            <PrivateRoute>
+              <Page />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/transfers/payment-success"
+          element={
+            <PrivateRoute>
+              <CarPaidForPage />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/transfers/payment-failure"
-          element={<CarFailedPayment />}
+          element={
+            <PrivateRoute>
+              <CarFailedPayment />
+            </PrivateRoute>
+          }
         />
         <Route path="/airport-taxi" element={<AirportTaxi />} />
-        <Route path="/car-paid/download" element={<DownloadPage />} />
+        <Route
+          path="/car-paid/download"
+          element={
+            <PrivateRoute>
+              <DownloadPage />
+            </PrivateRoute>
+          }
+        />
 
         {/* Flight Section */}
         <Route path="/flights" element={<Flight />} />

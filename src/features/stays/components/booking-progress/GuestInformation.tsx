@@ -48,7 +48,6 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
 
     const userInfo = JSON.parse(localStorage.getItem("persist:root") || "{}");
     const profileStr = userInfo.profile || "{}";
-    console.log;
 
     type Profile = {
       first_name: string;

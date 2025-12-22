@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Checkbox, Divider, FormControlLabel } from "@mui/material";
-
+import Paypal from "../../../../assets/images/paypal.png"
 interface PaymentMethodProps {
   checked: boolean;
   toggleCheck: () => void;
@@ -17,7 +17,7 @@ const PaymentMethod = ({
       <div className="border-[#CDCED1] lg:border rounded-lg lg:p-5">
         <div className="flex items-center gap-1 mb-4">
           <img
-            src="src/assets/images/paypal.png"
+            src={Paypal}
             alt="stripe icon"
             className="lg:w-24 w-16 h-6 lg:h-10 object-cover bg-white rounded-lg p-2 border-1 border-[#CDCED1]"
           />

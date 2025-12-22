@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../../store";
 
 interface PriceSummaryProps {
-  booking: BookingDetailsVerifyData;
+  booking: BookingDetailsVerifyData| undefined;
 }
 
 const PriceSummary: React.FC<PriceSummaryProps> = ({ booking }) => {
@@ -37,13 +37,13 @@ const PriceSummary: React.FC<PriceSummaryProps> = ({ booking }) => {
                 €{(Number(booking?.total_price) / nights).toFixed(2)} per night
               </p>
             </div>
-            €{booking?.total_price?.toLocaleString()}
+            €{booking?.total_price?.toLocaleString() || "N/A"}
           </div>
 
           <p className="flex justify-between text-lg font-semibold">
             <span>Total</span>
             <span className="text-[#023E8A]">
-              €{booking?.total_price?.toLocaleString()}
+              €{booking?.total_price?.toLocaleString() || "N/A"}
             </span>
           </p>
         </div>

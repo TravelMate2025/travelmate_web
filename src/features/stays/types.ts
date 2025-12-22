@@ -122,7 +122,7 @@ export interface HotelLocationDetails {
     code?: string;
     name?: string;
     city_name?: string;
-    country_name?: string;                                
+    country_name?: string;
     [key: string]: any;
   };
   [key: string]: any;
@@ -135,7 +135,7 @@ export interface GuestDetails {
   special_requests?: string;
   [key: string]: any;
 }
-export interface BookingDetailsVerifyData { 
+export interface BookingDetailsVerifyData {
   id: number;
   reference: string;
   hotel_code: string | number;
@@ -163,3 +163,48 @@ export interface BookingStaysVerifyDetails {
   error?: string
 
 }
+export interface CancellationPolicy {
+  amount: number;
+  currency: string;
+  from: string; // ISO datetime string
+  comments: string | null;
+}
+
+export interface BookingTransfersVerifyDetails {
+  id: string;
+
+  booking_reference: string;
+  booking_status: "CONFIRMED" | "CANCELLED" | "PENDING";
+
+  payment_status: "PAID" | "UNPAID" | "FAILED";
+  payment_session_id: string | null;
+  payment_transaction_id: string | null;
+
+  total_amount: string;
+  currency: string;
+
+  cancellation_policy: CancellationPolicy;
+
+  first_name: string;
+  last_name: string;
+  passenger_name: string;
+  dob: string;
+
+  email: string;
+  phone: string;
+  contact_phone: string;
+  country_code: string;
+
+  pickup_location: string;
+  pickup_location_label: string;
+  pickup_date: string;
+  pickup_time: string; 
+
+  dropoff_location: string;
+  dropoff_location_label: string;
+
+  transfer_type: "PRIVATE" | "SHARED" | "PRIVATE AND SHARED";
+
+  date_booked: string; // ISO datetime string
+}
+

@@ -3,7 +3,7 @@ import { BookingDetailsVerifyData } from "../../types";
 import { RiHotelLine } from "react-icons/ri";
 import { IoLocationOutline } from "react-icons/io5";
 interface props {
-  booking?: BookingDetailsVerifyData;
+  booking?: BookingDetailsVerifyData | undefined;
 }
 
 const HotelDetails = ({ booking }: props) => {
@@ -13,12 +13,12 @@ const HotelDetails = ({ booking }: props) => {
       <div className="rounded-lg sm:border border-gray-300 sm:p-6">
         <div className="flex items-center gap-2">
           <RiHotelLine />
-          <p>{booking?.hotel_name}</p>
+          <p>{booking?.hotel_name || "N/A"}</p>
         </div>
         <div className="flex items-center gap-2">
           <IoLocationOutline />
           <p>
-            {booking?.hotel_location?.address}{" "}
+            {booking?.hotel_location?.address || "N/A"}{" "}
             {booking?.hotel_location?.destination?.city_name}{" "}
             {booking?.hotel_location?.destination?.country_name}
           </p>

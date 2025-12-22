@@ -49,7 +49,7 @@ const RefundCancellationModal: React.FC<RefundCancellationModalProps> = ({
   refundableUntil,
 }) => {
   return (
-    <div className="fixed inset-0 z-50  bg-opacity-40 flex items-center justify-center ">
+    <div className="fixed inset-0 z-50  bg-opacity-40 flex items-center justify-center mt-16 lg:mt-auto">
       <div className="bg-white w-full max-w-3xl h-full max-h-[100vh] overflow-y-auto rounded-lg shadow-xl md:p-6 p-6 relative">
         {/* Close */}
         <div className="flex justify-normal items-center gap-12 pb-6">

@@ -10,7 +10,6 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Hotel } from "../types";
 import { addOrRemoveFavorite } from "../api";
-import { getAccessToken } from "../../../api/services/authUtils";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 
@@ -31,10 +30,7 @@ const StayCard: React.FC<StayCardProps> = ({
   const [favorite, setFavorite] = useState(isFavorited);
   const [showTooltip, setShowTooltip] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const accessToken = getAccessToken();
-  const { searchParams} = useSelector(
-    (state: RootState) => state.stays
-  );
+  const { searchParams } = useSelector((state: RootState) => state.stays);
 
   // Extract all relevant data
   const firstRoom = hotel.rooms?.[0];
@@ -88,12 +84,14 @@ const StayCard: React.FC<StayCardProps> = ({
     e.preventDefault();
     setFavorite(!favorite);
     try {
-      await addOrRemoveFavorite(hotel.code, setFavorite, favorite, accessToken);
-      const newFavorite = !favorite;
-      setFavorite(newFavorite);
-      toast.success(
-        `Stay ${newFavorite ? "added to" : "removed from"} favorites`
+      const response = await addOrRemoveFavorite(
+        hotel.code,
+        setFavorite,
+        favorite
       );
+      // const newFavorite = !favorite;
+      // setFavorite(newFavorite);
+      toast.success(response);
     } catch (error) {
       toast.error("Something went wrong");
     }

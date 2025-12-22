@@ -1,4 +1,4 @@
-import bookmark from "../../../../assets/images/book@3x.png";
+import bookmark from "../../assets/images/book@3x.png";
 interface props {
   title?: string;
   content?: string;

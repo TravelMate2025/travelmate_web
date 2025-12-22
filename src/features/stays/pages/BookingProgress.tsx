@@ -35,7 +35,6 @@ const BookingProgress: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { selectedRoom, selectedRate } = location.state || {};
-
   const [currentStep, setCurrentStep] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
   // const [isValid, setIsValid] = useState(false);
@@ -94,7 +93,6 @@ const BookingProgress: React.FC = () => {
   const handleNext = () => {
     if (currentStep === 1) {
       if (!validatePersonalInfo()) {
-        console.log(errors);
         return;
       }
     }
@@ -115,7 +113,7 @@ const BookingProgress: React.FC = () => {
     if (!searchParams || !accessToken || !selectedRoom) return;
 
     const bookingData: BookStaysRequest = {
-      rate_key: selectedRoom.rates?.[0]?.rateKey || "",
+      rate_key: selectedRate.rateKey,
       customer: {
         name: guestInfo.firstName,
         surname: guestInfo.lastName,
@@ -133,17 +131,13 @@ const BookingProgress: React.FC = () => {
       },
       hold_suite: true,
     };
-    console.log(bookingData);
-
     try {
       setSubmitLoading(true);
       const response = await dispatch(
         createBookingAsync({
           bookingData,
-          token: accessToken,
         })
       ).unwrap();
-      console.log(response);
       if (response.success && response.checkout_url) {
         window.location.href = response.checkout_url;
       } else {
