@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "https://travelmate-backend-0suw.onrender.com/",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://travelmate.com",
   headers: {
     "Content-Type": "application/json",
   },

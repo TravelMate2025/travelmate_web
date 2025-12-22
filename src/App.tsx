@@ -8,17 +8,10 @@ import CreatePassword from "./features/account/pages/CreatePassword";
 import ResetPassword from "./features/account/pages/ResetPassword";
 import Login from "./features/account/pages/Login";
 import StaysSearchResults from "./features/stays/pages/StaysSearchResults";
-import DeparturePage from "./pages/round-trip-container/departureFlight/DeparturePage";
-import ReturnPage from "./pages/round-trip-container/returnFlight/ReturnPage";
-import FlightInfoPage from "./pages/round-trip-container/flightInfo-review/FlightInfoPage";
-import FlightConfirmationPage from "./pages/round-trip-container/flightConfirmation/FlightConfirmationPage";
-import DeparturePageOneWay from "./pages/one-way-container/departureFlight-One-way/DeparturePageOneWay";
-import FlightInfoPageOneWay from "./pages/one-way-container/flightInfo-review-one-way/FlightInfoPageOneWay";
-import FlightConfirmPageOneWay from "./pages/one-way-container/flightConfirmation-one-way/FlightConfirmPageOneWay";
-import DeparturePageMultiWay from "./pages/muti-flight-container/departureFlight-multi-way/DeparturePageMultiWay";
-import SecondDepartureFlightPage from "./pages/muti-flight-container/secondDepartureFlight/SecondDepartureFlightPage";
-import FlightInfoPageMultiWay from "./pages/muti-flight-container/flightInfo-review-multiway/FlightInfoPageMultiWay";
-import FlightConfirmPageMultiWay from "./pages/muti-flight-container/flightConfirmationMultiWay/FlightConfirmPageMultiWay";
+import DeparturePage from "./pages/flights/departureFlight/DeparturePage";
+import ReturnPage from "./pages/flights/returnFlight/ReturnPage";
+import FlightInfoPage from "./pages/flights/flightInfo-review/FlightInfoPage";
+import FlightConfirmationPage from "./pages/flights/flightConfirmation/FlightConfirmationPage";
 
 import ProfileInfo from "./features/account/pages/ProfileInfo";
 import Profile from "./features/account/pages/Account";
@@ -31,7 +24,7 @@ import DisplayCars from "./features/car_rentals/displayAllCars/DisplayCars";
 import Pages from "./features/car_rentals/offerAcceptedPage/Page";
 import CarPaidForPage from "./features/car_rentals/carPaidFor/CarPaidForPage";
 import AirportTaxi from "./pages/AirportTaxi";
-import Flight from "./pages/Flight";
+
 import FaqPage from "./features/customer-management/pages/faq";
 import ChatPage from "./features/customer-management/pages/ChatPage";
 import TicketsPage from "./features/customer-management/pages/TicketsPage";
@@ -39,8 +32,14 @@ import TicketDetailPage from "./features/customer-management/pages/TicketDetailP
 import CreateNewPassword from "./features/account/pages/CreateNewPassword";
 import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailForPasswordReset";
 import PrivateRoute from "../src/routes/PrivateRoute";
+import PaymentFailed from "./features/flights/components/PaymentFailed";
 import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
 import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
+import DownloadStaysPage from "./features/stays/components/confirmation/Download";
+import BookingStaysDetailsPage from "./pages/BookingsDetails/stays";
+import BookingTransfersDetails from "./pages/BookingsDetails/transfers";
+import Bookings from "./pages/Bookings";
+import Favorites from "./pages/Favorites";
 
 function App() {
   return (
@@ -61,6 +60,7 @@ function App() {
         <Route path="/stays-search-result" element={<StaysSearchResults />} />
         <Route path="/booking-progress" element={<BookingProgress />} />
         <Route path="/stays-detail/:hotelId" element={<StaysDetail />} />
+        <Route path="/stays-paid/download" element={<DownloadStaysPage />} />
         <Route path="/faqs" element={<FaqPage />} />
         <Route path="/chat-with-us" element={<ChatPage />} />
 
@@ -81,14 +81,49 @@ function App() {
             </PrivateRoute>
           }
         />
+
         <Route
-          path="/booking-confirmation"
+          path="/booking/success"
           element={
             <PrivateRoute>
               <BookingConfirmationPage />
             </PrivateRoute>
           }
         />
+        <Route
+          path="/favorites"
+          element={
+            <PrivateRoute>
+              <Favorites />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/bookings"
+          element={
+            <PrivateRoute>
+              <Bookings />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/bookings/stays-details"
+          element={
+            <PrivateRoute>
+              <BookingStaysDetailsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/bookings/transfers-details"
+          element={
+            <PrivateRoute>
+              <BookingTransfersDetails />
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="/tickets"
           element={
@@ -106,64 +141,69 @@ function App() {
           }
         />
 
-        {/* round-trip-section */}
+        {/* filght */}
         <Route
-          path="/departure-flight"
+          path="/flight/departure"
           element={<DeparturePage departureInfo={[]} />}
         />
         <Route
-          path="/return-flight"
+          path="/flight/return"
           element={<ReturnPage departureInfo={[]} />}
         />
-        <Route path="/flightInfo-review" element={<FlightInfoPage />} />
+        <Route path="/flight/review" element={<FlightInfoPage />} />
         <Route
-          path="/flightInfo-confirmation"
+          path="/flights/payment-success"
           element={<FlightConfirmationPage />}
         />
-
-        {/* one-way-trip-section */}
-        <Route
-          path="/departure-flight-one-way"
-          element={<DeparturePageOneWay departureInfo={[]} />}
-        />
-        <Route
-          path="/flightInfo-review-one-way"
-          element={<FlightInfoPageOneWay />}
-        />
-        <Route
-          path="/flight-confirm-one-way"
-          element={<FlightConfirmPageOneWay />}
-        />
-
-        {/* multi-way-trip-section */}
-        <Route
-          path="/departure-flight-multi-way"
-          element={<DeparturePageMultiWay departureInfo={[]} />}
-        />
-        <Route
-          path="/second-departure-flight"
-          element={<SecondDepartureFlightPage departureInfo={[]} />}
-        />
-        <Route
-          path="/flightInfo-review-multi-way"
-          element={<FlightInfoPageMultiWay />}
-        />
-        <Route
-          path="/flight-confirm-multi-way"
-          element={<FlightConfirmPageMultiWay />}
-        />
+        <Route path="/flights/payment-cancelled" element={<PaymentFailed />} />
 
         {/* Cars-Section */}
+
         <Route path="/cars-searchResults" element={<DisplayCars />} />
+        <Route path="/cars-booking" element={<Pages />} />
+        <Route
+          path="/car-confirmation"
+          element={
+            <PrivateRoute>
+              <Page />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/transfers/payment-success"
+          element={
+            <PrivateRoute>
+              <CarPaidForPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/transfers/payment-failure"
+          element={
+            <PrivateRoute>
+              <CarFailedPayment />
+            </PrivateRoute>
+          }
+        />
         <Route path="/offer-accepted-page" element={<Pages />} />
         <Route path="/car-confirmation" element={<Page />} />
         <Route path="/transfers/payment-success" element={<CarPaidForPage />} />
-         <Route path="/transfers/payment-failure" element={<CarFailedPayment />} />
+        <Route
+          path="/transfers/payment-failure"
+          element={<CarFailedPayment />}
+        />
         <Route path="/airport-taxi" element={<AirportTaxi />} />
-        <Route path="/car-paid/download" element={<DownloadPage />} />
+        <Route
+          path="/car-paid/download"
+          element={
+            <PrivateRoute>
+              <DownloadPage />
+            </PrivateRoute>
+          }
+        />
 
         {/* Flight Section */}
-        <Route path="/flights" element={<Flight />} />
+        {/* <Route path="/flights" element={<Flight />} /> */}
       </Routes>
     </>
   );

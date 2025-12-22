@@ -149,7 +149,7 @@ const DownloadPage = () => {
                 </p>
                 <p className="text-[#181818] text-[14px] font-inter">
                   {transferDetailInfo[3]?.value}{" "}
-                  {transferDetailInfo[3]?.description}
+                  {transferDetailInfo[3]?.description ||"Not Available"}
                 </p>
               </div>
               <div className="flex justify-normal gap-2">
@@ -157,7 +157,7 @@ const DownloadPage = () => {
                   Provider:
                 </p>
                 <p className="text-[#181818] text-[14px] font-inter">
-                  {supplier.name}
+                   {supplier.name || "Not Available"}
                 </p>
               </div>
             </div>
@@ -200,7 +200,7 @@ const DownloadPage = () => {
                 Total:
               </p>
               <p className="text-[#181818] text-[14px] font-inter">
-                &#8364;{bookingData?.totalNetAmount}
+                €{bookingData?.totalNetAmount}
               </p>
             </div>
           </div>

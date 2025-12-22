@@ -40,7 +40,6 @@ export const createUserProfile = async (
         },
       }
     );
-    console.log("Profile created:", response.data);
     return response.data;
   } catch (error: any) {
     if (error.response?.status === 401) {
@@ -57,9 +56,6 @@ export const createUserProfile = async (
 
 
 export const fetchUserProfile = async (token: string): Promise<UserProfile> => {
-  console.log("🔄 Fetching user profile...");
-  console.log("📡 API Endpoint:", `${API_BASE_URL}/profile/`);
-
   try {
     const response = await api.get(`${API_BASE_URL}/profile/`, {
       headers: {
@@ -68,7 +64,6 @@ export const fetchUserProfile = async (token: string): Promise<UserProfile> => {
     });
 
     const userProfile = response.data?.results?.[0];
-    console.log("✅ Fetched profile data:", userProfile);
 
     if (!userProfile) {
       throw new Error("No profile found for the current user.");
@@ -102,13 +97,8 @@ export const fetchUserProfile = async (token: string): Promise<UserProfile> => {
 
 
 export const updateUserProfile = async (userId: number, updatedData: any): Promise<UserProfile> => {
-  console.log('Updating user profile...');
-  console.log('API Endpoint:', `${API_BASE_URL}/profile/${userId}/`);
-  console.log('Updated Data:', updatedData);
-
   try {
     const response = await api.patch(`${API_BASE_URL}/profile/${userId}/`, updatedData);
-    console.log('Update Profile Response:', response.data);
     return response.data;
   } catch (error: any) {
     console.error('Error updating profile:', error);
@@ -135,7 +125,7 @@ export const deleteUserAccount = async (
       payload.additional_feedback = feedback;
     }
 
-    const response = await api.delete(`${API_BASE_URL}/users/me/`, {
+    await api.delete(`${API_BASE_URL}/users/me/`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -143,7 +133,6 @@ export const deleteUserAccount = async (
       data: payload,
     });
 
-    console.log("Account deleted:", response.data);
   } catch (error: any) {
     console.error("Error deleting account:", error?.response?.data || error.message);
     throw error?.response?.data || new Error("Account deletion failed.");

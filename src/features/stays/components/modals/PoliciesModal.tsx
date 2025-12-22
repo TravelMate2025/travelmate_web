@@ -48,8 +48,8 @@ const PoliciesModal: React.FC<PoliciesModalProps> = ({ onClose }) => {
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 bg-opacity-40 flex items-center justify-center p-2">
-      <div className="bg-white w-full max-w-3xl h-[95vh] max-h-[100vh] overflow-y-auto rounded-lg shadow-xl p-4 md:p-6 relative">
+    <div className="fixed inset-0 z-50 bg-black/50 bg-opacity-40 flex items-center justify-center">
+      <div className="bg-white w-full max-w-3xl h-full max-h-[100vh] overflow-y-auto rounded-lg shadow-xl p-4 md:p-6 relative">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -62,7 +62,7 @@ const PoliciesModal: React.FC<PoliciesModalProps> = ({ onClose }) => {
         <h2 className="text-xl font-bold text-center mb-6">Policies</h2>
 
         {/* Policies */}
-        <div className="space-y-6 border-t border-b md:border border-gray-300 md:rounded-lg p-6">
+        <div className="space-y-6 border-t border-b md:border border-gray-300 md:rounded-lg py-6">
           <FlexSection
             title="Check In & Check Out"
             items={[
@@ -70,6 +70,7 @@ const PoliciesModal: React.FC<PoliciesModalProps> = ({ onClose }) => {
               "Check In time: 4:00pm",
               "Checkout Time: 6:00pm",
             ]}
+            
           />
           <hr className="border-gray-300" />
           <FlexSection

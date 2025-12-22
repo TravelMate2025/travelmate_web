@@ -27,7 +27,6 @@ export default function StaysSearchResults() {
   const { hotels, loading, error, searchParams, locationDetails } = useSelector(
     (state: RootState) => state.stays
   );
-  const { accessToken } = useSelector((state: RootState) => state.auth);
 
   // State for modals and visibility
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
@@ -73,39 +72,33 @@ export default function StaysSearchResults() {
   // Effect to fetch hotel data based on filters and search parameters from Redux
   useEffect(() => {
     if (hotels.length > 0 && !loading) {
-      console.log("Loading stays from cache:", {
-        hotels: hotels,
-        totalResults: hotels.length,
-      });
       return;
     }
 
-    if (searchParams && accessToken) {
+    if (searchParams) {
       dispatch(
-        fetchHotelsAsync({ ...searchParams, ...filters, token: accessToken })
+        fetchHotelsAsync({ ...searchParams, ...filters})
       );
     } else {
       if (!searchParams) {
         console.error("No search parameters found. add search parameters");
       }
     }
-  }, [searchParams, filters, accessToken, dispatch]);
+  }, [searchParams, filters, dispatch]);
 
   const handleApplyFilter = (newFilters: FilterState) => {
     setFilters(newFilters);
   };
 
-  // Get data from Redux instead of navigation state
   const breadcrumbs = [
     { name: "Home", link: "/" },
     {
       name: locationDetails?.name || searchParams?.destination || "Search",
-      link: `/locations/${locationDetails?.code || searchParams?.destination || ""}`,
+      // link: `/locations/${locationDetails?.code || searchParams?.destination || ""}`,
     },
     { name: "Search Results" },
   ];
 
-  // Calculate dates display
   const formatDateRange = () => {
     if (!searchParams?.checkIn || !searchParams?.checkOut) return "Select dates";
     

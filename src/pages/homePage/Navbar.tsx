@@ -24,10 +24,10 @@ import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNone
 import { Link, useNavigate } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { motion } from "framer-motion";
-import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
-import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
-import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
-import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined';
+import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+import ClassOutlinedIcon from "@mui/icons-material/ClassOutlined";
+import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
+import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 
@@ -37,7 +37,8 @@ import { logout as navlogout } from "../../features/account/slices/authSlice";
 import toast from "react-hot-toast";
 import Spinner from "../../features/account/components/Spinner";
 
-import { FaBell } from 'react-icons/fa';
+import { FaBell } from "react-icons/fa";
+import { PiSignOutFill } from "react-icons/pi";
 
 interface NavbarProps {
   hasNewNotification?: boolean;
@@ -45,27 +46,42 @@ interface NavbarProps {
   onNotificationClick?: () => void;
 }
 
-
 const navItems = [
   { name: "Home", path: "/" },
   { name: "Stays", path: "/stays-search-result" },
   { name: "Flights", path: "/flights" },
-  { name: "Airport Taxi", path: "/airport-taxi" }
+  { name: "Airport Taxi", path: "/airport-taxi" },
 ];
-
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
 
 const menuItems = [
   { text: "Account", icon: <PersonOutlinedIcon />, path: "/account" },
   { text: "Bookings", icon: <ClassOutlinedIcon />, path: "/bookings" },
-  { text: "Favorites", icon: <FavoriteBorderOutlinedIcon />, path: "/favorites" },
-  { text: "Notifications", icon: <NotificationsNoneOutlinedIcon />, path: "/notifications" },
+  {
+    text: "Favorites",
+    icon: <FavoriteBorderOutlinedIcon />,
+    path: "/favorites",
+  },
+  {
+    text: "Notifications",
+    icon: <NotificationsNoneOutlinedIcon />,
+    path: "/notifications",
+  },
+];
+const menuItemsWeb = [
+  { text: "Account", icon: <PersonOutlinedIcon />, path: "/account" },
+  { text: "Bookings", icon: <ClassOutlinedIcon />, path: "/bookings" },
+  {
+    text: "Favorites",
+    icon: <FavoriteBorderOutlinedIcon />,
+    path: "/favorites",
+  },
+  {
+    text: "Log out",
+    icon: <PiSignOutFill size={24} />,
+  },
 ];
 
-
-const logout = [
-  { text: "Log out", icon: <LoginOutlinedIcon /> }
-];
+const logout = [{ text: "Log out", icon: <LoginOutlinedIcon /> }];
 
 const Navbar: React.FC<NavbarProps> = ({
   hasNewNotification = false,
@@ -136,7 +152,6 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
       )}
 
-
       {isMobile ? (
         <AppBar
           position="fixed"
@@ -164,7 +179,11 @@ const Navbar: React.FC<NavbarProps> = ({
               {/* Logo */}
               <Box sx={{ flexGrow: 1 }}>
                 <Typography sx={{ mr: 2 }}>
-                  <img src={Travelmate} alt="Logo" style={{ maxWidth: "100px" }} />
+                  <img
+                    src={Travelmate}
+                    alt="Logo"
+                    style={{ maxWidth: "100px" }}
+                  />
                 </Typography>
               </Box>
 
@@ -194,7 +213,10 @@ const Navbar: React.FC<NavbarProps> = ({
                       <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-800 animate-fadeIn z-50">
                         <p className="font-semibold mb-1">New Notification!</p>
                         <p>{notificationMessage}</p>
-                        <button onClick={onNotificationClick} className="mt-2 text-blue-600 hover:underline">
+                        <button
+                          onClick={onNotificationClick}
+                          className="mt-2 text-blue-600 hover:underline"
+                        >
                           Dismiss
                         </button>
                       </div>
@@ -203,7 +225,12 @@ const Navbar: React.FC<NavbarProps> = ({
                 )}
 
                 {/* Hamburger Icon */}
-                <IconButton size="large" aria-label="menu" onClick={toggleDrawer} sx={{ color: "black" }}>
+                <IconButton
+                  size="large"
+                  aria-label="menu"
+                  onClick={toggleDrawer}
+                  sx={{ color: "black" }}
+                >
                   <MenuIcon />
                 </IconButton>
 
@@ -222,7 +249,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         "& .MuiDrawer-paper": {
                           width: "90%",
                           margin: "0 auto",
-                          height: "70%",
+                          height: "80%",
                           marginTop: "16%",
                           borderRadius: "12px",
                           boxShadow: "0px 4px 10px rgba(102, 71, 71, 0.1)",
@@ -242,21 +269,50 @@ const Navbar: React.FC<NavbarProps> = ({
                         role="presentation"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Box sx={{ display: "flex", justifyContent: "space-between", padding: "20px" }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            padding: "20px",
+                          }}
+                        >
                           {isLoggedIn ? (
-                            <div style={{ display: "flex", justifyContent: "flex-start", marginTop: "20px" }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "flex-start",
+                                marginTop: "20px",
+                              }}
+                            >
                               <Avatar sx={{ bgcolor: "#023E8A" }}>
                                 {user?.profileImage ? (
-                                  <Avatar alt={user.name} src={user.profileImage} />
+                                  <Avatar
+                                    alt={user.name}
+                                    src={user.profileImage}
+                                  />
                                 ) : (
-                                  <Avatar sx={{ bgcolor: "#023E8A" }}>{initials}</Avatar>
+                                  <Avatar sx={{ bgcolor: "#023E8A" }}>
+                                    {initials}
+                                  </Avatar>
                                 )}
                               </Avatar>
                               <Box sx={{ ml: 2 }}>
-                                <Typography sx={{ fontWeight: "bold", color: "#181818", fontSize: "14px" }}>
+                                <Typography
+                                  sx={{
+                                    fontWeight: "bold",
+                                    color: "#181818",
+                                    fontSize: "14px",
+                                  }}
+                                >
                                   {user?.name || "User"}
                                 </Typography>
-                                <Typography sx={{ fontWeight: "bold", color: "#67696D", fontSize: "14px" }}>
+                                <Typography
+                                  sx={{
+                                    fontWeight: "bold",
+                                    color: "#67696D",
+                                    fontSize: "14px",
+                                  }}
+                                >
                                   {user?.email || ""}
                                 </Typography>
                               </Box>
@@ -277,7 +333,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         <Divider />
                         <List>
                           {navItems.map((item) => (
-                            <ListItem 
+                            <ListItem
                               key={item.name}
                               onClick={() => handleNavItemClick(item.path)}
                               sx={{ cursor: "pointer" }}
@@ -290,40 +346,64 @@ const Navbar: React.FC<NavbarProps> = ({
                         <Divider sx={{ marginBottom: "20px" }} />
 
                         {menuItems.map(({ text, icon, path }) => (
-                          <ListItem 
+                          <ListItem
                             key={text}
                             onClick={() => handleNavItemClick(path)}
-                            sx={{ cursor: "pointer", display: "flex", alignItems: "center" }}
+                            sx={{
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                            }}
                           >
-                          {/* MODIFIED: Add a special check for notifications to route directly */}
-                          {text === "Notifications" ? (
-                            <Link to="/notifications" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
-                              <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
-                              <ListItemText primary={text} />
-                              {hasNewNotification && (
-                                <span className="ml-2 h-2.5 w-2.5 rounded-full bg-red-700 block"></span>
-                              )}
-                            </Link>
-                          ) : (
-                            <>
-                            <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
-                            <ListItemText primary={text} />
-                            </>
-                          )}
+                            {/* MODIFIED: Add a special check for notifications to route directly */}
+                            {text === "Notifications" ? (
+                              <Link
+                                to="/notifications"
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  textDecoration: "none",
+                                  color: "inherit",
+                                }}
+                              >
+                                <ListItemIcon sx={{ minWidth: "40px" }}>
+                                  {icon}
+                                </ListItemIcon>
+                                <ListItemText primary={text} />
+                                {hasNewNotification && (
+                                  <span className="ml-2 h-2.5 w-2.5 rounded-full bg-red-700 block"></span>
+                                )}
+                              </Link>
+                            ) : (
+                              <>
+                                <ListItemIcon sx={{ minWidth: "40px" }}>
+                                  {icon}
+                                </ListItemIcon>
+                                <ListItemText primary={text} />
+                              </>
+                            )}
                           </ListItem>
                         ))}
 
-
-                        {logout.map(({text, icon}) => (
-                          <ListItem 
+                        {logout.map(({ text, icon }) => (
+                          <ListItem
                             key={text}
                             onClick={() => {
                               toggleDrawer();
                               handleLogout();
                             }}
-                            sx={{ cursor: "pointer", display: "flex", alignItems: "center", marginTop: "26px" }}
+                            sx={{
+                              cursor: "pointer",
+                              display: "flex",
+                              justifyContent: "end",
+
+                              alignItems: "center",
+                              marginTop: "26px",
+                            }}
                           >
-                            <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
+                            <ListItemIcon sx={{ minWidth: "40px" }}>
+                              {icon}
+                            </ListItemIcon>
                             <ListItemText primary={text} />
                           </ListItem>
                         ))}
@@ -347,14 +427,14 @@ const Navbar: React.FC<NavbarProps> = ({
             color: "#000000",
           }}
         >
-          <Toolbar 
-            disableGutters 
-            sx={{ 
-              width: "90%", 
-              margin: "auto", 
-              display: "flex", 
-              justifyContent: "space-between", 
-              alignItems: "center"
+          <Toolbar
+            disableGutters
+            sx={{
+              width: "90%",
+              margin: "auto",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
             {/* Logo */}
@@ -363,10 +443,12 @@ const Navbar: React.FC<NavbarProps> = ({
             </Typography>
 
             {/* Navigation Links */}
-            <Box sx={{ display: "flex", flexGrow: 1, justifyContent: "center" }}>
+            <Box
+              sx={{ display: "flex", flexGrow: 1, justifyContent: "center" }}
+            >
               {navItems.map((item) => (
-                <Link 
-                  key={item.name} 
+                <Link
+                  key={item.name}
                   to={item.path}
                   style={{ textDecoration: "none" }}
                 >
@@ -375,11 +457,11 @@ const Navbar: React.FC<NavbarProps> = ({
                       handleCloseUserMenu();
                       handleTabClick(item.name);
                     }}
-                    sx={{ 
-                      my: 2, 
-                      mr: 2, 
-                      color: activeTab === item.name ? "#023E8A" : "#000000",  
-                      display: "block", 
+                    sx={{
+                      my: 2,
+                      mr: 2,
+                      color: activeTab === item.name ? "#023E8A" : "#000000",
+                      display: "block",
                       textTransform: "capitalize",
                       backgroundColor: "transparent",
                       "&:hover": { backgroundColor: "transparent" },
@@ -408,10 +490,14 @@ const Navbar: React.FC<NavbarProps> = ({
               ) : (
                 <>
                   {/* NEW JSX: Notification Bell for Desktop */}
-                  <div className="relative mr-4"> {/* MODIFIED: Added relative position */}
+                  <div className="relative mr-4">
+                    {" "}
+                    {/* MODIFIED: Added relative position */}
                     <Tooltip title="Notifications">
                       <IconButton onClick={onNotificationClick} sx={{ p: 0 }}>
-                        <div className="bg-[#CCD8E81A] w-[40px] h-[40px] rounded-full border border-[#023E8A] text-center flex items-center justify-center relative"> {/* MODIFIED: Added flex, items-center, justify-center, relative */}
+                        <div className="bg-[#CCD8E81A] w-[40px] h-[40px] rounded-full border border-[#023E8A] text-center flex items-center justify-center relative">
+                          {" "}
+                          {/* MODIFIED: Added flex, items-center, justify-center, relative */}
                           <FaBell className="h-6 w-6 text-[#023E8A]" />
                           {hasNewNotification && (
                             <span className="absolute top-0 right-0 block h-3 w-3 rounded-full ring-2 ring-white bg-red-700"></span>
@@ -423,7 +509,10 @@ const Navbar: React.FC<NavbarProps> = ({
                       <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-800 animate-fadeIn z-50">
                         <p className="font-semibold mb-1">New Notification!</p>
                         <p>{notificationMessage}</p>
-                        <button onClick={onNotificationClick} className="mt-2 text-blue-600 hover:underline">
+                        <button
+                          onClick={onNotificationClick}
+                          className="mt-2 text-blue-600 hover:underline"
+                        >
                           Dismiss
                         </button>
                       </div>
@@ -431,17 +520,32 @@ const Navbar: React.FC<NavbarProps> = ({
                   </div>
 
                   <Tooltip title="Open settings">
-                    <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, display: "flex", alignItems: "center" }}>
+                    <IconButton
+                      onClick={handleOpenUserMenu}
+                      sx={{ p: 0, display: "flex", alignItems: "center" }}
+                    >
                       {user?.profileImage ? (
                         <Avatar alt={user.name} src={user.profileImage} />
                       ) : (
                         <Avatar sx={{ bgcolor: "#023E8A" }}>{initials}</Avatar>
                       )}
                       <Box sx={{ ml: 2 }}>
-                        <Typography sx={{ fontWeight: "bold", color: "#181818", fontSize: "14px" }}>
+                        <Typography
+                          sx={{
+                            fontWeight: "bold",
+                            color: "#181818",
+                            fontSize: "14px",
+                          }}
+                        >
                           {user?.name || "User"}
                         </Typography>
-                        <Typography sx={{ fontWeight: "bold", color: "#67696D", fontSize: "14px" }}>
+                        <Typography
+                          sx={{
+                            fontWeight: "bold",
+                            color: "#67696D",
+                            fontSize: "14px",
+                          }}
+                        >
                           {user?.email || ""}
                         </Typography>
                       </Box>
@@ -467,26 +571,34 @@ const Navbar: React.FC<NavbarProps> = ({
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseUserMenu}
               >
-                {settings.map((setting) => (
-                  <MenuItem 
-                    key={setting} 
+                {menuItemsWeb.map((setting) => (
+                  <MenuItem
+                    key={setting.text}
+                    className="w-[200px]"
+                    sx={{
+                      paddingY: "10px",
+                    }}
                     onClick={() => {
                       handleCloseUserMenu();
-                      if (setting === "Logout") {
+                      if (setting.text === "Log out") {
                         handleLogout();
-                      } else if (setting === "Profile") {
-                        navigate("/profile-info");
                       } else {
-                        navigate(`/${setting.toLowerCase()}`);
+                        navigate(`/${setting.text.toLowerCase()}`);
                       }
                     }}
                   >
-                    <Typography sx={{ textAlign: "center" }}>{setting}</Typography>
+                    <ListItemIcon>{setting.icon}</ListItemIcon>
+                    <Typography
+                      sx={{
+                        textAlign: "center",
+                        color: "#000000",
+                        fontSize: "14px",
+                      }}
+                    >
+                      {setting.text}
+                    </Typography>
                   </MenuItem>
                 ))}
-
-
-
               </Menu>
             </Box>
           </Toolbar>

@@ -40,7 +40,7 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
   const [selectedDate, setSelectedDate] = useState<string>(initialValue);
   const [monthsToShow, setMonthsToShow] = useState(2);
   const [, setOpened] = useState(false);
-    const isMobile = useMediaQuery("(max-width:640px)");
+  const isMobile = useMediaQuery("(max-width:640px)");
 
   useEffect(() => {
     const updateMonths = () => {
@@ -115,7 +115,10 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: borderColor,
           },
-          "& .MuiOutlinedInput-input": { padding: "8px 10px", cursor: "pointer" },
+          "& .MuiOutlinedInput-input": {
+            padding: "8px 10px",
+            cursor: "pointer",
+          },
         }}
       />
 
@@ -133,16 +136,19 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
               width: isMobile ? "100vw" : "auto",
             }}
           >
-            <Box sx={{ p: 2, width: '100%', textAlign: 'center' }}>
+            <Box sx={{ p: 2, width: "100%", textAlign: "center" }}>
               <Typography sx={{ color: "#1A1A1A", fontWeight: 500 }}>
                 {dateRange[0].startDate && dateRange[0].endDate
-                  ? `${formatDateForDisplay(dateRange[0].startDate)} - ${formatDateForDisplay(dateRange[0].endDate)}`
+                  ? `${formatDateForDisplay(
+                      dateRange[0].startDate
+                    )} - ${formatDateForDisplay(dateRange[0].endDate)}`
                   : formatDateForDisplay(dateRange[0].startDate)}
               </Typography>
             </Box>
             <div style={{ width: "100%", height: "100%" }}>
               <DateRange
                 editableDateInputs={true}
+                minDate={new Date()}
                 onChange={(item: RangeKeyDict) => {
                   setDateRange([
                     {
@@ -163,7 +169,13 @@ const ReusableDateSelector: React.FC<ReusableDateSelectorProps> = ({
 
               <div className="w-[96%] m-auto mt-2">
                 <p className="text-center mb-[20px] font-bold font-inter">
-                  {dateRange[0].startDate ? formatDateForDisplay(dateRange[0].startDate) + (dateRange[0].endDate && dateRange[0].endDate !== dateRange[0].startDate ? ` - ${formatDateForDisplay(dateRange[0].endDate)}` : "") : "Pick a date"}
+                  {dateRange[0].startDate
+                    ? formatDateForDisplay(dateRange[0].startDate) +
+                      (dateRange[0].endDate &&
+                      dateRange[0].endDate !== dateRange[0].startDate
+                        ? ` - ${formatDateForDisplay(dateRange[0].endDate)}`
+                        : "")
+                    : "Pick a date"}
                 </p>
                 <button
                   className="w-full h-[52px] rounded-[4px] font-inter text-[14px] cursor-pointer"

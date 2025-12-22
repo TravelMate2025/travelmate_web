@@ -8,8 +8,8 @@ import { transferService } from "../services/transferService";
 import toast from "react-hot-toast";
 import { RootState } from "../../../store";
 import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
-import { resetForm } from "../carPaymentSlice";
+// import { useDispatch } from "react-redux";
+// import { resetForm } from "../carPaymentSlice";
 
 export type DeskProps = {
   handleBack: () => void;
@@ -37,7 +37,7 @@ export type DeskProps = {
     firstName: string;
     lastName: string;
     email: string;
-    phoneNumber: string;
+    phone: string;
     dateOfBirth: string;
     countryCode: string;
   };
@@ -45,7 +45,7 @@ export type DeskProps = {
     firstName: string;
     lastName: string;
     email: string;
-    phoneNumber: string;
+    phone: string;
     dateOfBirth: string;
     countryCode: string;
     [key: string]: any;
@@ -59,7 +59,7 @@ export type DeskProps = {
     lastName: string;
     dateOfBirth: string;
     email: string;
-    phoneNumber: string;
+    phone: string;
     countryCode: string;
   };
   submitted: boolean;
@@ -72,7 +72,7 @@ const Page = () => {
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const [submitted, setSubmitted] = useState(false);
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   const steps = ["Booking Overview", "Passenger Information", "Payment"];
 
@@ -81,7 +81,7 @@ const Page = () => {
     jason: false,
     antoine: true,
   });
-  const { search_id } = location.state;
+  const { search_id, departureInfo } = location.state;
   const rate_key = location.state?.car?.rateKey || "";
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({
@@ -99,7 +99,7 @@ const Page = () => {
     firstName: "",
     lastName: "",
     email: "",
-    phoneNumber: "",
+    phone: "",
     dateOfBirth: "",
     countryCode: "",
   });
@@ -108,7 +108,7 @@ const Page = () => {
     lastName: "",
     dateOfBirth: "",
     email: "",
-    phoneNumber: "",
+    phone: "",
     countryCode: "",
   });
   const validatePersonalInfo = () => {
@@ -127,8 +127,8 @@ const Page = () => {
     if (!passFormData.email.trim()) newErrors.email = "Email is required.";
     else if (!/\S+@\S+\.\S+/.test(passFormData.email))
       newErrors.email = "Email is invalid.";
-    if (!passFormData.phoneNumber.trim())
-      newErrors.phoneNumber = "Phone number is required.";
+    if (!passFormData.phone.trim())
+      newErrors.phone = "Phone number is required.";
     if (!passFormData.countryCode.trim())
       newErrors.countryCode = "Country code is required.";
     setErrors(newErrors);
@@ -160,14 +160,24 @@ const Page = () => {
     if (activeStep < steps.length - 1) {
       setActiveStep((prevStep) => prevStep + 1);
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleBack = () => {
     if (activeStep > 0) {
       setActiveStep((prevStep) => prevStep - 1);
     } else {
-      navigate("/cars-searchResults");
+      navigate(
+        `/cars-searchResults?ride=${encodeURIComponent(
+          departureInfo.selectedRide
+        )}&from=${departureInfo.pickupLocaDescription}&to=${
+          departureInfo.dropoffLocaDescription
+        }&time=${departureInfo.pickupDate}&pricerange=${
+          departureInfo.priceRange
+        }`
+      );
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleConfirm = async () => {
@@ -186,7 +196,7 @@ const Page = () => {
         dob: passFormData.dateOfBirth,
         email: passFormData.email,
         country_code: passFormData.countryCode,
-        phone: passFormData.phoneNumber,
+        phone: passFormData.phone,
       };
 
       if (!accessToken) {
@@ -199,14 +209,12 @@ const Page = () => {
         payload
       );
       if (result.success) {
+        setActiveStep(2);
+        setConfirmationId(result?.data?.id ?? "");
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        dispatch(resetForm());
-        navigate("/");
         return;
       }
-      setActiveStep(2);
-      setConfirmationId(result?.data?.id ?? "");
-      console.log(result);
     } catch (error: any) {
       console.error("Booking failed:", error);
       toast.error(`${error?.response?.data?.detail[0]} Please search again`);
@@ -224,8 +232,8 @@ const Page = () => {
       passFormData.lastName.trim() !== "" &&
       passFormData.email.trim() !== "" &&
       /\S+@\S+\.\S+/.test(passFormData.email) &&
-      passFormData.phoneNumber.trim() !== "" &&
-      /^\d+$/.test(passFormData.phoneNumber) &&
+      passFormData.phone.trim() !== "" &&
+      /^\d+$/.test(passFormData.phone) &&
       passFormData.dateOfBirth.trim() !== "" &&
       passFormData.countryCode.trim() !== "";
 

@@ -99,6 +99,8 @@ interface LookupResult {
 
 class TransferService {
     private baseUrl = 'https://travelmate-backend-0suw.onrender.com/api';
+    private terminalCache: Map<string, LookupResult['data']> = new Map();
+
 
     async searchTransfers(params: TransferSearchParams): Promise<TransferResult> {
         try {
@@ -111,7 +113,6 @@ class TransferService {
 
 
             const response = await axios.get(`${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
-            console.log('Transfer search response:', response.data);
             return {
                 success: true,
                 data: response?.data || [],
@@ -175,15 +176,29 @@ class TransferService {
 
     async cancelBooking(confirmationId: string): Promise<BookingFinalizeResult> {
         try {
-            const response = await axios.get(`${this.baseUrl}/transfers/booking/${confirmationId}/cancel/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
+            const response = await axios.post(`${this.baseUrl}/transfers/booking/${confirmationId}/cancel/`);
             return {
                 success: true,
                 data: response.data,
             };
         } catch (error) {
+            console.error('Cancel booking failed:', error);
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Failed to cancel booking',
+            };
+        }
+    }
+    async finalizeBooking(confirmationId: string): Promise<BookingFinalizeResult> {
+        try {
+            const response = await instance.post(`${this.baseUrl}/transfers/booking/finalize/${confirmationId}/`);
+            return {
+                success: true,
+                data: response.data
+
+
+            }
+        } catch (error: any) {
             console.error('Cancel booking failed:', error);
             return {
                 success: false,
@@ -208,15 +223,26 @@ class TransferService {
             };
         }
     }
+
+
     async lookupTerminal(name: string): Promise<LookupResult> {
+        const cacheKey = name.toLowerCase().trim();
+        if (this.terminalCache.has(cacheKey)) {
+            return {
+                success: true,
+                data: this.terminalCache.get(cacheKey),
+            };
+        }
+
         try {
             const response = await axios.get(`${this.baseUrl}/flights/search/search_airports/?keyword=${encodeURIComponent(name)}`);
+            const results = response.data?.results || response.data?.data || response.data || [];
+            this.terminalCache.set(cacheKey, results);
 
             return {
                 success: true,
-                data: response.data?.results || response.data?.data || response.data || [],
+                data: results,
             };
-
 
         } catch (error) {
             console.error('Terminal lookup failed:', error);
@@ -226,6 +252,9 @@ class TransferService {
             };
         }
     }
+
+
+
 
 
     convertFormToApiParams(formData: BookingFormData): TransferSearchParams {
@@ -294,6 +323,18 @@ class TransferService {
         }
         if (!formData.to) {
             throw new Error('Invalid dropoff location');
+        }
+        if (new Date(formData.times?.pickUpTime).toISOString() < new Date().toISOString()) {
+            throw new Error('Pickup time must be in the future');
+        }
+
+        const { departing } = this.formatDateTime(formData.departureDate, formData.times.pickUpTime);
+        const pickupDateTime = new Date(departing);
+        if (isNaN(pickupDateTime.getTime())) {
+            throw new Error('Invalid pickup date/time');
+        }
+        if (pickupDateTime.getTime() <= Date.now()) {
+            throw new Error('Pickup time must be in the future');
         }
 
         const pickup_location = formData.from

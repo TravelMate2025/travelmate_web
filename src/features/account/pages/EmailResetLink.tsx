@@ -18,8 +18,7 @@ export default function CheckEmail() {
   }, [timer]);
 
   const handleResendLink = () => {
-    console.log("Resend link clicked");
-    setTimer(300); // Reset timer to 5 minutes
+    setTimer(300); 
   };
 
   const formatTime = (time: number) => {

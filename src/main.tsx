@@ -8,6 +8,7 @@ import { persistor, store } from "./store";
 import { PersistGate } from "redux-persist/integration/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import "react-toastify/dist/ReactToastify.css";
+import ScrollToTop from "./ScrollToTop.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -15,6 +16,7 @@ createRoot(document.getElementById("root")!).render(
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <BrowserRouter>
+            <ScrollToTop />
             <App />
           </BrowserRouter>
         </PersistGate>

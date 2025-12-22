@@ -24,15 +24,7 @@ export interface SearchLocationProps {
     latitude: number,
     longitude: number
   ) => void;
-  setExtraFields?: (fields: {
-    endAddress?: string;
-    endCity?: string;
-    endCountry?: string;
-    fromLat?: number;
-    fromLon?: number;
-    toLat?: number;
-    toLon?: number;
-  }) => void;
+  setExtraFields?: (fields: { toLat?: number; toLon?: number }) => void;
 }
 
 const SearchDropOffLocation = ({
@@ -66,7 +58,7 @@ const SearchDropOffLocation = ({
           );
 
           setDropSuggestions(destinationResult);
-        }else{
+        } else {
           setError("Please enter at least 3 characters");
           setDropSuggestions([]);
         }
@@ -98,9 +90,6 @@ const SearchDropOffLocation = ({
 
     if (setExtraFields) {
       setExtraFields({
-        endAddress: location.street,
-        endCity: location.city,
-        endCountry: location.country,
         toLat: location.latitude,
         toLon: location.longitude,
       });
@@ -111,24 +100,20 @@ const SearchDropOffLocation = ({
   return (
     <div className="inset-0 fixed z-50">
       {/* Backdrop */}
-      <div className="fixed inset-0 " onClick={closeDialog}/>
+      <div className="fixed inset-0 " onClick={closeDialog} />
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full lg:h-[450px] lg:w-[400px] lg:min-w-lg lg:max-w-lg bg-white lg:rounded-lg shadow-2xl z-[99] flex flex-col mt-6 lg:mt-0">
-       <div className="p-6 pb-0">
-          <div className="lg:hidden pt-12 pb-5 flex items-center gap-24 lg:border-b border-gray-200">
+        <div className="p-6 pb-0">
+          <div className="lg:hidden pt-12 pb-5 lg:border-b border-gray-200">
+            <div className="p-2 size-10 absolute left-6 bg-white lg:border-[0.5px] lg:border-[#EBECED] shadow-md rounded-sm cursor-pointer">
+              <X onClick={closeDialog} className="font-bold" />
+            </div>
+            <h2 className="text-lg font-bold text-center ">Drop Off</h2>
+          </div>
+          <div className="lg:flex hidden  items-center pl-2">
             <div className="p-2 size-10 bg-white lg:border-[0.5px] lg:border-[#EBECED] shadow-md rounded-sm cursor-pointer">
               <X onClick={closeDialog} className="font-bold" />
             </div>
-            <h2 className="text-lg font-bold text-center lg:hidden block">
-              Drop Off
-            </h2>
-          </div>
-          <div className="lg:flex hidden  items-center pl-2">
-             <div className="p-2 size-10 bg-white lg:border-[0.5px] lg:border-[#EBECED] shadow-md rounded-sm cursor-pointer">
-              <X onClick={closeDialog} className="font-bold" />
-            </div>
-            <h2 className="flex-grow text-center font-bold">
-              Drop Off
-            </h2>
+            <h2 className="flex-grow text-center font-bold">Drop Off</h2>
           </div>
         </div>
         <div className="mt-6 mx-5 lg:m-8">
@@ -162,7 +147,7 @@ const SearchDropOffLocation = ({
             }}
           />
           <List
-          className="lg:max-h-[300px] max-h-[600px] "
+            className="lg:max-h-[300px] max-h-[600px] "
             sx={{
               overflowY: "auto",
               padding: 0,
