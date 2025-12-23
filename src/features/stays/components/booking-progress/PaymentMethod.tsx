@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Checkbox, Divider, FormControlLabel } from "@mui/material";
-import Paypal from "../../../../assets/images/paypal.png"
+import Paypal from "../../../../assets/images/stripe.png"
 interface PaymentMethodProps {
   checked: boolean;
   toggleCheck: () => void;
