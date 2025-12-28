@@ -24,6 +24,7 @@ interface SearchParams {
   rooms: number; 
 }
 
+
 const SearchFilter: React.FC = () => {
   const [destinationCode, setDestinationCode] = useState("");
   const [destination, setDestination] = useState("");
@@ -39,21 +40,29 @@ const SearchFilter: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
-  useEffect(() => {
-    const loadDestinations = async () => {
-        try {
-        setLoadingLocations(true);
-        const data = await fetchDestinations(undefined, accessToken,);
-        setLocations(data);
-        } catch (error) {
-        console.error('Error fetching destinations:', error);
-        } finally {
-        setLoadingLocations(false);
-        }
-    };
+ 
 
-    loadDestinations();
-  }, [accessToken]);
+
+  useEffect(() => {
+  const loadDestinations = async () => {
+    try {
+      setLoadingLocations(true);
+
+      const data = await fetchDestinations(undefined, accessToken);
+      console.log('API response:', data)
+      setLocations(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching destinations:', error);
+      setLocations([]);
+    } finally {
+      setLoadingLocations(false);
+    }
+  };
+
+  loadDestinations();
+}, [accessToken]);
+
+
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);

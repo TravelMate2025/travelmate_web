@@ -40,6 +40,7 @@ function NotificationPresenter({
   loading,
   hasMore,
   onLoadMore,
+  onMarkAsRead,
 }: NotificationPresenterProps) {
   const breadcrumbs = [
     { name: "Home", link: "/" },
@@ -55,8 +56,10 @@ function NotificationPresenter({
       </div>
 
       <div className="px-4 sm:px-6 md:px-10">
-        <h2 className="text-lg sm:text-xl md:text-[20px]
-         font-bold mb-4 ml-4 sm:ml-6 md:ml-10 text-center md:text-left">
+        <h2
+          className="text-lg sm:text-xl md:text-[20px]
+         font-bold mb-4 ml-4 sm:ml-6 md:ml-10 text-center md:text-left"
+        >
           Notifications
         </h2>
 
@@ -95,7 +98,8 @@ function NotificationPresenter({
             {notifications.map((item) => (
               <div
                 key={item.id}
-                className="border-b border-gray-400 w-[95%] sm:w-[90%] m-auto flex flex-col sm:flex-row sm:items-center sm:justify-between pb-2 gap-2 sm:gap-0"
+                onClick={() => onMarkAsRead(item.id)} // MARK AS READ ON CLICK
+                className="border-b border-gray-400 w-[95%] sm:w-[90%] m-auto flex flex-col sm:flex-row sm:items-center sm:justify-between pb-2 gap-2 sm:gap-0 cursor-pointer"
               >
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 ml-2">
                   <div
@@ -138,7 +142,7 @@ function NotificationPresenter({
       <div className="hidden md:block">
         <TravelmateApp />
       </div>
-      
+
       <div className="m-10"></div>
       <Footer />
     </div>

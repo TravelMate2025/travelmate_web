@@ -7,6 +7,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 
 
+
 export const fetchDestinations = async (search?: string, token?: string | null): Promise<Destination[]> => {
     try {
         const params = search ? { search } : {};

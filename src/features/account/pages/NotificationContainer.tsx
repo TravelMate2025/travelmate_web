@@ -66,15 +66,26 @@ function NotificationContainer() {
         try {
             await api.post(`${API_BASE_URL}/api/notifications/${id}/mark_read/`);
 
+            // Update the notifications state
             setNotifications((prev) =>
             prev.map((n) =>
                 n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
             )
             );
+
+            // Immediately update hasNewNotification
+            setHasNewNotification(() => {
+            // Check if there are still any unread notifications
+            const stillUnread = notifications.some(
+                (n) => n.id !== id && !n.is_read
+            );
+            return stillUnread;
+            });
         } catch (error) {
             console.log("Error marking as read:", error);
         }
     };
+
 
     // const handleNotificationDetails = async (id: string) => {
     //     try {
