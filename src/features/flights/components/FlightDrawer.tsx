@@ -27,19 +27,23 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import FlightClassOutlinedIcon from "@mui/icons-material/FlightClassOutlined";
 import { MdArrowDropDown } from "react-icons/md";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FlightOffer, FlightUpsellOfferResponse,  UpsellFlightOfferResponse,  } from "../types";
+import {
+  FlightOffer,
+  FlightUpsellOfferResponse,
+  UpsellFlightOfferResponse,
+} from "../types";
 import { formatDuration, formatStops, getCity } from "../utils/functions";
-import { FlightReviewState } from "./roundtrip/Steps/Step1";
-import { useEffect, useState, memo } from "react";
 
+import { useEffect, useState, memo } from "react";
 
 import dayjs from "dayjs";
 import FlightDetails from "./FlightDetails";
 import { useUpsellFlightOfferMutation } from "../api/flightApi";
+import { SearchData } from "../hooks/useFlightBooking";
 
 export function formatDateRange(range: string) {
   console.log(range);
-  
+
   const [start, end] = range.split(" to ");
   const startDate = dayjs(start);
   const endDate = dayjs(end);
@@ -95,11 +99,10 @@ interface FlightDrawerProps {
   options: Option[];
   onNext?: () => void;
   multiCitySelections?: MultiCitySelection[];
+  searchState: SearchData;
   selectedOption: string | null;
   setMultiCitySelections?: React.Dispatch<
-    React.SetStateAction<
-    MultiCitySelection[]
-    >
+    React.SetStateAction<MultiCitySelection[]>
   >;
   setSelectedOption: (id: string) => void;
   counts: Counts;
@@ -117,25 +120,24 @@ export const FlightDrawer = memo<FlightDrawerProps>(
     openClick,
     handleCloseClick,
     selectedDeparture,
-    
+
     onNext,
     selectedOption,
-  
+    searchState,
     counts,
     multiCitySelections,
     setMultiCitySelections,
-  
+
     returnFlight,
     title,
   }) => {
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-    const location = useLocation();
 
     const extraBagPrice = 10000;
 
-    let firstSegment:any, lastSegment, itinerary, price:any;
+    let firstSegment: any, lastSegment, itinerary, price: any;
     if (selectedDeparture) {
       itinerary = selectedDeparture.itineraries?.[returnFlight]; // departure itinerary
       firstSegment = itinerary?.segments?.[0];
@@ -143,25 +145,22 @@ export const FlightDrawer = memo<FlightDrawerProps>(
       price = Number(selectedDeparture.price?.grandTotal);
     }
 
-    const [upsell, setUpsell] =  useState<{upsell?:FlightUpsellOfferResponse , total:number}>({total:0})
+    const [upsell, setUpsell] = useState<{
+      upsell?: FlightUpsellOfferResponse;
+      total: number;
+    }>({ total: 0 });
 
-    const [upsellFlightOffer, { data,  }] =
-      useUpsellFlightOfferMutation();
+    const [upsellFlightOffer, { data }] = useUpsellFlightOfferMutation();
 
-   
-
+    const location = useLocation();
     // Helper function to get segment details
-  
-
-   
 
     useEffect(() => {
       if (selectedDeparture) {
         const handleUpsell = async () => {
-          const res = await upsellFlightOffer({
+           await upsellFlightOffer({
             flight_offer_id: selectedDeparture.id,
           }).unwrap();
-          console.log("Upsell result:", res);
         };
 
         handleUpsell();
@@ -184,21 +183,18 @@ export const FlightDrawer = memo<FlightDrawerProps>(
           counts: { ...counts },
           flight: selectedDeparture,
           option: selectedOption,
-          upsell
+          upsell,
         },
       ];
-
-      // Log for debugging
-      console.log("Current returnFlight index:", returnFlight);
 
       // Update the state
       setMultiCitySelections?.(updatedSelections);
 
       // Check if there is a next segment
       if (
-        location.state?.flights &&
-        Array.isArray(location.state.flights) &&
-        returnFlight + 1 < location.state.flights.length &&
+        searchState?.flights &&
+        Array.isArray(searchState.flights) &&
+        returnFlight + 1 < searchState.flights.length &&
         onNext
       ) {
         console.log("Proceeding to next segment");
@@ -208,9 +204,9 @@ export const FlightDrawer = memo<FlightDrawerProps>(
       }
 
       // If last segment, navigate to review page
-    
+
       navigate("/flight/review", {
-        state: { ...location.state, multiCitySelections: updatedSelections,  },
+        state: { ...searchState, multiCitySelections: updatedSelections },
       });
     };
 
@@ -249,21 +245,19 @@ export const FlightDrawer = memo<FlightDrawerProps>(
         <div className="mt-[75px] ">
           <div className="w-full border-1 border-[#023E8A] bg-[#CCD8E81A] rounded-[6px] mb-[16px] ">
             <div className="items-center p-2">
-       
-                <>
-                  <p className=" text-[14px] md:text-[18px] text-[#181818] font-inter font-medium">
-                    {
-                      getCity(firstSegment?.departure.iataCode as string)
-                        ?.municipality
-                    }{" "}
-                    to{" "}
-                    {
-                      getCity(lastSegment?.arrival.iataCode as string)
-                        ?.municipality
-                    }
-                  </p>
-                </>
-             
+              <>
+                <p className=" text-[14px] md:text-[18px] text-[#181818] font-inter font-medium">
+                  {
+                    getCity(firstSegment?.departure.iataCode as string)
+                      ?.municipality
+                  }{" "}
+                  to{" "}
+                  {
+                    getCity(lastSegment?.arrival.iataCode as string)
+                      ?.municipality
+                  }
+                </p>
+              </>
 
               <p className="text-[14px] text-[#4E4F52] ">
                 {/* {formatDateRange(location.state.departureDate)},{" "} */}
@@ -335,7 +329,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                         height: { xs: "16px", md: "18px" },
                       }}
                     />
-                    {location.state?.flightClass}
+                    {searchState?.flightClass}
                   </p>
                   <p className="text-[#4E4F52] font-normal md:text-[16px] text-[12px] ">
                     <CalendarMonthOutlinedIcon
@@ -610,7 +604,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                           </div>
 
                           <Stack direction="row" flexWrap="wrap">
-                            {firstSegment.amenities?.map((a:any, i:any) => (
+                            {firstSegment.amenities?.map((a: any, i: any) => (
                               <Box
                                 key={i}
                                 display="flex"
@@ -694,7 +688,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
       </DialogContent>
     );
 
-    const state = location.state as FlightReviewState;
+    const state = searchState;
 
     const checkRoute = (): string => {
       switch (location.pathname) {
@@ -714,7 +708,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
       <div
         className="sticky bottom-0 md:border-t border-[grey] left-0 right-0 bg-white p-4 rounded-b-[10px]"
         onClick={
-          location.state.tripType === "multi-city"
+          searchState.tripType === "multi-city"
             ? handleMultiCitySelect
             : undefined
         }
@@ -722,47 +716,57 @@ export const FlightDrawer = memo<FlightDrawerProps>(
         <button
           className="w-full h-[52px] rounded-[6px] bg-[#023E8A] text-white cursor-pointer"
           onClick={
-            location.state.tripType !== "multi-city"
+            searchState.tripType !== "multi-city"
               ? () => {
                   let state;
 
                   if (location.pathname === "/flight/departure") {
                     state = {
-                      ...location.state,
+                      ...searchState,
                       departureFlight: selectedDeparture,
                       departureTotal: price as any,
                       departureUpsell: upsell,
                       departureCounts: counts,
                       departureFlightOption: selectedOption,
-                      upsell,
                     };
                   } else if (location.pathname === "/flight/return") {
                     state = {
+                      ...searchState,
                       ...location.state,
                       returnTotal: price,
                       returnUpsell: upsell,
-                      upsell,
+
                       returnFlight: selectedDeparture,
                       returnCounts: counts,
                       returnFlightOption: selectedOption,
                     };
+                    console.log("return,", state);
                   } else {
-                  
-                        state = {
-                          ...location.state,
-                          total: price,
-                          upsell,
-                        };
+                    state = {
+                      ...searchState,
+                      ...location.state,
+                      total: price,
+                      upsell,
+                    };
+
+                    console.log("any", state);
                   }
-           
 
                   navigate(checkRoute(), { state });
                 }
               : undefined
           }
         >
-          Select for {price ? Number(price + upsell.total).toLocaleString() : "—"}{" "}
-          {selectedDeparture?.price.currency}
+          {title === "Return" ? (
+            <>Select</>
+          ) : (
+            <>
+              {" "}
+              Select for{" "}
+              {price ? Number(price + upsell.total).toLocaleString() : "—"}{" "}
+              {selectedDeparture?.price.currency}
+            </>
+          )}
         </button>
       </div>
     );

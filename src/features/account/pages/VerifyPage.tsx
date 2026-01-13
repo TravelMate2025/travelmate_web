@@ -39,11 +39,9 @@ export default function VerifyEmail() {
     setIsLoading(true);
     const fullCode = code.join("");
     const res = await verifyCode(email, fullCode);
-    console.log("Verification result:", res); 
   
     setIsLoading(false);
     if (res.Status === 200 && res.Error === false) {
-      console.log("OTP verified, navigating...");
       localStorage.setItem("email", email);
       navigate("/create-password", { state: { email } });
     } else {

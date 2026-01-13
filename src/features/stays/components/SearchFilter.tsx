@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import ReusableDateSelector from "./ReusableDateSelector";
-import LocationDropdown from './booking-progress/LocationDropdown';
-import HotelGuestSelector from './HotelGuestSelector';
+import LocationDropdown from "./booking-progress/LocationDropdown";
+import HotelGuestSelector from "./HotelGuestSelector";
 import { useDispatch, useSelector } from "react-redux";
-import { clearStaysCache, setSearchParams } from "../slice";
+import { clearStaysCache, setLocationDetails, setSearchParams } from "../slice";
 import { AppDispatch, RootState } from "../../../store";
-import { fetchDestinations } from '../api';
+import { fetchDestinations, fetchRecommendedHotels } from "../api";
 
 interface Destination {
   code: string;
   name: string;
   country_code: string;
+  country_name?: string;
   city_name?: string;
 }
 
@@ -21,70 +22,78 @@ interface SearchParams {
   checkOut: string;
   adults: number;
   children: number;
-  rooms: number; 
+  rooms: number;  
 }
 
-
 const SearchFilter: React.FC = () => {
-  const [destinationCode, setDestinationCode] = useState("");
-  const [destination, setDestination] = useState("");
+  const { searchParams, locationDetails } = useSelector(
+    (state: RootState) => state.stays
+  );
+
+  const [destinationCode, setDestinationCode] = useState(
+    searchParams?.destination || ""
+  );
+  const [destination, setDestination] = useState(locationDetails?.name || "");
+  const [checkIn, setCheckIn] = useState(searchParams?.checkIn || "");
+  const [checkOut, setCheckOut] = useState(searchParams?.checkOut || "");
   const [locations, setLocations] = useState<Destination[]>([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
-  const [checkIn, setCheckIn] = useState('');
-  const [checkOut, setCheckOut] = useState('');
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const [guestText, setGuestText] = useState("1 Room, 2 Guests");
-  const [counts, setCounts] = useState({ rooms: 1, adults: 2, children: 0, infants: 0 });
+  const [guestText, setGuestText] = useState(
+    `${searchParams?.adults || 2} adults, ${searchParams?.rooms || 1} rooms ` || ""
+  );
+  const [counts, setCounts] = useState({
+    rooms: searchParams?.rooms || 1,
+    adults: searchParams?.adults || 2,
+    children: searchParams?.children || 0,
+    infants: 0,
+  });
   const { accessToken } = useSelector((state: RootState) => state.auth);
 
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
- 
-
+  // useRef to track the previous search term to avoid redundant API calls
+  const previousDestinationRef = useRef<string>("");
 
   useEffect(() => {
-  const loadDestinations = async () => {
-    try {
+    const loadDestinations = async () => {
+      const searchTerm = destination.trim();
+
+      // Skip API call if search term hasn't changed and it's not empty
+      if (searchTerm === previousDestinationRef.current && searchTerm.length >= 2) {
+        return;
+      }
+
+      previousDestinationRef.current = searchTerm;
       setLoadingLocations(true);
 
-      const data = await fetchDestinations(undefined, accessToken);
-      console.log('API response:', data)
-      setLocations(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Error fetching destinations:', error);
-      setLocations([]);
-    } finally {
-      setLoadingLocations(false);
-    }
-  };
+      try {
+        let data: Destination[] = [];
+        if (searchTerm.length >= 2) {
+          data = await fetchDestinations(searchTerm, accessToken);
+        } else if (!searchTerm) {
+          data = await fetchDestinations(undefined, accessToken);
+        }
 
-  loadDestinations();
-}, [accessToken]);
-
-
-
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
-  };
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    dispatch(clearStaysCache());
-
-    const totalChildren = counts.children + counts.infants;
-    const searchParams: SearchParams = {
-      destination: destinationCode,
-      checkIn: formatDate(checkIn),
-      checkOut: formatDate(checkOut),
-      adults: counts.adults,
-      children: totalChildren,
-      rooms: counts.rooms,
+        setLocations(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error fetching destinations:", error);
+        setLocations([]);
+      } finally {
+        setLoadingLocations(false);
+      }
     };
-    
-    dispatch(setSearchParams(searchParams));
-    navigate('/stays-search-result');
+
+    const debounceId = setTimeout(loadDestinations, 300);
+    return () => clearTimeout(debounceId);
+  }, [destination, accessToken]);
+
+  const formatDate = (dateString: string) => new Date(dateString).toISOString().split("T")[0];
+
+  const handleLocationSelect = (value: string, code: string) => {
+    setDestination(value);
+    setDestinationCode(code);
   };
 
   const handleDateChange = (startDate: string, endDate: string) => {
@@ -92,13 +101,11 @@ const SearchFilter: React.FC = () => {
     setCheckOut(endDate);
   };
 
-  const handleIncrement = (key: keyof typeof counts) => {
+  const handleIncrement = (key: keyof typeof counts) =>
     setCounts((prev) => ({ ...prev, [key]: prev[key] + 1 }));
-  };
 
-  const handleDecrement = (key: keyof typeof counts) => {
+  const handleDecrement = (key: keyof typeof counts) =>
     setCounts((prev) => ({ ...prev, [key]: Math.max(prev[key] - 1, 0) }));
-  };
 
   const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchor(e.currentTarget);
   const handleClose = () => setAnchor(null);
@@ -109,25 +116,66 @@ const SearchFilter: React.FC = () => {
     handleClose();
   };
 
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    dispatch(clearStaysCache());
+
+    if (!destinationCode || !checkIn || !checkOut || counts.adults < 1 || counts.rooms < 1) return;
+
+    const selectedDestination = locations.find((loc) => loc.code === destinationCode);
+    const totalChildren = counts.children + counts.infants;
+
+    const searchParams: SearchParams = {
+      destination: destinationCode,
+      checkIn: formatDate(checkIn),
+      checkOut: formatDate(checkOut),
+      adults: counts.adults,
+      children: totalChildren,
+      rooms: counts.rooms,
+    };
+
+    if (selectedDestination) {
+      dispatch(
+        setLocationDetails({
+          name: selectedDestination.name,
+          code: selectedDestination.code,
+          country_code: selectedDestination.country_code,
+          country_name: selectedDestination.country_name || selectedDestination.name,
+        })
+      );
+    } else {
+      dispatch(
+        setLocationDetails({ name: destination, code: destinationCode })
+      );
+    }
+
+    dispatch(setSearchParams(searchParams));
+
+    navigate(
+      `/stays-search-result?location=${encodeURIComponent(destinationCode)}&checkin=${formatDate(checkIn)}&checkout=${formatDate(checkOut)}&adults=${counts.adults}&children=${totalChildren}&rooms=${counts.rooms}`
+    );
+  };
+
+  useEffect(() => {
+    fetchRecommendedHotels();
+  }, []);
+
   return (
     <div className="py-4">
       <div className="max-w-full mx-auto">
-        <form onSubmit={handleSubmit} className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          {/* Destination */}
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
+        >
           <div className="flex flex-col w-full md:w-auto">
-              <LocationDropdown
-                label="Destination"
-                selectedValue={destination}
-                  setSelectedValue={(value, code) => {
-                    setDestination(value); // Keep name for display
-                    setDestinationCode(code); // Store code for search
-                }}
-                locations={locations.map(loc => ({
-                    name: loc.name,
-                    code: loc.code
-                }))} 
-                loading={loadingLocations}           
-              />
+            <LocationDropdown
+              label="Destination"
+              token={accessToken}
+              selectedValue={destination}
+              setSelectedValue={handleLocationSelect}
+              locations={locations?.map((loc) => ({ name: loc.name, code: loc.code }))}
+              loading={loadingLocations}
+            />
           </div>
 
           <div className="flex flex-col w-full md:w-auto">
@@ -143,20 +191,31 @@ const SearchFilter: React.FC = () => {
             />
           </div>
 
-          {/* Date */}
           <div className="flex flex-col w-full md:w-auto">
-            <label className="text-sm font-medium text-gray-700 mb-1">Check-in - Check-out</label>
-            <ReusableDateSelector onDateChange={handleDateChange} initialValue={""} />
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              Check-in - Check-out
+            </label>
+            <ReusableDateSelector
+              onDateChange={handleDateChange}
+              initialValue={checkIn && checkOut ? `${checkIn} - ${checkOut}` : ""}
+            />
           </div>
 
-          {/* Submit Button */}
           <div className="flex-grow"></div>
           <button
             type="submit"
-            className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg cursor-pointer hover:bg-[#0450A2]"
-            disabled={loadingLocations}
+            className="w-full md:w-35 h-[42px] bg-[#023E8A] text-white rounded-lg cursor-pointer hover:bg-[#0450A2] disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400"
+            disabled={
+              loadingLocations ||
+              !guestText ||
+              !destination ||
+              !checkIn ||
+              !checkOut ||
+              counts.adults < 1 ||
+              counts.rooms < 1
+            }
           >
-            {loadingLocations ? 'Loading...' : 'Search'}
+            {loadingLocations ? "Loading..." : "Search"}
           </button>
         </form>
       </div>

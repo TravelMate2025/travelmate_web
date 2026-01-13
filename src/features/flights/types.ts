@@ -259,6 +259,9 @@ export interface BookingRequest {
   upsell_offer_id?: string;   // optional, in case user didn’t select upsell
   passengers: Passenger[];
   booking_type: BookingType;
+  adults: number;
+  children: number
+  infants:number
 }
 
 export type BookingResponse = {

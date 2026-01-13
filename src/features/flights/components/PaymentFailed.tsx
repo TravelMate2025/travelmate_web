@@ -4,7 +4,12 @@ import Navbar from "../../../pages/homePage/Navbar";
 import Footer from "../../../components/2Footer";
 import { Link } from "react-router-dom";
 
+
 export default function PaymentFailed() {
+
+
+
+  
   return (
 
     <div>
@@ -68,7 +73,10 @@ export default function PaymentFailed() {
       {/* Buttons */}
       <Stack spacing={2} width="100%" maxWidth={785}>
         <Button
-          variant="contained"
+            variant="contained"
+            component={Link}
+            to={"/flight/departure"}
+          
           sx={{
             bgcolor: "#003087",
             "&:hover": { bgcolor: "#00246b" },

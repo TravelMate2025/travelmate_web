@@ -16,40 +16,46 @@ import {
   Menu,
   MenuItem,
   Avatar,
-  Button
+  Button,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
-import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
-import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
-import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined';
+import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+import ClassOutlinedIcon from "@mui/icons-material/ClassOutlined";
+import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
+import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
+import { FaBell } from "react-icons/fa";
+import { PiSignOutFill } from "react-icons/pi";
 import { Link, useNavigate } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { motion } from "framer-motion";
 import { useSelector, useDispatch } from "react-redux";
+import Travelmate from "../../assets/Travelmate_logo.svg";
 import { RootState } from "../../store";
 import { logoutUser } from "../../features/account/api/auth";
 import { logout as navlogout } from "../../features/account/slices/authSlice";
 import toast from "react-hot-toast";
 import Spinner from "../../features/account/components/Spinner";
-import { FaBell } from "react-icons/fa";
-import Travelmate from "../../assets/Travelmate_logo.svg";
 import { useNotifications } from "../../features/account/components/notifications/NotificationProvider";
 
 const navItems = [
   { name: "Home", path: "/" },
   { name: "Stays", path: "/stays-search-result" },
   { name: "Flights", path: "/flights" },
-  { name: "Airport Taxi", path: "/airport-taxi" }
+  { name: "Airport Taxi", path: "/airport-taxi" },
 ];
-
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
 
 const menuItems = [
   { text: "Account", icon: <PersonOutlinedIcon />, path: "/account" },
   { text: "Bookings", icon: <ClassOutlinedIcon />, path: "/bookings" },
   { text: "Favorites", icon: <FavoriteBorderOutlinedIcon />, path: "/favorites" },
   { text: "Notifications", icon: <FaBell />, path: "/notifications" },
+];
+
+const menuItemsWeb = [
+  { text: "Account", icon: <PersonOutlinedIcon /> },
+  { text: "Bookings", icon: <ClassOutlinedIcon /> },
+  { text: "Favorites", icon: <FavoriteBorderOutlinedIcon /> },
+  { text: "Log out", icon: <PiSignOutFill size={24} /> },
 ];
 
 const logout = [{ text: "Log out", icon: <LoginOutlinedIcon /> }];
@@ -66,7 +72,7 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // NEW: Notifications
+  // Notifications
   const { notifications, unreadCount, markAsRead } = useNotifications();
   const hasNewNotification = unreadCount > 0;
   const latestNotification = notifications[0];
@@ -226,7 +232,7 @@ const Navbar: React.FC = () => {
             <Box sx={{ display: "flex", flexGrow: 1, justifyContent: "center" }}>
               {navItems.map(item => (
                 <Link key={item.name} to={item.path} style={{ textDecoration: "none" }}>
-                  <Button onClick={() => { handleCloseUserMenu(); handleTabClick(item.name); }} sx={{ my: 2, mr: 2, color: activeTab === item.name ? "#023E8A" : "#000000", display: "block", textTransform: "capitalize", backgroundColor: "transparent", "&:hover": { backgroundColor: "transparent" } }} className="font-bold font-inter text-xl">
+                  <Button onClick={() => { handleCloseUserMenu(); handleTabClick(item.name); }} sx={{ my: 2, mr: 2, color: activeTab === item.name ? "#023E8A" : "#000000", display: "block", textTransform: "capitalize", backgroundColor: "transparent" }} className="font-bold font-inter text-xl">
                     {item.name}
                   </Button>
                 </Link>
@@ -263,16 +269,18 @@ const Navbar: React.FC = () => {
                       </Box>
                     </IconButton>
                   </Tooltip>
+
+                  {/* User Menu */}
+                  <Menu sx={{ mt: "45px" }} id="menu-appbar" anchorEl={anchorElUser} anchorOrigin={{ vertical: "top", horizontal: "right" }} keepMounted transformOrigin={{ vertical: "top", horizontal: "right" }} open={Boolean(anchorElUser)} onClose={handleCloseUserMenu}>
+                    {menuItemsWeb.map(setting => (
+                      <MenuItem key={setting.text} onClick={() => { handleCloseUserMenu(); if (setting.text === "Log out") handleLogout(); else navigate(`/${setting.text.toLowerCase()}`); }}>
+                        <ListItemIcon>{setting.icon}</ListItemIcon>
+                        <Typography sx={{ textAlign: "center", color: "#000000", fontSize: "14px" }}>{setting.text}</Typography>
+                      </MenuItem>
+                    ))}
+                  </Menu>
                 </>
               )}
-
-              <Menu sx={{ mt: "45px" }} id="menu-appbar" anchorEl={anchorElUser} anchorOrigin={{ vertical: "top", horizontal: "right" }} keepMounted transformOrigin={{ vertical: "top", horizontal: "right" }} open={Boolean(anchorElUser)} onClose={handleCloseUserMenu}>
-                {settings.map(setting => (
-                  <MenuItem key={setting} onClick={() => { handleCloseUserMenu(); if (setting === "Logout") handleLogout(); else if (setting === "Profile") navigate("/profile-info"); else navigate(`/${setting.toLowerCase()}`); }}>
-                    <Typography sx={{ textAlign: "center" }}>{setting}</Typography>
-                  </MenuItem>
-                ))}
-              </Menu>
             </Box>
           </Toolbar>
         </AppBar>

@@ -1,81 +1,102 @@
 import {
   Button,
-  Dialog,
-  DialogContent,
-  DialogTitle,
   FormControl,
   FormControlLabel,
   Radio,
   RadioGroup,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { useState } from "react";
 
 type rideProps = {
-  rideTypeModal: boolean;
   closeModal: () => void;
   selectedRide: string;
   handleSelectRide: (value: string) => void;
 };
 
 const RideType = ({
-  rideTypeModal,
   closeModal,
   selectedRide,
   handleSelectRide,
 }: rideProps) => {
   const [tempSelectedRide, setTempSelectedRide] = useState(selectedRide);
-  useEffect(() => {
-    setTempSelectedRide(selectedRide); // sync when modal opens
-  }, [selectedRide, rideTypeModal]);
 
   const handleDone = () => {
-    handleSelectRide(tempSelectedRide); // update actual value
-    closeModal(); // close modal
+    handleSelectRide(tempSelectedRide);
+    closeModal();
   };
+
   return (
-    <Dialog maxWidth="xs" fullWidth open={rideTypeModal} onClose={closeModal}>
-      <DialogTitle className="border-b-1 border-b-gray-200 text-center">
-        Ride Type
-      </DialogTitle>
-      <DialogContent sx={{padding:'0px'}}>
-        <FormControl className="w-full  pb-4">
-          <RadioGroup
-            aria-labelledby="ride-type-label"
-            name="ride-type"
-            value={tempSelectedRide}
-            className="border-b border-b-gray-200 mb-4"
-            onChange={(e) => setTempSelectedRide(e.target.value)}
-            sx={{paddingX:'10px', paddingY:"10px"}}
-          >
-            <FormControlLabel
-              value="Private Ride"
-              control={<Radio />}
-              label="Private Ride"
-            />
-            <FormControlLabel
-              value="Premium Ride"
-              control={<Radio />}
-              label="Premium Ride"
-            />
-            <FormControlLabel
-              value="Shared Ride"
-              control={<Radio />}
-              label="Shared Ride"
-            />
-          </RadioGroup>
+    <div className="inset-0 fixed z-50">
+      {/* Backdrop */}
+      <div className="fixed inset-0 " onClick={closeModal} />
+      
+      {/* Modal Container */}
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full lg:h-auto lg:w-auto lg:min-w-[500px] lg:max-w-[600px] bg-white lg:rounded-lg shadow-2xl z-[99] flex flex-col mt-6 lg:mt-0">
+        
+        {/* Mobile Header */}
+        <div className="lg:hidden pt-12 px-6 pb-5  lg:border-b border-gray-200 mt-4">
+          <div className="p-2 absolute left-6 size-10 bg-white lg:border-[0.5px] lg:border-[#EBECED] shadow-md rounded-sm cursor-pointer">
+            <X onClick={closeModal} className="font-bold" />
+          </div>
+          <h2 className="text-lg font-bold text-center">Ride Type</h2>
+        </div>
+
+        {/* Desktop Header */}
+        <h2 className="hidden lg:block lg:border-b border-gray-200 text-center text-lg font-bold py-4 px-6">
+          Ride Type
+        </h2>
+
+        {/* Content - Scrollable if needed */}
+        <div className="flex-1 overflow-y-auto px-6 py-2">
+          <FormControl className="w-full">
+            <RadioGroup
+              aria-labelledby="ride-type-label"
+              name="ride-type"
+              value={tempSelectedRide}
+              onChange={(e) => setTempSelectedRide(e.target.value)}
+              sx={{ paddingY: "10px" }}
+            >
+              <FormControlLabel
+                value="Private Ride"
+                control={<Radio />}
+                label="Private Ride"
+              />
+              <FormControlLabel
+                value="Shared Ride"
+                control={<Radio />}
+                label="Shared Ride"
+              />
+              <FormControlLabel
+                value="Private and Shared Ride"
+                control={<Radio />}
+                label="Private and Shared Ride"
+              />
+            </RadioGroup>
+          </FormControl>
+        </div>
+
+        {/* Button - Sticky at bottom */}
+        <div className="lg:border-t lg:border-gray-200 p-4 lg:p-6 bg-white mb-12 lg:mb-0">
           <Button
             type="submit"
             variant="contained"
-            // fullWidth
-            className="bg-[#023E8A] rounded-lg p-2 text-white m-4"
+            fullWidth
+            className="bg-[#023E8A] rounded-lg text-white"
             onClick={handleDone}
-            sx={{backgroundColor:"#023E8A", margin:'10px'}}
+            sx={{
+              backgroundColor: "#023E8A",
+              padding: "12px",
+              "&:hover": {
+                backgroundColor: "#012a5e",
+              },
+            }}
           >
             Done
           </Button>
-        </FormControl>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </div>
   );
 };
 

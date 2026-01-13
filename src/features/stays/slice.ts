@@ -1,12 +1,17 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { searchHotels, getHotelDetails, createBooking } from '../stays/api';
-import { BookingRequest, BookingResponse, Hotel, HotelSearchResponse } from './types';
+import { searchHotels, createCheckoutSession } from '../stays/api';
+import { BookStaysRequest, BookStaysResponse, Hotel, HotelSearchResponse } from './types';
 
-
+interface locationDetails {
+  name: string
+  country_name: string
+  country_code: string
+  code: string
+}
 interface BookingState {
   loading: boolean;
   error: string | null;
-  booking: BookingResponse | null;
+  booking: BookStaysResponse | null;
 }
 
 interface SearchParams {
@@ -23,10 +28,12 @@ interface StaysState {
   loading: boolean;
   error: string | null;
   searchParams: SearchParams | null;
+  locationDetails: locationDetails | null;
   selectedHotel: Hotel | null;
   detailsLoading: boolean;
   detailsError: string | null;
   booking: BookingState;
+  guestInfo: GuestInfoProps | null;
 }
 
 const initialState: StaysState = {
@@ -36,13 +43,26 @@ const initialState: StaysState = {
   searchParams: null,
   selectedHotel: null,
   detailsLoading: false,
+  locationDetails: null,
   detailsError: null,
   booking: {
     loading: false,
     error: null,
     booking: null
-  }
+  },
+  guestInfo: null
 };
+export interface GuestInfoProps {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  countryCode: string;
+  address?: string
+  postal?: string
+  city?: string
+}
 
 export const fetchHotelsAsync = createAsyncThunk(
   'stays/fetchHotels',
@@ -53,37 +73,10 @@ export const fetchHotelsAsync = createAsyncThunk(
         searchParams.destination,
         searchParams.checkIn,
         searchParams.checkOut,
-        searchParams.adults,
-        searchParams.children,
+        searchParams.adults = 1,
+        searchParams.children = 0,
         searchParams.rooms,
-        token
-      );
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const fetchHotelDetailsAsync = createAsyncThunk(
-  'stays/fetchHotelDetails',
-  async (params: {
-    hotelId: string;
-    checkIn: string;
-    checkOut: string;
-    adults: number;
-    children: number;
-    rooms: number;
-    token?: string;
-  }, { rejectWithValue }) => {
-    try {
-      return await getHotelDetails(
-        params.hotelId,
-        params.checkIn,
-        params.checkOut,
-        params.adults,
-        params.children,
-        params.rooms,
-        params.token
+        // token
       );
     } catch (error: any) {
       return rejectWithValue(error.message);
@@ -92,12 +85,21 @@ export const fetchHotelDetailsAsync = createAsyncThunk(
 );
 
 export const createBookingAsync = createAsyncThunk(
-  'stays/createBooking',
-  async (params: { bookingData: BookingRequest; token?: string }, { rejectWithValue }) => {
+  'stays/createCheckoutSession',
+  async (params: { bookingData: BookStaysRequest}, { rejectWithValue }) => {
     try {
-      return await createBooking(params.bookingData, params.token);
+      const response = await createCheckoutSession(params.bookingData);
+      return {
+        checkout_url: response?.checkout_url,
+        success: true,
+
+      };
     } catch (error: any) {
-      return rejectWithValue(error.message);
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue("Failed to create Booking");
+
     }
   }
 );
@@ -109,10 +111,31 @@ const staysSlice = createSlice({
     setSearchParams: (state, action: PayloadAction<SearchParams>) => {
       state.searchParams = action.payload;
     },
+    setLocationDetails: (state, action) => {
+      state.locationDetails = action.payload;
+    },
+    setGuestInfo: (state, action) => {
+      state.guestInfo = action.payload
+    },
     clearStaysCache: (state) => {
       state.hotels = [];
       state.searchParams = null;
       state.error = null;
+    },
+    clearSearchState: (state) => {
+      state.hotels = [];
+      state.searchParams = null;
+      state.locationDetails = null;
+      state.selectedHotel = null;
+      state.detailsLoading = false;
+      state.detailsError = null;
+      state.error = null;
+      state.guestInfo = null;
+      state.booking = {
+        loading: false,
+        error: null,
+        booking: null,
+      };
     },
     clearSelectedHotel: (state) => {
       state.selectedHotel = null;
@@ -129,23 +152,12 @@ const staysSlice = createSlice({
       .addCase(fetchHotelsAsync.fulfilled, (state, action: PayloadAction<HotelSearchResponse>) => {
         state.loading = false;
         state.hotels = action.payload.results;
+
       })
       .addCase(fetchHotelsAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
-      // Hotel Details
-      .addCase(fetchHotelDetailsAsync.pending, (state) => {
-        state.detailsLoading = true;
-        state.detailsError = null;
-      })
-      .addCase(fetchHotelDetailsAsync.fulfilled, (state, action: PayloadAction<Hotel>) => {
-        state.detailsLoading = false;
-        state.selectedHotel = action.payload;
-      })
-      .addCase(fetchHotelDetailsAsync.rejected, (state, action) => {
-        state.detailsLoading = false;
-        state.detailsError = action.payload as string;
+
       })
       //Bookings
       .addCase(createBookingAsync.pending, (state) => {
@@ -163,6 +175,6 @@ const staysSlice = createSlice({
   }
 });
 
-export const { setSearchParams, clearStaysCache, clearSelectedHotel } = staysSlice.actions;
+export const { setSearchParams, setGuestInfo, clearStaysCache, clearSearchState, clearSelectedHotel, setLocationDetails } = staysSlice.actions;
 export default staysSlice.reducer;
 

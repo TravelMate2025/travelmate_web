@@ -13,8 +13,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../../store";
 import { fetchHotelsAsync } from "../slice";
 
-
-
 // Define the type for the filter state
 interface FilterState {
   priceRange: number[];
@@ -26,10 +24,9 @@ interface FilterState {
 export default function StaysSearchResults() {
   // Use Redux hooks to access state and dispatch actions
   const dispatch = useDispatch<AppDispatch>();
-  const { hotels, loading, error, searchParams } = useSelector((state: RootState) => state.stays);
-  const { accessToken } = useSelector((state: RootState) => state.auth);
-
-  
+  const { hotels, loading, error, searchParams, locationDetails } = useSelector(
+    (state: RootState) => state.stays
+  );
 
   // State for modals and visibility
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
@@ -51,15 +48,14 @@ export default function StaysSearchResults() {
     let sorted = [...hotels];
     if (selectedSort === "Price: low to high") {
       sorted.sort((a, b) => {
-        // Assuming first room's first rate's price is the base price
-        const aPrice = parseFloat(a.rooms?.[0]?.rates?.[0]?.net || '0');
-        const bPrice = parseFloat(b.rooms?.[0]?.rates?.[0]?.net || '0');
+        const aPrice = parseFloat(a.rooms?.[0]?.rates?.[0]?.net || "0");
+        const bPrice = parseFloat(b.rooms?.[0]?.rates?.[0]?.net || "0");
         return aPrice - bPrice;
       });
     } else if (selectedSort === "Price: high to low") {
       sorted.sort((a, b) => {
-        const aPrice = parseFloat(a.rooms?.[0]?.rates?.[0]?.net || '0');
-        const bPrice = parseFloat(b.rooms?.[0]?.rates?.[0]?.net || '0');
+        const aPrice = parseFloat(a.rooms?.[0]?.rates?.[0]?.net || "0");
+        const bPrice = parseFloat(b.rooms?.[0]?.rates?.[0]?.net || "0");
         return bPrice - aPrice;
       });
     }
@@ -76,43 +72,50 @@ export default function StaysSearchResults() {
   // Effect to fetch hotel data based on filters and search parameters from Redux
   useEffect(() => {
     if (hotels.length > 0 && !loading) {
-        console.log("Loading stays from cache:", {
-          hotels: hotels,
-          totalResults: hotels.length
-        });
-        return; 
+      return;
     }
 
-    // Check if searchParams and accessToken are available in the Redux store
-    if (searchParams && accessToken) {
-      dispatch(fetchHotelsAsync({ ...searchParams, ...filters, token: accessToken }));
+    if (searchParams) {
+      dispatch(
+        fetchHotelsAsync({ ...searchParams, ...filters})
+      );
     } else {
-      // Set an error if searchParams are missing. You can add a check for accessToken as well.
       if (!searchParams) {
         console.error("No search parameters found. add search parameters");
       }
     }
-  }, [searchParams, filters, accessToken, dispatch]);
+  }, [searchParams, filters, dispatch]);
 
   const handleApplyFilter = (newFilters: FilterState) => {
     setFilters(newFilters);
-    // The useEffect hook will automatically re-fetch hotels with the new filters
   };
 
   const breadcrumbs = [
     { name: "Home", link: "/" },
-    { 
-      name: searchParams?.destination || "Search", 
-      link: `/locations/${searchParams?.destination || ''}` 
+    {
+      name: locationDetails?.name || searchParams?.destination || "Search",
+      // link: `/locations/${locationDetails?.code || searchParams?.destination || ""}`,
     },
     { name: "Search Results" },
   ];
 
+  const formatDateRange = () => {
+    if (!searchParams?.checkIn || !searchParams?.checkOut) return "Select dates";
+    
+    const checkInDate = new Date(searchParams.checkIn);
+    const checkOutDate = new Date(searchParams.checkOut);
+    const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    return `${checkInDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${checkOutDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} (${nights} night${nights > 1 ? 's' : ''})`;
+  };
+
   const filterDetails = {
-    state: "Lagos",
-    city: "Ikeja",
-    dates: "Feb 10 - Feb 15 (7 nights)",
-    roomsGuests: "1 Room, 1 Guest",
+    state: locationDetails?.country_name || "Unknown",
+    city: locationDetails?.name || "Unknown",
+    dates: formatDateRange(),
+    roomsGuests: searchParams 
+      ? `${searchParams.rooms} Room${searchParams.rooms > 1 ? 's' : ''}, ${searchParams.adults + searchParams.children} Guest${(searchParams.adults + searchParams.children) > 1 ? 's' : ''}`
+      : "1 Room, 1 Guest",
   };
 
   const handleEditClick = () => setShowUpdateSearch(!showUpdateSearch);
@@ -132,7 +135,7 @@ export default function StaysSearchResults() {
             >
               <div className="text-left w-11/12">
                 <p className="truncate text-sm">
-                  {`${filterDetails.state}, ${filterDetails.city}`}
+                  {`${filterDetails.city}, ${filterDetails.state}`}
                 </p>
                 <p className="truncate text-sm">
                   {`${filterDetails.dates} • ${filterDetails.roomsGuests}`}
@@ -146,11 +149,15 @@ export default function StaysSearchResults() {
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <span className="text-black font-bold text-lg ml-0 sm:ml-4 mb-4 sm:mb-0">
-              {loading ? "Searching..." : error ? "Error" : `${hotels.length} Results`}
+              {loading
+                ? "Searching..."
+                : error
+                ? "Error"
+                : `${hotels.length} Results`}
             </span>
             <div className="flex gap-4">
               <button
-                className="w-25 sm:w-[96px] sm:h-[44px] flex items-center justify-center gap-2 border border-gray-300 rounded-lg shadow-sm"
+                className="w-25 sm:w-[96px] sm:h-[44px] flex items-center justify-center gap-2 border border-gray-300 rounded-lg shadow-sm cursor-pointer"
                 onClick={() => setIsFilterModalOpen(true)}
               >
                 <HiAdjustmentsHorizontal />
@@ -159,10 +166,10 @@ export default function StaysSearchResults() {
               <FilterModal
                 isOpen={isFilterModalOpen}
                 onClose={() => setIsFilterModalOpen(false)}
-                onApplyFilter={handleApplyFilter} // Pass the new handler
+                onApplyFilter={handleApplyFilter}
               />
               <button
-                className="w-25 sm:w-[275px] h-[44px] flex items-center justify-between px-4 border border-gray-300 rounded-lg shadow-sm"
+                className="w-25 sm:w-[275px] h-[44px] flex items-center justify-between px-4 border border-gray-300 rounded-lg shadow-sm cursor-pointer"
                 onClick={() => setIsSortModalOpen(true)}
               >
                 <div className="flex items-center gap-2">
@@ -184,10 +191,7 @@ export default function StaysSearchResults() {
         {/* Conditional rendering based on loading/error state */}
         {loading && <div className="text-center py-10">Loading hotels...</div>}
         {error && <div className="text-center py-10 text-red-600">{error}</div>}
-        {!loading && !error && (
-            // Pass the sorted list to StayList
-            <StayList hotels={sortedHotels} />
-        )}
+        {!loading && !error && <StayList hotels={sortedHotels} />}
 
         <div className="py-10 bg-gray-100">
           <TravelmateApp />
@@ -199,7 +203,7 @@ export default function StaysSearchResults() {
         <SortModal
           selectedSort={selectedSort}
           onClose={() => setIsSortModalOpen(false)}
-          onSelect={(option) => setSelectedSort(option)} // Update sort state
+          onSelect={(option) => setSelectedSort(option)}
         />
       )}
     </div>

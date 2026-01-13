@@ -2,7 +2,7 @@ import Navbar from "../../../pages/homePage/Navbar";
 import { GrStatusGood } from "react-icons/gr";
 import HotelCard from "../components/BookingProgressHotelCard";
 import GuestInformation from "../components/booking-progress/GuestInformation";
-import PriceSummary from "../components/confirmation/PriceSummary";
+import PriceSummary from "../components/booking-progress/PriceSummary";
 import BookingDetails from "../components/booking-progress/BookingDetails";
 import PaymentMethod from "../components/booking-progress/PaymentMethod";
 import RefundCancellation from "../components/booking-progress/RefundCancellation";
@@ -10,269 +10,353 @@ import Policies from "../components/booking-progress/Policies";
 import Footer from "../../../components/2Footer";
 import { useState } from "react";
 import Stepper from "react-stepper-horizontal";
-import { useMediaQuery } from "react-responsive";
 import { IoChevronBack } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa";
-import { useDispatch, useSelector } from 'react-redux';
-import { createBookingAsync } from '../slice';
-import { RootState, AppDispatch } from '../../../store';
+import { useDispatch, useSelector } from "react-redux";
+import { createBookingAsync } from "../slice";
+import { RootState, AppDispatch } from "../../../store";
 import { useLocation, useNavigate } from "react-router-dom";
-
-
+import { ToastContainer, toast } from "react-toastify";
+import { Info, Loader } from "lucide-react";
+import { BookStaysRequest } from "../types";
 
 const BookingProgress: React.FC = () => {
   const cancellationDate = new Date();
   cancellationDate.setDate(cancellationDate.getDate() + 1);
-  const formattedDate = cancellationDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const formattedDate = cancellationDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
   const formattedTime = "11:59 PM";
 
   const dispatch = useDispatch<AppDispatch>();
-  const {loading, error } = useSelector((state: RootState) => state.stays.booking);
-  const { selectedHotel, searchParams } = useSelector((state: RootState) => state.stays);
+  const { searchParams } = useSelector((state: RootState) => state.stays);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedRoom } = location.state || {};
-  // const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [guestInfo, setGuestInfo] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    dateOfBirth: ''
-  });
-
-
-  const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
-
+  const { selectedRoom, selectedRate } = location.state || {};
   const [currentStep, setCurrentStep] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
+  // const [isValid, setIsValid] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [guestInfo, setGuestInfo] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
+    countryCode: "",
+    address: "",
+    postal: "",
+    city: "",
+  });
+
+  const [errors, setErrors] = useState({
+    firstName: "",
+    lastName: "",
+    dateOfBirth: "",
+    email: "",
+    phone: "",
+    countryCode: "",
+    address: "",
+    postal: "",
+    city: "",
+  });
+  const validatePersonalInfo = () => {
+    const newErrors: any = {};
+    if (!guestInfo.firstName.trim())
+      newErrors.firstName = "First name is required.";
+    if (!guestInfo.lastName.trim())
+      newErrors.lastName = "Last name is required.";
+    if (!guestInfo.dateOfBirth.trim())
+      newErrors.dateOfBirth = "Date of birth is required.";
+    if (
+      guestInfo.dateOfBirth &&
+      new Date(guestInfo.dateOfBirth).toISOString() > new Date().toISOString()
+    )
+      newErrors.dateOfBirth = "Date of Birth cannot be future date.";
+    if (!guestInfo.email.trim()) newErrors.email = "Email is required.";
+    else if (!/\S+@\S+\.\S+/.test(guestInfo.email))
+      newErrors.email = "Email is invalid.";
+    if (!guestInfo.phone.trim()) newErrors.phone = "Phone number is required.";
+    if (!guestInfo.countryCode.trim())
+      newErrors.countryCode = "Country code is required.";
+    if (!guestInfo.address.trim()) newErrors.address = "Address is required.";
+    if (!guestInfo.postal.trim()) newErrors.postal = "Postal code is required.";
+    if (!guestInfo.city.trim()) newErrors.city = "City is required.";
+    setErrors(newErrors);
+    const isValid = Object.keys(newErrors).length === 0;
+    // setIsValid(isValid);
+    return isValid;
+  };
 
   const handleNext = () => {
-    if (currentStep < 2) setCurrentStep(currentStep + 1);
+    if (currentStep === 1) {
+      if (!validatePersonalInfo()) {
+        return;
+      }
+    }
+    if (currentStep < 2) {
+      setCurrentStep(currentStep + 1);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleBack = () => {
     if (currentStep > 0) setCurrentStep(currentStep - 1);
+    else {
+      navigate(-1);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-
-
   const handleSubmit = async () => {
-    if (!selectedHotel || !searchParams || !accessToken || !selectedRoom) return;
+    if (!searchParams || !accessToken || !selectedRoom) return;
 
-    const bookingData = {
-      hotelCode: selectedHotel.code,
-      roomCode: selectedRoom.code,
-      rateKey: selectedRoom.rates?.[0]?.rateKey || '',
-      checkIn: searchParams.checkIn,
-      checkOut: searchParams.checkOut,
-      adults: searchParams.adults,
-      children: searchParams.children,
-      guestInfo,
-      paymentMethod: 'card' // You'll need to implement payment method selection
+    const bookingData: BookStaysRequest = {
+      rate_key: selectedRate.rateKey,
+      customer: {
+        name: guestInfo.firstName,
+        surname: guestInfo.lastName,
+        email: guestInfo.email,
+        phone: `${guestInfo.countryCode}${guestInfo.phone}`,
+        age: new Date(guestInfo.dateOfBirth).getFullYear()
+          ? new Date().getFullYear() -
+            new Date(guestInfo.dateOfBirth).getFullYear()
+          : 0,
+        address: guestInfo.address,
+        city: "New York",
+        postal_code: guestInfo.postal,
+        country: "US",
+        children: [],
+      },
+      hold_suite: true,
     };
-
     try {
-      await dispatch(createBookingAsync({ bookingData, token: accessToken })).unwrap();
-      navigate('/booking-confirmation');
+      setSubmitLoading(true);
+      const response = await dispatch(
+        createBookingAsync({
+          bookingData,
+        })
+      ).unwrap();
+      if (response.success && response.checkout_url) {
+        window.location.href = response.checkout_url;
+      } else {
+        console.error("Payment failed or invalid response:", response);
+      }
+      
     } catch (error) {
-      console.error('Booking failed:', error);
-      // TODO: Show error to user
+      console.error("Booking failed:", error);
+      toast.error(`Booking failed: ${(error as Error).message}`);
+    } finally {
+      setSubmitLoading(false);
     }
   };
-    
-
 
   return (
     <div>
       <Navbar />
+      <ToastContainer />
 
-      <div className="md:w-[93%] mx-auto my-22 space-y-6">
+      <div className="md:w-full lg:px-10 px-4 mx-auto my-28 space-y-6">
+        <div className="px-4 py-2 flex gap-6">
+          <button
+            onClick={handleBack}
+            className="text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md shadow-sm p-1 cursor-pointer"
+          >
+            <IoChevronBack size={24} />
+          </button>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-          <h1 className="text-2xl sm:text-3xl font-bold hidden md:block">Booking Overview</h1>
-        </div>
-          {/* Mobile Progress Bar */}
-          {isMobile && (
-            <div className="px-4 py-2 flex gap-6">
-              <button 
-                  onClick={handleBack}
-                  className="text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md shadow-sm p-1"
-                >
-                  <IoChevronBack size={24} />
-              </button>
-
-              <h1 className="text-2xl sm:text-3xl font-bold">Booking Overview</h1>
-            </div>
-            )}
-            
-            {isMobile && (
-          <div className="px-4">
-
-            <Stepper
-              steps={[
-                { title: "Booking Overview" },
-                { title: "Guest Information" },
-                { title: "Payment Details" }
-              ]}
-              activeStep={currentStep}
-              activeColor="#023E8A"
-              completeColor="#023E8A"
-              completeBarColor="#023E8A"
-              completeIcon={<FaCheck size={14} color="white" />}
-              size={26}
-              circleFontSize={14}
-            />
-          </div>
-        )}
-
-        {/* Notification */}
-        <div className="bg-blue-100 border border-[#023E8A] px-4 py-2 rounded-lg flex flex-row items-start sm:items-center gap-3 mx-4 sm:mx-0">
-          <div className="pt-1 sm:pt-0 flex justify-center sm:justify-start items-center">
-            <GrStatusGood size={24} className="text-green-600 mt-5 md:mt-0" />
-          </div>
-          <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
-            Cancellations made after {formattedTime} on {formattedDate} or no-shows are subject to a fee 
-            equal to 100% of the amount paid for the reservation.
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            {currentStep === 0
+              ? "Booking Overview"
+              : currentStep === 1
+              ? "Guest Information"
+              : "Payment Details"}
+          </h1>
         </div>
 
-        {error && (
+        <div className="lg:px-4 justify-center flex items-center">
+          <Stepper
+            steps={[
+              { title: "Booking Overview" },
+              { title: "Guest Information" },
+              { title: "Payment Details" },
+            ]}
+            activeStep={currentStep}
+            activeColor="#023E8A"
+            completeColor="#023E8A"
+            completeBarColor="#023E8A"
+            completeIcon={<FaCheck size={14} color="white" />}
+            size={26}
+            circleFontSize={14}
+          />
+        </div>
+
+        {/* {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mx-4 sm:mx-0">
             {error}
           </div>
-        )}
+        )} */}
 
-        <HotelCard
-          imageUrl="src/assets/images/StayImage3.png"
-          roomDetails="Standard King Room"
-          name="Grand Farheinheit Hotel"
-          location="80 Ademola Adetokumbo Street, Victoria Island Lagos."
-          refundableUntil={formattedTime}
-        />
+        <div className="px-1 space-y-4">
+          {currentStep === 0 && (
+            <>
+              <div className="bg-blue-100 border border-[#023E8A] px-4 py-2 rounded-lg flex flex-row justify-normal items-center gap-3 ">
+                <GrStatusGood className="text-green-600 size-12 lg:size-6" />
 
-        {/* Conditionally Render Steps on Mobile */}
-        {isMobile ? (
-          <div className="px-1 space-y-4">
-            {currentStep === 0 && (
-              <>
-                <BookingDetails 
-                  roomType={selectedRoom?.name}
+                <p className=" lg:text-base text-gray-800 leading-relaxed text-sm">
+                  Cancellations made after {formattedTime} on {formattedDate} or
+                  no-shows are subject to a fee equal to 100% of the amount paid
+                  for the reservation.
+                </p>
+              </div>
+
+              {!accessToken && (
+                <div className="bg-red-100 border border-red-400 px-4 py-2 rounded-lg flex flex-row items-start sm:items-center gap-3 mx-4 sm:mx-0">
+                  <Info stroke="#D72638" />
+
+                  <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
+                    To continue your booking, please create an account or log
+                    in.
+                  </p>
+                </div>
+              )}
+
+              <HotelCard
+                imageUrl={
+                  selectedRoom?.images[0].url ||
+                  "src/assets/images/StayImage3.png"
+                }
+                roomDetails={selectedRoom?.description || "---"}
+                name={selectedRoom?.bed_type || "---"}
+                location="80 Ademola Adetokumbo Street, Victoria Island Lagos."
+                refundableUntil={formattedTime || "---"}
+              />
+              <div className="lg:grid grid-cols-2 gap-4 items-start">
+                <BookingDetails
+                  roomType={selectedRoom?.description}
+                  bedType={selectedRoom?.bed_type}
                   checkIn={searchParams?.checkIn}
                   checkOut={searchParams?.checkOut}
-                  guests={`${searchParams?.adults} Adults${searchParams?.children ? `, ${searchParams.children} Children` : ''}`}
+                  guests={`${searchParams?.adults} Adults${
+                    searchParams?.children
+                      ? `, ${searchParams.children} Children`
+                      : ""
+                  }`}
                 />
-                <PriceSummary 
-                  roomPrice={selectedRoom?.rates?.[0]?.net ? parseFloat(selectedRoom.rates[0].net) : 0}
-                  nights={searchParams ? Math.ceil(
-                    (new Date(searchParams.checkOut).getTime() - 
-                    new Date(searchParams.checkIn).getTime()) / 
-                    (1000 * 60 * 60 * 24)
-                  ) : 1}
-                  taxes={selectedRoom?.rates?.[0]?.net ? parseFloat(selectedRoom.rates[0].net) * 0.15 : 0}
-                />
-                <RefundCancellation formattedTime={formattedTime} formattedDate={formattedDate} refundableUntil={formattedTime} />
-                <Policies />
-                <button onClick={handleNext} className="bg-[#023E8A] text-white px-4 py-2 rounded-lg w-[90%] mx-[5%]">Continue</button>
-              </>
-            )}
-
-            {currentStep === 1 && (
-              <>
-                <GuestInformation onGuestInfoChange={setGuestInfo} />
-                <button onClick={handleNext} className="bg-[#023E8A] text-white px-4 py-2 rounded-lg w-[90%] mx-[5%]">Continue</button>
-              </>
-            )}
-
-            {currentStep === 2 && (
-              <>
-                <PaymentMethod />
-                <div className="flex items-center gap-2 mx-5">
-                  <input
-                    type="checkbox"
-                    id="termsCheckbox"
-                    checked={isChecked}
-                    onChange={() => setIsChecked(!isChecked)}
-                    className="w-5 h-5 cursor-pointer"
+                <div className="lg:order-5">
+                  <PriceSummary
+                    roomPrice={
+                      selectedRate?.net ? parseFloat(selectedRate?.net) : 0
+                    }
+                    nights={
+                      searchParams
+                        ? Math.ceil(
+                            (new Date(searchParams.checkOut).getTime() -
+                              new Date(searchParams.checkIn).getTime()) /
+                              (1000 * 60 * 60 * 24)
+                          )
+                        : 1
+                    }
+                    roomType={selectedRoom?.description}
+                    numberOfRooms={searchParams?.rooms}
                   />
-                  <p className="text-sm text-gray-700">
-                    I agree to the <a href="/booking-conditions" className="text-[#023E8A] hover:underline">Booking Conditions</a>, 
-                    <a href="/terms-and-conditions" className="text-[#023E8A] hover:underline"> TravelMate Terms</a> and 
-                    <a href="/privacy-policy" className="text-[#023E8A] hover:underline"> Privacy Policy</a>.
-                  </p>
+                  <div className="lg:flex  hidden justify-center items-center ">
+                    <button
+                      onClick={handleNext}
+                      className="bg-[#023E8A] text-white p-3 mt-12 rounded-lg w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      disabled={!accessToken}
+                    >
+                      Continue
+                    </button>
+                  </div>
                 </div>
-
-            
-                  <button
-                    onClick={handleSubmit}
-                    disabled={!isChecked || loading}
-                    className={`w-full px-6 py-2 rounded-lg mt-4 text-white ${
-                      isChecked && !loading ? "bg-[#023E8A] hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    {loading ? 'Processing...' : 'Make Payment'}
-                  </button>
-              </>
-            )}
-          </div>
-        ) : (
-          // Desktop Layout
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <GuestInformation onGuestInfoChange={setGuestInfo} />
-              <RefundCancellation formattedTime={formattedTime} formattedDate={formattedDate} refundableUntil={formattedTime} />
-              <Policies />
-            </div>
-
-            <div className="space-y-4">
-              <PriceSummary 
-                roomPrice={selectedRoom?.rates?.[0]?.net ? parseFloat(selectedRoom.rates[0].net) : 0}
-                nights={searchParams ? Math.ceil(
-                  (new Date(searchParams.checkOut).getTime() - 
-                  new Date(searchParams.checkIn).getTime()) / 
-                  (1000 * 60 * 60 * 24)
-                ) : 1}
-                taxes={selectedRoom?.rates?.[0]?.net ? parseFloat(selectedRoom.rates[0].net) * 0.15 : 0}
-              />
-              <BookingDetails 
-                roomType={selectedRoom?.name}
-                checkIn={searchParams?.checkIn}
-                checkOut={searchParams?.checkOut}
-                guests={`${searchParams?.adults} Adults${searchParams?.children ? `, ${searchParams.children} Children` : ''}`}
-              />
-              <PaymentMethod />
-              <div className="mt-16 mx-5 md:mx-0">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="termsCheckbox"
-                    checked={isChecked}
-                    onChange={() => setIsChecked(!isChecked)}
-                    className="w-5 h-5 cursor-pointer"
+                <div className="lg:order-3">
+                  <RefundCancellation
+                    formattedTime={formattedTime}
+                    formattedDate={formattedDate}
+                    refundableUntil={formattedTime}
                   />
-                  <p className="m-2 text-sm text-gray-700">
-                    I agree to the 
-                    <a href="/booking-conditions" className="text-[#023E8A] cursor-pointer hover:underline"> Booking Conditions</a>, 
-                    <a href="/terms-and-conditions" className="text-[#023E8A] cursor-pointer hover:underline"> TravelMate Terms</a> 
-                    <span className="text-black"> and </span> 
-                    <a href="/privacy-policy" className="text-[#023E8A] cursor-pointer hover:underline">Privacy Policy</a>.
-                  </p>
                 </div>
+                <div className="lg:order-4">
+                  {" "}
+                  <Policies />
+                </div>
+              </div>
+              <div className="flex justify-center items-center lg:hidden">
+                <button
+                  onClick={handleNext}
+                  className="bg-[#023E8A] text-white p-3 mt-12 rounded-lg lg:w-[40%] w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  disabled={!accessToken}
+                >
+                  Continue
+                </button>
+              </div>
+            </>
+          )}
 
+          {currentStep === 1 && (
+            <>
+              <GuestInformation
+                onGuestInfoChange={(info) =>
+                  setGuestInfo({
+                    firstName: info.firstName || "",
+                    lastName: info.lastName || "",
+                    email: info.email || "",
+                    phone: info.phone || "",
+                    dateOfBirth: info.dateOfBirth || "",
+                    countryCode: info.countryCode || "",
+                    address: info.address || "",
+                    postal: info.postal || "",
+                    city: info.city || "",
+                  })
+                }
+                formData={guestInfo}
+                errors={errors}
+              />
+              <div className="flex justify-center items-center">
+                <button
+                  onClick={handleNext}
+                  className="bg-[#023E8A] text-white p-3 mt-12 rounded-lg lg:w-[40%] w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  // disabled={!isValid}
+                >
+                  Continue
+                </button>
+              </div>
+            </>
+          )}
+
+          {currentStep === 2 && (
+            <div>
+              <PaymentMethod
+                checked={isChecked}
+                toggleCheck={() => setIsChecked(!isChecked)}
+                roomPrice={
+                  selectedRate?.net ? parseFloat(selectedRate?.net) : 0
+                }
+              />
+              <div className="flex justify-center items-center">
                 <button
                   onClick={handleSubmit}
-                  disabled={!isChecked || loading}
-                  className={`w-full px-6 py-2 rounded-lg mt-4 text-white ${
-                    isChecked && !loading ? "bg-[#023E8A] hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"
+                  disabled={!isChecked || submitLoading}
+                  className={`p-3 rounded-lg mt-12 lg:w-[40%] w-full text-white disabled:bg-gray-400 disabled:cursor-not-allowed ${
+                    isChecked && !submitLoading
+                      ? "bg-[#023E8A] hover:bg-blue-700"
+                      : "bg-gray-400"
                   }`}
                 >
-                  {loading ? 'Processing...' : 'Make Payment'}
+                  {submitLoading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      Processing... <Loader className="animate-spin" />
+                    </div>
+                  ) : (
+                    "Make Payment"
+                  )}
                 </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <Footer />

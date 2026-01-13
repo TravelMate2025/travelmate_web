@@ -1,8 +1,17 @@
 import React, { useState } from "react";
-import { FaStar, FaMapMarkerAlt, FaCheckCircle, FaRegHeart, FaHeart } from "react-icons/fa";
+import {
+  FaStar,
+  FaMapMarkerAlt,
+  FaCheckCircle,
+  FaRegHeart,
+  FaHeart,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Hotel } from "../types";
+import { addOrRemoveFavorite } from "../api";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store";
 
 interface StayCardProps {
   hotel: Hotel;
@@ -21,56 +30,68 @@ const StayCard: React.FC<StayCardProps> = ({
   const [favorite, setFavorite] = useState(isFavorited);
   const [showTooltip, setShowTooltip] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const { searchParams } = useSelector((state: RootState) => state.stays);
 
   // Extract all relevant data
   const firstRoom = hotel.rooms?.[0];
   const firstRate = firstRoom?.rates?.[0];
-  const mainImage = hotel.images?.[0]?.url || '';
+  const mainImage = hotel.images?.[0]?.url || "";
   const ratingMatch = hotel.category?.match(/\d+/);
   const rating = ratingMatch ? parseInt(ratingMatch[0]) : 0;
-  const address = hotel.address || hotel.destination?.name || 'Unknown location';
+  const address =
+    hotel.address || hotel.destination?.name || "Unknown location";
   const reviewsCount = hotel.reviewsCount || 0;
 
   // Calculate number of nights
-  const nights = checkIn && checkOut 
-    ? Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24))
-    : 1;
+  const nights =
+    checkIn && checkOut
+      ? Math.ceil(
+          (new Date(checkOut).getTime() - new Date(checkIn).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : 1;
 
   // Handle cancellation policy
   const getRefundText = () => {
     if (!firstRate || !firstRate.cancellationPolicies?.length) {
       return "Cancellation policy not available";
     }
-    
+
     const policy = firstRate.cancellationPolicies[0];
     if (!policy.from) return "Non-refundable";
-    
+
     const fromDate = new Date(policy.from);
     const now = new Date();
     const timeDiff = fromDate.getTime() - now.getTime();
-    
+
     if (timeDiff <= 0) return "Refund Not Available At This Time";
-    
+
     const hoursLeft = Math.ceil(timeDiff / (1000 * 60 * 60));
-    return `Fully refundable for ${hoursLeft} more hour${hoursLeft === 1 ? '' : 's'}`;
+    return `Fully refundable for ${hoursLeft} more hour${
+      hoursLeft === 1 ? "" : "s"
+    }`;
   };
 
   // Format price with currency
   const formatPrice = (amount?: string | number) => {
     if (amount === undefined) return "N/A";
-    const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return `N${num.toLocaleString()}`;
+    const num = typeof amount === "string" ? parseFloat(amount) : amount;
+    return `€${num.toLocaleString()}`;
   };
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    setFavorite(!favorite);
     try {
-      // TODO: Implement favorites API integration
-      // await toggleFavorite(hotel.code, favorite);
-      const newFavorite = !favorite;
-      setFavorite(newFavorite);
-      toast.success(`Stay ${newFavorite ? "added to" : "removed from"} favorites`);
+      const response = await addOrRemoveFavorite(
+        hotel.code,
+        setFavorite,
+        favorite
+      );
+      // const newFavorite = !favorite;
+      // setFavorite(newFavorite);
+      toast.success(response);
     } catch (error) {
       toast.error("Something went wrong");
     }
@@ -78,13 +99,20 @@ const StayCard: React.FC<StayCardProps> = ({
 
   return (
     <div
-      className="w-full sm:w-[380px] md:w-[410px] bg-white rounded-lg border border-gray-300 shadow-lg p-4 cursor-pointer relative hover:shadow-xl transition-shadow duration-200"
+      className="w-full  bg-white rounded-lg border border-gray-300 shadow-lg p-4 cursor-pointer relative hover:shadow-xl transition-shadow duration-200"
       onClick={(e) => {
         const target = e.target as HTMLElement;
         if (!target.closest("button")) {
-          navigate(`/stays-detail/${hotel.code}`, {
-            state: { checkIn, checkOut }
-          });
+          navigate(
+            `/stays-detail/${hotel.code}?location=${
+              searchParams?.destination
+            }&stay=${encodeURIComponent(hotel.name)}&available=${
+              hotel.available
+            }&favorite=${hotel.is_favorite}`,
+            {
+              state: { checkIn, checkOut, selectedHotel: hotel },
+            }
+          );
         }
       }}
     >
@@ -104,19 +132,25 @@ const StayCard: React.FC<StayCardProps> = ({
               src={mainImage}
               alt={hotel.name}
               onError={() => setImageError(true)}
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              className="w-full h-full lg:min-w-md object-cover hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <span className="text-gray-600 text-sm font-medium">No Image Available</span>
+            <span className="text-gray-600 text-sm font-medium">
+              No Image Available
+            </span>
           )}
         </div>
 
         {/* Show available status if provided */}
         {hotel.available !== undefined && (
-          <span className={`absolute top-3 left-3 px-2 py-1 rounded-md text-xs font-medium ${
-            hotel.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}>
-            {hotel.available ? 'Available' : 'Unavailable'}
+          <span
+            className={`absolute top-3 left-3 px-2 py-1 rounded-md text-xs font-medium ${
+              hotel.available
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
+            {hotel.available ? "Available" : "Unavailable"}
           </span>
         )}
 
@@ -127,10 +161,13 @@ const StayCard: React.FC<StayCardProps> = ({
           className="absolute top-3 right-3 bg-white rounded-md p-2 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
           aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
         >
-          {favorite ? (
-            <FaHeart className="text-red-600 text-2xl" />
+          {hotel.is_favorite ? (
+            <FaHeart
+              fill="oklch(57.7% 0.245 27.325)"
+              className="text-red-600 text-2xl"
+            />
           ) : (
-            <FaRegHeart className="text-blue-900 text-2xl" />
+            <FaRegHeart className="text-black text-2xl" />
           )}
         </button>
       </div>
@@ -144,7 +181,7 @@ const StayCard: React.FC<StayCardProps> = ({
           <div className="flex items-center text-orange-500">
             <FaStar className="mr-1" />
             <span className="font-medium text-black">
-              {rating || 'N/A'} {reviewsCount ? `(${reviewsCount})` : ''}
+              {rating || "N/A"} {reviewsCount ? `(${reviewsCount})` : ""}
             </span>
           </div>
         </div>
@@ -163,11 +200,8 @@ const StayCard: React.FC<StayCardProps> = ({
 
         <div className="flex items-center text-green-600 mt-1">
           <FaCheckCircle className="mr-2" />
-          <span className="text-sm">
-            {getRefundText()}
-          </span>
+          <span className="text-sm">{getRefundText()}</span>
         </div>
-
 
         <div className="flex w-full justify-between items-end mt-4">
           <div>
@@ -178,10 +212,14 @@ const StayCard: React.FC<StayCardProps> = ({
           </div>
           <div className="ml-auto text-right">
             <span className="text-lg font-bold">
-              {formatPrice(firstRate?.net ? parseFloat(firstRate.net) * nights : undefined)}
+              {formatPrice(
+                firstRate?.net ? parseFloat(firstRate.net) * nights : undefined
+              )}
             </span>
             <p className="text-gray-500 text-sm">
-              {nights > 1 ? `Total for ${Math.round(nights)} nights` : 'Total (Includes Taxes & Fees)'}
+              {nights > 1
+                ? `Total for ${Math.round(nights)} nights`
+                : "Total (Includes Taxes & Fees)"}
             </p>
           </div>
         </div>

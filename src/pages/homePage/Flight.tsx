@@ -85,15 +85,14 @@ export const simpleTripSchema = yup.object({
     .required("Date is required")
     .test("future-date", "Date must be in the future", (value) => {
       if (!value) return false;
-
+      
+      console.log("value", value);
       if (value instanceof Date) {
         return !isBefore(startOfDay(value), today);
       }
 
       if (
-        typeof value === "object" &&
-        "startDate" in value &&
-        value.startDate instanceof Date
+      Object.keys(value).length > 0
       ) {
         return !isBefore(startOfDay(value.startDate), today);
       }
@@ -132,7 +131,7 @@ const FlightBookingForm: React.FC = () => {
     tripType,
     setTripType,
 
-    isCountryReady,
+   
     handleSearch,
   } = useFlightBooking();
 
@@ -311,6 +310,7 @@ const FlightBookingForm: React.FC = () => {
                     <DateSelector
                       id="departure-date"
                       label="Date"
+                      disablePast
                       value={
                         field.value
                           ? field.value instanceof Date
@@ -394,7 +394,7 @@ const FlightBookingForm: React.FC = () => {
               <Grid item xs={12} md={2} display="flex" alignItems="flex-end">
                 <button
                   type="submit"
-                  disabled={!isCountryReady as boolean}
+                  // disabled={!isCountryReady as boolean}
                   className="bg-[#023E8A] h-[52px] disabled:bg-zinc-700 md:max-w-[140px] w-full text-center text-white font-inter text-base rounded-[8px] cursor-pointer hover:bg-[#012a5c] transition-colors"
                 >
                   Search
@@ -538,6 +538,7 @@ const FlightBookingForm: React.FC = () => {
                       control={multiForm.control}
                       render={({ field }) => (
                         <DateSelector
+                          disablePast
                           id={`date-${index}`}
                           label="Date"
                           value={getFormattedDate(field.value as any)}

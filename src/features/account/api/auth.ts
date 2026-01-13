@@ -5,9 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const submitEmail = async (email: string) => {
   try {
-    console.log("📤 Submitting email to backend:", email);
     const response = await axios.post(`${API_BASE_URL}/registration_with_otp/submit_email/`, { email });
-    console.log("✅ Backend Response:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("❌ Error submitting email:", error.response?.data || error.message);
@@ -16,26 +14,25 @@ export const submitEmail = async (email: string) => {
 };
 
 export const verifyCode = async (email: string, otp: string) => {
-    if (!email || !otp) {
-      return { success: false, error: "Email and OTP are required." };
-    }
-  
-    try {
-      console.log("Sending to backend:", { email, otp });
-      const response = await axios.post(
-        `${API_BASE_URL}/registration_with_otp/verify_otp/`,
-        { email, otp },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      return response.data;
-    } catch (error: any) {
-      console.error("Error response:", error.response?.data);
-      return { success: false, error: error.response?.data || error.message };
-    }
-  };
-  
+  if (!email || !otp) {
+    return { success: false, error: "Email and OTP are required." };
+  }
 
-  
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/registration_with_otp/verify_otp/`,
+      { email, otp },
+      { headers: { "Content-Type": "application/json" } }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Error response:", error.response?.data);
+    return { success: false, error: error.response?.data || error.message };
+  }
+};
+
+
+
 export const resendCode = async () => {
   try {
     const response = await axios.post(`${API_BASE_URL}/registration_with_otp/resend_code/`);
@@ -59,37 +56,31 @@ export const resendCode = async () => {
 
 
 export const createPassword = async (email: string, password: string) => {
-    const payload = { email, password };
-  
-    console.log("Sending password creation request:", payload);
-  
-    try {
-      const response = await axios.post(`${API_BASE_URL}/registration_with_otp/set_password/`,
-        payload,
-        { headers: { "Content-Type": "application/json" } }
-      );
-  
-      console.log("Password creation response:", response.data);
-      return response.data;
-    } catch (error: any) {
-      console.error("Password creation failed. Request payload:", payload);
-      console.error("Error response:", error.response?.data || error.message);
-      return { Status: 400, Error: true, Message: error.response?.data?.Message || error.message };
-    }
-  };
-  
+  const payload = { email, password };
+
+  try {
+    const response = await axios.post(`${API_BASE_URL}/registration_with_otp/set_password/`,
+      payload,
+      { headers: { "Content-Type": "application/json" } }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Password creation failed. Request payload:", payload);
+    console.error("Error response:", error.response?.data || error.message);
+    return { Status: 400, Error: true, Message: error.response?.data?.Message || error.message };
+  }
+};
+
 
 
 
 
 export const loginUser = async (email: string, password: string) => {
   try {
-    console.log("📤 Logging in with:", { email, password });
     const response = await axios.post(`${API_BASE_URL}/auth/jwt/validate-password/`, {
       email,
       password,
     });
-    console.log("✅ Login Response:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("❌ Login Error:", error.response?.data || error.message);
@@ -104,10 +95,8 @@ export const loginUser = async (email: string, password: string) => {
 // Corrected logoutUser function
 export const logoutUser = async (accessToken: string) => {
   try {
-    console.log("📤 Initiating logout request...");
-    console.log("🔐 Access Token:", accessToken);
-
-    const response = await axios.post(
+    ("📤 Initiating logout request...");
+   await axios.post(
       `${API_BASE_URL}/users/logout/`,
       {}, // empty body
       {
@@ -117,8 +106,6 @@ export const logoutUser = async (accessToken: string) => {
         },
       }
     );
-
-    console.log("✅ Logout successful:", response.status); // Should log 204
   } catch (error: any) {
     if (error.response) {
       console.error("❌ Logout request failed", error.response.status, error.response.data);
@@ -134,22 +121,17 @@ export const logoutUser = async (accessToken: string) => {
 
 
 
-
-
-
 export const refreshToken = async (access: string) => {
-    try {
-        console.log("Attempting to refresh token with:", access);
-        const response = await axios.post(`${API_BASE_URL}/auth/jwt/token/refresh`, {
-            access,
-        });
-        console.log("Refresh token response:", response.data);
-        return response.data;
+  try {
+    const response = await axios.post(`${API_BASE_URL}/auth/jwt/token/refresh`, {
+      access,
+    });
+    return response.data;
 
-    } catch (error: any) {
-        console.error("❌ Login Error:", error.response?.data || error.message);
-        throw error;
-    }
+  } catch (error: any) {
+    console.error("❌ Login Error:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 

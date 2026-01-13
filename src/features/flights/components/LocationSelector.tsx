@@ -20,6 +20,8 @@ import { Airport } from "../types";
 import { useLazyFetchAirportsQuery } from "../api/flightApi";
 import { useTheme } from "@mui/material/styles";
 
+import { ScrollArea } from "./ScrollArea";
+
 interface LocationSelectorProps {
   id: string;
   label: string;
@@ -50,8 +52,37 @@ export const LocationSelector = memo<LocationSelectorProps>(
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-    const [triggerFetchAirports, { data: locations = [], isFetching }] =
+    const [triggerFetchAirports, { data: locations = [], isFetching,  }] =
       useLazyFetchAirportsQuery();
+
+    const [lastSuccessfulLocations, setLastSuccessfulLocations] = useState<Airport[]>([]);
+    const [searchError, setSearchError] = useState(false);
+
+    // 🕐 Debounce delay time (ms)
+    const DEBOUNCE_DELAY = 800;
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    // Update debounced value after delay
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, DEBOUNCE_DELAY);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value]);
+
+    useEffect(() => {
+  if (debouncedValue.trim()) {
+    setSearchError(false); // reset error state
+    triggerFetchAirports(debouncedValue)
+      .unwrap()
+      .then((res: Airport[]) => setLastSuccessfulLocations(res))
+      .catch(() => setSearchError(true));
+  }
+    }, [debouncedValue, triggerFetchAirports]);
+
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
       setAnchorEl(event.currentTarget);
@@ -71,9 +102,6 @@ export const LocationSelector = memo<LocationSelectorProps>(
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = event.target.value;
       setValue(newValue);
-      if (newValue.trim()) {
-        triggerFetchAirports(newValue);
-      }
       setIsOpen(true);
       if (!anchorEl) setAnchorEl(event.currentTarget);
     };
@@ -83,45 +111,60 @@ export const LocationSelector = memo<LocationSelectorProps>(
       onSelect?.(location);
       handleClose();
     };
-
-    const resultsList = (
-      <>
-        {isFetching ? (
-          <Box display="flex" justifyContent="center" py={4}>
-            <CircularProgress size={24} />
-          </Box>
-        ) : locations.length === 0 ? (
-          <Box display="flex" justifyContent="center" py={4}>
-            <Typography color="textSecondary">No location found</Typography>
-          </Box>
-        ) : (
-          locations.map((location, index) => (
-            <React.Fragment key={location.id}>
-              <div
-                className="flex justify-between pl-6 pt-4 pr-6 cursor-pointer"
-                onClick={() => handleLocationSelect(location)}
-              >
-                <div className="flex gap-2 items-center">
-                  <div className="h-7 w-7 rounded border border-[#FF6F1E] bg-[#FF6F1E0A] flex items-center justify-center">
-                    <RoomOutlinedIcon sx={{ fontSize: 16, color: "#FF6F1E" }} />
-                  </div>
-                  <Typography>{location.displayName}</Typography>
-                </div>
-
-                <CloseOutlinedIcon
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveLocation(location.id as string);
-                  }}
-                  sx={{ cursor: "pointer", color: "black" }}
-                />
+// const filteredLocations =  locations.filter((loc=>loc.type === "AIRPORT"));
+   const resultsList = (
+  <>
+    {isFetching ? (
+      <Box display="flex" justifyContent="center" py={4}>
+        <CircularProgress size={24} />
+      </Box>
+    ) : searchError ? (
+      <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" py={4}>
+        <Typography color="textSecondary" mb={2}>
+          Failed to fetch locations
+        </Typography>
+        <button
+          onClick={() => triggerFetchAirports(debouncedValue)}
+          className="px-4 py-2 bg-orange-500 text-white rounded"
+        >
+          Retry
+        </button>
+      </Box>
+    ) : (locations.length === 0 && lastSuccessfulLocations.length === 0) ? (
+      <Box display="flex" justifyContent="center" py={4}>
+        <Typography color="textSecondary">No location found</Typography>
+      </Box>
+    ) : (
+      (locations.length > 0 ? locations : lastSuccessfulLocations).map((location, index) => (
+        <React.Fragment key={location.id}>
+          <div
+            className="flex justify-between pl-6 pt-4 pr-6 cursor-pointer"
+            onClick={() => handleLocationSelect(location)}
+          >
+            <div className="flex gap-2 items-center">
+              <div className="h-7 w-7 rounded border border-[#FF6F1E] bg-[#FF6F1E0A] flex items-center justify-center">
+                <RoomOutlinedIcon sx={{ fontSize: 16, color: "#FF6F1E" }} />
               </div>
-              {index !== locations.length - 1 && <Divider sx={{ mt: 2 }} />}
-            </React.Fragment>
-          ))
-        )}
-      </>
-    );
+              <Typography>
+                {location.displayName.replace(/^None\s*-\s*/i, "").replace(/\(None\)/i, "").trim()}
+              </Typography>
+            </div>
+
+            <CloseOutlinedIcon
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveLocation(location.id as string);
+              }}
+              sx={{ cursor: "pointer", color: "black" }}
+            />
+          </div>
+          {index !== (locations.length > 0 ? locations : lastSuccessfulLocations).length - 1 && <Divider sx={{ mt: 2 }} />}
+        </React.Fragment>
+      ))
+    )}
+  </>
+   );
+
 
     return (
       <div className="flex flex-col">
@@ -129,7 +172,6 @@ export const LocationSelector = memo<LocationSelectorProps>(
           {label}
         </label>
 
-        {/* Main input (always visible) */}
         <TextField
           id={id}
           variant="outlined"
@@ -168,12 +210,13 @@ export const LocationSelector = memo<LocationSelectorProps>(
               sx: {
                 borderTopLeftRadius: 16,
                 borderTopRightRadius: 16,
-                overflow: "hidden", // prevent child content from overflowing
+                height: "80vh", // ✅ Ensures it takes fixed viewport height
+                display: "flex",
+                flexDirection: "column",
               },
             }}
           >
-            <Box sx={{ p: 2, minHeight: "80vh", overflowY: "auto" }}>
-              {/* Drawer Header with input */}
+            <Box sx={{ p: 2, flexShrink: 0 }}>
               <Box display="flex" justifyContent="space-between" mb={2}>
                 <Typography variant="h6">Select Location</Typography>
                 <IconButton onClick={handleClose}>
@@ -202,8 +245,7 @@ export const LocationSelector = memo<LocationSelectorProps>(
                   },
                 }}
               />
-
-              {resultsList}
+              <ScrollArea className="h-[60vh] pb-20">{resultsList}</ScrollArea>
             </Box>
           </Drawer>
         ) : (

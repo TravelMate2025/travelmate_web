@@ -1,240 +1,199 @@
 import { Routes, Route } from "react-router-dom";
 import "./App.css";
 import { Toaster } from "react-hot-toast";
+
+// Account pages
 import CreateAccount from "./features/account/pages/CreateAccount";
 import VerifyPage from "./features/account/pages/VerifyPage";
-import Home from "./pages/Home";
 import CreatePassword from "./features/account/pages/CreatePassword";
 import ResetPassword from "./features/account/pages/ResetPassword";
 import Login from "./features/account/pages/Login";
-import StaysSearchResults from "./features/stays/pages/StaysSearchResults";
-import DeparturePage from "./pages/round-trip-container/departureFlight/DeparturePage";
-import ReturnPage from "./pages/round-trip-container/returnFlight/ReturnPage";
-import FlightInfoPage from "./pages/round-trip-container/flightInfo-review/FlightInfoPage";
-import FlightConfirmationPage from "./pages/round-trip-container/flightConfirmation/FlightConfirmationPage";
-import DeparturePageOneWay from "./pages/one-way-container/departureFlight-One-way/DeparturePageOneWay";
-import FlightInfoPageOneWay from "./pages/one-way-container/flightInfo-review-one-way/FlightInfoPageOneWay";
-import FlightConfirmPageOneWay from "./pages/one-way-container/flightConfirmation-one-way/FlightConfirmPageOneWay";
-import DeparturePageMultiWay from "./pages/muti-flight-container/departureFlight-multi-way/DeparturePageMultiWay";
-import SecondDepartureFlightPage from "./pages/muti-flight-container/secondDepartureFlight/SecondDepartureFlightPage";
-import FlightInfoPageMultiWay from "./pages/muti-flight-container/flightInfo-review-multiway/FlightInfoPageMultiWay";
-import FlightConfirmPageMultiWay from "./pages/muti-flight-container/flightConfirmationMultiWay/FlightConfirmPageMultiWay";
-
 import ProfileInfo from "./features/account/pages/ProfileInfo";
 import Profile from "./features/account/pages/Account";
-import StaysDetail from "./features/stays/pages/StaysDetail";
-import BookingConfirmationPage from "./features/stays/pages/BookingConfirmationPage";
-import BookingProgress from "./features/stays/pages/BookingProgress";
-
-import Page from "./features/car_rentals/carsFirstScreen/Page";
-import DisplayCars from "./features/car_rentals/displayAllCars/DisplayCars";
-import Pages from "./features/car_rentals/offerAcceptedPage/Page";
-import CarPaidForPage from "./features/car_rentals/carPaidFor/CarPaidForPage";
-import AirportTaxi from "./pages/AirportTaxi";
-
-import FaqPage from "./features/customer-management/pages/faq";
-import ChatPage from "./features/customer-management/pages/ChatPage";
-import TicketsPage from "./features/customer-management/pages/TicketsPage";
-import TicketDetailPage from "./features/customer-management/pages/TicketDetailPage";
-import CreateNewPassword from "./features/account/pages/CreateNewPassword";
-import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailForPasswordReset";
-import PrivateRoute from "../src/routes/PrivateRoute";
-import PaymentFailed from "./features/flights/components/PaymentFailed";
 import Security from "./features/account/pages/Security";
 import UpdateEmailContainer from "./features/account/pages/UpdateEmailContainer";
 import UpdatePasswordContainer from "./features/account/pages/UpdatePasswordContainer";
 import NotificationContainer from "./features/account/pages/NotificationContainer";
 import NotPreferenceContainer from "./features/account/pages/NotPreferenceContainer";
-// import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
-// import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
+import CreateNewPassword from "./features/account/pages/CreateNewPassword";
+import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailForPasswordReset";
+
+// Stays pages
+import StaysSearchResults from "./features/stays/pages/StaysSearchResults";
+import StaysDetail from "./features/stays/pages/StaysDetail";
+import BookingConfirmationPage from "./features/stays/pages/BookingConfirmationPage";
+import BookingProgress from "./features/stays/pages/BookingProgress";
+import DownloadStaysPage from "./features/stays/components/confirmation/Download";
+
+// Flights pages
+import DeparturePage from "./pages/flights/departureFlight/DeparturePage";
+import ReturnPage from "./pages/flights/returnFlight/ReturnPage";
+import FlightInfoPage from "./pages/flights/flightInfo-review/FlightInfoPage";
+import FlightConfirmationPage from "./pages/flights/flightConfirmation/FlightConfirmationPage";
+import PaymentFailed from "./features/flights/components/PaymentFailed";
+
+// Car rental pages
+import Page from "./features/car_rentals/carsFirstScreen/Page";
+import DisplayCars from "./features/car_rentals/displayAllCars/DisplayCars";
+import Pages from "./features/car_rentals/offerAcceptedPage/Page";
+import CarPaidForPage from "./features/car_rentals/carPaidFor/CarPaidForPage";
+import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
+import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
+
+// Airport taxi
+import AirportTaxi from "./pages/AirportTaxi";
+
+// Customer management
+import FaqPage from "./features/customer-management/pages/faq";
+import ChatPage from "./features/customer-management/pages/ChatPage";
+import TicketsPage from "./features/customer-management/pages/TicketsPage";
+import TicketDetailPage from "./features/customer-management/pages/TicketDetailPage";
+
+// Bookings & favorites
+import BookingStaysDetailsPage from "./pages/BookingsDetails/stays";
+import BookingTransfersDetails from "./pages/BookingsDetails/transfers";
+import Bookings from "./pages/Bookings";
+import Favorites from "./pages/Favorites";
+
+// Routing
+import PrivateRoute from "../src/routes/PrivateRoute";
+
+// Home page
+import Home from "./pages/Home";
 
 function App() {
   return (
     <>
       <Toaster />
       <Routes>
+        {/* Public Pages */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/verify-page" element={<VerifyPage />} />
-        <Route
-          path="/reset-email-link"
-          element={<VerifyEmailForPasswordReset />}
-        />
+        <Route path="/reset-email-link" element={<VerifyEmailForPasswordReset />} />
         <Route path="/create-password" element={<CreatePassword />} />
         <Route path="/create-new-password" element={<CreateNewPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+
+        {/* Stays */}
         <Route path="/stays-search-result" element={<StaysSearchResults />} />
         <Route path="/booking-progress" element={<BookingProgress />} />
         <Route path="/stays-detail/:hotelId" element={<StaysDetail />} />
+        <Route path="/stays-paid/download" element={<DownloadStaysPage />} />
+        <Route path="/booking-confirmation" element={
+          <PrivateRoute>
+            <BookingConfirmationPage />
+          </PrivateRoute>
+        } />
+
+        {/* FAQ & Customer Support */}
         <Route path="/faqs" element={<FaqPage />} />
         <Route path="/chat-with-us" element={<ChatPage />} />
+        <Route path="/tickets" element={
+          <PrivateRoute>
+            <TicketsPage />
+          </PrivateRoute>
+        } />
+        <Route path="/tickets/:id" element={
+          <PrivateRoute>
+            <TicketDetailPage />
+          </PrivateRoute>
+        } />
 
-        {/* Protected Routes */}
-        <Route
-          path="/account"
-          element={
-            <PrivateRoute>
-              <Profile />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/profile-info"
-          element={
-            <PrivateRoute>
-              <ProfileInfo />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/account/security"
-          element={
-            <PrivateRoute>
-              <Security/>
-            </PrivateRoute>
-          }
-          />
+        {/* Account & Protected Pages */}
+        <Route path="/account" element={
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        } />
+        <Route path="/profile-info" element={
+          <PrivateRoute>
+            <ProfileInfo />
+          </PrivateRoute>
+        } />
+        <Route path="/account/security" element={
+          <PrivateRoute>
+            <Security />
+          </PrivateRoute>
+        } />
+        <Route path="/account/update-email" element={
+          <PrivateRoute>
+            <UpdateEmailContainer />
+          </PrivateRoute>
+        } />
+        <Route path="/account/update-password" element={
+          <PrivateRoute>
+            <UpdatePasswordContainer />
+          </PrivateRoute>
+        } />
+        <Route path="/account/notifications" element={
+          <PrivateRoute>
+            <NotPreferenceContainer />
+          </PrivateRoute>
+        } />
+        <Route path="/notification" element={
+          <PrivateRoute>
+            <NotificationContainer />
+          </PrivateRoute>
+        } />
 
-         <Route
-          path="/account/update-email"
-          element={
-            <PrivateRoute>
-              <UpdateEmailContainer/>
-            </PrivateRoute>
-          }
-        />
+        {/* Bookings & Favorites */}
+        <Route path="/favorites" element={
+          <PrivateRoute>
+            <Favorites />
+          </PrivateRoute>
+        } />
+        <Route path="/bookings" element={
+          <PrivateRoute>
+            <Bookings />
+          </PrivateRoute>
+        } />
+        <Route path="/bookings/stays-details" element={
+          <PrivateRoute>
+            <BookingStaysDetailsPage />
+          </PrivateRoute>
+        } />
+        <Route path="/bookings/transfers-details" element={
+          <PrivateRoute>
+            <BookingTransfersDetails />
+          </PrivateRoute>
+        } />
 
-        <Route
-          path="/account/update-password"
-          element={
-            <PrivateRoute>
-              <UpdatePasswordContainer/>
-            </PrivateRoute>
-          }
-        />
-
-         <Route
-          path="/account/notifications"
-          element={
-            <PrivateRoute>
-              <NotPreferenceContainer/>
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/notification"
-          element={
-            <PrivateRoute>
-              <NotificationContainer/>
-            </PrivateRoute>
-          }
-        />
-        
-        <Route
-          path="/booking-confirmation"
-          element={
-            <PrivateRoute>
-              <BookingConfirmationPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/tickets"
-          element={
-            <PrivateRoute>
-              <TicketsPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/tickets/:id"
-          element={
-            <PrivateRoute>
-              <TicketDetailPage />
-            </PrivateRoute>
-          }
-        />
-
-        {/* round-trip-section */}
-        <Route
-          path="/flight/departure"
-          element={<DeparturePage departureInfo={[]} />}
-        />
-        <Route
-          path="/flight/return"
-          element={<ReturnPage departureInfo={[]} />}
-        />
+        {/* Flights */}
+        <Route path="/flight/departure" element={<DeparturePage departureInfo={[]} />} />
+        <Route path="/flight/return" element={<ReturnPage departureInfo={[]} />} />
         <Route path="/flight/review" element={<FlightInfoPage />} />
-        <Route
-          path="/flights/payment-success"
-          element={<FlightConfirmationPage />}
-        />
-        <Route
-          path="/flights/payment-cancelled"
-          element={<PaymentFailed />}
-        />
+        <Route path="/flights/payment-success" element={<FlightConfirmationPage />} />
+        <Route path="/flights/payment-cancelled" element={<PaymentFailed />} />
 
-        {/* one-way-trip-section */}
-        <Route
-          path="/departure-flight-one-way"
-          element={<DeparturePageOneWay departureInfo={[]} />}
-        />
-        <Route
-          path="/flightInfo-review-one-way"
-          element={<FlightInfoPageOneWay />}
-        />
-        <Route
-          path="/flight-confirm-one-way"
-          element={<FlightConfirmPageOneWay />}
-        />
-
-        {/* multi-way-trip-section */}
-        <Route
-          path="/departure-flight-multi-way"
-          element={<DeparturePageMultiWay departureInfo={[]} />}
-        />
-        <Route
-          path="/second-departure-flight"
-          element={<SecondDepartureFlightPage departureInfo={[]} />}
-        />
-        <Route
-          path="/flightInfo-review-multi-way"
-          element={<FlightInfoPageMultiWay />}
-        />
-        <Route
-          path="/flight-confirm-multi-way"
-          element={<FlightConfirmPageMultiWay />}
-        />
-        <Route
-          path="/departure-flight-multi-way"
-          element={<DeparturePageMultiWay departureInfo={[]} />}
-        />
-        <Route
-          path="/second-departure-flight"
-          element={<SecondDepartureFlightPage departureInfo={[]} />}
-        />
-        <Route
-          path="/flightInfo-review-multi-way"
-          element={<FlightInfoPageMultiWay />}
-        />
-        <Route
-          path="/flight-confirm-multi-way"
-          element={<FlightConfirmPageMultiWay />}
-        />
-
-        {/* Cars-Section */}
+        {/* Cars */}
         <Route path="/cars-searchResults" element={<DisplayCars />} />
+        <Route path="/cars-booking" element={<Pages />} />
+        <Route path="/car-confirmation" element={
+          <PrivateRoute>
+            <Page />
+          </PrivateRoute>
+        } />
+        <Route path="/transfers/payment-success" element={
+          <PrivateRoute>
+            <CarPaidForPage />
+          </PrivateRoute>
+        } />
+        <Route path="/transfers/payment-failure" element={
+          <PrivateRoute>
+            <CarFailedPayment />
+          </PrivateRoute>
+        } />
         <Route path="/offer-accepted-page" element={<Pages />} />
-        <Route path="/car-confirmation" element={<Page />} />
-        <Route path="/transfers/payment-success" element={<CarPaidForPage />} />
-         {/* <Route path="/transfers/payment-failure" element={<CarFailedPayment />} /> */}
-        <Route path="/airport-taxi" element={<AirportTaxi />} />
-        {/* <Route path="/car-paid/download" element={<DownloadPage />} /> */}
+        <Route path="/car-paid/download" element={
+          <PrivateRoute>
+            <DownloadPage />
+          </PrivateRoute>
+        } />
 
-        {/* Flight Section */}
-        {/* <Route path="/flights" element={<Flight />} /> */}
+        {/* Airport Taxi */}
+        <Route path="/airport-taxi" element={<AirportTaxi />} />
       </Routes>
     </>
   );

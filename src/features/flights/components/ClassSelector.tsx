@@ -23,19 +23,34 @@ interface ClassSelectorProps {
   onChange: (value: string) => void;
 }
 
-const flightClasses = ["Economy", "Business", "First Class"];
+// const flightClasses = ["Economy", "Business", "First Class"];
+
+
+
+const flightClasses = [
+  { label: "Economy", value: "ECONOMY" },
+  { label: "Premium Economy", value: "PREMIUM_ECONOMY" },
+  { label: "Business", value: "BUSINESS" },
+  { label: "First Class", value: "FIRST" },
+];
+
 
 export const ClassSelector = memo<ClassSelectorProps>(
   ({ id, label, value, onChange }) => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const [isOpen, setIsOpen] = useState(false);
 
+    
+   
+    
     const isMobile = useMediaQuery("(max-width:600px)");
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
       setAnchorEl(event.currentTarget);
       setIsOpen(true);
     };
+  
+    
 
     const handleClose = () => {
       setIsOpen(false);
@@ -55,19 +70,28 @@ export const ClassSelector = memo<ClassSelectorProps>(
           value={value}
           onChange={handleChange}
         >
-          {flightClasses.map((flightClass, index) => (
-            <React.Fragment key={flightClass}>
-              <FormControlLabel
-                value={flightClass}
-                control={<Radio />}
-                label={flightClass}
-                className="pl-10"
-              />
-              {index < flightClasses.length - 1 && (
-                <Divider sx={{ marginTop: "16px", marginBottom: "16px" }} />
-              )}
-            </React.Fragment>
-          ))}
+          {flightClasses.map((flightClass, index) => {
+            
+
+
+          return  (
+              <React.Fragment key={flightClass.label}>
+                <FormControlLabel
+                  // @ts-ignore
+                  value={flightClass.value}
+                  control={<Radio />}
+                  label={flightClass.label}
+                  className="pl-10"
+                />
+                {index < flightClasses.length - 1 && (
+                  <Divider sx={{ marginTop: "16px", marginBottom: "16px" }} />
+                )}
+              </React.Fragment>
+              )
+          }
+          
+          
+          )}
         </RadioGroup>
       </div>
     );
@@ -81,6 +105,11 @@ export const ClassSelector = memo<ClassSelectorProps>(
           id={id}
           variant="outlined"
           size="small"
+          slotProps={{
+            input: {
+            readOnly:true
+          }
+        }}
           fullWidth
           placeholder="Economy"
           value={value}
@@ -120,6 +149,7 @@ export const ClassSelector = memo<ClassSelectorProps>(
                 borderTopLeftRadius: "16px",
                 borderTopRightRadius: "16px",
                 padding: "16px",
+                minHeight: "70vh",
               },
             }}
           >

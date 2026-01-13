@@ -1,0 +1,548 @@
+[33mcommit 99668f91962c3bdd384584c46c90fded4ad3b429[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Sun Oct 12 09:44:05 2025 +0100
+
+    first commit
+
+[33mcommit 7eeaa9d9ef761be93539e826321e97cbc8f85b9a[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Sun Oct 12 09:26:30 2025 +0100
+
+    first commit
+
+[33mcommit 23cc221ebe0a4b5b57daf64ba65a3292bc244b11[m
+Author: CleanScripts100 <88936315+chibyk1000@users.noreply.github.com>
+Date:   Thu Oct 9 15:24:23 2025 +0100
+
+    package lock fix
+
+[33mcommit cffd40d3defda7b9d8f13574471b0e319ae8aca8[m
+Author: CleanScripts100 <88936315+chibyk1000@users.noreply.github.com>
+Date:   Wed Oct 8 12:32:01 2025 +0100
+
+    updated
+
+[33mcommit 0275c020b007c96632b2ab49e3801837c7abb5e1[m
+Merge: fa65e02 1e2abb5
+Author: Okorie Chibuike <88936315+chibyk1000@users.noreply.github.com>
+Date:   Wed Oct 8 12:09:12 2025 +0100
+
+    Merge pull request #22 from ifnotGodTech/flights
+    
+    updated flight
+
+[33mcommit 1e2abb53a6a2ff04926a483305ab39e782fc3953[m
+Author: CleanScripts100 <88936315+chibyk1000@users.noreply.github.com>
+Date:   Wed Oct 8 04:28:15 2025 +0100
+
+    updated
+
+[33mcommit 7e26649b394acc2d2355efdf975b4ce1ec9b688e[m
+Merge: cedfaa8 48790bf
+Author: CleanScripts100 <88936315+chibyk1000@users.noreply.github.com>
+Date:   Tue Oct 7 12:16:03 2025 +0100
+
+    merge complete
+
+[33mcommit cedfaa83dc7461838fa1b8def0d242f413ad720d[m
+Author: CleanScripts100 <88936315+chibyk1000@users.noreply.github.com>
+Date:   Tue Oct 7 11:40:00 2025 +0100
+
+    ui changes
+
+[33mcommit 48790bf5f19d694ddfa13789ab8fe619617f7d76[m
+Merge: fa65e02 004a0bb
+Author: Faith Okereke <faithokereke26@gmail.com>
+Date:   Tue Oct 7 07:25:33 2025 +0100
+
+    Merge pull request #26 from ifnotGodTech/CarRentals_Branch
+    
+    Car rentals branch
+
+[33mcommit 004a0bbffaee6695c876af9c741bbfb22686f449[m[33m ([m[1;31morigin/CarRentals_Branch[m[33m)[m
+Merge: 8b347ea fa65e02
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Tue Oct 7 07:18:40 2025 +0100
+
+    Merge branch 'development' of https://github.com/ifnotGodTech/travelmate_web into CarRentals_Branch
+
+[33mcommit 8b347ea484871477ce3d0471078554a0bc1de887[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Tue Oct 7 07:17:41 2025 +0100
+
+    ifeat: axios config refactored, download page optimized for better image loadiing
+
+[33mcommit fa65e024fb506e938a192a228d08450bb675fe81[m
+Merge: 0ee167b 2f464ae
+Author: Faith Okereke <faithokereke26@gmail.com>
+Date:   Sun Oct 5 15:49:46 2025 +0100
+
+    Merge pull request #25 from ifnotGodTech/CarRentals_Branch
+    
+    Car rentals branch
+
+[33mcommit 2f464ae7cb71ab9d1cc3d1b43cfb8c56c2e7970c[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Sun Oct 5 15:38:03 2025 +0100
+
+    fix display cars eror
+
+[33mcommit d2090a832ce981007ab81a90d16af3de7c631383[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Sun Oct 5 15:33:11 2025 +0100
+
+    fix: adjusted UI of the search screen modals to match design, clean deployment errors
+
+[33mcommit 0ee167b9c8e5738b975b944fb35c95fe69c06a48[m
+Merge: a3a0fa8 aca81cd
+Author: Faith Okereke <faithokereke26@gmail.com>
+Date:   Sat Oct 4 19:50:42 2025 +0100
+
+    Merge pull request #23 from ifnotGodTech/CarRentals_Branch
+    
+    Car rentals branch
+
+[33mcommit aca81cdc2ec7e4e8f5eb121ded1cf8c6185661da[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Sat Oct 4 19:42:51 2025 +0100
+
+    feat:added payment failure page, fixed prod errors, added persist for dropoff cordinates
+
+[33mcommit 61087d160a9abd77da63bd89c071a0f9196a71bc[m
+Author: CleanScripts100 <88936315+chibyk1000@users.noreply.github.com>
+Date:   Sat Oct 4 07:54:40 2025 +0100
+
+    updated flight
+
+[33mcommit 35d2601f8b38d104a2eb69a95b238de9f80112cc[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Fri Oct 3 11:37:16 2025 +0100
+
+    added download page and download functionalty, done ui and ux fixes
+
+[33mcommit a3a0fa89e71efafe954c1973d3cc8a1149c102a9[m
+Merge: be5ff31 53b705e
+Author: Faith Okereke <faithokereke26@gmail.com>
+Date:   Wed Oct 1 19:16:31 2025 +0100
+
+    Merge pull request #21 from ifnotGodTech/CarRentals_Branch
+    
+    Car rentals branch
+
+[33mcommit 53b705e597d57aae442a2c704b7953817ab2e20a[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Tue Sep 30 09:53:00 2025 +0100
+
+    Refactor car rental components and improve booking form validation, removed unused components, improved drop off and pick up cerror handling, added download fetaure
+
+[33mcommit 15e2e5d141d684d1763131e83233e9c9e8fe2b0c[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Mon Sep 22 21:03:47 2025 +0100
+
+    feat: connected share modal, fixed confirmation page routing, axios eror fixed
+
+[33mcommit 2bcb37e667a5bcf2bb730c6a79d29198b17a2eba[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Wed Sep 10 13:40:56 2025 +0100
+
+    commit changes, correct passengers to number
+
+[33mcommit df14973133f39035ed7bd85838c5c88e423a5288[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Wed Sep 3 15:25:33 2025 +0100
+
+     payment processing done, fixed booking confirmation and stripe routing
+
+[33mcommit 3e0cfe9facc4ed7baf44c48df107065e974690f0[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Mon Sep 1 19:58:02 2025 +0100
+
+    commit changes for confirmation of booking
+
+[33mcommit 1af0ae7a8d7ead34de214f2234eaf6622b45544b[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Mon Sep 1 15:24:09 2025 +0100
+
+    search transfer to gps done, confirm booking underway
+
+[33mcommit fa4e16d7ff3eb266559bd40407c70fa804a2fd02[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Thu Aug 28 09:34:16 2025 +0100
+
+    api integration for seacrh succesful
+
+[33mcommit 14f5d30eb7522772b64801e1a51ed25e0c52b540[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Sun Aug 24 17:27:37 2025 +0100
+
+    Refactor car rental booking form to include pickup and dropoff location descriptions, update passenger counts to use strings, and enhance data handling in related components.
+
+[33mcommit 63a19e8ed55470ec360fe64575aa8e07a0471a1f[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Sat Aug 23 14:27:52 2025 +0100
+
+    ai implementation started on car rentals
+
+[33mcommit 2e9a0a5883024e55ff8b25451b62806051aefdf8[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Thu Aug 14 15:30:43 2025 +0100
+
+    redux integrayed to car rentals
+
+[33mcommit be5ff31780dd06a04c25786bb707b9e86cec68bc[m
+Merge: 599fef4 15dd8f1
+Author: Vincent <vincentokorike@gmail.com>
+Date:   Mon Aug 11 16:23:06 2025 +0100
+
+    Merge pull request #20 from ifnotGodTech/stays-integration
+    
+    Stays integration
+
+[33mcommit 15dd8f1d9e8b0e00087a71f53822b81242551395[m[33m ([m[1;31morigin/stays-integration[m[33m)[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon Aug 11 16:15:06 2025 +0100
+
+    restructure completed-2
+
+[33mcommit 2f538dbbdec9113f2586513048ce8db645773a33[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon Aug 11 15:49:31 2025 +0100
+
+    restructure completed
+
+[33mcommit 1b449bfbad6bed0e0ac71df49e1fbc6f21084ba3[m
+Merge: 1ad8832 599fef4
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon Aug 11 15:15:47 2025 +0100
+
+    Merge remote-tracking branch 'origin/main' into stays-integration
+
+[33mcommit 599fef49ddd1d6a04896c2a1bf77c8c1d95a3af0[m
+Merge: f552fcf b7d84a9
+Author: Vincent <vincentokorike@gmail.com>
+Date:   Mon Aug 11 14:46:36 2025 +0100
+
+    Merge pull request #18 from ifnotGodTech/CarRentals_Branch
+    
+    Car rentals branch
+
+[33mcommit 1ad8832cb28483195f5e17a887a32da26bb0d8c3[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon Aug 11 14:39:59 2025 +0100
+
+    stays refactor
+
+[33mcommit b7d84a91b972b283c352c5e070ad82f4c59cece5[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Thu Aug 7 16:43:09 2025 +0100
+
+    UI fixed, folder structure modified
+
+[33mcommit bd258f84ddebfc5acd2f7a002359f7a09ec4b76a[m
+Author: FAITH <faithokereke26@gmail.com>
+Date:   Thu Jul 31 17:04:27 2025 +0100
+
+    UI fixexdxx
+
+[33mcommit 99d7839fe8454f399562b364bd82bca17a8bb12a[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Sat Jul 12 08:07:46 2025 +0100
+
+    stays cont'd
+
+[33mcommit 458e294577aa9c9218c60f0cd6b6b1a99ebdd383[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Sat Jul 5 01:02:33 2025 +0100
+
+    hotel detais integration 3
+
+[33mcommit 9a6c9a639fc14986dd020e549bb69ccc0e43efa3[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu Jul 3 14:35:35 2025 +0100
+
+    hotel details integration
+
+[33mcommit 15a55bec5e0f5d7b431c119982b742ebb22421cb[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Tue Jul 1 17:17:39 2025 +0100
+
+    modified chats
+
+[33mcommit 4881d9a369c948a2b21a85164742230cdda18a37[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Sun Jun 29 22:12:12 2025 +0100
+
+    fast commit
+
+[33mcommit 1741d5d4e87e98528f1752984c675af8cca6eef1[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Sat Jun 28 16:15:25 2025 +0100
+
+    quick save
+
+[33mcommit f552fcf4b662aea8d80141e65e320996ec3e3a91[m
+Author: Vincent <vincentokorike@gmail.com>
+Date:   Sat Jun 21 13:44:18 2025 +0100
+
+    audio
+
+[33mcommit 3d32a6881cc6879649bef7be1ff9c2b06379f654[m
+Author: Vincent <vincentokorike@gmail.com>
+Date:   Fri Jun 20 10:51:48 2025 +0100
+
+    image imports
+
+[33mcommit c102b7d7107746b48e036f15f404b57dc22d7938[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon Jun 9 18:54:16 2025 +0100
+
+    file dispaly2
+
+[33mcommit 90388dd2c89f18c67b525c32a6f60b4605e710b9[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon Jun 9 17:05:35 2025 +0100
+
+    file dispaly
+
+[33mcommit 86bdd6aff9d9adcb99f7218df4a5f88db0def849[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Sun Jun 8 21:46:29 2025 +0100
+
+    modified error display3
+
+[33mcommit dcac01b15b5184a659c471c113357ff6f6f58e9a[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Sun Jun 8 21:40:07 2025 +0100
+
+    modified error display3
+
+[33mcommit 5d35cf1d867f35f530b5a1c00aac54c063c7e833[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Sun Jun 8 21:34:53 2025 +0100
+
+    modified error display2
+
+[33mcommit fd8ed022f56ed9af9604bef81de6732d57fb0d2d[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Sun Jun 8 21:06:48 2025 +0100
+
+    modified error display
+
+[33mcommit b4fd0c4f8a06a7764628dd0076f26ccf51caa25c[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Sun Jun 8 20:50:59 2025 +0100
+
+    modified chat error display
+
+[33mcommit fb73c75e2b6cfca235bda842564a0f098211f518[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Sun Jun 8 20:49:06 2025 +0100
+
+    modified chat error display
+
+[33mcommit c6c11356f08323e149b3da6dc6b305d010f0edb3[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Tue Jun 3 13:14:24 2025 +0100
+
+    chat notification-3
+
+[33mcommit c28e3ebd4c9ffa3390376f0aea6767dc70de997b[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon Jun 2 17:55:11 2025 +0100
+
+    chat notification2
+
+[33mcommit 42fd6ae198c3665873b939b643f4ad4ee871c91f[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon Jun 2 17:46:39 2025 +0100
+
+    chat notification
+
+[33mcommit 1343666b6b08912289de38905d227e8407bbea2e[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 29 16:51:08 2025 +0100
+
+    token expiration test
+
+[33mcommit 39a84fcddb16ac450ffbe931e6888fb6c2995da0[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 29 15:47:11 2025 +0100
+
+    delete cleanly
+
+[33mcommit 09612af5300797d99b69ebf7aa39b673706267d2[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 29 15:30:52 2025 +0100
+
+    axios instance modification3
+
+[33mcommit 855911df58d39fc52c7dc1a997e539bd5d6d67d6[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 29 13:01:35 2025 +0100
+
+    axios instance modification2
+
+[33mcommit 5c69f51ed58aab50de82ee4b1c69b683aa458d48[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 29 12:37:04 2025 +0100
+
+    axios instance modification
+
+[33mcommit d954edc04d44622931d5fa15d30e9a9827719da6[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 29 01:44:31 2025 +0100
+
+    chat closed modified
+
+[33mcommit f327d5df945dd4d51186b222e991536523ea30b5[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Wed May 28 13:56:07 2025 +0100
+
+    chat history modified
+
+[33mcommit 8c67a9dddd40820366d02e8948433e236ecc4a38[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Wed May 28 09:52:16 2025 +0100
+
+    chat history modified
+
+[33mcommit 0cae9e3131f01338e11a6c9b4e29034aedee549c[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Wed May 28 09:14:38 2025 +0100
+
+    closed chat2
+
+[33mcommit 3736e550a16123c4fd9ea3f07afe47090b0f0a7e[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Wed May 28 08:49:20 2025 +0100
+
+    closed chat
+
+[33mcommit da5a19259abe45a36a6b23837ffa90f463c51b63[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Wed May 28 08:24:20 2025 +0100
+
+    closed chat
+
+[33mcommit c3ee4619d4d2d2cddc6e74e251916983e856078f[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Tue May 27 21:26:22 2025 +0100
+
+    added back start conversation button
+
+[33mcommit 810987e6709cc6e92f26d2193659763a51bc3251[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon May 26 20:11:31 2025 +0100
+
+    added back start conversation button
+
+[33mcommit b7df5d8e0bb3e2b558d05dee6af200142ffdf826[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon May 26 17:38:27 2025 +0100
+
+    delete ticket
+
+[33mcommit 649e8d7f699b96636b120e4264432940471922d0[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon May 26 17:22:23 2025 +0100
+
+    delete ticket
+
+[33mcommit b64538a4cc650d6e0a8e232e819cc79ffb30f307[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon May 26 13:16:27 2025 +0100
+
+    improved UI for desktop2
+
+[33mcommit 555002fc21654a8594857c4097cf00a4c8457c1e[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Mon May 26 12:39:28 2025 +0100
+
+    improved UI for desktop
+
+[33mcommit 991c47f814a9a326db1a4cb4bbc23fd681d1ab15[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Sun May 25 00:11:37 2025 +0100
+
+    added claims and escalations
+
+[33mcommit 1cce76caed8433424f1fd19b9f2b95d8eb10e636[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Wed May 21 01:37:00 2025 +0100
+
+    further modifications
+
+[33mcommit 79ccc7bbe64314be4c4501ba48fed549865ab524[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Tue May 20 19:34:43 2025 +0100
+
+    resolved backend missing attachment
+
+[33mcommit 5f4c0688c4ee8d2576aedd07c20ad978ea3078eb[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Sun May 18 23:32:12 2025 +0100
+
+    testing
+
+[33mcommit d5046753bd53ad5a3cd51ed128d570adf04f5a09[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 15 20:15:19 2025 +0100
+
+    draggable button review
+
+[33mcommit 15c37f7391c890c2b27fe5579093fbf459d10640[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 15 12:13:09 2025 +0100
+
+    delete chat
+
+[33mcommit 951ee1175fff89a79855713fd4e0cc189f8e2a6a[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 15 10:01:27 2025 +0100
+
+    sending attachment in tickets2
+
+[33mcommit ac20ccdef81f207d0718cb6c5be67bc0c9a89ff2[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 15 09:35:35 2025 +0100
+
+    sending attachment in tickets
+
+[33mcommit dc02ad837806d5cf2036cc4d762b634b42e2e25d[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 15 00:03:15 2025 +0100
+
+    chats, tickets and faqs completed-2
+
+[33mcommit 956feb38f6259a60f5ca5d0a6ee40ba66b22325a[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Wed May 14 16:50:14 2025 +0100
+
+    chats, tickets and faqs completed
+
+[33mcommit 92811a2eb595e58cbcc15eebb1e4cfe7d4816a6a[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Tue May 13 13:14:36 2025 +0100
+
+    websocket and login modification
+
+[33mcommit cbb0480ed49ea51db2d56ea5ef282f6eaac93f2d[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 8 15:18:14 2025 +0100
+
+    protected routes2
+
+[33mcommit 2637edde3e278d976973c07dc481d6b14b462b77[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Thu May 8 15:09:11 2025 +0100
+
+    protected routes
+
+[33mcommit e60a8878e05c877e961e89907cfdf2f35defd0ca[m
+Author: Vincency <vincentokorike@gmail.com>
+Date:   Wed May 7 17:49:19 2025 +0100
+
+    fetch google email2
+
+[33mcommit 80a8cb7cc926e44ad31540910a997a8864fb02a6[m
+Author: Vincency <vincentokorike@gmail.com>

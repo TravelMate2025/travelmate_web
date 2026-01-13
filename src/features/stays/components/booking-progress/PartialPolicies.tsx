@@ -10,18 +10,18 @@ const PartialPolicies: React.FC = () => {
     <>
       <div className="w-full space-y-2">
         {isMobile && (
-          <div className="flex justify-between items-center px-5">
+          <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Policies</h3>
             <button
               onClick={() => setIsModalOpen(true)}
               className="text-blue-600 font-medium flex items-center gap-1"
             >
-              Show all <span className="text-xl">{">"}</span>
+              Show all <span className="text-xl pb-1">{">"}</span>
             </button>
           </div>
         )}
 
-        <div className="md:border border-gray-300 md:rounded-lg p-6 space-y-6">
+        <div className="md:border border-gray-300 md:rounded-lg space-y-6">
           <div className="flex flex-col md:flex-row items-start">
             <p className="font-medium text-gray-700">Check In & Check Out</p>
             <ul className="mt-4 ml-8 list-disc md:ml-40">

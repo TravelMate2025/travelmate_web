@@ -4,6 +4,8 @@ import { twMerge } from "tailwind-merge";
 import { airports } from "../data";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { DocumentProps, pdf } from "@react-pdf/renderer";
+import { ReactElement } from "react";
 export function formatDuration(duration: string): string {
   // Amadeus returns "PT4H15M"
   const hoursMatch = duration.match(/(\d+)H/);
@@ -54,3 +56,27 @@ export async function downloadSectionAsPDF(
   pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
   pdf.save(`${filename || "document"}.pdf`);
 }
+
+
+export const sharePdfFile = async (
+  pdfComponent: ReactElement<DocumentProps>,
+  fileName: string
+) => {
+  const blob = await pdf(pdfComponent).toBlob();
+  const file = new File([blob], fileName, { type: "application/pdf" });
+
+  if (navigator.share && navigator.canShare?.({ files: [file] })) {
+    await navigator.share({
+      title: "Flight Confirmation",
+      text: "Here’s my flight confirmation details.",
+      files: [file],
+    });
+  } else {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+};
