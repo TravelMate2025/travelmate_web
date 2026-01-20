@@ -28,7 +28,7 @@ const ConfirmCancel = ({
           <h2 className="text-lg font-semibold text-gray-900 text-center">
             Cancel Booking
           </h2>
-          <button className="text-gray-500 hover:text-gray-700 text-xl">
+          <button className="text-gray-500 hover:text-gray-700 text-xl" onClick={closeModal}>
             &times;
           </button>
         </div>

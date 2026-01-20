@@ -41,6 +41,7 @@ import BookingTransfersDetails from "./pages/BookingsDetails/transfers";
 import Bookings from "./pages/Bookings";
 import Favorites from "./pages/Favorites";
 
+
 function App() {
   return (
     <>
@@ -99,6 +100,7 @@ function App() {
           }
         />
 
+      
         <Route
           path="/bookings"
           element={

@@ -17,8 +17,8 @@ const Cancelled = ({ bookings }: BookingsProps) => {
       (item.type === "stay"
         ? hotelimage
         : item.type === "transfer"
-        ? carImage
-        : flightImage);
+          ? carImage
+          : flightImage);
     const name = item.name || "Unknown Booking";
     let dateStr = "";
 
@@ -28,7 +28,7 @@ const Cancelled = ({ bookings }: BookingsProps) => {
 
       if (start && end) {
         dateStr = `${new Date(start).toDateString()} - ${new Date(
-          end
+          end,
         ).toDateString()}`;
       } else if (start) {
         dateStr = new Date(start).toDateString();
@@ -60,15 +60,15 @@ const Cancelled = ({ bookings }: BookingsProps) => {
               onClick={() => {
                 item.type === "stay"
                   ? navigate(
-                      `/bookings/stays-details/?session_id=${item.session_id}`
+                      `/bookings/stays-details/?session_id=${item.session_id}`,
                     )
                   : item.type === "transfer"
-                  ? navigate(
-                      `/bookings/transfers-details/?session_id=${item.session_id}`
-                    )
-                  : navigate(
-                      `bookings/flight-details/?session_id=${item.session_id}`
-                    );
+                    ? navigate(
+                        `/bookings/transfers-details/?session_id=${item.session_id}`,
+                      )
+                    : navigate(
+                        `bookings/flight-details/?session_id=${item.session_id}`,
+                      );
               }}
             >
               <div className="flex justify-normal items-start gap-3">

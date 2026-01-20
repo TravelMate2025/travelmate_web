@@ -12,3 +12,26 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: none;
   -webkit-appearance: none; /* Optional: further remove default styling */
 }
+
+@layer utilities {
+  /* Width of the scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px; 
+  }
+
+  /* Track (background) */
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent; 
+  }
+
+  /* Handle (the moving part) */
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: transparent; /* Light gray (Tailwind gray-200) */
+    border-radius: 20px;       /* Round edges */
+  }
+
+  /* Handle on hover */
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #9ca3af; /* Darker gray (Tailwind gray-400) */
+  }
+}

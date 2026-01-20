@@ -1,6 +1,6 @@
 import { Checkbox, Divider, FormControlLabel } from "@mui/material";
 import { ArrowRight } from "lucide-react";
-import Paypal from "../../../../assets/images/paypal.png";
+import Paypal from "../../../../assets/images/stripe.png";
 import { DeskProps } from "../Page";
 
 type PaymentMethodProps = {

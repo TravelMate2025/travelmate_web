@@ -69,7 +69,7 @@ export default function UserOptions() {
       icon: <FaRegStar size={24} />,
       title: "Reviews",
       description: "View and manage reviews",
-      link: "/account/security",
+      link: "/account/reviews",
     },
     {
       icon: logoutLoading ? (
