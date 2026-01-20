@@ -88,6 +88,7 @@ export const searchHotels = async (
         include_details: true
       }
     });
+    console.log(response.data)
     return response.data;
 
   } catch (error: any) {
@@ -116,6 +117,7 @@ export const getHotelDetails = async (
         rooms
       },
     });
+    console.log(response.data)
     return response.data;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || `Failed to get details for hotel ${hotelId}`;
@@ -195,9 +197,10 @@ export const verifyTransfersBooking = async (sessionId: string | null): Promise<
 
 // Fetch all reviews
 
-export const getReviews = async (hotelId: string) => {
+export const getReviews = async (hotelId: string | number | undefined) => {
   try {
     const response = await axios.get(`/hotels/${hotelId}/reviews/`)
+    console.log(response)
     return response.data.user_reviews
   } catch (error: any) {
     console.error('Failed to fetch reviews:', error.response?.data || error.message);
@@ -205,11 +208,17 @@ export const getReviews = async (hotelId: string) => {
   }
 };
 
-export const submitReview = async () => {
+export const submitReview = async (hotelId: string | undefined | number, id: string | undefined | number, comment: string, title: number, rating: number) => {
   try {
-    const response = await api.post('/reviews', {
-      // review data here
+    const response = await api.post(`/hotels/${hotelId}/reviews/`, {
+      rating,
+      title,
+      comment,
+      id
+
+
     });
+    console.log(response)
     return response.data;
   } catch (error: any) {
     console.error('Failed to submit review:', error.response?.data || error.message);
@@ -233,6 +242,9 @@ export const deleteReview = async (reviewId: number) => {
 export const fetchFavorites = async () => {
   try {
     const response = await api.get('/hotels/favorites/');
+    console.log(
+      response.data
+    )
     return response;
   }
   catch (error: any) {
@@ -261,7 +273,7 @@ export const addOrRemoveFavorite = async (hotelId: string | null, setIsFavorite:
 
 let cachedResponse: any = null;
 let cacheTimestamp: number | null = null;
-const CACHE_DURATION = 60 * 1000; 
+const CACHE_DURATION = 60 * 1000;
 
 export const fetchAllBookings = async (forceRefresh = false) => {
   const now = Date.now();
