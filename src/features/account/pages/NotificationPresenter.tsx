@@ -1,149 +1,247 @@
+import { useState, useMemo } from "react";
 import Navbar from "../../../pages/homePage/Navbar";
 import Footer from "../../../components/2Footer";
 import Breadcrumbs from "../../../components/Breadcrumbs";
 import TravelmateApp from "../../../pages/homePage/TravelmateApp";
-import { FiBell } from "react-icons/fi";
+import { FiBell, FiMoreHorizontal } from "react-icons/fi";
+import { FaTrash } from "react-icons/fa";
+
 
 type NotificationDetails = {
   id: string;
   title: string;
   message: string;
-  notification_type: string;
-  source_app: string;
-  link: string;
-  target_object: string;
   created_at: string;
 };
 
 type AccountNotification = {
   id: string;
-  notification: string;
   notification_details: NotificationDetails;
-  user: number;
   is_read: boolean;
-  read_at: string;
   created_at: string;
 };
 
-type NotificationPresenterProps = {
+type Props = {
   notifications: AccountNotification[];
   loading: boolean;
+  isDeleting: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
   onMarkAsRead: (id: string) => void;
-  hasNewNotification?: boolean;
-  onNotificationClick?: () => void;
+  onDeleteOne: (id: string) => void;
+  onDeleteAll: () => void;
+  hasNewNotification: boolean;
 };
+
+const formatRelativeTime = (date: string) => {
+  const diff = Date.now() - new Date(date).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}hr`;
+  const days = Math.floor(hrs / 24);
+  return `${days}days`;
+};
+
+const startOfDay = (d: Date) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+const groupNotifications = (notifications: AccountNotification[]) => {
+  const today: AccountNotification[] = [];
+  const yesterday: AccountNotification[] = [];
+  const last7Days: AccountNotification[] = [];
+  const older: AccountNotification[] = [];
+
+  const now = new Date();
+  const todayStart = startOfDay(now);
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(todayStart.getDate() - 1);
+
+  const last7Start = new Date(todayStart);
+  last7Start.setDate(todayStart.getDate() - 7);
+
+  notifications.forEach((n) => {
+    const created = new Date(n.created_at);
+
+    if (created >= todayStart) today.push(n);
+    else if (created >= yesterdayStart) yesterday.push(n);
+    else if (created >= last7Start) last7Days.push(n);
+    else older.push(n);
+  });
+
+  return { today, yesterday, last7Days, older };
+};
+
 
 function NotificationPresenter({
   notifications,
   loading,
+  isDeleting,
   hasMore,
   onLoadMore,
   onMarkAsRead,
-}: NotificationPresenterProps) {
+  onDeleteOne,
+  onDeleteAll,
+}: Props) {
+  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+
+  const filtered = useMemo(() => {
+    return filter === "unread"
+      ? notifications.filter((n) => !n.is_read)
+      : notifications;
+  }, [filter, notifications]);
+
+  const grouped = groupNotifications(filtered);
+
   const breadcrumbs = [
     { name: "Home", link: "/" },
     { name: "Notification" },
   ];
 
+  const renderSection = (title: string, items: AccountNotification[]) =>
+    items.length > 0 && (
+    <>
+      <h3 className="mt-6 mb-2 text-sm font-semibold text-gray-700">
+        {title}
+      </h3>
+      <div className="bg-gray-200 rounded">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="relative p-2  py-3"
+          >
+            <div className="flex justify-between gap-4">
+              {/* BODY (MARK AS READ HERE ONLY) */}
+              <div
+                className="cursor-pointer"
+                onClick={() => {
+                  if (!item.is_read) onMarkAsRead(item.id);
+                }}
+              >
+                <p
+                  className={`text-sm ${
+                    item.is_read ? "font-normal" : "font-bold"
+                  }`}
+                >
+                  {item.notification_details.title}
+                </p>
+                <p className="text-xs text-gray-600">
+                  {item.notification_details.message}
+                </p>
+              </div>
+
+              {/* TIME + MENU */}
+              <div className="relative text-right text-xs text-gray-500">
+                <p>{formatRelativeTime(item.created_at)}</p>
+
+                <FiMoreHorizontal
+                  className="mt-1 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(menuOpen === item.id ? null : item.id);
+                  }}
+                />
+
+                {menuOpen === item.id && (
+                  <div className="absolute right-0 top-9 z-20 w-20 rounded bg-white shadow">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteOne(item.id);
+                        setMenuOpen(null);
+                      }}
+                      className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+    );
+
   return (
-    <div className="relative min-h-screen flex flex-col">
-      <div className="my-10"></div>
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="ml-4 sm:ml-8 md:ml-10 hidden md:block">
+
+      <div className="ml-10 hidden md:block mt-4">
         <Breadcrumbs items={breadcrumbs} />
       </div>
 
-      <div className="px-4 sm:px-6 md:px-10">
-        <h2
-          className="text-lg sm:text-xl md:text-[20px]
-         font-bold mb-4 ml-4 sm:ml-6 md:ml-10 text-center md:text-left"
-        >
-          Notifications
-        </h2>
+      <div className="px-6 md:px-10">
+        <h2 className="text-xl font-bold mb-4">Notifications</h2>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="flex justify-center items-center h-[50vh]">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && notifications.length === 0 && (
-          <div className="h-[150px] w-[90%] sm:w-[70%] md:w-[50%] m-auto mt-[20%] sm:mt-[10%] text-center">
-            <div
-              className="w-[60px] sm:w-[70px] h-[60px] sm:h-[70px] p-2 
-              m-auto bg-gray-100 rounded-full border border-gray-200 flex flex-col
-              items-center justify-center mb-5"
+        {/* FILTER + DELETE */}
+        <div className="flex justify-between mb-4">
+          <div className="flex gap-3">
+            <button
+              onClick={() => setFilter("all")}
+              className={`px-3 py-1 rounded ${
+                filter === "all"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100"
+              }`}
             >
-              <FiBell size={30} className="sm:size-[34px] text-gray-700" />
-            </div>
-            <div className="w-full sm:w-[350px] md:w-[390px] m-auto px-2">
-              <h2 className="text-lg sm:text-[20px] font-semibold">
-                No Notifications Yet
-              </h2>
-              <p className="text-sm sm:text-base text-gray-600">
-                We’ll inform you about booking confirmations and travel updates
-                here.
-              </p>
-            </div>
+              All
+            </button>
+
+            <button
+              onClick={() => setFilter("unread")}
+              className={`px-3 py-1 rounded ${
+                filter === "unread"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100"
+              }`}
+            >
+              Unread
+            </button>
           </div>
-        )}
 
-        {/* Notifications List */}
-        {!loading && notifications.length > 0 && (
-          <div className="space-y-4">
-            {notifications.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => onMarkAsRead(item.id)} // MARK AS READ ON CLICK
-                className="border-b border-gray-400 w-[95%] sm:w-[90%] m-auto flex flex-col sm:flex-row sm:items-center sm:justify-between pb-2 gap-2 sm:gap-0 cursor-pointer"
-              >
-                <div className="flex items-start sm:items-center gap-3 sm:gap-4 ml-2">
-                  <div
-                    className={`w-[30px] h-[30px] p-1 rounded-full flex items-center justify-center 
-                      ${item.is_read ? "bg-gray-200" : "bg-blue-100"}`}
-                  >
-                    <FiBell className="text-gray-800" />
-                  </div>
-                  <div className="max-w-[90%] sm:max-w-[75%]">
-                    <p className="font-semibold text-sm sm:text-base">
-                      {item.notification_details.title}
-                    </p>
-                    <p className="text-xs sm:text-sm text-gray-700 break-words">
-                      {item.notification_details.message}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-[11px] sm:text-[13px] mt-1 sm:-mt-4 mr-2 text-gray-600 text-right">
-                  <p>{new Date(item.created_at).toLocaleString()}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Load More Button */}
-      {!loading && hasMore && (
-        <div className="flex justify-center mt-6">
           <button
-            onClick={onLoadMore}
-            className="px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm sm:text-base"
+            onClick={onDeleteAll}
+            className="flex items-center gap-1 text-red-600"
           >
-            Load More
+            <FaTrash /> {isDeleting ? "Deleting..." : "Delete All"}
           </button>
         </div>
-      )}
 
-      <div className="hidden md:block">
-        <TravelmateApp />
+        {/* STATES */}
+        {loading && <p className="text-center">Loading...</p>}
+
+        {!loading && filtered.length === 0 && (
+          <div className="text-center mt-20">
+            <FiBell size={40} className="m-auto text-gray-500" />
+            <p className="mt-2 text-gray-600">No Notifications</p>
+          </div>
+        )}
+
+        {!loading && (
+          <>
+            {renderSection("Today", grouped.today)}
+            {renderSection("Yesterday", grouped.yesterday)}
+            {renderSection("Last 7 Days", grouped.last7Days)}
+            {renderSection("Older", grouped.older)}
+          </>
+        )}
+
+        {hasMore && (
+          <div className="text-center mt-6">
+            <button
+              onClick={onLoadMore}
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+            >
+              Load More
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="m-10"></div>
+      <TravelmateApp />
       <Footer />
     </div>
   );

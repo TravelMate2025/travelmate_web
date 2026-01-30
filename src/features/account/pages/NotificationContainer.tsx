@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react"
-import NotificationPresenter from "./NotificationPresenter"
+import { useEffect, useState } from "react";
+import NotificationPresenter from "./NotificationPresenter";
+import { useNotifications } from "../components/notifications/NotificationProvider"; // use your actual path
 import api from "../../../api/services/api";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -26,121 +27,119 @@ type AccountNotification = {
 };
 
 function NotificationContainer() {
-    const [notifications, setNotifications] = useState<AccountNotification[]>([]);
-    const [nextPage, setNextPage] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false)
-    const [hasNewNotification, setHasNewNotification] = useState(false);
-    // const [selectedNotification, setSelectedNotification] = useState<AccountNotification | null>(null);
-
-    const handleFetchNotifications = async (url?: string) => {
-        setLoading(true);
-        try {
-            const res = await api.get(url || `${API_BASE_URL}/notifications/`);
-            const data = res?.data?.results || [];
-
-            setNotifications(prev => (url ? [...prev, ...data] : data));
-            setNextPage(res?.data?.next || null);
-
-            // Detecting  unread notifications
-            const unread = data.some((n: AccountNotification) => !n.is_read);
-            setHasNewNotification(unread);
-        } catch (error) {
-            console.log("Error fetching notifications:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        handleFetchNotifications()
-
-        // Poll every 30 seconds
-        const interval = setInterval(() => {
-            handleFetchNotifications();
-        }, 60000);
-
-        return () => clearInterval(interval);
-    },[])
-
-    const handleMarkAsRead = async (id: string) => {
-        try {
-            await api.post(`${API_BASE_URL}/api/notifications/${id}/mark_read/`);
-
-            // Update the notifications state
-            setNotifications((prev) =>
-            prev.map((n) =>
-                n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
-            )
-            );
-
-            // Immediately update hasNewNotification
-            setHasNewNotification(() => {
-            // Check if there are still any unread notifications
-            const stillUnread = notifications.some(
-                (n) => n.id !== id && !n.is_read
-            );
-            return stillUnread;
-            });
-        } catch (error) {
-            console.log("Error marking as read:", error);
-        }
-    };
+  const { notifications: wsNotifications } = useNotifications(); // from provider
+  const [notifications, setNotifications] = useState<AccountNotification[]>([]);
+  const [nextPage, setNextPage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [hasNewNotification, setHasNewNotification] = useState(false);
 
 
-    // const handleNotificationDetails = async (id: string) => {
-    //     try {
-    //         const res = await api.get(`${API_BASE_URL}/api/notifications/${id}/`);
-    //         const details = res.data;
-    //         setSelectedNotification(details);
-    //     } catch (error) {
-    //         console.log("Error fetching notification details:", error);
-    //     }
-    // };
+  useEffect(() => {
+    if (!wsNotifications.length) return;
 
-    const handleMarkAllAsRead = async () => {
-        try {
-        await api.post(`${API_BASE_URL}/api/notifications/mark_all_read/`);
-        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-        setHasNewNotification(false);
-        } catch (error) {
-        console.error("Error marking all as read:", error);
-        }
-    };
+    const newNotifications: AccountNotification[] = wsNotifications.map((n) => ({
+      id: n.id,
+      notification: "",
+      notification_details: {
+        id: n.id,
+        title: n.title,
+        message: n.message,
+        notification_type: n.type,
+        source_app: n.sourceApp || "",
+        link: n.link || "",
+        target_object: "",
+        created_at: n.createdAt,
+      },
+      user: 0,
+      is_read: n.isRead ?? false,
+      read_at: n.readAt ?? "",
+      created_at: n.createdAt,
+    }));
 
-    // const handleBulkDelete = async () => {
-    //     try {
-    //     await api.post(`${API_BASE_URL}/api/notifications/bulk_delete/`);
-    //     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    //     setHasNewNotification(false);
-    //     } catch (error) {
-    //     console.error("Error marking all as read:", error);
-    //     }
-    // };
+    setNotifications((prev) => {
+      const ids = new Set(prev.map((n) => n.id));
+      const merged = [
+        ...newNotifications.filter((n) => !ids.has(n.id)),
+        ...prev,
+      ];
+      return merged;
+    });
 
-    // const handleBulkMarkAsRead = async () => {
-    //     try {
-    //     await api.post(`${API_BASE_URL}/api/notifications/bulk_mark_read/`);
-    //     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    //     setHasNewNotification(false);
-    //     } catch (error) {
-    //     console.error("Error marking all as read:", error);
-    //     }
-    // };
+    setHasNewNotification(true);
+  }, [wsNotifications]);
 
+  //initial notifications
+  const handleFetchNotifications = async (url?: string) => {
+    setLoading(true);
+    try {
+      const res = await api.get(url || `${API_BASE_URL}/notifications/`);
+      const data = res?.data?.results || [];
+
+      setNotifications((prev) => (url ? [...prev, ...data] : data));
+      setNextPage(res?.data?.next || null);
+      setHasNewNotification(data.some((n: AccountNotification) => !n.is_read));
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    handleFetchNotifications();
+  }, []);
+
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await api.post(`${API_BASE_URL}/notifications/${id}/mark_read/`);
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === id ? { ...n, is_read: true } : n
+        )
+      );
+    } catch (error) {
+      console.error("Error marking as read:", error);
+    }
+  };
+
+  const handleDeleteOne = async (id: string) => {
+    try {
+      await api.post(`/notifications/bulk-delete/`, { notification_ids: [id] });
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    try {
+      setIsDeleting(true);
+      const ids = notifications.map((n) => n.id);
+      if (ids.length === 0) return;
+
+      await api.post(`/notifications/bulk-delete/`, { notification_ids: ids });
+      setNotifications([]);
+      setHasNewNotification(false);
+      setIsDeleting(false);
+    } catch (err) {
+      console.error("Error deleting all notifications:", err);
+    }
+  };
 
   return (
-    <div>
-        <NotificationPresenter 
-        notifications={notifications}
-        loading={loading}
-        onLoadMore={() => nextPage && handleFetchNotifications(nextPage)}
-        hasMore={!!nextPage}
-        onMarkAsRead={handleMarkAsRead}
-        hasNewNotification={hasNewNotification}
-        onNotificationClick={handleMarkAllAsRead}
-        />
-    </div>
-  )
+    <NotificationPresenter
+      notifications={notifications}
+      loading={loading}
+      isDeleting={isDeleting}
+      hasMore={!!nextPage}
+      onLoadMore={() => nextPage && handleFetchNotifications(nextPage)}
+      onMarkAsRead={handleMarkAsRead}
+      onDeleteOne={handleDeleteOne}
+      onDeleteAll={handleDeleteAll}
+      hasNewNotification={hasNewNotification}
+    />
+  );
 }
 
-export default NotificationContainer
+export default NotificationContainer;

@@ -641,10 +641,12 @@ reset({
 
         {/* Main content */}
         <div className="bg-white w-full h-full md:pt-[20px] pb-[50px] mb-[100px]">
-          <div className="w-[90%] m-auto hidden md:block">
+          {/* <div className="w-[90%] m-auto hidden md:block">
             <div className="flex gap-1 text-[15px] mb-4">
-              <span>Home</span>
+            
               {isMultiCity ? (
+                <>
+              
                 [...new Set([...visitedSegments, currentSegment])]
                   .sort((a, b) => a - b)
                   .map((idx) => (
@@ -662,12 +664,57 @@ reset({
                       </span>
                     </React.Fragment>
                   ))
+                  </>
               ) : (
                 <Breadcrumb />
               )}
             </div>
             <Divider />
+          </div> */}
+
+          <div className="w-[90%] m-auto hidden md:block">
+            <div className="flex gap-1 text-[15px] mb-4 items-center">
+              {isMultiCity ? (
+                <>
+                  <Link
+                    to="/"
+                    className="cursor-pointer hover:text-[#023E8A] transition-colors"
+                  >
+                    Home
+                  </Link>
+
+                  <span className="text-[#67696D]">&gt;</span>
+
+                  {[...new Set([...visitedSegments, currentSegment])]
+                    .sort((a, b) => a - b)
+                    .map((idx, i, arr) => (
+                      <React.Fragment key={`segment-${idx}`}>
+                        <span
+                          className={`font-medium cursor-pointer transition-colors ${
+                            currentSegment === idx
+                              ? "text-[#023E8A]"
+                              : "text-[#67696D]"
+                          } hover:text-[#023E8A]`}
+                          onClick={() => setCurrentSegment(idx)}
+                        >
+                          Departure Flight {idx + 1}
+                        </span>
+
+                        {i < arr.length - 1 && (
+                          <span className="text-[#67696D] ml-1">&gt;</span>
+                        )}
+                      </React.Fragment>
+                    ))}
+                </>
+              ) : (
+                /* 🟢 Round-trip & One-way */
+                <Breadcrumb />
+              )}
+            </div>
+
+            <Divider />
           </div>
+
 
           <div className="mt-[26px] md:mb-[26px]">
             <div className="w-[90%] m-auto flex justify-between">
