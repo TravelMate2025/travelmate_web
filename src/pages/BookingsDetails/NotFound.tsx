@@ -16,7 +16,7 @@ const NotFound = () => {
           >
             <ArrowBackIosNewOutlinedIcon />
           </Link>
-          <p>Back to Home</p>
+          <p>Back to Bookings</p>
         </div>
         <main className="flex flex-col gap-3 items-center justify-center mt-20 lg:px-32 px-8 text-center">
           <img src={notFound} alt="failure" className="w-24 h-24" />

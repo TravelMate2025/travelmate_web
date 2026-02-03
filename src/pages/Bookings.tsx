@@ -178,7 +178,8 @@ const Bookings = () => {
       // Map URL tabs to specific data statuses
       switch (currentTab) {
         case "pending": // "Ongoing" tab
-          return status === "ongoing";
+          return status === "ongoing" ||
+            (status === "confirmed" && date > new Date());
 
         case "completed":
           return (

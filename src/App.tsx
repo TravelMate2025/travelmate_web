@@ -54,12 +54,9 @@ import BookingStaysDetailsPage from "./pages/BookingsDetails/stays";
 import BookingTransfersDetails from "./pages/BookingsDetails/transfers";
 import Bookings from "./pages/Bookings";
 import Favorites from "./pages/Favorites";
-
-// Routing
-import PrivateRoute from "../src/routes/PrivateRoute";
-
-// Home page
 import Home from "./pages/Home";
+import PrivateRoute from "./routes/PrivateRoute";
+
 
 function App() {
   return (
@@ -101,64 +98,96 @@ function App() {
           </PrivateRoute>
         } />
 
-        {/* Account & Protected Pages */}
-        <Route path="/account" element={
-          <PrivateRoute>
-            <Profile />
-          </PrivateRoute>
-        } />
-        <Route path="/profile-info" element={
-          <PrivateRoute>
-            <ProfileInfo />
-          </PrivateRoute>
-        } />
+        {/* Protected Routes */}
+        <Route
+          path="/account"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile-info"
+          element={
+            <PrivateRoute>
+              <ProfileInfo />
+            </PrivateRoute>
+          }
+        />
+
         <Route path="/account/security" element={
           <PrivateRoute>
             <Security />
           </PrivateRoute>
         } />
+
         <Route path="/account/update-email" element={
           <PrivateRoute>
             <UpdateEmailContainer />
           </PrivateRoute>
         } />
+
         <Route path="/account/update-password" element={
           <PrivateRoute>
             <UpdatePasswordContainer />
           </PrivateRoute>
         } />
-        <Route path="/account/notifications" element={
+
+         <Route path="/account/notifications" element={
           <PrivateRoute>
             <NotPreferenceContainer />
           </PrivateRoute>
         } />
+
         <Route path="/notification" element={
           <PrivateRoute>
             <NotificationContainer />
           </PrivateRoute>
         } />
 
-        {/* Bookings & Favorites */}
-        <Route path="/favorites" element={
-          <PrivateRoute>
-            <Favorites />
-          </PrivateRoute>
-        } />
-        <Route path="/bookings" element={
-          <PrivateRoute>
-            <Bookings />
-          </PrivateRoute>
-        } />
-        <Route path="/bookings/stays-details" element={
-          <PrivateRoute>
-            <BookingStaysDetailsPage />
-          </PrivateRoute>
-        } />
-        <Route path="/bookings/transfers-details" element={
-          <PrivateRoute>
-            <BookingTransfersDetails />
-          </PrivateRoute>
-        } />
+        <Route
+          path="/booking/success"
+          element={
+            <PrivateRoute>
+              <BookingConfirmationPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/favorites"
+          element={
+            <PrivateRoute>
+              <Favorites />
+            </PrivateRoute>
+          }
+        />
+
+      
+        <Route
+          path="/bookings"
+          element={
+            <PrivateRoute>
+              <Bookings />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/bookings/stays-details"
+          element={
+            <PrivateRoute>
+              <BookingStaysDetailsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/bookings/transfers-details"
+          element={
+            <PrivateRoute>
+              <BookingTransfersDetails />
+            </PrivateRoute>
+          }
+        />
 
         {/* Flights */}
         <Route path="/flight/departure" element={<DeparturePage departureInfo={[]} />} />

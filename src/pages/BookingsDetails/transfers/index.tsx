@@ -365,8 +365,8 @@ const BookingTransfersDetails = () => {
                 <h3 className="text-[14px] font-inter font-medium text-[#181818] mb-[15px]">
                   Refunds and Cancellations
                 </h3>
-                <div className="lg:border lg:border-gray-200 lg:rounded-lg lg:p-4 pb-3">
-                  <div className="flex justify-between items-center pb-3">
+                <div className="lg:border-[1px] lg:border-[#ACAEB3] lg:rounded-lg lg:p-3 pb-3">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-500 text-sm">Policy</span>
                     <span className="text-sm font-medium text-gray-900 text-right">
                       {cancellationPolicy?.amount}
@@ -400,8 +400,8 @@ const BookingTransfersDetails = () => {
               <p className="text-[14px] font-medium text-[#181818] mb-[15px]">
                 Contacts
               </p>
-              <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3]">
-                <div className="flex justify-between items-center pb-3">
+              <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3] pb-3">
+                <div className="flex justify-between items-center">
                   <div className="flex gap-2 items-center">
                     <LocalPhoneOutlinedIcon sx={{ fontSize: "14px" }} />
                     <p className="text-[#4E4F52] text-[14px]">

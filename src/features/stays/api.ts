@@ -102,6 +102,7 @@ export const searchHotels = async (
         include_details: true,
       },
     });
+    console.log(response.data)
     return response.data;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
@@ -125,6 +126,7 @@ export const getHotelDetails = async (
     const response = await axios.get(`${BASE_URL}/hotels/${hotelId}/details/`, {
       params: { check_in: checkIn, check_out: checkOut, adults, children, rooms },
     });
+    console.log(response.data)
     return response.data;
   } catch (error: any) {
     const errorMessage =
@@ -199,20 +201,30 @@ export const verifyTransfersBooking = async (
   }
 };
 
-// Reviews
-export const getReviews = async (hotelId: string) => {
+// Fetch all reviews
+
+export const getReviews = async (hotelId: string | number | undefined) => {
   try {
-    const response = await axios.get(`${BASE_URL}/hotels/${hotelId}/reviews/`);
-    return response.data.user_reviews;
+    const response = await axios.get(`/hotels/${hotelId}/reviews/`)
+    console.log(response)
+    return response.data.user_reviews
   } catch (error: any) {
     console.error('Failed to fetch reviews:', error.response?.data || error.message);
     throw new Error(error.response?.data?.message || 'Failed to fetch reviews');
   }
 };
 
-export const submitReview = async () => {
+export const submitReview = async (hotelId: string | undefined | number, id: string | undefined | number, comment: string, title: number, rating: number) => {
   try {
-    const response = await api.post('/reviews', { /* review data here */ });
+    const response = await api.post(`/hotels/${hotelId}/reviews/`, {
+      rating,
+      title,
+      comment,
+      id
+
+
+    });
+    console.log(response)
     return response.data;
   } catch (error: any) {
     console.error('Failed to submit review:', error.response?.data || error.message);
@@ -234,6 +246,9 @@ export const deleteReview = async (reviewId: number) => {
 export const fetchFavorites = async () => {
   try {
     const response = await api.get('/hotels/favorites/');
+    console.log(
+      response.data
+    )
     return response;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
@@ -261,7 +276,7 @@ export const addOrRemoveFavorite = async (
 // Bookings cache
 let cachedResponse: any = null;
 let cacheTimestamp: number | null = null;
-const CACHE_DURATION = 60 * 1000; // 1 min
+const CACHE_DURATION = 60 * 1000;
 
 export const fetchAllBookings = async (forceRefresh = false) => {
   const now = Date.now();

@@ -20,6 +20,7 @@ import { BookingDetailsVerifyData } from "../../../features/stays/types";
 import { ChevronLeft, Loader } from "lucide-react";
 import { TbInfoTriangle } from "react-icons/tb";
 import ConfirmCancel from "./ConfirmCancel";
+import WriteAReview from "./WriteAReview";
 
 const BookingStaysDetailsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ const BookingStaysDetailsPage: React.FC = () => {
   const [cancelLoad, setCancelLoad] = useState(false);
   const [openConfirm, setOpenConfirm] = useState(false);
   const [cancelSubmitted, setCancelSubmitted] = useState(false);
+  const [openReviewModal, setOpenReviewModal] = useState(false);
 
   useEffect(() => {
     const fetchBooking = async () => {
@@ -57,7 +59,7 @@ const BookingStaysDetailsPage: React.FC = () => {
       setDownloadLoading(true);
       window.open(
         `/stays-paid/download?data=${encodeURIComponent(JSON.stringify(cars))}`,
-        "_blank"
+        "_blank",
       );
     } catch (error) {
       toast.error("Failed to download, try again ");
@@ -80,7 +82,7 @@ const BookingStaysDetailsPage: React.FC = () => {
   };
   const handleCancelBookings = async (
     bookingId: string | undefined,
-    cancellation_reason?: string | undefined
+    cancellation_reason?: string | undefined,
   ) => {
     try {
       await CancelStaysBookings(bookingId, setCancelLoad, cancellation_reason);
@@ -121,6 +123,12 @@ const BookingStaysDetailsPage: React.FC = () => {
           />
         )}
 
+        {openReviewModal && (
+          <WriteAReview
+            closeModal={() => setOpenReviewModal(false)}
+            bookings={booking}
+          />
+        )}
         {/* Header Section */}
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
@@ -202,17 +210,30 @@ const BookingStaysDetailsPage: React.FC = () => {
             <ContactDetails />
             <div className="flex flex-col w-full gap-y-5">
               {/* CANCEL BUTTON */}
-              {booking?.status?.toLowerCase() !== "cancelled" && (
-                <div className="pt-8 ">
-                  <button
-                    onClick={() => setOpenConfirm(true)}
-                    className="w-full border-[#D72638] border text-[#D72638] py-3 rounded-lg font-medium hover:bg-red-50 transition"
-                  >
-                    Cancel Booking
-                  </button>
-                </div>
-              )}
+              {booking?.status?.toLowerCase() !== "cancelled" &&
+                booking?.status?.toLowerCase() === "ongoing" && (
+                  <div className="pt-8 ">
+                    <button
+                      onClick={() => setOpenConfirm(true)}
+                      className="w-full border-[#D72638] border text-[#D72638] py-3 rounded-lg font-medium hover:bg-red-50 transition"
+                    >
+                      Cancel Booking
+                    </button>
+                  </div>
+                )}
             </div>
+            {/* WRITE A REVIEW BUTTON  */}
+
+            {booking?.status?.toLowerCase() == "completed" && (
+              <div className="pt-2 ">
+                <button
+                  onClick={() => setOpenReviewModal(true)}
+                  className="w-full border-[#023E8A] border text-[#023E8A] py-3 rounded-lg font-medium hover:bg-blue-50 transition"
+                >
+                  Write a Review
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
