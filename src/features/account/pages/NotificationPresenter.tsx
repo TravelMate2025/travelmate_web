@@ -83,7 +83,7 @@ function NotificationPresenter({
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
-  // 🔥 modal state
+  //modal state
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
