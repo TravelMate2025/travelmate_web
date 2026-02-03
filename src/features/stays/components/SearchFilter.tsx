@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ReusableDateSelector from "./ReusableDateSelector";
 import LocationDropdown from "./booking-progress/LocationDropdown";
@@ -40,8 +40,7 @@ const SearchFilter: React.FC = () => {
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [guestText, setGuestText] = useState(
-    `${searchParams?.adults || 2} adults, ${searchParams?.rooms || 1} rooms ` ||
-      ""
+    `${searchParams?.adults || 2} adults, ${searchParams?.rooms || 1} rooms ` || ""
   );
   const [counts, setCounts] = useState({
     rooms: searchParams?.rooms || 1,
@@ -54,39 +53,43 @@ const SearchFilter: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
+  // useRef to track the previous search term to avoid redundant API calls
+  const previousDestinationRef = useRef<string>("");
+
   useEffect(() => {
     const loadDestinations = async () => {
+      const searchTerm = destination.trim();
+
+      // Skip API call if search term hasn't changed and it's not empty
+      if (searchTerm === previousDestinationRef.current && searchTerm.length >= 2) {
+        return;
+      }
+
+      previousDestinationRef.current = searchTerm;
+      setLoadingLocations(true);
+
       try {
-        setLoadingLocations(true);
-        if (destination.length >= 2) {
-          const data = await fetchDestinations(destination);
-          setLocations(data);
-        } else if (!destination) {
-          const data = await fetchDestinations(undefined);
-          setLocations(data);
-        } else {
-          setLoadingLocations(false);
+        let data: Destination[] = [];
+        if (searchTerm.length >= 2) {
+          data = await fetchDestinations(searchTerm, accessToken);
+        } else if (!searchTerm) {
+          data = await fetchDestinations(undefined, accessToken);
         }
+
+        setLocations(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching destinations:", error);
         setLocations([]);
       } finally {
-        if (destination.length >= 2 || !destination) {
-          setLoadingLocations(false);
-        }
+        setLoadingLocations(false);
       }
     };
 
-    const timeoutId = setTimeout(loadDestinations, 300);
-    return () => clearTimeout(timeoutId);
-  }, [accessToken, destination]);
+    const debounceId = setTimeout(loadDestinations, 300);
+    return () => clearTimeout(debounceId);
+  }, [destination, accessToken]);
 
-
-
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toISOString().split("T")[0];
-  };
+  const formatDate = (dateString: string) => new Date(dateString).toISOString().split("T")[0];
 
   const handleLocationSelect = (value: string, code: string) => {
     setDestination(value);
@@ -98,46 +101,30 @@ const SearchFilter: React.FC = () => {
     setCheckOut(endDate);
   };
 
-  const handleIncrement = (key: keyof typeof counts) => {
+  const handleIncrement = (key: keyof typeof counts) =>
     setCounts((prev) => ({ ...prev, [key]: prev[key] + 1 }));
-  };
 
-  const handleDecrement = (key: keyof typeof counts) => {
+  const handleDecrement = (key: keyof typeof counts) =>
     setCounts((prev) => ({ ...prev, [key]: Math.max(prev[key] - 1, 0) }));
-  };
 
-  const handleOpen = (e: React.MouseEvent<HTMLElement>) =>
-    setAnchor(e.currentTarget);
-
+  const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchor(e.currentTarget);
   const handleClose = () => setAnchor(null);
 
   const updateGuestText = () => {
     const totalGuests = counts.adults + counts.children + counts.infants;
-    setGuestText(
-      `${counts.rooms} Room${
-        counts.rooms > 1 ? "s" : ""
-      }, ${totalGuests} Guest${totalGuests !== 1 ? "s" : ""}`
-    );
+    setGuestText(`${counts.rooms} Room${counts.rooms > 1 ? "s" : ""}, ${totalGuests} Guest${totalGuests !== 1 ? "s" : ""}`);
     handleClose();
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     dispatch(clearStaysCache());
-    if (
-      !destinationCode ||
-      !checkIn ||
-      !checkOut ||
-      counts.adults < 1 ||
-      counts.rooms < 1
-    ) {
-      return;
-    }
-    const selectedDestination = locations.find(
-      (loc) => loc.code === destinationCode
-    );
 
+    if (!destinationCode || !checkIn || !checkOut || counts.adults < 1 || counts.rooms < 1) return;
+
+    const selectedDestination = locations.find((loc) => loc.code === destinationCode);
     const totalChildren = counts.children + counts.infants;
+
     const searchParams: SearchParams = {
       destination: destinationCode,
       checkIn: formatDate(checkIn),
@@ -146,36 +133,29 @@ const SearchFilter: React.FC = () => {
       children: totalChildren,
       rooms: counts.rooms,
     };
+
     if (selectedDestination) {
       dispatch(
         setLocationDetails({
           name: selectedDestination.name,
           code: selectedDestination.code,
           country_code: selectedDestination.country_code,
-          country_name:
-            selectedDestination.country_name || selectedDestination.name,
+          country_name: selectedDestination.country_name || selectedDestination.name,
         })
       );
     } else {
       dispatch(
-        setLocationDetails({
-          name: destination,
-          code: destinationCode,
-        })
+        setLocationDetails({ name: destination, code: destinationCode })
       );
     }
 
     dispatch(setSearchParams(searchParams));
+
     navigate(
-      `/stays-search-result?location=${encodeURIComponent(
-        destinationCode
-      )}&checkin=${formatDate(checkIn)}&checkout=${formatDate(
-        checkOut
-      )}&adults=${counts.adults}&children=${totalChildren}&rooms=${
-        counts.rooms
-      }`
+      `/stays-search-result?location=${encodeURIComponent(destinationCode)}&checkin=${formatDate(checkIn)}&checkout=${formatDate(checkOut)}&adults=${counts.adults}&children=${totalChildren}&rooms=${counts.rooms}`
     );
   };
+
   useEffect(() => {
     fetchRecommendedHotels();
   }, []);
@@ -187,17 +167,13 @@ const SearchFilter: React.FC = () => {
           onSubmit={handleSubmit}
           className="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
         >
-          {/* Destination */}
           <div className="flex flex-col w-full md:w-auto">
             <LocationDropdown
               label="Destination"
               token={accessToken}
               selectedValue={destination}
               setSelectedValue={handleLocationSelect}
-              locations={locations?.map((loc) => ({
-                name: loc.name,
-                code: loc.code,
-              }))}
+              locations={locations?.map((loc) => ({ name: loc.name, code: loc.code }))}
               loading={loadingLocations}
             />
           </div>
@@ -215,20 +191,16 @@ const SearchFilter: React.FC = () => {
             />
           </div>
 
-          {/* Date */}
           <div className="flex flex-col w-full md:w-auto">
             <label className="text-sm font-medium text-gray-700 mb-1">
               Check-in - Check-out
             </label>
             <ReusableDateSelector
               onDateChange={handleDateChange}
-              initialValue={
-                checkIn && checkOut ? `${checkIn} - ${checkOut}` : ""
-              }
+              initialValue={checkIn && checkOut ? `${checkIn} - ${checkOut}` : ""}
             />
           </div>
 
-          {/* Submit Button */}
           <div className="flex-grow"></div>
           <button
             type="submit"

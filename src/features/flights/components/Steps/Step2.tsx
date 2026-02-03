@@ -192,7 +192,7 @@ const Step2: React.FC = () => {
       flightIds = [location.state.multiCitySelections[0].flight.id]
       tripType = "MULTI_CITY";
     } else if (location.state.tripType === "round-trip") {
-      upsellOffer = location.state?.departureUpsell?.upsell.id || undefined;
+      upsellOffer = location.state?.departureUpsell?.upsell?.id || undefined;
     
       
       flightIds = [

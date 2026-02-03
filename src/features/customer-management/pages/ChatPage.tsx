@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
-import { Howl } from 'howler';
+// import { Howl } from 'howler';
 
 import {
   createChat,
@@ -29,10 +29,10 @@ const breadcrumbs = [
   { name: "Chat with us" },
 ];
 
-const notificationSound = new Howl({
-  src: ['/sounds/mixkit-bell-notification-933.wav'],
-  volume: 0.5,
-});
+// const notificationSound = new Howl({
+//   src: ['/sounds/mixkit-bell-notification-933.wav'],
+//   volume: 0.5,
+// });
 
 const ChatPage = () => {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -50,7 +50,7 @@ const ChatPage = () => {
   const wsRef = useRef<ChatWebSocket | null>(null);
   const [isCurrentlyDesktop, setIsCurrentlyDesktop] = useState(window.innerWidth >= 768);
 
-  const [userHasInteracted, setUserHasInteracted] = useState(false);
+  // const [userHasInteracted, setUserHasInteracted] = useState(false);
 
   // useEffect(() => {
   //   if (notificationSoundRef.current) {
@@ -61,7 +61,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     const handleInteraction = () => {
-      setUserHasInteracted(true);
+      // setUserHasInteracted(true);
       document.removeEventListener("click", handleInteraction);
     };
 
@@ -71,15 +71,15 @@ const ChatPage = () => {
 
 
   
-  const [hasNewNotification, setHasNewNotification] = useState(false);
-  const [notificationMessage, setNotificationMessage] = useState("");
+  // const [hasNewNotification, setHasNewNotification] = useState(false);
+  // const [notificationMessage, setNotificationMessage] = useState("");
 
   // play notification sound
-  const playNotificationSound = useCallback(() => {
-    if (userHasInteracted) {
-      notificationSound.play();
-    }
-  }, [userHasInteracted]);
+  // const playNotificationSound = useCallback(() => {
+  //   if (userHasInteracted) {
+  //     notificationSound.play();
+  //   }
+  // }, [userHasInteracted]);
 
 
 
@@ -172,9 +172,9 @@ const ChatPage = () => {
             return prev;
           });
           // Notification for Chat Closed 
-            setHasNewNotification(true);
-            setNotificationMessage("Your chat has been closed by an admin.");
-            playNotificationSound();
+            // setHasNewNotification(true);
+            // setNotificationMessage("Your chat has been closed by an admin.");
+            // playNotificationSound();
           
           return;
         }
@@ -191,9 +191,9 @@ const ChatPage = () => {
                     }
                     return prev;
                 });
-                setHasNewNotification(true);
-                setNotificationMessage(errorMessage);
-                playNotificationSound();
+                // setHasNewNotification(true);
+                // setNotificationMessage(errorMessage);
+                // playNotificationSound();
                 return; // Prevent these error messages from becoming regular chat messages
             }
           }
@@ -220,9 +220,9 @@ const ChatPage = () => {
               if (normalizedMessage.sender === "admin") {
                 if (normalizedMessage.content === "") {
                   } else {
-                      setHasNewNotification(true);
-                      setNotificationMessage(`New message from Admin: ${normalizedMessage.content.substring(0, 50)}...`);
-                      playNotificationSound();
+                      // setHasNewNotification(true);
+                      // setNotificationMessage(`New message from Admin: ${normalizedMessage.content.substring(0, 50)}...`);
+                      // playNotificationSound();
                   }
               }
             }
@@ -414,14 +414,7 @@ const ChatPage = () => {
 
   return (
     <div className="flex flex-col min-h-screen sm:max-w-[93%] mx-auto p-4">
-      <Navbar
-        hasNewNotification={hasNewNotification}
-        notificationMessage={notificationMessage}
-        onNotificationClick={() => {
-          setHasNewNotification(false);
-          setNotificationMessage("");
-        }}
-      />
+      <Navbar/>
 
       
 

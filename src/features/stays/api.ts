@@ -1,25 +1,40 @@
-import { BookingDetailsVerifyData, BookingStaysVerifyDetails, BookStaysRequest, BookStaysResponse, Destination, Hotel, HotelSearchResponse } from './types';
+import {
+  BookingDetailsVerifyData,
+  BookingStaysVerifyDetails,
+  BookStaysRequest,
+  BookStaysResponse,
+  Destination,
+  Hotel,
+  HotelSearchResponse,
+} from './types';
 import api from '../../api/services/api';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://travelmate-backend-0suw.onrender.com/api';
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  'https://travelmate-backend-0suw.onrender.com/api';
+
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
 }
 
+// Cache for destinations
 const recommendedHotelsCache: { [key: string]: CacheEntry<Destination[]> } = {};
-const CACHE_DURATION_MS = 60 * 60 * 1000;
+const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
 
-
-export const fetchDestinations = async (search?: string): Promise<Destination[]> => {
+/**
+ * Fetch hotel destinations with optional search and token.
+ * Uses caching for repeated requests.
+ */
+export const fetchDestinations = async (
+  search?: string,
+  token?: string | null
+): Promise<Destination[]> => {
   const now = Date.now();
-
-  // 1. FIX: Create a search-specific cache key
   const normalizedSearch = search?.toLowerCase().trim() || 'default';
   const cacheKey = `hotel_destinations_${normalizedSearch}`;
-
   const cachedEntry = recommendedHotelsCache[cacheKey];
 
   if (cachedEntry && now - cachedEntry.timestamp < CACHE_DURATION_MS) {
@@ -27,37 +42,36 @@ export const fetchDestinations = async (search?: string): Promise<Destination[]>
   }
 
   try {
-    if (search && search.length > 2) {
-      const response = await axios.get(`${BASE_URL}/hotels/destinations/?search=${normalizedSearch}`);
-      console.log(response.data)
+    const params = search ? { search: normalizedSearch } : {};
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      const results: Destination[] = response.data.results
-      recommendedHotelsCache[cacheKey] = {
-        data: results,
-        timestamp: now
-      }
+    const response = await axios.get(`${BASE_URL}/hotels/destinations/`, {
+      params,
+      headers,
+    });
 
-      return results;
-    }
-    return [];
+    const results: Destination[] = response.data.results || response.data;
 
+    recommendedHotelsCache[cacheKey] = { data: results, timestamp: now };
+
+    return results;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message;
+    const errorMessage = axios.isAxiosError(error)
+      ? error.response?.data?.error || error.message
+      : error.message || 'Error fetching destinations';
     console.error('Error fetching destinations:', errorMessage);
     toast.error(errorMessage);
-    throw new Error(errorMessage);
+    return [];
   }
 };
 
-export const fetchRecommendedHotels = async (
-
-): Promise<Destination> => {
+/**
+ * Fetch recommended hotels
+ */
+export const fetchRecommendedHotels = async (): Promise<Destination[]> => {
   try {
-    const response = await axios.get(`${BASE_URL}/hotels/recommend/`,
-      {
-      });
+    const response = await axios.get(`${BASE_URL}/hotels/recommend/`);
     return response.data.results;
-
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
     console.error('Error fetching recommended hotels:', errorMessage);
@@ -65,16 +79,16 @@ export const fetchRecommendedHotels = async (
   }
 };
 
-
-
+/**
+ * Search hotels
+ */
 export const searchHotels = async (
   destination: string,
   checkIn: string,
   checkOut: string,
   adults: number = 1,
   children: number = 0,
-  rooms: number = 1,
-
+  rooms: number = 1
 ): Promise<HotelSearchResponse> => {
   try {
     const response = await axios.get(`${BASE_URL}/hotels/search/`, {
@@ -85,115 +99,107 @@ export const searchHotels = async (
         adults,
         children,
         rooms,
-        include_details: true
-      }
+        include_details: true,
+      },
     });
     console.log(response.data)
     return response.data;
-
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
-    toast.error('Search error:', errorMessage);
-    console.log(error)
+    toast.error('Search error: ' + errorMessage);
     throw new Error(errorMessage);
   }
 };
 
+/**
+ * Get hotel details
+ */
 export const getHotelDetails = async (
   hotelId: string,
   checkIn: string,
   checkOut: string,
   adults: number = 1,
   children: number = 0,
-  rooms: number = 1,
+  rooms: number = 1
 ): Promise<Hotel> => {
   try {
     const response = await axios.get(`${BASE_URL}/hotels/${hotelId}/details/`, {
-      params: {
-        check_in: checkIn,
-        check_out: checkOut,
-        adults,
-        children,
-        rooms
-      },
+      params: { check_in: checkIn, check_out: checkOut, adults, children, rooms },
     });
     console.log(response.data)
     return response.data;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.error || `Failed to get details for hotel ${hotelId}`;
+    const errorMessage =
+      error.response?.data?.error || `Failed to get details for hotel ${hotelId}`;
     toast.error(errorMessage);
     throw new Error(errorMessage);
-
   }
 };
 
-
-
-
-
+/**
+ * Create checkout session
+ */
 export const createCheckoutSession = async (
   bookingData: BookStaysRequest,
-  setLoading?: (loading: boolean) => void,
+  setLoading?: (loading: boolean) => void
 ): Promise<BookStaysResponse> => {
   try {
     setLoading?.(true);
     const response = await api.post('/hotels/checkout/', bookingData);
     return response.data;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message || error || "Something went wrong!";
+    const errorMessage =
+      error.response?.data?.error || error.message || 'Something went wrong!';
     toast.error(errorMessage);
-    console.log(error)
     throw new Error(errorMessage);
-
   } finally {
     setLoading?.(false);
   }
 };
 
-
-export const verifyHotelBooking = async (sessionId: string | null): Promise<BookingStaysVerifyDetails> => {
+/**
+ * Verify hotel booking
+ */
+export const verifyHotelBooking = async (
+  sessionId: string | null
+): Promise<BookingStaysVerifyDetails> => {
   try {
     const response = await api.get(`/hotels/verify-booking/?session_id=${sessionId}`);
-    console.log(response)
-    return {
-      success: true,
-      data: response.data,
-    };
+    return { success: true, data: response.data };
   } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message || error || "Something went wrong!";
-    toast.error(errorMessage)
+    const errorMessage =
+      error.response?.data?.error || error.message || 'Something went wrong!';
+    toast.error(errorMessage);
     return {
       data: {} as BookingDetailsVerifyData,
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get booking details',
     };
   }
-}
+};
 
-export const verifyTransfersBooking = async (sessionId: string | null): Promise<any> => {
+/**
+ * Verify transfers booking
+ */
+export const verifyTransfersBooking = async (
+  sessionId: string | null
+): Promise<any> => {
   try {
-    const response = await api.get(`/transfers/booking/confirmation/by-session/?session_id=${sessionId}`);
-    console.log(response)
-    return {
-      success: true,
-      data: response.data,
-    };
+    const response = await api.get(
+      `/transfers/booking/confirmation/by-session/?session_id=${sessionId}`
+    );
+    return { success: true, data: response.data };
   } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message || error || "Something went wrong!";
-    toast.error(errorMessage)
+    const errorMessage =
+      error.response?.data?.error || error.message || 'Something went wrong!';
+    toast.error(errorMessage);
     return {
       data: {} as BookingDetailsVerifyData,
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get booking details',
     };
   }
-}
-
-
-
-
-
-
+};
 
 // Fetch all reviews
 
@@ -224,10 +230,7 @@ export const submitReview = async (hotelId: string | undefined | number, id: str
     console.error('Failed to submit review:', error.response?.data || error.message);
     throw new Error(error.response?.data?.message || 'Failed to submit review');
   }
-
-}
-
-// Delete a specific review
+};
 
 export const deleteReview = async (reviewId: number) => {
   try {
@@ -239,6 +242,7 @@ export const deleteReview = async (reviewId: number) => {
   }
 };
 
+// Favorites
 export const fetchFavorites = async () => {
   try {
     const response = await api.get('/hotels/favorites/');
@@ -246,96 +250,87 @@ export const fetchFavorites = async () => {
       response.data
     )
     return response;
-  }
-  catch (error: any) {
+  } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
     console.error('Error fetching favorites:', errorMessage);
     throw new Error(errorMessage);
-
   }
 };
 
-export const addOrRemoveFavorite = async (hotelId: string | null, setIsFavorite: (data: boolean) => void, favorite: boolean) => {
+export const addOrRemoveFavorite = async (
+  hotelId: string | null,
+  setIsFavorite: (data: boolean) => void,
+  favorite: boolean
+) => {
   try {
     const response = await api.post('/hotels/favorites/toggle/', { hotel_id: hotelId });
     setIsFavorite(!favorite);
-    console.log(response.data.message)
     return response.data.message;
-
-  }
-  catch (error: any) {
+  } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message;
     console.error('Error adding favorite:', errorMessage);
     throw new Error(errorMessage);
-
   }
 };
 
+// Bookings cache
 let cachedResponse: any = null;
 let cacheTimestamp: number | null = null;
 const CACHE_DURATION = 60 * 1000;
 
 export const fetchAllBookings = async (forceRefresh = false) => {
   const now = Date.now();
-  if (
-    !forceRefresh &&
-    cachedResponse &&
-    cacheTimestamp &&
-    (now - cacheTimestamp < CACHE_DURATION)
-  ) {
-    console.log("Serving from cache");
+  if (!forceRefresh && cachedResponse && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION) {
     return cachedResponse;
   }
 
-  // 2. Make the API Call
   try {
     const response = await api.get(`/bookings/my/`);
-
-    // 3. Save to Cache
     cachedResponse = response;
     cacheTimestamp = now;
-
-    console.log("Fetched from API:", response);
     return response;
-
   } catch (error: any) {
-    // 4. If error, clear cache so we try again next time
     cachedResponse = null;
     cacheTimestamp = null;
-    const errorMessage = error.response?.data?.error || error.message || "Something went wrong!";
+    const errorMessage = error.response?.data?.error || error.message || 'Something went wrong!';
     toast.error(errorMessage);
     throw new Error(errorMessage);
   }
 };
 
-
-export const CancelStaysBookings = async (bookingId: string | undefined,
-  setLoading?: (loading: boolean) => void, cancellation_reason?: string) => {
+// Cancel bookings
+export const CancelStaysBookings = async (
+  bookingId: string | undefined,
+  setLoading?: (loading: boolean) => void,
+  cancellation_reason?: string
+) => {
   try {
     setLoading?.(true);
-    const response = await api.post(`/hotels/${bookingId}/cancel-booking/`, cancellation_reason)
+    const response = await api.post(`/hotels/${bookingId}/cancel-booking/`, cancellation_reason);
     return response.data;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message || error;
-    console.error('Booking error:', errorMessage);
+    toast.error(errorMessage);
     throw new Error(errorMessage);
-
   } finally {
     setLoading?.(false);
   }
-}
-export const CancelTransferBookings = async (bookingId: string | undefined,
-  setLoading?: (loading: boolean) => void, reason?: string) => {
+};
+
+export const CancelTransferBookings = async (
+  bookingId: string | undefined,
+  setLoading?: (loading: boolean) => void,
+  reason?: string
+) => {
   try {
     setLoading?.(true);
-    const response = await api.post(`/transfers/booking/${bookingId}/cancel/`, reason)
+    const response = await api.post(`/transfers/booking/${bookingId}/cancel/`, reason);
     return response.data;
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message || error;
-    console.error('Booking error:', errorMessage);
+    toast.error(errorMessage);
     throw new Error(errorMessage);
-
   } finally {
     setLoading?.(false);
   }
-}
+};
