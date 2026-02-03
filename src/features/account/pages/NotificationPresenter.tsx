@@ -6,7 +6,6 @@ import TravelmateApp from "../../../pages/homePage/TravelmateApp";
 import { FiBell, FiMoreHorizontal } from "react-icons/fi";
 import { FaTrash } from "react-icons/fa";
 
-
 type NotificationDetails = {
   id: string;
   title: string;
@@ -62,7 +61,6 @@ const groupNotifications = (notifications: AccountNotification[]) => {
 
   notifications.forEach((n) => {
     const created = new Date(n.created_at);
-
     if (created >= todayStart) today.push(n);
     else if (created >= yesterdayStart) yesterday.push(n);
     else if (created >= last7Start) last7Days.push(n);
@@ -71,7 +69,6 @@ const groupNotifications = (notifications: AccountNotification[]) => {
 
   return { today, yesterday, last7Days, older };
 };
-
 
 function NotificationPresenter({
   notifications,
@@ -85,6 +82,10 @@ function NotificationPresenter({
 }: Props) {
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+
+  // 🔥 modal state
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     return filter === "unread"
@@ -101,68 +102,66 @@ function NotificationPresenter({
 
   const renderSection = (title: string, items: AccountNotification[]) =>
     items.length > 0 && (
-    <>
-      <h3 className="mt-6 mb-2 text-sm font-semibold text-gray-700">
-        {title}
-      </h3>
-      <div className="bg-gray-200 rounded">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="relative p-2  py-3"
-          >
-            <div className="flex justify-between gap-4">
-              {/* BODY (MARK AS READ HERE ONLY) */}
-              <div
-                className="cursor-pointer"
-                onClick={() => {
-                  if (!item.is_read) onMarkAsRead(item.id);
-                }}
-              >
-                <p
-                  className={`text-sm ${
-                    item.is_read ? "font-normal" : "font-bold"
-                  }`}
-                >
-                  {item.notification_details.title}
-                </p>
-                <p className="text-xs text-gray-600">
-                  {item.notification_details.message}
-                </p>
-              </div>
-
-              {/* TIME + MENU */}
-              <div className="relative text-right text-xs text-gray-500">
-                <p>{formatRelativeTime(item.created_at)}</p>
-
-                <FiMoreHorizontal
-                  className="mt-1 cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMenuOpen(menuOpen === item.id ? null : item.id);
+      <>
+        <h3 className="mt-6 mb-2 text-sm font-semibold text-gray-700">
+          {title}
+        </h3>
+        <div className="bg-gray-200 rounded">
+          {items.map((item) => (
+            <div key={item.id} className="relative p-2 py-3">
+              <div className="flex justify-between gap-4">
+                {/* BODY */}
+                <div
+                  className="cursor-pointer"
+                  onClick={() => {
+                    if (!item.is_read) onMarkAsRead(item.id);
                   }}
-                />
+                >
+                  <p
+                    className={`text-sm ${
+                      item.is_read ? "font-normal" : "font-bold"
+                    }`}
+                  >
+                    {item.notification_details.title}
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    {item.notification_details.message}
+                  </p>
+                </div>
 
-                {menuOpen === item.id && (
-                  <div className="absolute right-0 top-9 z-20 w-20 rounded bg-white shadow">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteOne(item.id);
-                        setMenuOpen(null);
-                      }}
-                      className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
+                {/* TIME + MENU */}
+                <div className="relative text-right text-xs text-gray-500">
+                  <p>{formatRelativeTime(item.created_at)}</p>
+
+                  <FiMoreHorizontal
+                    className="mt-1 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuOpen(menuOpen === item.id ? null : item.id);
+                    }}
+                  />
+
+                  {menuOpen === item.id && (
+                    <div className="absolute right-0 top-9 z-20 w-24 rounded bg-white shadow">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedId(item.id);
+                          setConfirmOpen(true);
+                          setMenuOpen(null);
+                        }}
+                        className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-    </>
+          ))}
+        </div>
+      </>
     );
 
   return (
@@ -176,7 +175,7 @@ function NotificationPresenter({
       <div className="px-6 md:px-10">
         <h2 className="text-xl font-bold mb-4">Notifications</h2>
 
-        {/* FILTER + DELETE */}
+        {/* FILTER + DELETE ALL */}
         <div className="flex justify-between mb-4">
           <div className="flex gap-3">
             <button
@@ -203,8 +202,13 @@ function NotificationPresenter({
           </div>
 
           <button
+            disabled={notifications.length === 0 || isDeleting}
             onClick={onDeleteAll}
-            className="flex items-center gap-1 text-red-600"
+            className={`flex items-center gap-1 ${
+              notifications.length === 0
+                ? "text-gray-400 cursor-not-allowed"
+                : "text-red-600"
+            }`}
           >
             <FaTrash /> {isDeleting ? "Deleting..." : "Delete All"}
           </button>
@@ -240,6 +244,39 @@ function NotificationPresenter({
           </div>
         )}
       </div>
+
+      {/* CONFIRM DELETE MODAL */}
+      {confirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg w-80 p-4">
+            <h3 className="text-sm font-semibold mb-2">
+              Delete Notification
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Do you want to delete this notification?
+            </p>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmOpen(false)}
+                className="px-3 py-1 text-sm rounded bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (selectedId) onDeleteOne(selectedId);
+                  setConfirmOpen(false);
+                  setSelectedId(null);
+                }}
+                className="px-3 py-1 text-sm rounded bg-red-600 text-white"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <TravelmateApp />
       <Footer />

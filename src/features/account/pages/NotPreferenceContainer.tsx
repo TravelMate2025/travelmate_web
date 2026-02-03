@@ -7,7 +7,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 interface NotificationPreferences {
   enabled_types: string[];
   enabled_channels: string[];
-  id?: string; // Keep the id if it exists
+  id?: string;
 }
 
 interface NotificationPreferenceItem {
