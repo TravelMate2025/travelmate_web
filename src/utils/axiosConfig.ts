@@ -30,7 +30,7 @@ instance.interceptors.response.use(
         try {
           // Try refreshing access token
           const res = await axios.post(
-            `${import.meta.env.VITE_API_BASE_URL || "https://travelmate-backend-0suw.onrender.com/"}auth/token/refresh/`,
+            `${import.meta.env.VITE_API_BASE_URL}auth/token/refresh/`,
             { refresh: refreshToken },
             { withCredentials: true }
           );
