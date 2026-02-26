@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://travelmate-backend-0suw.onrender.com/api/categories/";
+const API_URL = `${import.meta.env.VITE_API_BASE_URL}/categories/`;
 
 export const getFaqCategories = async () => {
   try {
