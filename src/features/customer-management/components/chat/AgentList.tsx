@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../../store";
 import { Chat } from "../../types/chat";
 
-const API_BASE_URL = 'https://travelmate-backend-0suw.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface CircleAvatarProps {
   text: string;
