@@ -98,7 +98,7 @@ interface LookupResult {
 }
 
 class TransferService {
-    private baseUrl = 'https://travelmate-backend-0suw.onrender.com/api';
+    private baseUrl = import.meta.env.VITE_API_BASE_URL;
     private terminalCache: Map<string, LookupResult['data']> = new Map();
 
 
