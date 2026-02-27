@@ -1,5 +1,3 @@
-// import { RootState, store } from '../../store';
-
 
 export const getAccessToken = (): string | null => {
     try {
