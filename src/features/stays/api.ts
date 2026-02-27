@@ -12,8 +12,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
 const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  'https://travelmate-backend-0suw.onrender.com/api';
+  import.meta.env.VITE_API_BASE_URL;
 
 interface CacheEntry<T> {
   data: T;
