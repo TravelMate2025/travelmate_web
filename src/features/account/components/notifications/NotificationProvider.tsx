@@ -37,7 +37,7 @@ export function NotificationProvider({
   useEffect(() => {
     if (!accessToken) return;
 
-    const WS_URL = `wss://travelmate-backend-0suw.onrender.com/ws/notifications/?authorization=${accessToken}`;
+    const WS_URL = `wss://travelmate-backend-knvd.onrender.com/ws/notifications/?authorization=${accessToken}`;
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
