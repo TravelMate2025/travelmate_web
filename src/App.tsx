@@ -56,6 +56,10 @@ import Bookings from "./pages/Bookings";
 import Favorites from "./pages/Favorites";
 import Home from "./pages/Home";
 import PrivateRoute from "./routes/PrivateRoute";
+import { PrivacyPolicyPage } from "./pages/PrivacyPolicy";
+import { TermsOfUsePage } from "./pages/TermsOfUse";
+import Flight from "./pages/Flight";
+import { AboutPage } from "./pages/About";
 
 
 function App() {
@@ -65,6 +69,9 @@ function App() {
       <Routes>
         {/* Public Pages */}
         <Route path="/" element={<Home />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-of-use" element={<TermsOfUsePage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/verify-page" element={<VerifyPage />} />
@@ -190,6 +197,7 @@ function App() {
         />
 
         {/* Flights */}
+        <Route path="/flights" element={<Flight />} />
         <Route path="/flight/departure" element={<DeparturePage departureInfo={[]} />} />
         <Route path="/flight/return" element={<ReturnPage departureInfo={[]} />} />
         <Route path="/flight/review" element={<FlightInfoPage />} />
