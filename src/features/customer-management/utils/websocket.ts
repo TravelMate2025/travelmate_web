@@ -14,7 +14,7 @@ export class ChatWebSocket {
     }
   
     connect() {
-      const wsUrl = `wss://travelmate-backend-0suw.onrender.com/ws/chat/${this.sessionId}/?token=${this.token}`;
+      const wsUrl = `wss://travelmate-backend-knvd.onrender.com/ws/chat/${this.sessionId}/?token=${this.token}`;
       console.log(`Connecting to WebSocket: ${wsUrl}`);
   
       this.socket = new WebSocket(wsUrl);
