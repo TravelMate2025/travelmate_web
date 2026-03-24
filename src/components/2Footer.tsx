@@ -27,7 +27,7 @@ export default function Footer() {
         <div>
           <h3 className="text-lg font-bold mb-3">Company</h3>
           <ul className="space-y-2">
-            <li><a href="#" className="hover:underline">About</a></li>
+            <li><a href="/about" className="hover:underline">About</a></li>
             <li><a href="#" className="hover:underline">Our Partners</a></li>
           </ul>
         </div>
@@ -36,8 +36,8 @@ export default function Footer() {
         <div>
           <h3 className="text-lg font-bold mb-3">Policies</h3>
           <ul className="space-y-2">
-            <li><a href="#" className="hover:underline">Privacy</a></li>
-            <li><a href="#" className="hover:underline">Terms of Use</a></li>
+            <li><a href="/privacy-policy" className="hover:underline">Privacy</a></li>
+            <li><a href="/terms-of-use" className="hover:underline">Terms of Use</a></li>
           </ul>
         </div>
       </div>

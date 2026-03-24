@@ -29,10 +29,10 @@ const StarIcon = () => (
 const Reviews: React.FC<ReviewsProps> = ({ reviews }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleAddReviewClick = () => {
-    // Open the modal to add a review
-    setIsModalOpen(true);
-  };
+  // const handleAddReviewClick = () => {
+  //   // Open the modal to add a review
+  //   setIsModalOpen(true);
+  // };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -41,18 +41,18 @@ const Reviews: React.FC<ReviewsProps> = ({ reviews }) => {
   return (
     <div className="container mx-auto p-4">
       {reviews.length === 0 ? (
-        <div className="flex justify-center items-center mt-20 flex-col space-y-4">
-          <div className="bg-gray-200 p-6 rounded-full">
+        <div className="flex justify-center max-w-[450px] mx-auto items-center mt-20 flex-col">
+          <div className="bg-[#F5F5F5] border border-[#DEDFE1] p-6 rounded-full">
             <StarIcon />
           </div>
-          <p className="text-2xl font-semibold text-gray-800">No Stays to reviews yet.</p>
-          <p className="text-lg text-gray-500 text-center">After adding a stay, you'll be able to share your experience</p>
-          <button
+          <p className="text-2xl font-semibold text-black">No Stays to reviews yet.</p>
+          <p className="text-lg text-[#67696D] text-center">After adding a stay, you'll be able to share your experience</p>
+          {/* <button
             className="bg-[#023E8A] text-white px-6 py-2 rounded-lg"
             onClick={handleAddReviewClick}
           >
             Add Review
-          </button>
+          </button> */}
         </div>
       ) : (
         <div className="space-y-4">
