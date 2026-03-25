@@ -1,7 +1,22 @@
+import { useCallback, useEffect } from "react";
 import Footer from "../components/2Footer";
 import Navbar from "./homePage/Navbar";
+import { InfoProvider } from "../features/account/api/info";
 
 export function AboutPage() {
+
+  const getAbout = useCallback(async()=>{
+    try {
+      const res = await InfoProvider.getAboutDetails()
+      console.log(res)
+    } catch (error) {
+      console.log(error)
+    }
+  },[])
+  
+  useEffect(()=>{
+    getAbout
+  },[getAbout])
   return (
     <>
       <Navbar />

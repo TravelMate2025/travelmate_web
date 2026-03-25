@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import hotelImage from "../../../assets/images/StayImage3.png";
 import { BookingDetailsVerifyData } from "../../../features/stays/types";
 import { getReviews, submitReview } from "../../../features/stays/api";
+import {message} from "antd"
 
 type props = {
   closeModal: () => void;
@@ -33,7 +34,8 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
         ratings.enjoyment,
         ratings.value,
       );
-      console.log({ ratings, reviewText });
+
+      message.success("Review Added Successfully")
       closeModal();
     } catch (error) {
       console.log(error);
