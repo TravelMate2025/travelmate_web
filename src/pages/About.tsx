@@ -1,22 +1,34 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Footer from "../components/2Footer";
 import Navbar from "./homePage/Navbar";
 import { InfoProvider } from "../features/account/api/info";
+import { Skeleton } from "antd";
 
 export function AboutPage() {
+  const [loading, setLoading] = useState(false);
+  const [content, setContent] = useState<{
+    content: string;
+    updated_at: string;
+    id: string;
+  } | null>(null);
 
-  const getAbout = useCallback(async()=>{
+  const getAbout = useCallback(async () => {
+    setLoading(true);
     try {
-      const res = await InfoProvider.getAboutDetails()
-      console.log(res)
+      const res = await InfoProvider.getAboutDetails();
+      if (res) {
+        setContent(res);
+      }
     } catch (error) {
-      console.log(error)
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
-  },[])
-  
-  useEffect(()=>{
-    getAbout
-  },[getAbout])
+  }, []);
+
+  useEffect(() => {
+    getAbout();
+  }, [getAbout]);
   return (
     <>
       <Navbar />
@@ -28,15 +40,17 @@ export function AboutPage() {
           <p className="text-[#181818] lg:hidden text-center lg:text-left font-semibold text-2xl lg:text-4xl">
             About Us
           </p>
-          <p className="text-sm lg:text-lg mt-2">
-            At TravelMate, we make travel seamless and stress-free. Whether
-            you're booking flights, finding the perfect stay, or renting a car,
-            we provide a one-stop solution for all your travel needs. With an
-            easy-to-use platform and a commitment to customer satisfaction,
-            TravelMate ensures that every journey is smooth, affordable, and
-            memorable. Wherever you're headed, let TravelMate be your trusted
-            travel companion.
-          </p>
+          <div className="mt-6 text-sm lg:text-lg lg:mt-12">
+            {loading ? (
+              <Skeleton active paragraph={{ rows: 5 }} />
+            ) : (
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: content?.content ?? "",
+                }}
+              />
+            )}
+          </div>
         </div>
       </section>
       <Footer />
