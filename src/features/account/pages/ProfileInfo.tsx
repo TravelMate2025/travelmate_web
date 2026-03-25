@@ -201,7 +201,7 @@ export default function ProfileInfo() {
                   )}
                   {activeTab === "Reviews" && (
                     <div>
-                      <UserReviews reviews={[]} />
+                      <UserReviews />
                     </div>
                   )}
                 </div>
@@ -299,7 +299,7 @@ export default function ProfileInfo() {
                   )}
                   {activeTab === "Reviews" && (
                     <div>
-                      <UserReviews reviews={[]} />
+                      <UserReviews />
                     </div>
                   )}
                 </div>

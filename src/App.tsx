@@ -60,6 +60,7 @@ import { PrivacyPolicyPage } from "./pages/PrivacyPolicy";
 import { TermsOfUsePage } from "./pages/TermsOfUse";
 import Flight from "./pages/Flight";
 import { AboutPage } from "./pages/About";
+import { ReviewDetails } from "./features/account/pages/ReviewDetails";
 
 
 function App() {
@@ -119,6 +120,14 @@ function App() {
           element={
             <PrivateRoute>
               <ProfileInfo />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/reviews/:hotel_id"
+          element={
+            <PrivateRoute>
+              <ReviewDetails/>
             </PrivateRoute>
           }
         />
