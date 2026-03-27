@@ -61,7 +61,9 @@ import { TermsOfUsePage } from "./pages/TermsOfUse";
 import Flight from "./pages/Flight";
 import { AboutPage } from "./pages/About";
 import { ReviewDetails } from "./features/account/pages/ReviewDetails";
-
+import { PaymentMethodSettingsPage } from "./pages/settings/PaymentMethod";
+import { ReviewsSettingsPage } from "./pages/settings/ReviewsPage";
+import { ProfilePage } from "./pages/settings/ProfilePage";
 
 function App() {
   return (
@@ -76,7 +78,10 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/verify-page" element={<VerifyPage />} />
-        <Route path="/reset-email-link" element={<VerifyEmailForPasswordReset />} />
+        <Route
+          path="/reset-email-link"
+          element={<VerifyEmailForPasswordReset />}
+        />
         <Route path="/create-password" element={<CreatePassword />} />
         <Route path="/create-new-password" element={<CreateNewPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -86,25 +91,34 @@ function App() {
         <Route path="/booking-progress" element={<BookingProgress />} />
         <Route path="/stays-detail/:hotelId" element={<StaysDetail />} />
         <Route path="/stays-paid/download" element={<DownloadStaysPage />} />
-        <Route path="/booking-confirmation" element={
-          <PrivateRoute>
-            <BookingConfirmationPage />
-          </PrivateRoute>
-        } />
+        <Route
+          path="/booking-confirmation"
+          element={
+            <PrivateRoute>
+              <BookingConfirmationPage />
+            </PrivateRoute>
+          }
+        />
 
         {/* FAQ & Customer Support */}
         <Route path="/faqs" element={<FaqPage />} />
         <Route path="/chat-with-us" element={<ChatPage />} />
-        <Route path="/tickets" element={
-          <PrivateRoute>
-            <TicketsPage />
-          </PrivateRoute>
-        } />
-        <Route path="/tickets/:id" element={
-          <PrivateRoute>
-            <TicketDetailPage />
-          </PrivateRoute>
-        } />
+        <Route
+          path="/tickets"
+          element={
+            <PrivateRoute>
+              <TicketsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/tickets/:id"
+          element={
+            <PrivateRoute>
+              <TicketDetailPage />
+            </PrivateRoute>
+          }
+        />
 
         {/* Protected Routes */}
         <Route
@@ -127,40 +141,79 @@ function App() {
           path="/reviews/:hotel_id"
           element={
             <PrivateRoute>
-              <ReviewDetails/>
+              <ReviewDetails />
             </PrivateRoute>
           }
         />
 
-        <Route path="/account/security" element={
-          <PrivateRoute>
-            <Security />
-          </PrivateRoute>
-        } />
+        <Route
+          path="/account/security"
+          element={
+            <PrivateRoute>
+              <Security />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/profile"
+          element={
+            <PrivateRoute>
+              <ProfilePage />
+            </PrivateRoute>
+          }
+        /> 
+        <Route
+          path="/account/payment-method"
+          element={
+            <PrivateRoute>
+              <PaymentMethodSettingsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/reviews"
+          element={
+            <PrivateRoute>
+              <ReviewsSettingsPage />
+            </PrivateRoute>
+          }
+        />
 
-        <Route path="/account/update-email" element={
-          <PrivateRoute>
-            <UpdateEmailContainer />
-          </PrivateRoute>
-        } />
+        <Route
+          path="/account/update-email"
+          element={
+            <PrivateRoute>
+              <UpdateEmailContainer />
+            </PrivateRoute>
+          }
+        />
 
-        <Route path="/account/update-password" element={
-          <PrivateRoute>
-            <UpdatePasswordContainer />
-          </PrivateRoute>
-        } />
+        <Route
+          path="/account/update-password"
+          element={
+            <PrivateRoute>
+              <UpdatePasswordContainer />
+            </PrivateRoute>
+          }
+        />
 
-         <Route path="/account/notifications" element={
-          <PrivateRoute>
-            <NotPreferenceContainer />
-          </PrivateRoute>
-        } />
+        <Route
+          path="/account/notifications"
+          element={
+            <PrivateRoute>
+              <NotPreferenceContainer />
+            </PrivateRoute>
+          }
+        />
 
-        <Route path="/notification" element={
-          <PrivateRoute>
-            <NotificationContainer />
-          </PrivateRoute>
-        } />
+        <Route
+          path="/notification"
+          element={
+            <PrivateRoute>
+              <NotificationContainer />
+            </PrivateRoute>
+          }
+        />
 
         <Route
           path="/booking/success"
@@ -179,7 +232,6 @@ function App() {
           }
         />
 
-      
         <Route
           path="/bookings"
           element={
@@ -207,36 +259,57 @@ function App() {
 
         {/* Flights */}
         <Route path="/flights" element={<Flight />} />
-        <Route path="/flight/departure" element={<DeparturePage departureInfo={[]} />} />
-        <Route path="/flight/return" element={<ReturnPage departureInfo={[]} />} />
+        <Route
+          path="/flight/departure"
+          element={<DeparturePage departureInfo={[]} />}
+        />
+        <Route
+          path="/flight/return"
+          element={<ReturnPage departureInfo={[]} />}
+        />
         <Route path="/flight/review" element={<FlightInfoPage />} />
-        <Route path="/flights/payment-success" element={<FlightConfirmationPage />} />
+        <Route
+          path="/flights/payment-success"
+          element={<FlightConfirmationPage />}
+        />
         <Route path="/flights/payment-cancelled" element={<PaymentFailed />} />
 
         {/* Cars */}
         <Route path="/cars-searchResults" element={<DisplayCars />} />
         <Route path="/cars-booking" element={<Pages />} />
-        <Route path="/car-confirmation" element={
-          <PrivateRoute>
-            <Page />
-          </PrivateRoute>
-        } />
-        <Route path="/transfers/payment-success" element={
-          <PrivateRoute>
-            <CarPaidForPage />
-          </PrivateRoute>
-        } />
-        <Route path="/transfers/payment-failure" element={
-          <PrivateRoute>
-            <CarFailedPayment />
-          </PrivateRoute>
-        } />
+        <Route
+          path="/car-confirmation"
+          element={
+            <PrivateRoute>
+              <Page />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/transfers/payment-success"
+          element={
+            <PrivateRoute>
+              <CarPaidForPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/transfers/payment-failure"
+          element={
+            <PrivateRoute>
+              <CarFailedPayment />
+            </PrivateRoute>
+          }
+        />
         <Route path="/offer-accepted-page" element={<Pages />} />
-        <Route path="/car-paid/download" element={
-          <PrivateRoute>
-            <DownloadPage />
-          </PrivateRoute>
-        } />
+        <Route
+          path="/car-paid/download"
+          element={
+            <PrivateRoute>
+              <DownloadPage />
+            </PrivateRoute>
+          }
+        />
 
         {/* Airport Taxi */}
         <Route path="/airport-taxi" element={<AirportTaxi />} />

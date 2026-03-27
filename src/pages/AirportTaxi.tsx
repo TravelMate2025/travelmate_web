@@ -1,5 +1,6 @@
 import Footer from "../components/2Footer"
-import AirportTaxiBooking from "../features/car_rentals/airport-taxi/AirportTaxiBooking"
+// import AirportTaxiBooking from "../features/car_rentals/airport-taxi/AirportTaxiBooking"
+import CarBookingFirstScreen from "../features/car_rentals/carsFirstScreen/Page"
 import Navbar from "./homePage/Navbar"
 import TravelmateApp from "./homePage/TravelmateApp"
 
@@ -9,7 +10,10 @@ const AirportTaxi = () => {
     <div>
       <Navbar/>
       {/** Components */}
-      <AirportTaxiBooking/>
+      {/* <AirportTaxiBooking/> */}
+      <div className="mt-[60px] lg:mt-[120px]">
+         <CarBookingFirstScreen/>
+      </div>
       <TravelmateApp />
       <Footer/>
     </div>
