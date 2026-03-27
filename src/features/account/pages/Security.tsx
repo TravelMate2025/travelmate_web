@@ -54,13 +54,13 @@ function Security() {
         icon: <FaRegUser size={24} />,
         title: "Profile",
         description: "Update your personal details",
-        link: "/profile-info",
+        link: "/account/profile",
         },
         {
         icon: <MdCreditCard size={24} />,
         title: "Payment Method",
         description: "Manage your payment methods",
-        link: "/profile-info",
+        link: "/account/payment-method",
         state: { activeTab: "Payment Method" },
         },
         {

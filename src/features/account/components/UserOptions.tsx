@@ -44,13 +44,13 @@ export default function UserOptions() {
       icon: <FaRegUser size={24} />,
       title: "Profile",
       description: "Update your personal details",
-      link: "/profile-info",
+      link: "/account/profile",
     },
     {
       icon: <MdCreditCard size={24} />,
       title: "Payment Method",
       description: "Manage your payment methods",
-      link: "/profile-info",
+      link: "/account/payment-method",
       state: { activeTab: "Payment Method" },
     },
     {
@@ -69,7 +69,7 @@ export default function UserOptions() {
       icon: <FaRegStar size={24} />,
       title: "Reviews",
       description: "View and manage reviews",
-      link: "/profile-info?tab=Reviews",
+      link: "/account/reviews",
     },
     {
       icon: logoutLoading ? (

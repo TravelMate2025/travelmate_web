@@ -11,6 +11,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import SwitchButton from "../components/SwitchButton";
 import { toast } from "react-toastify";
 import SuccessModal from "../components/SuccessModal";
+import LogoutButton from "../components/LogoutButton";
 
 interface NotificationPreferences {
   enabled_types: string[];
@@ -41,7 +42,7 @@ function NotPreferencePresenter({
   const [specialOffers, setSpecialOffers] = useState(false);
   const [latestFeatures, setLatestFeatures] = useState(false);
 
-  const [isSuccessfullySave, setIsSuccessfullySave] = useState(false)
+  const [isSuccessfullySave, setIsSuccessfullySave] = useState(false);
 
   //Sync state with loaded preferences
   useEffect(() => {
@@ -50,10 +51,18 @@ function NotPreferencePresenter({
       setBrowserNotif(preferences.enabled_channels?.includes("push"));
       setEmailNotif(preferences.enabled_channels?.includes("email"));
       setBookingConfirm(preferences.enabled_types?.includes("booking_update"));
-      setBookingReminder(preferences.enabled_types?.includes("booking_reminder"));
-      setScheduleChanges(preferences.enabled_types?.includes("schedule_change"));
-      setSpecialOffers(preferences.enabled_types?.includes("marketing_and_promotional"));
-      setLatestFeatures(preferences.enabled_types?.includes("news_and_updates"));
+      setBookingReminder(
+        preferences.enabled_types?.includes("booking_reminder"),
+      );
+      setScheduleChanges(
+        preferences.enabled_types?.includes("schedule_change"),
+      );
+      setSpecialOffers(
+        preferences.enabled_types?.includes("marketing_and_promotional"),
+      );
+      setLatestFeatures(
+        preferences.enabled_types?.includes("news_and_updates"),
+      );
     }
   }, [preferences]);
 
@@ -68,13 +77,13 @@ function NotPreferencePresenter({
       icon: <FaRegUser size={24} />,
       title: "Profile",
       description: "Update your personal details",
-      link: "/profile-info",
+      link: "/account/profile",
     },
     {
       icon: <MdCreditCard size={24} />,
       title: "Payment Method",
       description: "Manage your payment methods",
-      link: "/profile-info",
+      link: "/account/payment-method",
       state: { activeTab: "Payment Method" },
     },
     {
@@ -120,12 +129,11 @@ function NotPreferencePresenter({
 
     try {
       await onSavePreference(payload);
-      setIsSuccessfullySave(true)
+      setIsSuccessfullySave(true);
 
       setTimeout(() => {
-        setIsSuccessfullySave(false)
-      },3000)
-  
+        setIsSuccessfullySave(false);
+      }, 3000);
     } catch (err) {
       console.error(err);
       toast.error("Failed to save preferences. Please try again.");
@@ -138,34 +146,35 @@ function NotPreferencePresenter({
       <div className="my-10"></div>
 
       {/* Breadcrumbs or Back Button */}
-        <div className="ml-4 md:ml-10 flex items-center">
+      <div className="ml-4 md:ml-10 flex items-center">
         {/* Mobile: Back arrow */}
         <Link
-            to="/account"
-            className="flex md:hidden items-center gap-x-22 mb-2 hover:text-blue-800"
+          to="/account"
+          className="flex md:hidden items-center gap-x-22 mb-2 hover:text-blue-800"
         >
-            <div className="bg-white border border-gray-300 rounded p-1.5 
+          <div
+            className="bg-white border border-gray-300 rounded p-1.5 
         shadow-[0_4px_10px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_14px_rgba(0,0,0,0.25)] 
-        active:scale-95 transition-all duration-200 cursor-pointer w-[35px] flex items-center justify-center">
-                <FaAngleLeft size={28} />
-            </div>
-            <span className="text-2xl font-semibold">Notification</span>
+        active:scale-95 transition-all duration-200 cursor-pointer w-[35px] flex items-center justify-center"
+          >
+            <FaAngleLeft size={28} />
+          </div>
+          <span className="text-2xl font-semibold">Notification</span>
         </Link>
 
         {/* Desktop: Show breadcrumbs */}
         <div className="hidden md:block">
-            <Breadcrumbs items={breadcrumbs} />
+          <Breadcrumbs items={breadcrumbs} />
         </div>
-        </div>
+      </div>
 
       {isSuccessfullySave && (
         <SuccessModal>
-        <SuccessModal.Body>
+          <SuccessModal.Body>
             <p>Notification Saved Successfully</p>
-        </SuccessModal.Body>
+          </SuccessModal.Body>
         </SuccessModal>
       )}
-
 
       <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6 px-4 md:px-10">
         {/* LEFT SIDE MENU */}
@@ -173,6 +182,11 @@ function NotPreferencePresenter({
           <div className="border border-gray-300 rounded-xl h-auto w-[290px] m-auto">
             {options.map((item, index) => {
               const isActive = location.pathname === item.link;
+
+              if (item.title == "Log Out") {
+                return <LogoutButton />;
+              }
+
               return (
                 <NavLink
                   key={index}
@@ -215,10 +229,9 @@ function NotPreferencePresenter({
           {/* Loading state */}
           {loading && (
             <div className="flex justify-center items-center py-10 mt-[20%]">
-                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
-
 
           {/* Empty state */}
           {!loading && !preferences && (
@@ -232,7 +245,9 @@ function NotPreferencePresenter({
             <>
               {/* Notification Channels */}
               <div className="border border-gray-300 rounded-xl p-6">
-                <h2 className="text-lg font-semibold mb-2">Notification Channels</h2>
+                <h2 className="text-lg font-semibold mb-2">
+                  Notification Channels
+                </h2>
                 <p className="text-sm text-gray-500 mb-4">
                   Choose how you want to receive notifications
                 </p>
@@ -245,10 +260,10 @@ function NotPreferencePresenter({
                     </p>
                   </div>
                   <div>
-                     <SwitchButton
-                    checked={browserNotif}
-                    onChange={(e) => setBrowserNotif(e.target.checked)}
-                  />
+                    <SwitchButton
+                      checked={browserNotif}
+                      onChange={(e) => setBrowserNotif(e.target.checked)}
+                    />
                   </div>
                 </div>
 
@@ -261,9 +276,9 @@ function NotPreferencePresenter({
                   </div>
                   <div>
                     <SwitchButton
-                    checked={emailNotif}
-                    onChange={(e) => setEmailNotif(e.target.checked)}
-                  />
+                      checked={emailNotif}
+                      onChange={(e) => setEmailNotif(e.target.checked)}
+                    />
                   </div>
                 </div>
               </div>
@@ -307,9 +322,9 @@ function NotPreferencePresenter({
                       </div>
                       <div>
                         <SwitchButton
-                        checked={item.value}
-                        onChange={(e) => item.set(e.target.checked)}
-                      />
+                          checked={item.value}
+                          onChange={(e) => item.set(e.target.checked)}
+                        />
                       </div>
                     </div>
                   ))}
@@ -326,10 +341,10 @@ function NotPreferencePresenter({
                       </p>
                     </div>
                     <div>
-                        <SwitchButton
-                      checked={specialOffers}
-                      onChange={(e) => setSpecialOffers(e.target.checked)}
-                    />
+                      <SwitchButton
+                        checked={specialOffers}
+                        onChange={(e) => setSpecialOffers(e.target.checked)}
+                      />
                     </div>
                   </div>
                 </div>
@@ -345,10 +360,10 @@ function NotPreferencePresenter({
                       </p>
                     </div>
                     <div>
-                        <SwitchButton
-                      checked={latestFeatures}
-                      onChange={(e) => setLatestFeatures(e.target.checked)}
-                    />
+                      <SwitchButton
+                        checked={latestFeatures}
+                        onChange={(e) => setLatestFeatures(e.target.checked)}
+                      />
                     </div>
                   </div>
                 </div>
@@ -360,7 +375,9 @@ function NotPreferencePresenter({
                   onClick={handleSave}
                   disabled={loading}
                   className={`bg-blue-700 cursor-pointer w-[300px] text-white px-10 py-2 rounded-md transition ${
-                    loading ? "opacity-70 cursor-not-allowed" : "hover:bg-blue-800"
+                    loading
+                      ? "opacity-70 cursor-not-allowed"
+                      : "hover:bg-blue-800"
                   }`}
                 >
                   {loading ? "Saving..." : "Save"}
@@ -371,9 +388,9 @@ function NotPreferencePresenter({
         </div>
       </div>
 
-        <div className="hidden md:block">
-            <TravelmateApp />
-        </div>
+      <div className="hidden md:block">
+        <TravelmateApp />
+      </div>
       <div className="m-10"></div>
       <Footer />
     </div>
