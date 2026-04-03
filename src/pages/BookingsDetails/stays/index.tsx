@@ -85,7 +85,11 @@ const BookingStaysDetailsPage: React.FC = () => {
     cancellation_reason?: string | undefined,
   ) => {
     try {
-      await CancelStaysBookings(bookingId, setCancelLoad, cancellation_reason);
+      const res = await CancelStaysBookings(
+        bookingId,
+        setCancelLoad,
+        cancellation_reason,
+      );
       toast.success("Booking cancelled successfully");
 
       setBooking((prev: any) => {
@@ -93,6 +97,7 @@ const BookingStaysDetailsPage: React.FC = () => {
         return {
           ...prev,
           status: "CANCELLED",
+          cancelled_at: res.cancelled_at,
         };
       });
 
@@ -111,7 +116,7 @@ const BookingStaysDetailsPage: React.FC = () => {
         {showShareModal && (
           <ShareModal
             onClose={() => setShowShareModal(false)}
-            shareLink={`/bookings/details/${booking?.reference}`}
+            shareLink={`${window.location.origin}/bookings/details/${booking?.reference}`}
           />
         )}
         {openConfirm && (
@@ -165,7 +170,7 @@ const BookingStaysDetailsPage: React.FC = () => {
           {showShareModal && (
             <ShareModal
               onClose={() => setShowShareModal(false)}
-              shareLink={""}
+              shareLink={`${window.location.origin}/bookings/details/${booking?.reference}`}
             />
           )}
         </div>
