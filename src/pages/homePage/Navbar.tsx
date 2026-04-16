@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   AppBar,
   Box,
@@ -69,12 +69,16 @@ const Navbar: React.FC = () => {
   const [logoutLoading, setLogoutLoading] = useState(false);
   const { user, accessToken } = useSelector((state: RootState) => state.auth);
   const initials = user?.name?.charAt(0).toUpperCase() || "U";
-  const isLoggedIn = Boolean(accessToken && user && user.email);
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [activeTab, setActiveTab] = useState("Home");
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const isLoggedIn = useMemo(
+    () => Boolean(accessToken && user && user.email),
+    [user, accessToken],
+  );
 
   useEffect(() => {
     if (!isLoggedIn) {
