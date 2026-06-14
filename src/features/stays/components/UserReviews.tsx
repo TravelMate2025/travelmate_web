@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { ReviewCard } from "./UserReviewCard";
 import { ReviewModal } from "./modals/UserReviewModal";
 import { getUserReviews } from "../api";
-import { Skeleton } from "antd";
 import { ChevronLeft, CircleAlert } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Skeleton from "@mui/material/Skeleton";
 
 type Review = {
   id: number;
@@ -22,14 +22,15 @@ const LoaderCard = () => {
   return (
     <div className="shadow-lg p-4 gap-x-6 border border-black/10 flex rounded-lg">
       <div className="flex-1">
-        <Skeleton.Button style={{ height: 150 }} block active />
+        <Skeleton variant="rectangular" width="100%" height={150} animation="wave" />
       </div>
       <div className="flex-2 space-y-4">
-        <Skeleton.Button active block />
-        <Skeleton active paragraph={{ rows: 2 }} />
+        <Skeleton variant="text" width="85%" height={28} animation="wave" />
+        <Skeleton variant="text" width="100%" height={20} animation="wave" />
+        <Skeleton variant="text" width="92%" height={20} animation="wave" />
       </div>
       <div>
-        <Skeleton.Button active />
+        <Skeleton variant="rounded" width={96} height={40} animation="wave" />
       </div>
     </div>
   );

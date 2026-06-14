@@ -99,10 +99,9 @@ export default function ProfileInfo() {
         }
 
         dispatch(setProfileInRedux(profileData));
-       
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("⚠️ Error loading profile:", err);
-        setError(err.message || "Failed to load profile information.");
+        setError(err instanceof Error ? err.message : "Failed to load profile information.");
       } finally {
         setTimeout(() => {
           setIsLoading(false);
@@ -111,7 +110,7 @@ export default function ProfileInfo() {
     };
 
     loadUserProfile();
-  }, [accessToken]);
+  }, [accessToken, dispatch]);
 
   return (
     <div>

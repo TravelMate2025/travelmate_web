@@ -1,6 +1,6 @@
 import Footer from "../components/2Footer"
 // import AirportTaxiBooking from "../features/car_rentals/airport-taxi/AirportTaxiBooking"
-import CarBookingFirstScreen from "../features/car_rentals/carsFirstScreen/Page"
+import CarBookingFirstScreen from "../features/car_rentals/carsFirstScreen/CarBookingFirstScreen"
 import Navbar from "./homePage/Navbar"
 import TravelmateApp from "./homePage/TravelmateApp"
 

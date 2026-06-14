@@ -2,13 +2,21 @@ import { Divider } from "@mui/material";
 import { ChevronRight, Dot } from "lucide-react";
 import { FaRegCalendarAlt, FaRegClock } from "react-icons/fa";
 import carImage from "../../../../assets/carImage.png";
+import type { CarTransferOption } from "../../types/booking";
 
 type props = {
-  car: any;
-  departureInfo: any;
+  car: CarTransferOption;
+  departureInfo: {
+    pickupLocaDescription: string;
+    pickupDate: string;
+    pickupTime: string;
+    dropoffLocation: string;
+  };
   setShowAllModal:(data:boolean)=> void
 };
 const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
+  const content = car.content ?? {};
+  const transferDetails = content.transferDetailInfo ?? [];
   const addDurationToTime = (pickupTime: string, durationStr: string) => {
     const [h, m] = pickupTime.split(":").map(Number);
     let totalMin = h * 60 + m;
@@ -37,7 +45,7 @@ const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
     <div>
       <div className="flex items-center gap-4 p-6">
         <img
-          src={car?.content?.images[0]?.url || carImage}
+          src={car?.content?.images?.[0]?.url || carImage}
           alt=""
           className="w-28 h-28 p-2 object-contain bg-[#0000001A] rounded-lg"
         />
@@ -73,8 +81,7 @@ const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
             {" "}
             <div className="border-l-2 border-l-[#4E4F52] h-16" />{" "}
             <p className="text-[#4E4F52]">
-              {car?.content?.transferDetailInfo[0]?.value}{" "}
-              {car?.content?.transferDetailInfo[0]?.description}
+              {transferDetails[0]?.value} {transferDetails[0]?.description}
             </p>{" "}
           </div>
           <div className="flex justify-normal gap-4 items-center">
@@ -90,7 +97,7 @@ const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
                 <p>
                   {addDurationToTime(
                     departureInfo.pickupTime,
-                    car?.content?.transferDetailInfo[0]?.value
+                    String(transferDetails[0]?.value ?? "")
                   )}
                 </p>
               </div>
@@ -115,7 +122,7 @@ const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
             </p>
 
             <p className="text-[#181818] text-sm font-inter">
-              {car?.category.name} Car
+              {car?.category?.name || "Not Available"} Car
             </p>
           </div>
 
@@ -125,8 +132,7 @@ const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
             </p>
 
             <p className="text-sm text-[#181818]">
-              {car?.maxPaxCapacity ||
-                car?.content?.transferDetailInfo[2]?.description}{" "}
+              {car?.maxPaxCapacity || transferDetails[2]?.description}{" "}
               {car?.maxPaxCapacity && `Seats`}
             </p>
           </div>
@@ -136,8 +142,7 @@ const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
               Bags
             </p>
             <p className="text-[#181818] text-sm font-inter">
-              {car?.content?.transferDetailInfo[3]?.value}{" "}
-              {car?.content?.transferDetailInfo[3]?.description}
+              {transferDetails[3]?.value} {transferDetails[3]?.description}
             </p>
           </div>
 

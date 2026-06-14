@@ -1,15 +1,42 @@
 import axios from "axios";
 
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+type ApiErrorPayload = {
+  error?: string;
+  detail?: string;
+  Message?: string;
+  message?: string;
+};
+
+const toErrorMessage = (error: unknown): string => {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as ApiErrorPayload | string | undefined;
+
+    if (typeof data === "string") return data;
+    return (
+      data?.error ||
+      data?.detail ||
+      data?.Message ||
+      data?.message ||
+      error.message
+    );
+  }
+
+  return error instanceof Error ? error.message : String(error);
+};
 
 export const submitEmail = async (email: string) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/registration_with_otp/submit_email/`, { email });
+    const response = await axios.post(
+      `${API_BASE_URL}/registration_with_otp/submit_email/`,
+      { email }
+    );
     return response.data;
-  } catch (error: any) {
-    console.error("❌ Error submitting email:", error.response?.data || error.message);
-    throw error;
+  } catch (error: unknown) {
+    const msg = toErrorMessage(error);
+    console.error("❌ Error submitting email:", msg);
+    throw new Error(msg);
   }
 };
 
@@ -25,80 +52,70 @@ export const verifyCode = async (email: string, otp: string) => {
       { headers: { "Content-Type": "application/json" } }
     );
     return response.data;
-  } catch (error: any) {
-    console.error("Error response:", error.response?.data);
-    return { success: false, error: error.response?.data || error.message };
+  } catch (error: unknown) {
+    const msg = toErrorMessage(error);
+    console.error("Error response:", msg);
+    return { success: false, error: msg };
   }
 };
-
-
 
 export const resendCode = async () => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/registration_with_otp/resend_code/`);
+    const response = await axios.post(
+      `${API_BASE_URL}/registration_with_otp/resend_code/`
+    );
     return response.data;
-  } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        throw new Error(`Error: ${error.response.data.error || "Something went wrong."}`);
-      } else if (error.request) {
-        throw new Error("No response received from the server.");
-      } else {
-        throw new Error(`Error: ${error.message}`);
-      }
-    } else {
-      throw new Error("An unexpected error occurred.");
-    }
+  } catch (error: unknown) {
+    const msg = toErrorMessage(error);
+    throw new Error(Array.isArray(msg) ? msg[0] : msg);
   }
 };
-
-
-
 
 export const createPassword = async (email: string, password: string) => {
   const payload = { email, password };
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/registration_with_otp/set_password/`,
+    const response = await axios.post(
+      `${API_BASE_URL}/registration_with_otp/set_password/`,
       payload,
       { headers: { "Content-Type": "application/json" } }
     );
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const msg = toErrorMessage(error);
     console.error("Password creation failed. Request payload:", payload);
-    console.error("Error response:", error.response?.data || error.message);
-    return { Status: 400, Error: true, Message: error.response?.data?.Message || error.message };
+    console.error("Error response:", msg);
+    return {
+      Status: 400,
+      Error: true,
+      Message: msg,
+    };
   }
 };
-
-
-
-
 
 export const loginUser = async (email: string, password: string) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/auth/jwt/validate-password/`, {
-      email,
-      password,
-    });
+    const response = await axios.post(
+      `${API_BASE_URL}/auth/jwt/validate-password/`,
+      {
+        email,
+        password,
+      }
+    );
     return response.data;
-  } catch (error: any) {
-    console.error("❌ Login Error:", error.response?.data || error.message);
-    throw error;
+  } catch (error: unknown) {
+    const msg = toErrorMessage(error);
+    console.error("❌ Login Error:", msg);
+    throw new Error(msg);
   }
 };
 
-
-
-
-
-// Corrected logoutUser function
 export const logoutUser = async (accessToken: string) => {
   try {
-    ("📤 Initiating logout request...");
-   await axios.post(
+    console.debug("📤 Initiating logout request...");
+    await axios.post(
       `${API_BASE_URL}/users/logout/`,
-      {}, // empty body
+      {},
       {
         headers: {
           "Content-Type": "application/json",
@@ -106,20 +123,12 @@ export const logoutUser = async (accessToken: string) => {
         },
       }
     );
-  } catch (error: any) {
-    if (error.response) {
-      console.error("❌ Logout request failed", error.response.status, error.response.data);
-    } else if (error.request) {
-      console.error("📭 No response received:", error.request);
-    } else {
-      console.error("🚨 Logout error:", error.message);
-    }
+  } catch (error: unknown) {
+    const msg = toErrorMessage(error);
+    console.error("Logout failed:", msg);
     throw new Error("Logout failed. Check network and CORS settings.");
   }
 };
-
-
-
 
 export const refreshToken = async (access: string) => {
   try {
@@ -127,26 +136,28 @@ export const refreshToken = async (access: string) => {
       access,
     });
     return response.data;
-
-  } catch (error: any) {
-    console.error("❌ Login Error:", error.response?.data || error.message);
-    throw error;
+  } catch (error: unknown) {
+    const msg = toErrorMessage(error);
+    console.error("❌ Login Error:", msg);
+    throw new Error(msg);
   }
 };
 
-
 export const socialGoogleLogin = async (access_token: string) => {
-  const response = await axios.post(`${API_BASE_URL}/auth/social/google/`, {
-    access_token: access_token,
-  }, {
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await axios.post(
+    `${API_BASE_URL}/auth/social/google/`,
+    {
+      access_token,
     },
-  });
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
   return response.data;
 };
-
 
 export const socialFacebookLogin = async (access_token: string) => {
   const response = await axios.post(
@@ -162,11 +173,6 @@ export const socialFacebookLogin = async (access_token: string) => {
   return response.data;
 };
 
-
-
-
-
-// Password Reset API functions using Axios
 export const requestPasswordReset = async (email: string) => {
   try {
     const response = await axios.post(
@@ -174,18 +180,14 @@ export const requestPasswordReset = async (email: string) => {
       { email },
       {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
     return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.detail || 'Failed to send reset email'
-      );
-    }
-    throw new Error('Failed to send reset email');
+  } catch (error: unknown) {
+    const msg = toErrorMessage(error);
+    throw new Error(msg || "Failed to send reset email");
   }
 };
 
@@ -196,18 +198,14 @@ export const validateResetToken = async (email: string, token: string) => {
       { email, token },
       {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
     return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.Message || 'Invalid token'
-      );
-    }
-    throw new Error('Invalid token');
+  } catch (error: unknown) {
+    const msg = toErrorMessage(error);
+    throw new Error(msg || "Invalid token");
   }
 };
 
@@ -218,18 +216,13 @@ export const setNewPassword = async (email: string, new_password: string) => {
       { email, new_password },
       {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
-    // For 204 No Content responses, axios returns null for data
     return response.status === 204 ? { success: true } : response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.Message || 'Failed to set new password'
-      );
-    }
-    throw new Error('Failed to set new password');
+  } catch (error: unknown) {
+    const msg = toErrorMessage(error);
+    throw new Error(msg || "Failed to set new password");
   }
 };

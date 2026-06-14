@@ -92,7 +92,7 @@ const StayCard: React.FC<StayCardProps> = ({
       const newFavorite = !favorite;
       setFavorite(newFavorite);
       toast.success(response);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Something went wrong");
     }
   };

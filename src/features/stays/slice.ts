@@ -68,18 +68,18 @@ export const fetchHotelsAsync = createAsyncThunk(
   'stays/fetchHotels',
   async (params: SearchParams & { token?: string }, { rejectWithValue }) => {
     try {
-      const { token, ...searchParams } = params;
+      const searchParams = params as SearchParams;
       return await searchHotels(
         searchParams.destination,
         searchParams.checkIn,
         searchParams.checkOut,
-        searchParams.adults = 1,
-        searchParams.children = 0,
+        searchParams.adults ?? 1,
+        searchParams.children ?? 0,
         searchParams.rooms,
-        // token
       );
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) return rejectWithValue(error.message);
+      return rejectWithValue(String(error));
     }
   }
 );
@@ -94,12 +94,11 @@ export const createBookingAsync = createAsyncThunk(
         success: true,
 
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue("Failed to create Booking");
-
+      return rejectWithValue('Failed to create Booking');
     }
   }
 );

@@ -9,8 +9,8 @@ export const createChat = async (userId: number, title: string) => {
     const response = await api.post("/user/chats/", { user: userId, title });
     console.log("[API] Chat created:", response.data);
     return response.data;
-  } catch (error: any) {
-    console.error("[API] Failed to create chat:", error.response?.data || error.message);
+  } catch (error: unknown) {
+    console.error("[API] Failed to create chat:", error instanceof Error ? error.message : String(error));
     throw error;
   }
 };
@@ -22,8 +22,8 @@ export const fetchUserChats = async () => {
     const response = await api.get("/user/chats/");
     console.log("[API] User chats fetched:", response.data.results);
     return response.data.results;
-  } catch (error: any) {
-    console.error("[API] Failed to fetch chats:", error.response?.data || error.message);
+  } catch (error: unknown) {
+    console.error("[API] Failed to fetch chats:", error instanceof Error ? error.message : String(error));
     throw error;
   }
 };
@@ -35,8 +35,8 @@ export const fetchChat = async (chatId: number) => {
     const response = await api.get(`/user/chats/${chatId}/`);
     console.log("[API] Chat fetched:", response.data);
     return response.data;
-  } catch (error: any) {
-    console.error("[API] Failed to fetch chat:", error.response?.data || error.message);
+  } catch (error: unknown) {
+    console.error("[API] Failed to fetch chat:", error instanceof Error ? error.message : String(error));
     throw error;
   }
 };
@@ -57,8 +57,8 @@ export const sendChatMessage = async (chatId: number, text: string, senderId: nu
 
     console.log("[API] Message sent:", response.data);
     return response.data;
-  } catch (error: any) {
-    console.error("[API] Failed to send message:", error.response?.data || error.message);
+  } catch (error: unknown) {
+    console.error("[API] Failed to send message:", error instanceof Error ? error.message : String(error));
     throw error;
   }
 };
@@ -71,8 +71,8 @@ export const markChatAsRead = async (chatId: number) => {
     const response = await api.post(`/user/chats/${chatId}/mark_as_read/`, {});
     console.log("[API] Chat marked as read:", response.data);
     return response.data;
-  } catch (error: any) {
-    console.error("[API] Failed to mark chat as read:", error.response?.data || error.message);
+  } catch (error: unknown) {
+    console.error("[API] Failed to mark chat as read:", error instanceof Error ? error.message : String(error));
     throw error;
   }
 };
@@ -83,8 +83,8 @@ export const deleteUserChat = async (id: number) => {
     console.log(`[API] Deleting chat session with ID: ${id}`);
     await api.delete(`/user/chats/${id}/delete_session/`);
     console.log("[API] Chat session deleted successfully");
-  } catch (error: any) {
-    console.error("[API] Failed to delete chat:", error.response?.data || error.message);
+  } catch (error: unknown) {
+    console.error("[API] Failed to delete chat:", error instanceof Error ? error.message : String(error));
     throw error;
   }
 };

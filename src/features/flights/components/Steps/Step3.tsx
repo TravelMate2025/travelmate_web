@@ -25,8 +25,9 @@ const Step3 = () => {
     if (booking.booking) {
       
       const result = await createSession({ id: booking?.booking.id.toString() });
-      if (result.data) {
-            window.location.href = result.data.checkout_url;
+      const checkoutSession = result.data;
+      if (checkoutSession?.checkout_url) {
+            window.location.href = checkoutSession.checkout_url;
       }
     }
 

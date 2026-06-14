@@ -24,15 +24,15 @@ interface SearchLocationProps {
 }
 
 interface PickUp {
-  cityName: string;
-  countryCode: string;
-  countryName: string;
+  cityName?: string;
+  countryCode?: string;
+  countryName?: string;
   displayName: string;
-  geoCode: { latitude: number; longitude: number };
-  iataCode: string;
-  id: string;
-  name: string;
-  type: string;
+  geoCode?: { latitude: number; longitude: number };
+  iataCode?: string;
+  id?: string;
+  name?: string;
+  type?: string;
 }
 
 const SearchPickUpLocation = ({
@@ -49,13 +49,13 @@ const SearchPickUpLocation = ({
 
   // Debounce function to limit API calls
   const timeoutRef = useRef<number | null>(null);
-  const debounce = (func: (...args: any[]) => void, wait: number) => {
-    return (...args: any[]) => {
+  const debounce = (func: (searchQuery: string) => void, wait: number) => {
+    return (searchQuery: string) => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => func(...args), wait);
+      timeoutRef.current = window.setTimeout(() => func(searchQuery), wait);
     };
   };
-
+  
   const fetchLocations = useCallback(async (searchQuery: string) => {
     if (searchQuery.length < 3) {
       setSuggestions([]);
@@ -69,18 +69,16 @@ const SearchPickUpLocation = ({
       setError(null);
       const response = await transferService.lookupTerminal(searchQuery);
       if (response?.data && Array.isArray(response.data)) {
-        setSuggestions(
-          response.data && response.data.find((loc) => loc.type === "AIRPORT")
-            ? response.data.filter((loc) => loc.type === "AIRPORT")
-            : response.data
-        );
+        const airportResults = response.data.filter((loc) => loc.type === "AIRPORT");
+        setSuggestions(airportResults.length > 0 ? airportResults : response.data);
       } else {
         setSuggestions([]);
         setError(response.error || "Failed to fetch airports");
       }
-    } catch (error: any) {
-      setError(error.response.data || "Failed to fetch airports");
-      toast.error(error.response.data || "Failed to fetch airports");
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      setError(msg || "Failed to fetch airports");
+      toast.error(msg || "Failed to fetch airports");
       setSuggestions([]);
     } finally {
       setLoading(false);
@@ -96,7 +94,7 @@ const SearchPickUpLocation = ({
   const handleSelect = (location: PickUp) => {
     ChangeValue(location.displayName);
     setQuery(location.displayName);
-    setValue(location.iataCode);
+    setValue(location.iataCode ?? "");
     if (setExtraFields) {
       const fields: Parameters<NonNullable<typeof setExtraFields>>[0] = {
         pickupLocaDescription: location.displayName,
@@ -191,7 +189,7 @@ const SearchPickUpLocation = ({
               ) : suggestions.length > 0 ? (
                 suggestions.map((location, index) => (
                   <div
-                    key={index}
+                    key={location.id ?? location.iataCode ?? index}
                     className="flex justify-between w-full items-center cursor-pointer hover:bg-gray-100 rounded mt-3 pl-3"
                   >
                     <RoomOutlinedIcon

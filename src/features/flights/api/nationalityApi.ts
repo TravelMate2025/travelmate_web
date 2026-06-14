@@ -6,6 +6,13 @@ export interface Nation {
   name: string;
 }
 
+interface CountryApiResponse {
+  cca2: string;
+  name: {
+    common: string;
+  };
+}
+
 export const nationsApi = createApi({
   reducerPath: "nationsApi",
   baseQuery: fetchBaseQuery({
@@ -14,7 +21,7 @@ export const nationsApi = createApi({
   endpoints: (builder) => ({
     getNations: builder.query<Nation[], void>({
       query: () => `all?fields=cca2,name`,
-      transformResponse: (response: any[]): Nation[] => {
+      transformResponse: (response: CountryApiResponse[]): Nation[] => {
         return response
           .map((country) => ({
             code: country.cca2,

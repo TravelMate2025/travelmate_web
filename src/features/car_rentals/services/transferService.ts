@@ -4,6 +4,12 @@ import axios from 'axios';
 import instance from '../../../utils/axiosConfig';
 import toast from 'react-hot-toast';
 
+interface ApiErrorPayload {
+    error?: string;
+    detail?: string[];
+    message?: string;
+}
+
 export interface TransferSearchParams {
     adults: string;
     children: string;
@@ -50,11 +56,10 @@ interface TransferResult {
     success: boolean;
     data?: {
         results: {
-            services: any[]
-            data: any[]
-
-        }
-        search_id: string
+            services: unknown[];
+            data: unknown[];
+        };
+        search_id: string;
     };
     fallback_info?: {
         attempts: number;
@@ -73,7 +78,7 @@ interface BookingConfirmationResult {
         status: string;
         total_price: string;
         booking_id: string;
-        bookings: any[]
+        bookings: unknown[];
     };
     status?: number;
     error?: string;
@@ -87,19 +92,52 @@ interface CheckoutSessionResult {
 
 interface BookingFinalizeResult {
     success: boolean;
-    data?: any;
+    data?: unknown;
     error?: string;
 }
 
 interface LookupResult {
     success: boolean;
-    data?: any[];
+    data?: LookupLocation[];
     error?: string;
+}
+
+interface LookupLocation {
+    cityName?: string;
+    countryCode?: string;
+    countryName?: string;
+    displayName: string;
+    geoCode?: { latitude: number; longitude: number };
+    iataCode?: string;
+    id?: string;
+    name?: string;
+    type?: string;
+}
+
+interface TransferSearchPayload {
+    results?: {
+        services?: unknown[];
+        data?: unknown[];
+    };
+    search_id?: string;
+    fallback_info?: {
+        attempts?: number;
+        locations_tried?: string[];
+        suggestions?: string[];
+    };
 }
 
 class TransferService {
     private baseUrl = import.meta.env.VITE_API_BASE_URL;
-    private terminalCache: Map<string, LookupResult['data']> = new Map();
+    private terminalCache: Map<string, LookupLocation[]> = new Map();
+
+    private getErrorMessage(error: unknown): string {
+        if (axios.isAxiosError(error)) {
+            const payload = error.response?.data as ApiErrorPayload | undefined;
+            return payload?.error || (Array.isArray(payload?.detail) ? payload?.detail[0] : undefined) || payload?.message || error.message;
+        }
+        return error instanceof Error ? error.message : String(error);
+    }
 
 
     async searchTransfers(params: TransferSearchParams): Promise<TransferResult> {
@@ -112,18 +150,30 @@ class TransferService {
             });
 
 
-            const response = await axios.get(`${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
+            const response = await axios.get<TransferSearchPayload>(`${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
             return {
                 success: true,
-                data: response?.data || [],
-                fallback_info: response?.data?.fallback_info,
+                data: {
+                    results: {
+                        services: response.data?.results?.services ?? [],
+                        data: response.data?.results?.data ?? [],
+                    },
+                    search_id: response.data?.search_id ?? "",
+                },
+                fallback_info: response.data?.fallback_info
+                    ? {
+                        attempts: response.data.fallback_info.attempts ?? 0,
+                        locations_tried: response.data.fallback_info.locations_tried ?? [],
+                        suggestions: response.data.fallback_info.suggestions ?? [],
+                    }
+                    : undefined,
             };
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Transfer search failed:', error);
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Search failed',
+                error: this.getErrorMessage(error) || 'Search failed',
             };
         }
     }
@@ -131,7 +181,7 @@ class TransferService {
 
     async createBookingConfirmation(accessToken: string, params: BookingConfirmationParams): Promise<BookingConfirmationResult> {
         try {
-            const response = await instance.post(`${this.baseUrl}/transfers/booking/confirmation/`,
+            const response = await instance.post<BookingConfirmationResult['data']>(`${this.baseUrl}/transfers/booking/confirmation/`,
                 JSON.stringify(params), {
                 headers: {
                     Authorization: `Bearer ${accessToken}`
@@ -143,12 +193,12 @@ class TransferService {
                 data: response.data,
                 status: response.status,
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Create booking confirmation failed:', error);
-            toast.error(error?.response?.data?.error || error?.response?.data?.detail[0] || 'Network Error')
+            toast.error(this.getErrorMessage(error) || 'Network Error');
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to create booking confirmation',
+                error: this.getErrorMessage(error),
             };
         }
     }
@@ -156,20 +206,19 @@ class TransferService {
     async createCheckoutSession(confirmationId: string): Promise<CheckoutSessionResult> {
         try {
 
-            const response = await instance.post(`${this.baseUrl}/transfers/booking/${confirmationId}/create-checkout-session/`);
+            const response = await instance.post<CheckoutSessionResult>(`${this.baseUrl}/transfers/booking/${confirmationId}/create-checkout-session/`);
             return {
                 checkout_url: response?.data?.checkout_url,
                 success: true,
 
             };
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Create checkout session failed:', error);
-            toast.error(error.response.data.detail)
-
+            toast.error(this.getErrorMessage(error) || 'Checkout session failed');
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to create checkout session',
+                error: this.getErrorMessage(error),
             };
         }
     }
@@ -181,11 +230,11 @@ class TransferService {
                 success: true,
                 data: response.data,
             };
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Cancel booking failed:', error);
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to cancel booking',
+                error: this.getErrorMessage(error),
             };
         }
     }
@@ -198,11 +247,11 @@ class TransferService {
 
 
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Cancel booking failed:', error);
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to cancel booking',
+                error: this.getErrorMessage(error),
             };
         }
     }
@@ -214,12 +263,12 @@ class TransferService {
                 success: true,
                 data: response.data,
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Get booking by session failed:', error);
-            toast.error(error?.response?.data?.error)
+            toast.error(this.getErrorMessage(error) || 'Failed to fetch booking');
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to instance.get booking details',
+                error: this.getErrorMessage(error),
             };
         }
     }
@@ -235,8 +284,8 @@ class TransferService {
         }
 
         try {
-            const response = await axios.get(`${this.baseUrl}/flights/search/search_airports/?keyword=${encodeURIComponent(name)}`);
-            const results = response.data?.results || response.data?.data || response.data || [];
+            const response = await axios.get<{ results?: LookupLocation[]; data?: LookupLocation[] }>(`${this.baseUrl}/flights/search/search_airports/?keyword=${encodeURIComponent(name)}`);
+            const results = (response.data?.results || response.data?.data || response.data || []) as LookupLocation[];
             this.terminalCache.set(cacheKey, results);
 
             return {
@@ -244,11 +293,11 @@ class TransferService {
                 data: results,
             };
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Terminal lookup failed:', error);
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to lookup terminal',
+                error: this.getErrorMessage(error),
             };
         }
     }

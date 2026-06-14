@@ -12,6 +12,14 @@ interface EditContactInfoModalProps {
   currentUserInfo: UserProfile | null;
 }
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error) {
+    return error.message || fallback;
+  }
+
+  return fallback;
+};
+
 export default function EditContactInfoModal({ isOpen, onClose, currentUserInfo }: EditContactInfoModalProps) {
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const profileId = useSelector((state: RootState) => state.auth.user?.profileId);
@@ -55,11 +63,11 @@ export default function EditContactInfoModal({ isOpen, onClose, currentUserInfo 
       await updateUserProfile(profileId, updatedData);
       onClose();
       window.location.reload();
-    } catch (err: any) {
-      if (err.message === "Unauthorized") {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message === "Unauthorized") {
         setError("Session expired. Please login again.");
       } else {
-        setError("Something went wrong. Please try again.");
+        setError(getErrorMessage(err, "Something went wrong. Please try again."));
       }
     } finally {
       setLoading(false);

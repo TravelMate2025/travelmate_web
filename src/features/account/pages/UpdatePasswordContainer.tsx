@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import UpdatePasswordPresenter from "./UpdatePasswordPresenter"
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
@@ -6,6 +6,19 @@ import api from "../../../api/services/api";
 // import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error && typeof error === "object" && "response" in error) {
+        const response = (error as { response?: { data?: { error?: string; message?: string; Error?: string } } }).response;
+        return response?.data?.error || response?.data?.message || response?.data?.Error || fallback;
+    }
+
+    if (error instanceof Error) {
+        return error.message || fallback;
+    }
+
+    return fallback;
+};
 
 function UpdatePasswordContainer() {
     const user = useSelector((state: RootState) => state.auth.user);
@@ -17,7 +30,7 @@ function UpdatePasswordContainer() {
 
     // const navigate = useNavigate()
 
-    const requestPasswordResetToken = async () => {
+    const requestPasswordResetToken = useCallback(async () => {
         setLoading(true);
         setError("");
 
@@ -42,21 +55,17 @@ function UpdatePasswordContainer() {
             } else {
                 console.warn("Unexpected status code:", response.status);
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Email reset error:", error);
-            setError(
-            error.response?.data?.error ||
-                error.response?.data?.message ||
-                "Failed to request password reset."
-            );
+            setError(getErrorMessage(error, "Failed to request password reset."));
         } finally {
             setLoading(false);
         }
-    };
+    }, [user?.email]);
 
     useEffect(() => {
-      requestPasswordResetToken();
-    }, []);
+        void requestPasswordResetToken();
+    }, [requestPasswordResetToken]);
 
     const handleResendOtp = async () => {
         try {
@@ -111,14 +120,9 @@ function UpdatePasswordContainer() {
             if (res.status === 200) {
             setIsOtpValid(true);
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("OTP validation error:", error);
-            setError(
-            error.response?.data?.error ||
-            error.response?.data?.Error ||
-            error.response?.data?.message ||
-            "Invalid or expired OTP. Please try again."
-            );
+            setError(getErrorMessage(error, "Invalid or expired OTP. Please try again."));
         } finally {
             setLoading(false);
         }
@@ -159,15 +163,11 @@ function UpdatePasswordContainer() {
         } else {
           setError("Unexpected response from server.");
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Confirm email error:", error);
-        console.error("Error response data:", error.response?.data);
-    
-        setError(
-          error.response?.data?.error ||
-            error.response?.data?.message ||
-            "Failed to confirm new email."
-        );
+        console.error("Error response data:", (error as { response?: { data?: unknown } })?.response?.data);
+
+        setError(getErrorMessage(error, "Failed to confirm new email."));
       } finally {
         setLoading(false);
       }

@@ -4,6 +4,12 @@ import flightImage from "../../assets/airlogo.svg";
 import { NormalizedBooking } from "../../pages/Bookings";
 import EmptyState from "./EmptyState";
 import { useNavigate } from "react-router-dom";
+import {
+  getBookingAmount,
+  getBookingCurrency,
+  getBookingDateText,
+  getBookingName,
+} from "./utils";
 
 export interface BookingsProps {
   bookings: NormalizedBooking[];
@@ -12,32 +18,17 @@ export interface BookingsProps {
 const Failed = ({ bookings }: BookingsProps) => {
   const navigate = useNavigate();
   const getDetails = (item: NormalizedBooking) => {
-   const image =
+    const image =
       item.imageUrl ||
       (item.type === "stay"
         ? hotelimage
         : item.type === "transfer"
-        ? carImage
-        : flightImage);
-
-    const name = item.name || "Unknown Booking";
-    let dateStr = "";
-   if (item.type === "stay" || item.type === "flight") {
-      const start = item.date || item.originalData?.check_in;
-      const end = item.date_to || item.originalData?.check_out;
-      if (start && end) {
-        dateStr = `${new Date(start).toDateString()} - ${new Date(
-          end
-        ).toDateString()}`;
-      } else if (start) {
-        dateStr = new Date(start).toDateString();
-      }
-    } else {
-      dateStr = item.date ? new Date(item.date).toDateString() : "Date N/A";
-    }
-
-    const amount = item.amount || 0;
-    const currency = item.currency || "NGN";
+          ? carImage
+          : flightImage);
+    const name = getBookingName(item, "Unknown Booking");
+    const dateStr = getBookingDateText(item);
+    const amount = getBookingAmount(item);
+    const currency = getBookingCurrency(item, "NGN");
 
     return { image, name, dateStr, amount, currency };
   };
@@ -58,15 +49,14 @@ const Failed = ({ bookings }: BookingsProps) => {
               key={item.id}
               className="flex justify-between lg:max-w-3xl w-full items-start gap-2 border-[1px] border-neutral-300 p-4 rounded-xl mb-4 hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => {
-                item.type === "stay"
-                  ? navigate(
-                      `/bookings/stays-details/?session_id=${item.session_id}`
-                    )
-                  : item.type === "transfer"
-                  ? navigate(`/bookings/transfers-details/?session_id=${item.session_id}`)
-                  : navigate(`bookings/flight-details/?session_id=${item.session_id}`);
+                if (item.type === "stay") {
+                  navigate(`/bookings/stays-details/?session_id=${item.session_id}`);
+                } else if (item.type === "transfer") {
+                  navigate(`/bookings/transfers-details/?session_id=${item.session_id}`);
+                } else {
+                  navigate(`/bookings/flight-details/?session_id=${item.session_id}`);
+                }
               }}
-            
             >
               <div className="flex justify-normal items-start gap-3">
                 <img

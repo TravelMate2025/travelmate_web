@@ -21,9 +21,9 @@ function EnterNewEmail({
   setConfirmEmail,
 }: EnterNewEmailProps) {
   const user = useSelector((state: RootState) => state.auth.user);
-  if (!user) return null;
-
   const [error, setError] = useState("");
+
+  if (!user) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

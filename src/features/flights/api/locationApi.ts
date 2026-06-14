@@ -5,6 +5,14 @@ interface LocationInfo {
   currency: string;
 }
 
+interface GeoCodeResponse {
+  countryName?: string;
+}
+
+interface CurrencyLookupResponse {
+  currencies?: Record<string, unknown>;
+}
+
 export const locationApi = createApi({
   reducerPath: "locationApi",
   baseQuery: fetchBaseQuery({ baseUrl: "/" }),
@@ -22,9 +30,9 @@ export const locationApi = createApi({
       ) {
         try {
           // ✅ Step 1: Reverse geocode with BigDataCloud
-          const geoRes: any = await fetchWithBQ({
+          const geoRes = await fetchWithBQ({
             url: `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
-          });
+          }) as { data?: GeoCodeResponse; error?: unknown };
 
           if (geoRes.error) throw geoRes.error;
 
@@ -35,11 +43,11 @@ export const locationApi = createApi({
           }
 
           // ✅ Step 2: Get currency from RestCountries
-          const currencyRes: any = await fetchWithBQ(
+          const currencyRes = await fetchWithBQ(
             `https://restcountries.com/v3.1/name/${encodeURIComponent(
               countryName
             )}?fields=currencies,name`
-          );
+          ) as { data?: CurrencyLookupResponse[]; error?: unknown };
 
           if (currencyRes.error) throw currencyRes.error;
 
@@ -49,11 +57,11 @@ export const locationApi = createApi({
           return {
             data: { country: countryName, currency: firstCurrency },
           };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return {
             error: {
               status: "CUSTOM_ERROR",
-              error: error?.message ?? "Failed to detect location",
+              error: error instanceof Error ? error.message : "Failed to detect location",
             },
           };
         }

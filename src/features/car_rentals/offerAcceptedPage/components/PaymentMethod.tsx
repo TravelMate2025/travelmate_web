@@ -2,9 +2,10 @@ import { Checkbox, Divider, FormControlLabel } from "@mui/material";
 import { ArrowRight } from "lucide-react";
 import Paypal from "../../../../assets/images/stripe.png";
 import { DeskProps } from "../Page";
+import type { CarTransferOption } from "../../types/booking";
 
 type PaymentMethodProps = {
-  car: any;
+  car: CarTransferOption;
 } & DeskProps;
 
 
@@ -38,7 +39,7 @@ const PaymentMethod = ({
       </p>
       <div className="px-6  border-[#CDCED1] lg:border rounded-lg p-5 flex justify-between items-center w-full">
         <p className="font-bold text-[#4E4F52]">Total</p>
-        <p className="font-bold">€{car?.price.totalAmountWithFee}</p>
+        <p className="font-bold">€{car?.price?.totalAmountWithFee ?? "0"}</p>
       </div>
 
       <Divider

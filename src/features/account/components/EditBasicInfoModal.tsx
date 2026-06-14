@@ -17,6 +17,14 @@ interface EditBasicInfoModalProps {
   };
 }
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error) {
+    return error.message || fallback;
+  }
+
+  return fallback;
+};
+
 export default function EditBasicInfoModal({
   isOpen,
   onClose,
@@ -61,11 +69,11 @@ export default function EditBasicInfoModal({
       await createUserProfile(userData, accessToken, profileId);
       onClose();
       window.location.reload();
-    } catch (err: any) {
-      if (err.message === "Unauthorized") {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message === "Unauthorized") {
         setError("Session expired. Please login again.");
       } else {
-        setError("Something went wrong. Please try again.");
+        setError(getErrorMessage(err, "Something went wrong. Please try again."));
       }
     } finally {
       setLoading(false);

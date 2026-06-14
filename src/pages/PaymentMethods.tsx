@@ -1,12 +1,12 @@
  
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Checkbox, Divider, FormControlLabel, Modal, Paper, TextField } from "@mui/material";
 import master from "../assets/master.svg";
 import visa from "../assets/visa.svg";
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import CloseIcon from '@mui/icons-material/Close';
-import { ToastContainer, toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import "../style/Paymethod.css"
 import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
 import { useMediaQuery } from "react-responsive";
@@ -194,19 +194,19 @@ const handleDeleteCard = () => {
 
 const [saveCard, setSaveCard] = useState(false);
 
-const isCardFormValid = () => {
+const isCardFormValid = useCallback(() => {
   return (
     formData.cardNumber?.toString().length === 16 &&
     formData.cardHolder?.trim().length > 0 &&
     formData.expiryDate?.trim().length > 0
   );
-};
+}, [formData.cardNumber, formData.cardHolder, formData.expiryDate]);
 
 useEffect(() => {
   if (!isCardFormValid() && saveCard) {
     setSaveCard(false);
   }
-}, [formData]);
+}, [isCardFormValid, saveCard]);
 
   // const [isAddingCard, setIsAddingCard] = useState(false);
 
@@ -221,8 +221,7 @@ useEffect(() => {
     
 
       <div className="">
-      <ToastContainer />
- 
+
       {cards.length === 0 ? (
 
         <div>
@@ -606,8 +605,7 @@ useEffect(() => {
 
 
     <div className="">
-      <ToastContainer />
- 
+
       {cards.length === 0 ? (
 
         <div>

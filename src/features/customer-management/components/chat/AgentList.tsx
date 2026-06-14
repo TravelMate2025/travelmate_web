@@ -68,6 +68,7 @@ const AgentList: React.FC<AgentListProps> = ({ activeChat }) => {
 
         const data = await response.json();
         console.log("agents list:", data)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const extractedAgents = data.results.map((agent: any) => ({
           id: agent.id,
           displayName: agent.first_name?.trim() || agent.email?.split("@")[0] || "A",
@@ -92,10 +93,6 @@ const adminMessage = activeChat?.messages?.find(msg => msg.sender !== "user");
 
 if (adminMessage && activeChat?.assigned_admin_info) {
   const sender = activeChat.assigned_admin_info;
-
-    sender.first_name?.trim() ||
-    sender.email?.split("@")[0] ||
-    "Admin";
 
   const adminInitial =
     sender.first_name?.charAt(0).toUpperCase() ||

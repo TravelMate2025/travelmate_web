@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import RaiseTicketModal from '../components/RaiseTicketModal';
@@ -14,21 +14,11 @@ import toast from 'react-hot-toast';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import { Menu } from '@headlessui/react';
 import { HiOutlineDotsVertical } from 'react-icons/hi';
-
-
-interface Ticket {
-  id: number;
-  ticket_id: string;
-  title: string;
-  category: string;
-  status: 'pending' | 'resolved';
-  created_at: string;
-  description: string;
-}
+import { TicketSummary } from '../api/tickets';
 
 const TicketsPage = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'resolved'>('all');
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [tickets, setTickets] = useState<TicketSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -43,34 +33,34 @@ const TicketsPage = () => {
     { name: "Tickets" },
   ];
 
-  const fetchTickets = async () => {
-  if (!accessToken) {
-    setError('Access token not found');
-    setLoading(false);
-    return;
-  }
+  const fetchTickets = useCallback(async () => {
+    if (!accessToken) {
+      setError('Access token not found');
+      setLoading(false);
+      return;
+    }
 
-  setLoading(true);
-  setError(null);
+    setLoading(true);
+    setError(null);
 
-  try {
-    const data = await getTickets();
-    const filtered = data.results.filter((ticket: Ticket) => {
-      const normalizedStatus = ticket.status === 'resolved' ? 'resolved' : 'pending';
-      return activeTab === 'all' ? true : normalizedStatus === activeTab;
-    });
-    setTickets(filtered);
-  } catch {
-    setError('Failed to load tickets');
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      const data = await getTickets();
+      const filtered = data.results.filter((ticket: TicketSummary) => {
+        const normalizedStatus = ticket.status === 'resolved' ? 'resolved' : 'pending';
+        return activeTab === 'all' ? true : normalizedStatus === activeTab;
+      });
+      setTickets(filtered);
+    } catch {
+      setError('Failed to load tickets');
+    } finally {
+      setLoading(false);
+    }
+  }, [accessToken, activeTab]);
 
 
   useEffect(() => {
-    fetchTickets();
-  }, [activeTab, accessToken]);
+    void fetchTickets();
+  }, [fetchTickets]);
 
   
 
@@ -89,7 +79,7 @@ const TicketsPage = () => {
       await deleteTicket(deleteId);
       setTickets((prev) => prev.filter((ticket) => ticket.id !== deleteId));
       toast.success('Ticket deleted successfully');
-    } catch (err) {
+    } catch (_err) {
       toast.error('Failed to delete ticket');
     } finally {
       setIsDeleting(false);

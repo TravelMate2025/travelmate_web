@@ -1,74 +1,74 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import "./App.css";
 import { Toaster } from "react-hot-toast";
-
-// Account pages
-import CreateAccount from "./features/account/pages/CreateAccount";
-import VerifyPage from "./features/account/pages/VerifyPage";
-import CreatePassword from "./features/account/pages/CreatePassword";
-import ResetPassword from "./features/account/pages/ResetPassword";
-import Login from "./features/account/pages/Login";
-import ProfileInfo from "./features/account/pages/ProfileInfo";
-import Profile from "./features/account/pages/Account";
-import Security from "./features/account/pages/Security";
-import UpdateEmailContainer from "./features/account/pages/UpdateEmailContainer";
-import UpdatePasswordContainer from "./features/account/pages/UpdatePasswordContainer";
-import NotificationContainer from "./features/account/pages/NotificationContainer";
-import NotPreferenceContainer from "./features/account/pages/NotPreferenceContainer";
-import CreateNewPassword from "./features/account/pages/CreateNewPassword";
-import VerifyEmailForPasswordReset from "./features/account/pages/VerifyEmailForPasswordReset";
-
-// Stays pages
-import StaysSearchResults from "./features/stays/pages/StaysSearchResults";
-import StaysDetail from "./features/stays/pages/StaysDetail";
-import BookingConfirmationPage from "./features/stays/pages/BookingConfirmationPage";
-import BookingProgress from "./features/stays/pages/BookingProgress";
-import DownloadStaysPage from "./features/stays/components/confirmation/Download";
-
-// Flights pages
-import DeparturePage from "./pages/flights/departureFlight/DeparturePage";
-import ReturnPage from "./pages/flights/returnFlight/ReturnPage";
-import FlightInfoPage from "./pages/flights/flightInfo-review/FlightInfoPage";
-import FlightConfirmationPage from "./pages/flights/flightConfirmation/FlightConfirmationPage";
-import PaymentFailed from "./features/flights/components/PaymentFailed";
-
-// Car rental pages
-import Page from "./features/car_rentals/carsFirstScreen/Page";
-import DisplayCars from "./features/car_rentals/displayAllCars/DisplayCars";
-import Pages from "./features/car_rentals/offerAcceptedPage/Page";
-import CarPaidForPage from "./features/car_rentals/carPaidFor/CarPaidForPage";
-import DownloadPage from "./features/car_rentals/carPaidFor/DownloadPage";
-import CarFailedPayment from "./features/car_rentals/carPaidFor/CarFailedPayment";
-
-// Airport taxi
-import AirportTaxi from "./pages/AirportTaxi";
-
-// Customer management
-import FaqPage from "./features/customer-management/pages/faq";
-import ChatPage from "./features/customer-management/pages/ChatPage";
-import TicketsPage from "./features/customer-management/pages/TicketsPage";
-import TicketDetailPage from "./features/customer-management/pages/TicketDetailPage";
-
-// Bookings & favorites
-import BookingStaysDetailsPage from "./pages/BookingsDetails/stays";
-import BookingTransfersDetails from "./pages/BookingsDetails/transfers";
-import Bookings from "./pages/Bookings";
-import Favorites from "./pages/Favorites";
-import Home from "./pages/Home";
 import PrivateRoute from "./routes/PrivateRoute";
-import { PrivacyPolicyPage } from "./pages/PrivacyPolicy";
-import { TermsOfUsePage } from "./pages/TermsOfUse";
-import Flight from "./pages/Flight";
-import { AboutPage } from "./pages/About";
-import { ReviewDetails } from "./features/account/pages/ReviewDetails";
-import { PaymentMethodSettingsPage } from "./pages/settings/PaymentMethod";
-import { ReviewsSettingsPage } from "./pages/settings/ReviewsPage";
-import { ProfilePage } from "./pages/settings/ProfilePage";
+
+// Eagerly loaded — lightweight, always needed on first paint
+import Home from "./pages/Home";
+import Login from "./features/account/pages/Login";
+import CreateAccount from "./features/account/pages/CreateAccount";
+
+// Account pages (lazy)
+const VerifyPage = lazy(() => import("./features/account/pages/VerifyPage"));
+const CreatePassword = lazy(() => import("./features/account/pages/CreatePassword"));
+const ResetPassword = lazy(() => import("./features/account/pages/ResetPassword"));
+const ProfileInfo = lazy(() => import("./features/account/pages/ProfileInfo"));
+const Profile = lazy(() => import("./features/account/pages/Account"));
+const Security = lazy(() => import("./features/account/pages/Security"));
+const UpdateEmailContainer = lazy(() => import("./features/account/pages/UpdateEmailContainer"));
+const UpdatePasswordContainer = lazy(() => import("./features/account/pages/UpdatePasswordContainer"));
+const NotificationContainer = lazy(() => import("./features/account/pages/NotificationContainer"));
+const NotPreferenceContainer = lazy(() => import("./features/account/pages/NotPreferenceContainer"));
+const CreateNewPassword = lazy(() => import("./features/account/pages/CreateNewPassword"));
+const VerifyEmailForPasswordReset = lazy(() => import("./features/account/pages/VerifyEmailForPasswordReset"));
+const ReviewDetails = lazy(() => import("./features/account/pages/ReviewDetails").then(m => ({ default: m.ReviewDetails })));
+
+// Stays pages (lazy)
+const StaysSearchResults = lazy(() => import("./features/stays/pages/StaysSearchResults"));
+const StaysDetail = lazy(() => import("./features/stays/pages/StaysDetail"));
+const BookingConfirmationPage = lazy(() => import("./features/stays/pages/BookingConfirmationPage"));
+const BookingProgress = lazy(() => import("./features/stays/pages/BookingProgress"));
+const DownloadStaysPage = lazy(() => import("./features/stays/components/confirmation/Download"));
+
+// Flights pages (lazy)
+const DeparturePage = lazy(() => import("./pages/flights/departureFlight/DeparturePage"));
+const ReturnPage = lazy(() => import("./pages/flights/returnFlight/ReturnPage"));
+const FlightInfoPage = lazy(() => import("./pages/flights/flightInfo-review/FlightInfoPage"));
+const FlightConfirmationPage = lazy(() => import("./pages/flights/flightConfirmation/FlightConfirmationPage"));
+const PaymentFailed = lazy(() => import("./features/flights/components/PaymentFailed"));
+
+// Car rental pages (lazy)
+const CarConfirmPage = lazy(() => import("./features/car_rentals/carsFirstScreen/Page"));
+const DisplayCars = lazy(() => import("./features/car_rentals/displayAllCars/DisplayCars"));
+const CarOfferPage = lazy(() => import("./features/car_rentals/offerAcceptedPage/Page"));
+const CarPaidForPage = lazy(() => import("./features/car_rentals/carPaidFor/CarPaidForPage"));
+const DownloadPage = lazy(() => import("./features/car_rentals/carPaidFor/DownloadPage"));
+const CarFailedPayment = lazy(() => import("./features/car_rentals/carPaidFor/CarFailedPayment"));
+
+// Other pages (lazy)
+const AirportTaxi = lazy(() => import("./pages/AirportTaxi"));
+const FaqPage = lazy(() => import("./features/customer-management/pages/faq"));
+const ChatPage = lazy(() => import("./features/customer-management/pages/ChatPage"));
+const TicketsPage = lazy(() => import("./features/customer-management/pages/TicketsPage"));
+const TicketDetailPage = lazy(() => import("./features/customer-management/pages/TicketDetailPage"));
+const BookingStaysDetailsPage = lazy(() => import("./pages/BookingsDetails/stays"));
+const BookingTransfersDetails = lazy(() => import("./pages/BookingsDetails/transfers"));
+const Bookings = lazy(() => import("./pages/Bookings"));
+const Favorites = lazy(() => import("./pages/Favorites"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicy").then(m => ({ default: m.PrivacyPolicyPage })));
+const TermsOfUsePage = lazy(() => import("./pages/TermsOfUse").then(m => ({ default: m.TermsOfUsePage })));
+const Flight = lazy(() => import("./pages/Flight"));
+const AboutPage = lazy(() => import("./pages/About").then(m => ({ default: m.AboutPage })));
+const PaymentMethodSettingsPage = lazy(() => import("./pages/settings/PaymentMethod").then(m => ({ default: m.PaymentMethodSettingsPage })));
+const ReviewsSettingsPage = lazy(() => import("./pages/settings/ReviewsPage").then(m => ({ default: m.ReviewsSettingsPage })));
+const ProfilePage = lazy(() => import("./pages/settings/ProfilePage").then(m => ({ default: m.ProfilePage })));
 
 function App() {
   return (
     <>
       <Toaster />
+      <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" /></div>}>
       <Routes>
         {/* Public Pages */}
         <Route path="/" element={<Home />} />
@@ -276,12 +276,12 @@ function App() {
 
         {/* Cars */}
         <Route path="/cars-searchResults" element={<DisplayCars />} />
-        <Route path="/cars-booking" element={<Pages />} />
+        <Route path="/cars-booking" element={<CarOfferPage />} />
         <Route
           path="/car-confirmation"
           element={
             <PrivateRoute>
-              <Page />
+              <CarConfirmPage />
             </PrivateRoute>
           }
         />
@@ -301,7 +301,7 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route path="/offer-accepted-page" element={<Pages />} />
+        <Route path="/offer-accepted-page" element={<CarOfferPage />} />
         <Route
           path="/car-paid/download"
           element={
@@ -314,6 +314,7 @@ function App() {
         {/* Airport Taxi */}
         <Route path="/airport-taxi" element={<AirportTaxi />} />
       </Routes>
+      </Suspense>
     </>
   );
 }

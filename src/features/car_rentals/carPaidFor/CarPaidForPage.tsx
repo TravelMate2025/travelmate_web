@@ -10,7 +10,7 @@ import { useDispatch } from "react-redux";
 import { resetForm } from "../carPaymentSlice";
 import { useEffect, useState } from "react";
 import { transferService } from "../services/transferService";
-import { toast, ToastContainer } from "react-toastify";
+import toast from "react-hot-toast";
 import { useFormPersistence } from "../hooks/useFormPersistence";
 import { BookingFormData } from "../types/booking";
 import SkeletonConfirm from "./Skeleton";
@@ -18,14 +18,35 @@ import { Download, Loader, Share } from "lucide-react";
 import ShareModal from "../../stays/components/modals/ShareModal";
 import CarFailedPayment from "./CarFailedPayment";
 
+interface CarBooking {
+  status?: string;
+  holder?: { email?: string; name?: string; surname?: string; phone?: string };
+  transfers?: Array<{
+    pickupInformation?: {
+      from?: { description?: string };
+      to?: { description?: string };
+      date?: string;
+      time?: string;
+    };
+    content?: {
+      transferDetailInfo?: Array<{ value?: string; description?: string }>;
+    };
+    category?: { name?: string };
+  }>;
+  reference?: string;
+  totalNetAmount?: number | string;
+  supplier?: { name?: string };
+}
+
 const CarPaidForPage = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [booking, setBooking] = useState<any>([]);
+  const [booking, setBooking] = useState<CarBooking[] | null>(null);
   const dispatch = useDispatch();
   const { clearSavedData } = useFormPersistence({} as BookingFormData);
   const searchParams = new URLSearchParams(location.search);
   const sessionId = searchParams?.get("session_id");
+  const resolvedSessionId = sessionId ?? "";
   const [showShareModal, setShowShareModal] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
   const isSuccess =
@@ -36,39 +57,40 @@ const CarPaidForPage = () => {
       try {
         setLoading(true);
         if (isSuccess) {
-          const res = await transferService.getBookingBySession(sessionId);
-          setBooking(res?.data?.bookings);
+          const res = await transferService.getBookingBySession(resolvedSessionId);
+          setBooking((res?.data?.bookings as CarBooking[]) || null);
         } else {
-          return <CarFailedPayment />;
+          setBooking(null);
         }
-      } catch (error) {
-        console.error("Error fetching booking:", error);
+      } catch (err: unknown) {
+        console.error("Error fetching booking:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (sessionId) fetchBooking();
-  }, [sessionId]);
+    if (resolvedSessionId) fetchBooking();
+  }, [resolvedSessionId, isSuccess]);
 
   if (loading) return <SkeletonConfirm />;
-  if (!booking) return <CarFailedPayment />;
+  if (!booking || booking.length === 0) return <CarFailedPayment />;
 
-  const handleDownload = (cars: any) => {
+  const handleDownload = (cars: CarBooking) => {
     try {
       setDownloadLoading(true);
       window.open(
         `/car-paid/download?data=${encodeURIComponent(JSON.stringify(cars))}`,
         "_blank"
       );
-    } catch (error) {
-      toast.error("Failed to download, try again ");
-    } finally {
+    } catch (err: unknown) {
+        console.error("Failed to download:", err);
+        toast.error("Failed to download, try again ");
+      } finally {
       setDownloadLoading(false);
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status?: string) => {
     switch (status?.toLowerCase()) {
       case "confirmed":
         return "text-[#2D9C5E]";
@@ -84,9 +106,8 @@ const CarPaidForPage = () => {
   return (
     <div>
       <Navbar />
-      <ToastContainer />
-      {booking?.map((cars: any, index: any) => (
-        <div className="lg:pt-32 pt-20" key={index}>
+      {booking?.map((cars: CarBooking, index: number) => (
+        <div className="lg:pt-32 pt-20" key={cars.reference ?? index}>
           {showShareModal && (
             <ShareModal
               onClose={() => setShowShareModal(false)}
@@ -145,7 +166,7 @@ const CarPaidForPage = () => {
             </div>
           </div>
 
-          {cars.status.toLowerCase() === "confirmed" && (
+          {(cars.status ?? "").toLowerCase() === "confirmed" && (
             <div className="mb-8 px-6 lg:px-8 m-auto">
               <div className="border-1 border-[#2D9C5E] w-full bg-[#D5EBDF4D] pt-[10px] pb-[10px] pr-[10px] pl-[10px] rounded-[8px]">
                 <div className="flex gap-2 items-center">
@@ -162,7 +183,7 @@ const CarPaidForPage = () => {
 
                   <div className="text-[12px]">
                     Payment Successful. Car confirmation Details will also be
-                    sent to {cars.holder.email}
+                    sent to {cars.holder?.email ?? "your email"}
                   </div>
                 </div>
               </div>
@@ -183,7 +204,7 @@ const CarPaidForPage = () => {
                       cars.status
                     )}`}
                   >
-                    {cars.status}
+                      {cars.status ?? "Unknown"}
                   </p>
                 </div>
                 <div className="flex justify-between">
@@ -212,7 +233,7 @@ const CarPaidForPage = () => {
                     </p>
 
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {cars.transfers[0]?.pickupInformation.from.description}
+                      {cars.transfers?.[0]?.pickupInformation?.from?.description ?? "Not Available"}
                     </p>
                   </div>
 
@@ -222,7 +243,7 @@ const CarPaidForPage = () => {
                     </p>
 
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {cars.transfers[0]?.pickupInformation.date}
+                      {cars.transfers?.[0]?.pickupInformation?.date ?? "Not Available"}
                     </p>
                   </div>
 
@@ -232,7 +253,7 @@ const CarPaidForPage = () => {
                     </p>
 
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {cars.transfers[0]?.pickupInformation.time ||
+                      {cars.transfers?.[0]?.pickupInformation?.time ||
                         "Not Available"}
                     </p>
                   </div>
@@ -243,7 +264,7 @@ const CarPaidForPage = () => {
                     </p>
 
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {cars.transfers[0]?.pickupInformation.to.description}
+                      {cars.transfers?.[0]?.pickupInformation?.to?.description ?? "Not Available"}
                     </p>
                   </div>
                   <div className="flex justify-between w-full">
@@ -252,9 +273,9 @@ const CarPaidForPage = () => {
                     </p>
 
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {cars.transfers[0]?.content.transferDetailInfo[0].value}{" "}
-                      {cars.transfers[0]?.content.transferDetailInfo[0]
-                        .description || "Not Available"}
+                      {cars.transfers?.[0]?.content?.transferDetailInfo?.[0]?.value ?? "Not Available"}{" "}
+                      {cars.transfers?.[0]?.content?.transferDetailInfo?.[0]?.description ||
+                        "Not Available"}
                     </p>
                   </div>
                 </div>
@@ -276,7 +297,7 @@ const CarPaidForPage = () => {
                       Type
                     </p>
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {cars?.transfers[0]?.category.name} Car
+                      {cars.transfers?.[0]?.category?.name ?? "Not Available"} Car
                     </p>
                   </div>
 
@@ -286,7 +307,7 @@ const CarPaidForPage = () => {
                     </p>
 
                     <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                      {cars.transfers[0]?.content.transferDetailInfo[2]?.value}{" "}
+                      {cars.transfers?.[0]?.content?.transferDetailInfo?.[2]?.value ?? "Not Available"}{" "}
                       Seats
                     </p>
                   </div>
@@ -297,9 +318,9 @@ const CarPaidForPage = () => {
                     </p>
 
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {cars.transfers[0]?.content.transferDetailInfo[3].value}{" "}
-                      {cars.transfers[0]?.content.transferDetailInfo[3]
-                        .description || "Not Available"}
+                      {cars.transfers?.[0]?.content?.transferDetailInfo?.[3]?.value ?? "Not Available"}{" "}
+                      {cars.transfers?.[0]?.content?.transferDetailInfo?.[3]?.description ||
+                        "Not Available"}
                     </p>
                   </div>
 
@@ -309,7 +330,7 @@ const CarPaidForPage = () => {
                     </p>
 
                     <p className="text-[#181818] text-[14px] font-inter">
-                      {cars.supplier.name || "Not Available"}
+                      {cars.supplier?.name || "Not Available"}
                     </p>
                   </div>
                 </div>
@@ -330,19 +351,19 @@ const CarPaidForPage = () => {
                 <div className="flex justify-between mb-[6px]">
                   <p className="text-[#4E4F52] text-[14px]">Name</p>
                   <p className="text-[#181818] text-[14px]">
-                    {cars.holder.name} {cars.holder.surname}
+                    {cars.holder?.name ?? ""} {cars.holder?.surname ?? ""}
                   </p>
                 </div>
                 <div className="flex justify-between mb-[6px]">
                   <p className="text-[#4E4F52] text-[14px]">Email Address</p>
                   <p className="text-[#181818] text-[14px]">
-                    {cars.holder.email}
+                    {cars.holder?.email ?? "Not Available"}
                   </p>
                 </div>
                 <div className="flex justify-between mb-[6px]">
                   <p className="text-[#4E4F52] text-[14px] ">Phone Number</p>
                   <p className="text-[#181818] text-[14px]">
-                    {cars.holder.phone}
+                    {cars.holder?.phone ?? "Not Available"}
                   </p>
                 </div>
                 {/* <div className="flex justify-between mb-[6px]"> */}

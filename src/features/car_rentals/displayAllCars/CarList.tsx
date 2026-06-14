@@ -16,11 +16,11 @@ import { Clock, Edit3Icon } from "lucide-react";
 import { MdOutlineSort } from "react-icons/md";
 import SortOverlay from "./SortOverlay";
 import { IoIosCheckmarkCircleOutline } from "react-icons/io";
-import { BookingFormData } from "../types/booking";
+import { BookingFormData, CarTransferOption } from "../types/booking";
 
 export interface CarListProps {
   departureInfo: BookingFormData;
-  searchResults: any;
+  searchResults: CarTransferOption[];
   loading: boolean;
   OpenForm: () => void;
   rate_key: string;
@@ -35,7 +35,7 @@ const CarList: React.FC<CarListProps> = ({
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const navigate = useNavigate();
 
-  const cars = searchResults || [];
+  const cars = useMemo(() => searchResults || [], [searchResults]);
 
   const [page, setPage] = useState<number>(1);
   const [showSortModal, setShowSortModal] = useState(false);
@@ -44,20 +44,18 @@ const CarList: React.FC<CarListProps> = ({
   >("Recommended");
   console.log(departureInfo);
 
+  const getCancellationAmount = (car: CarTransferOption) =>
+    car.cancellationPolicies?.[0]?.amount ?? 0;
+  const getTransferDetail = (car: CarTransferOption, index: number) =>
+    car.content?.transferDetailInfo?.[index];
+
   const sortedCars = useMemo(() => {
+    const items = [...cars];
     if (sortOrder === "Low to High") {
-      return [...cars]?.sort(
-        (a, b) =>
-          (a.cancellationPolicies[0]?.amount ?? 0) -
-          (b.cancellationPolicies[0]?.amount ?? 0)
-      );
+      return items.sort((a, b) => getCancellationAmount(a) - getCancellationAmount(b));
     }
     if (sortOrder === "High to Low") {
-      return [...cars]?.sort(
-        (a, b) =>
-          (b.cancellationPolicies[0]?.amount ?? 0) -
-          (a.cancellationPolicies[0]?.amount ?? 0)
-      );
+      return items.sort((a, b) => getCancellationAmount(b) - getCancellationAmount(a));
     }
     return cars; // recommended or default order
   }, [cars, sortOrder]);
@@ -73,9 +71,9 @@ const CarList: React.FC<CarListProps> = ({
     );
   }, [sortedCars, page]);
 
-  const handleSubmitOffer = (car: any) => {
+  const handleSubmitOffer = (car: CarTransferOption) => {
     navigate(
-      `/cars-booking?transfers=${car.vehicle.name}&from=${car?.pickupInformation.from.description}&to=${car?.pickupInformation.to.description}&price=${car?.cancellationPolicies[0]?.amount}`,
+      `/cars-booking?transfers=${car.vehicle.name || ""}&from=${car?.pickupInformation?.from?.description || ""}&to=${car?.pickupInformation?.to?.description || ""}&price=${car?.cancellationPolicies?.[0]?.amount || ""}`,
       {
         state: {
           car,
@@ -132,7 +130,7 @@ const CarList: React.FC<CarListProps> = ({
 
           <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 ">
             {paginatedItems.length > 0 ? (
-              paginatedItems.map((car: any) => (
+              paginatedItems.map((car) => (
                 <Card
                   key={car?.id}
                   className="p-[20px] w-[100%] cursor-pointer"
@@ -141,7 +139,8 @@ const CarList: React.FC<CarListProps> = ({
                   <div className="flex justify-normal items-center  gap-3 pb-4">
                     <img
                       src={
-                        car?.content?.images[0]?.url || `../assets/carImage.png`
+                        car?.content?.images?.[0]?.url ||
+                        `../assets/carImage.png`
                       }
                       alt=""
                       className="w-28 h-24 object-contain bg-[#0000001A] rounded-lg"
@@ -150,26 +149,22 @@ const CarList: React.FC<CarListProps> = ({
                       {car?.vehicle.code} {car?.vehicle.name}
                     </p>
                   </div>
-                  {/* {car?.content?.transferDetailInfo.map((item: any) => ( */}
+                  {/* {car?.content?.transferDetailInfo.map((item) => ( */}
                   <div className="flex flex-col  gap-[3px] mb-[10px] mt-[10px]">
                     <div className="text-[14px]">
                       <AirlineSeatReclineNormalIcon />
                       <span>
-                        {car?.content?.transferDetailInfo[2]?.value ||
-                          car?.content?.transferDetailInfo[2]?.description.slice(
-                            0,
-                            2
-                          )}
-                        {car?.content?.transferDetailInfo[2]?.description &&
-                          `Seats`}
+                        {getTransferDetail(car, 2)?.value ||
+                          getTransferDetail(car, 2)?.description?.slice(0, 2)}
+                        {getTransferDetail(car, 2)?.description && `Seats`}
                       </span>
                     </div>
 
                     <div className="text-[14px]">
                       <LuggageOutlinedIcon />
                       <span>
-                        {car?.content?.transferDetailInfo[3]?.value}{" "}
-                        {car?.content?.transferDetailInfo[3]?.description}
+                        {getTransferDetail(car, 3)?.value}{" "}
+                        {getTransferDetail(car, 3)?.description}
                       </span>
                     </div>
                   </div>
@@ -182,8 +177,8 @@ const CarList: React.FC<CarListProps> = ({
                         <Clock />
                       </i>
                       <p className="text-xs">
-                        {car?.content?.transferDetailInfo[0]?.value}{" "}
-                        {car?.content?.transferDetailInfo[0]?.description}
+                        {getTransferDetail(car, 0)?.value}{" "}
+                        {getTransferDetail(car, 0)?.description}
                       </p>
                     </div>
                     <div className="flex gap-[2px] items-center">
@@ -211,7 +206,7 @@ const CarList: React.FC<CarListProps> = ({
                     <div>
                       <p className="text-[13px]">Price</p>
                       <p className="text-[14px] font-bold">
-                        €{car?.cancellationPolicies[0]?.amount}
+                        €{getCancellationAmount(car)}
                       </p>
                     </div>
 
@@ -305,7 +300,7 @@ const CarList: React.FC<CarListProps> = ({
 
           <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 pb-20">
             {paginatedItems.length > 0 ? (
-              paginatedItems.map((car: any) => (
+              paginatedItems.map((car) => (
                 <Card
                   key={car?.id}
                   className="p-[20px] w-[100%] cursor-pointer "
@@ -313,7 +308,8 @@ const CarList: React.FC<CarListProps> = ({
                   <div className="flex justify-normal items-center  gap-3 pb-4">
                     <img
                       src={
-                        car?.content?.images[0]?.url || `../assets/carImage.png`
+                        car?.content?.images?.[0]?.url ||
+                        `../assets/carImage.png`
                       }
                       alt=""
                       className="w-28 h-24 object-contain bg-[#0000001A] rounded-lg"
@@ -326,21 +322,17 @@ const CarList: React.FC<CarListProps> = ({
                     <div className="text-[14px]">
                       <AirlineSeatReclineNormalIcon />
                       <span>
-                        {car?.content?.transferDetailInfo[2]?.value ||
-                          car?.content?.transferDetailInfo[2]?.description.slice(
-                            0,
-                            2
-                          )}
-                        {car?.content?.transferDetailInfo[2]?.description &&
-                          `Seats`}
+                        {getTransferDetail(car, 2)?.value ||
+                          getTransferDetail(car, 2)?.description?.slice(0, 2)}
+                        {getTransferDetail(car, 2)?.description && `Seats`}
                       </span>
                     </div>
 
                     <div className="text-[14px]">
                       <LuggageOutlinedIcon />
                       <span>
-                        {car?.content?.transferDetailInfo[3]?.value}{" "}
-                        {car?.content?.transferDetailInfo[3]?.description}
+                        {getTransferDetail(car, 3)?.value}{" "}
+                        {getTransferDetail(car, 3)?.description}
                       </span>
                     </div>
                   </div>
@@ -351,8 +343,8 @@ const CarList: React.FC<CarListProps> = ({
                         <Clock />
                       </i>
                       <p className="">
-                        {car?.content?.transferDetailInfo[0]?.value}{" "}
-                        {car?.content?.transferDetailInfo[0]?.description}
+                        {getTransferDetail(car, 0)?.value}{" "}
+                        {getTransferDetail(car, 0)?.description}
                       </p>
                     </div>
                     <div className="flex gap-[2px] items-center">
@@ -379,7 +371,7 @@ const CarList: React.FC<CarListProps> = ({
                     <div>
                       <p className="text-[13px]">Price</p>
                       <p className="text-[14px] font-bold">
-                        €{car?.cancellationPolicies[0]?.amount}
+                        €{getCancellationAmount(car)}
                       </p>
                     </div>
 

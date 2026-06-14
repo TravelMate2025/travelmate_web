@@ -13,6 +13,9 @@ import {
 } from "../../services/locationService";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 
+function toErrorString(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}
 export interface SearchLocationProps {
   closeDialog: () => void;
   value: string;
@@ -62,8 +65,9 @@ const SearchDropOffLocation = ({
           setError("Please enter at least 3 characters");
           setDropSuggestions([]);
         }
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch destinations");
+      } catch (err: unknown) {
+        const msg = toErrorString(err);
+        setError(msg || "Failed to fetch destinations");
         setDropSuggestions([]);
       } finally {
         setLoading(false);
@@ -160,7 +164,7 @@ const SearchDropOffLocation = ({
               "&::-webkit-scrollbar-thumb:hover": { background: "#555" },
             }}
           >
-            {loading ? (
+              {loading ? (
               <div className="text-center py-4">Loading...</div>
             ) : dropSuggestions.length === 0 && !loading && query.length > 3 ? (
               <div className="text-center py-4">
@@ -169,7 +173,7 @@ const SearchDropOffLocation = ({
             ) : (
               dropSuggestions.map((location, index) => (
                 <div
-                  key={index}
+                  key={location.placeId ?? index}
                   className="flex justify-between w-full items-center cursor-pointer hover:bg-gray-100 rounded mt-3 pl-3"
                 >
                   <RoomOutlinedIcon
@@ -177,7 +181,6 @@ const SearchDropOffLocation = ({
                     sx={{ fontSize: "20px" }}
                   />
                   <ListItem
-                    key={location.placeId}
                     onClick={() => handleSelect(location)}
                   >
                     <ListItemText primary={location.name} />

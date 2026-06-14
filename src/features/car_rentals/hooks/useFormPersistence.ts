@@ -2,9 +2,12 @@ import { useCallback, useEffect, useRef } from 'react';
 import { BookingFormData } from '../types/booking';
 
 // Custom debounce function
-const debounce = <T extends (...args: any[]) => void>(func: T, delay: number) => {
+const debounce = <TArgs extends unknown[]>(
+  func: (...args: TArgs) => void,
+  delay: number
+) => {
   let timer: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>) => {
+  return (...args: TArgs) => {
     clearTimeout(timer);
     timer = setTimeout(() => func(...args), delay);
   };

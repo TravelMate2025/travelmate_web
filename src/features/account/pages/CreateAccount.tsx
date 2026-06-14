@@ -11,6 +11,25 @@ import { useDispatch } from "react-redux";
 import { loginSuccess } from "../slices/authSlice";
 // import { facebookLogin } from "../utils/firebase";
 
+type ApiErrorLike = {
+  response?: {
+    data?: {
+      Message?: string;
+      error?: string;
+      non_field_errors?: string[];
+    };
+  };
+};
+
+const getErrorMessage = (error: unknown): string => {
+  const apiError = error as ApiErrorLike;
+  return (
+    apiError.response?.data?.Message ||
+    apiError.response?.data?.error ||
+    "Failed to send verification email. Please try again."
+  );
+};
+
 export default function CreateAccount() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -35,20 +54,15 @@ export default function CreateAccount() {
       } else {
         toast.error(res?.Message || "Failed to send verification email. Please try again.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
 
-      if (err?.response?.data?.Message === "Enter your password to log in.") {
+      if ((err as ApiErrorLike)?.response?.data?.Message === "Enter your password to log in.") {
         navigate("/login", { state: { email } });
         return;
       }
 
-      const message =
-        err?.response?.data?.Message ||
-        err?.response?.data?.error ||
-        "Failed to send verification email. Please try again.";
-
-      toast.error(message);
+      toast.error(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -104,9 +118,9 @@ export default function CreateAccount() {
           toast.error("Unexpected response format. Please try again.");
           console.error("Unexpected Google login response:", res);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Google login failed:", error);
-        const backendError = error?.response?.data;
+        const backendError = (error as ApiErrorLike)?.response?.data;
 
         if (
           backendError?.non_field_errors?.includes(

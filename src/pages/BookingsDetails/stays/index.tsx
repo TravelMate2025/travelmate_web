@@ -10,7 +10,7 @@ import ContactDetails from "../../../features/stays/components/confirmation/Cont
 import Footer from "../../../components/2Footer";
 import ShareModal from "../../../features/stays/components/modals/ShareModal";
 import SkeletonConfirm from "../../../features/car_rentals/carPaidFor/Skeleton";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   CancelStaysBookings,
@@ -22,12 +22,16 @@ import { TbInfoTriangle } from "react-icons/tb";
 import ConfirmCancel from "./ConfirmCancel";
 import WriteAReview from "./WriteAReview";
 
+type CancelledBooking = BookingDetailsVerifyData & {
+  cancelled_at?: string;
+};
+
 const BookingStaysDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const [showShareModal, setShowShareModal] = useState(false);
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [booking, setBooking] = useState<BookingDetailsVerifyData>();
+  const [booking, setBooking] = useState<CancelledBooking>();
   const searchParams = new URLSearchParams(location.search);
   const sessionId = searchParams?.get("session_id");
   const [downloadLoading, setDownloadLoading] = useState(false);
@@ -41,7 +45,7 @@ const BookingStaysDetailsPage: React.FC = () => {
       try {
         setLoading(true);
         const res = await verifyHotelBooking(sessionId);
-        setBooking(res?.data || null);
+        setBooking(res?.data);
       } catch (error) {
         console.error("Error fetching booking:", error);
       } finally {
@@ -54,14 +58,18 @@ const BookingStaysDetailsPage: React.FC = () => {
 
   if (loading) return <SkeletonConfirm />;
 
-  const handleDownload = (cars: any) => {
+  const handleDownload = (cars: BookingDetailsVerifyData | undefined) => {
+    if (!cars) {
+      toast.error("No booking data available to download");
+      return;
+    }
     try {
       setDownloadLoading(true);
       window.open(
         `/stays-paid/download?data=${encodeURIComponent(JSON.stringify(cars))}`,
         "_blank",
       );
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to download, try again ");
     } finally {
       setDownloadLoading(false);
@@ -92,8 +100,8 @@ const BookingStaysDetailsPage: React.FC = () => {
       );
       toast.success("Booking cancelled successfully");
 
-      setBooking((prev: any) => {
-        if (!prev) return null;
+      setBooking((prev) => {
+        if (!prev) return undefined;
         return {
           ...prev,
           status: "CANCELLED",
@@ -103,9 +111,10 @@ const BookingStaysDetailsPage: React.FC = () => {
 
       setCancelSubmitted(true);
       setOpenConfirm(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to cancel booking";
       console.error("Error cancelling booking:", error);
-      toast.error(error.message || "Failed to cancel booking");
+      toast.error(message);
     }
   };
 
@@ -191,8 +200,8 @@ const BookingStaysDetailsPage: React.FC = () => {
               </p>
               <p className="text-gray-500">
                 Cancellation made on{" "}
-                {new Date(booking?.cancelled_at).toLocaleDateString()} at{" "}
-                {new Date(booking?.cancelled_at).toLocaleTimeString()}
+                {new Date(booking?.cancelled_at ?? "").toLocaleDateString()} at{" "}
+                {new Date(booking?.cancelled_at ?? "").toLocaleTimeString()}
               </p>
             </div>
           </div>

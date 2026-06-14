@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import hotelImage from "../../../assets/images/StayImage3.png";
 import { BookingDetailsVerifyData } from "../../../features/stays/types";
 import { getReviews, submitReview } from "../../../features/stays/api";
-import {message} from "antd"
+import toast from "react-hot-toast";
 
 type props = {
   closeModal: () => void;
@@ -35,7 +35,7 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
         ratings.value,
       );
 
-      message.success("Review Added Successfully")
+      toast.success("Review Added Successfully");
       closeModal();
     } catch (error) {
       console.log(error);
@@ -84,8 +84,8 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
         console.error(error);
       }
     };
-    fetchReviews();
-  },[]);
+    void fetchReviews();
+  }, [bookings?.id]);
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[999999] ">
