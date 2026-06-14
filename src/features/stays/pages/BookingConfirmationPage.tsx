@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Navbar from "../../../pages/homePage/Navbar";
 import { FaShareAlt, FaDownload } from "react-icons/fa";
 import { GrStatusGood } from "react-icons/gr";
@@ -13,7 +13,7 @@ import Footer from "../../../components/2Footer";
 import ShareModal from "../components/modals/ShareModal";
 import SkeletonConfirm from "../../car_rentals/carPaidFor/Skeleton";
 import CarFailedPayment from "../../car_rentals/carPaidFor/CarFailedPayment";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { useLocation } from "react-router-dom";
 import { verifyHotelBooking } from "../api";
 import { BookingDetailsVerifyData } from "../types";
@@ -25,44 +25,46 @@ const BookingConfirmationPage: React.FC = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [booking, setBooking] = useState<BookingDetailsVerifyData>();
-  const searchParams = new URLSearchParams(location.search);
-  const sessionId = searchParams?.get("session_id");
+  const searchParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
+  const sessionId = searchParams.get("session_id");
   const [downloadLoading, setDownloadLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchBooking = async () => {
-      const isSuccess =
-        searchParams.has("success") || location.pathname.includes("success");
-      try {
-        setLoading(true);
-        if (isSuccess) {
-          const res = await verifyHotelBooking(sessionId);
-          setBooking(res?.data || null);
-        } else {
-          return <CarFailedPayment />;
-        }
-      } catch (error) {
-        console.error("Error fetching booking:", error);
-        return <CarFailedPayment/>
-      } finally {
-        setLoading(false);
+  const fetchBooking = useCallback(async () => {
+    const isSuccess =
+      searchParams.has("success") || location.pathname.includes("success");
+    try {
+      setLoading(true);
+      if (isSuccess) {
+        const res = await verifyHotelBooking(sessionId);
+        setBooking(res?.data);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching booking:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [location.pathname, searchParams, sessionId]);
 
-    if (sessionId) fetchBooking();
-  }, [sessionId]);
+  useEffect(() => {
+    if (sessionId) {
+      void fetchBooking();
+    }
+  }, [fetchBooking, sessionId]);
 
   if (loading) return <SkeletonConfirm />;
   if (!booking) return <CarFailedPayment/>;
 
-  const handleDownload = (cars: any) => {
+  const handleDownload = (bookingData: BookingDetailsVerifyData) => {
     try {
       setDownloadLoading(true);
       window.open(
-        `/stays-paid/download?data=${encodeURIComponent(JSON.stringify(cars))}`,
+        `/stays-paid/download?data=${encodeURIComponent(JSON.stringify(bookingData))}`,
         "_blank"
       );
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to download, try again ");
     } finally {
       setDownloadLoading(false);

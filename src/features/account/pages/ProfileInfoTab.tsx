@@ -24,6 +24,14 @@ interface UserProfile {
   address: string | null;
 }
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: string }).message;
+    return message || fallback;
+  }
+  return fallback;
+};
+
 export function ProfileInfoSettings() {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [showBasicInfoModal, setShowBasicInfoModal] = useState(false);
@@ -63,9 +71,9 @@ export function ProfileInfoSettings() {
         }
 
         dispatch(setProfileInRedux(profileData));
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("⚠️ Error loading profile:", err);
-        setError(err.message || "Failed to load profile information.");
+        setError(getErrorMessage(err, "Failed to load profile information."));
       } finally {
         setTimeout(() => {
           setIsLoading(false);
@@ -74,7 +82,7 @@ export function ProfileInfoSettings() {
     };
 
     loadUserProfile();
-  }, [accessToken]);
+  }, [accessToken, dispatch]);
 
 
   if(isLoading){

@@ -16,9 +16,9 @@
     profileImage?: string | null;
   }
   
-  export interface Message {
-    sender_info?: SenderInfo;
-    file_type: any;
+export interface Message {
+  sender_info?: SenderInfo;
+    file_type?: string | null;
     id?: number;
     content: string;
     sender: string;

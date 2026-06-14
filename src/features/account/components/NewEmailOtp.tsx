@@ -9,13 +9,17 @@ import { useNavigate } from "react-router-dom";
 
 type EmailOtpProps = {
   handleResendOtp: () => Promise<void>;
-  handleConfirmEmail: (userNewEmail: string, userToken:string) => Promise<void>;
+  handleConfirmEmail: (_userNewEmail: string, _userToken:string) => Promise<void>;
   loading: boolean;
   error?: string;
   NewEmail: string;
-  setEmailUpdatedSuccessfully: (value:boolean) => void;
+  setEmailUpdatedSuccessfully: (_value:boolean) => void;
   emailUpdatedSuccessfully: boolean;
 };
+
+function toErrorString(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}
 
 function NewEmailOtp({
   handleResendOtp,
@@ -26,18 +30,15 @@ function NewEmailOtp({
   setEmailUpdatedSuccessfully,
   emailUpdatedSuccessfully
 }: EmailOtpProps) {
-  const user = useSelector((state: RootState) => state.auth.user);
-  if (!user) return null;
-
   const [otp, setOtp] = useState(Array(4).fill(""));
   const inputRef = useRef<(HTMLInputElement | null)[]>([]);
   const [countDown, setCountDown] = useState(10);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.auth.user);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const [logoutLoading, setLogoutLoading] = useState(false);
-
 
   const handleLogout = async () => {
     if (!accessToken) {
@@ -51,8 +52,8 @@ function NewEmailOtp({
         dispatch(logout());
         localStorage.clear();
         navigate("/create-account");
-      } catch (error) {
-        console.error("Logout failed", error);
+      } catch (error: unknown) {
+        console.error("Logout failed", toErrorString(error));
         toast.error("Logout failed. Please try again.");
       } finally {
         setLogoutLoading(false);
@@ -112,6 +113,8 @@ function NewEmailOtp({
     return () => clearInterval(countInterval);
   }, [countDown]);
 
+  if (!user) return null;
+
   return (
 
     <div>
@@ -167,11 +170,11 @@ function NewEmailOtp({
           <p
             onClick={async () => {
               try {
-                await handleResendOtp();
-                setCountDown(10); // Restart countdown after resend
-              } catch (error) {
-                console.error("Failed to resend OTP:", error);
-              }
+                  await handleResendOtp();
+                  setCountDown(10); // Restart countdown after resend
+                } catch (error: unknown) {
+                    console.error("Failed to resend OTP:", toErrorString(error));
+                }
             }}
             className="text-blue-800 text-[14px] font-semibold cursor-pointer"
           >

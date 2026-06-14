@@ -5,6 +5,10 @@ interface props {
   booking: BookingDetailsVerifyData|undefined;
 }
 
+type RoomDetail = {
+  name?: string;
+};
+
 const RoomDetails = ({ booking }: props) => {
   if (!booking?.rooms_details?.length)
     return (
@@ -19,12 +23,14 @@ const RoomDetails = ({ booking }: props) => {
     <div className="bg-white">
       <h2 className="text-lg font-semibold mb-2 sm:mb-4">Room Details</h2>
       <div className="sm:p-6 rounded-lg sm:border border-gray-300">
-        {booking?.rooms_details.map((room) => (
-          <div className="flex justify-normal gap-2">
+        {booking?.rooms_details.map((room) => {
+          const roomDetail = room as RoomDetail | undefined;
+          return (
+          <div className="flex justify-normal gap-2" key={roomDetail?.name ?? Math.random()}>
             <Bed />
-            <p className="capitalize">{room?.name.toLowerCase() || "N/A"}</p>
+            <p className="capitalize">{roomDetail?.name?.toLowerCase() || "N/A"}</p>
           </div>
-        ))}
+        );})}
       </div>
     </div>
   );

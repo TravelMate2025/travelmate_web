@@ -9,16 +9,66 @@ import RefundCancellation from "../components/booking-progress/RefundCancellatio
 import Policies from "../components/booking-progress/Policies";
 import Footer from "../../../components/2Footer";
 import { useState } from "react";
-import Stepper from "react-stepper-horizontal";
 import { IoChevronBack } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { createBookingAsync } from "../slice";
 import { RootState, AppDispatch } from "../../../store";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { Info, Loader } from "lucide-react";
 import { BookStaysRequest } from "../types";
+import type { GuestInfoProps } from "../slice";
+
+type BookingGuestInfo = GuestInfoProps & {
+  address: string;
+  postal: string;
+  city: string;
+};
+
+const steps = [
+  { title: "Booking Overview" },
+  { title: "Guest Information" },
+  { title: "Payment Details" },
+];
+
+const BookingStepper = ({ activeStep }: { activeStep: number }) => (
+  <div className="w-full max-w-3xl">
+    <div className="flex items-center justify-between gap-4">
+      {steps.map((step, index) => {
+        const isComplete = index < activeStep;
+        const isActive = index === activeStep;
+
+        return (
+          <div key={step.title} className="flex flex-1 flex-col items-center text-center">
+            <div
+              className={`flex size-8 items-center justify-center rounded-full border text-sm font-semibold ${
+                isComplete || isActive
+                  ? "border-[#023E8A] bg-[#023E8A] text-white"
+                  : "border-gray-300 bg-white text-gray-500"
+              }`}
+            >
+              {isComplete ? <FaCheck size={12} /> : index + 1}
+            </div>
+            <p className={`mt-2 text-xs sm:text-sm ${isComplete || isActive ? "text-[#023E8A]" : "text-gray-500"}`}>
+              {step.title}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+    <div className="mt-4 flex items-center gap-2">
+      {steps.map((step, index) => (
+        <div
+          key={`${step.title}-bar`}
+          className={`h-1 flex-1 rounded-full ${
+            index <= activeStep ? "bg-[#023E8A]" : "bg-gray-200"
+          }`}
+        />
+      ))}
+    </div>
+  </div>
+);
 
 const BookingProgress: React.FC = () => {
   const cancellationDate = new Date();
@@ -39,7 +89,7 @@ const BookingProgress: React.FC = () => {
   const [isChecked, setIsChecked] = useState(false);
   // const [isValid, setIsValid] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
-  const [guestInfo, setGuestInfo] = useState({
+  const [guestInfo, setGuestInfo] = useState<BookingGuestInfo>({
     firstName: "",
     lastName: "",
     email: "",
@@ -51,7 +101,7 @@ const BookingProgress: React.FC = () => {
     city: "",
   });
 
-  const [errors, setErrors] = useState({
+  const [errors, setErrors] = useState<Partial<Record<keyof GuestInfoProps, string>>>({
     firstName: "",
     lastName: "",
     dateOfBirth: "",
@@ -63,7 +113,7 @@ const BookingProgress: React.FC = () => {
     city: "",
   });
   const validatePersonalInfo = () => {
-    const newErrors: any = {};
+    const newErrors: Partial<Record<keyof GuestInfoProps, string>> = {};
     if (!guestInfo.firstName.trim())
       newErrors.firstName = "First name is required.";
     if (!guestInfo.lastName.trim())
@@ -155,7 +205,6 @@ const BookingProgress: React.FC = () => {
   return (
     <div>
       <Navbar />
-      <ToastContainer />
 
       <div className="md:w-full lg:px-10 px-4 mx-auto my-28 space-y-6">
         <div className="px-4 py-2 flex gap-6">
@@ -176,20 +225,7 @@ const BookingProgress: React.FC = () => {
         </div>
 
         <div className="lg:px-4 justify-center flex items-center">
-          <Stepper
-            steps={[
-              { title: "Booking Overview" },
-              { title: "Guest Information" },
-              { title: "Payment Details" },
-            ]}
-            activeStep={currentStep}
-            activeColor="#023E8A"
-            completeColor="#023E8A"
-            completeBarColor="#023E8A"
-            completeIcon={<FaCheck size={14} color="white" />}
-            size={26}
-            circleFontSize={14}
-          />
+          <BookingStepper activeStep={currentStep} />
         </div>
 
         {/* {error && (

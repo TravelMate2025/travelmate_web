@@ -55,7 +55,7 @@ export interface Room {
 }
 
 export interface Hotel {
-  reviewsCount: any;
+  reviewsCount: number | null;
   code: string;
   name: string;
   accommodation_type?: string;
@@ -112,7 +112,7 @@ export interface BookStaysResponse {
 export interface UserSummary {
   id: number;
   email?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 export interface HotelLocationDetails {
   address: string;
@@ -123,9 +123,9 @@ export interface HotelLocationDetails {
     name?: string;
     city_name?: string;
     country_name?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface GuestDetails {
@@ -133,7 +133,7 @@ export interface GuestDetails {
   additional_adults?: Customer[];
   children?: Child[];
   special_requests?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 export interface BookingDetailsVerifyData {
   id: number;
@@ -152,10 +152,10 @@ export interface BookingDetailsVerifyData {
   cancellation_reason?: string | null;
   refund_amount?: string | null;
   refund_status?: string;
-  rooms_details?: any[]; // keep as any[] unless you have a concrete shape
+  rooms_details?: unknown[]; // unknown[] until concrete shape is defined
   guest_details?: GuestDetails | undefined;
   hotel_location?: HotelLocationDetails;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 export interface BookingStaysVerifyDetails {
   success: boolean;

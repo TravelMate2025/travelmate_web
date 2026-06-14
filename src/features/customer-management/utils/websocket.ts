@@ -1,10 +1,13 @@
 
+// Type is used for callback signatures; allow unused parameter name in type.
+type MessageCallback = (data: unknown) => void;
+
 export class ChatWebSocket {
     private socket: WebSocket | null = null;
     public sessionId: number;
     private token: string;
   
-    private onMessageCallback: ((message: any) => void) | null = null;
+    private onMessageCallback: MessageCallback | null = null;
     private onOpenCallback: (() => void) | null = null;
     private onCloseCallback: (() => void) | null = null;
   
@@ -24,10 +27,15 @@ export class ChatWebSocket {
         if (this.onOpenCallback) this.onOpenCallback();
       };
   
-      this.socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log("WebSocket message received:", data);
-        if (this.onMessageCallback) this.onMessageCallback(data);
+      this.socket.onmessage = (event: MessageEvent) => {
+        try {
+          const raw = typeof event.data === 'string' ? event.data : JSON.stringify(event.data);
+          const data = JSON.parse(raw);
+          console.log("WebSocket message received:", data);
+          if (this.onMessageCallback) this.onMessageCallback(data);
+        } catch (e) {
+          console.warn("Failed to parse WebSocket message", e);
+        }
       };
   
       this.socket.onclose = (event) => {
@@ -47,13 +55,13 @@ export class ChatWebSocket {
           return reject(new Error("WebSocket not open"));
         }
 
-        const payload: any = { message };
+        const payload: Record<string, unknown> = { message };
 
         if (file) {
           const reader = new FileReader();
 
           reader.onload = () => {
-            payload.attachment = reader.result;
+            payload.attachment = reader.result as string | ArrayBuffer | null;
             console.log("[WebSocket] 🚀 File read complete. Sending:", payload);
             this.socket!.send(JSON.stringify(payload));
             resolve();
@@ -74,7 +82,7 @@ export class ChatWebSocket {
   }
 
   
-    onMessage(callback: (message: any) => void) {
+    onMessage(callback: MessageCallback) {
       this.onMessageCallback = callback;
     }
   

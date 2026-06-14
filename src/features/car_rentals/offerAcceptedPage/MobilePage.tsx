@@ -6,7 +6,6 @@ import { Info, Loader } from "lucide-react";
 import { useState } from "react";
 import Complete from "./Complete";
 import { DeskProps } from "./Page";
-import { ToastContainer } from "react-toastify";
 import CountryCodeModal from "../../stays/components/modals/CountryCodeModal";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
@@ -60,7 +59,6 @@ const MobilePage = ({
 
   return (
     <div>
-      <ToastContainer />
       {showAllModal && (
         <Complete closeDialog={() => setShowAllModal(false)} car={car} />
       )}
@@ -90,7 +88,7 @@ const MobilePage = ({
             alternativeLabel
             connector={<CustomConnector />}
           >
-            {steps.map((label: any, index) => (
+            {steps.map((label: string, index: number) => (
               <Step key={index}>
                 <StepLabel
                   StepIconProps={{
@@ -205,7 +203,7 @@ const MobilePage = ({
                 (activeStep === 1 && !isTheFormValid)
               }
               onClick={() => {
-                activeStep === 0 ? handleNext() : handleConfirm();
+                if (activeStep === 0) { handleNext(); } else { handleConfirm(); }
               }}
             >
               <span>Continue</span>

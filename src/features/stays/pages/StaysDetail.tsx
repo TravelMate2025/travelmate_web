@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom"; // Import useParams
 import { useSelector } from "react-redux"; // Import Redux hooks
 import { RootState } from "../../../store";
@@ -41,6 +41,15 @@ import { getReviews } from "../api";
 import SelectOptions from "../components/modals/SelectOptions";
 import { Rate } from "../types";
 
+type Review = {
+  id: number;
+  rating: number;
+  date: string;
+  title: string;
+  content: string;
+  name: string;
+};
+
 const StaysDetail: React.FC = () => {
   const { hotelId } = useParams<{ hotelId: string }>(); // Get hotelId from URL
   const navigate = useNavigate();
@@ -71,7 +80,7 @@ const StaysDetail: React.FC = () => {
   const visibleCount = 8;
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   // Effect to fetch hotel details when component mounts or hotelId/accessToken changes
 
   // Sync the carousel with the current index when a navigation dot is clicked
@@ -86,15 +95,13 @@ const StaysDetail: React.FC = () => {
   };
 
   // Handle manual scrolling
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (carouselRef.current) {
       const scrollLeft = carouselRef.current.scrollLeft;
-      const newIndex = Math.floor(scrollLeft / carouselRef.current.offsetWidth); // Use offsetWidth
-      if (newIndex !== currentIndex) {
-        setCurrentIndex(newIndex);
-      }
+      const newIndex = Math.floor(scrollLeft / carouselRef.current.offsetWidth);
+      setCurrentIndex((prev) => (prev === newIndex ? prev : newIndex));
     }
-  };
+  }, []);
 
   // Listen for scroll events to update the current index
   useEffect(() => {
@@ -126,7 +133,7 @@ const StaysDetail: React.FC = () => {
       }
       window.removeEventListener("resize", handleResize);
     };
-  }, [currentIndex]);
+  }, [handleScroll]);
 
   const handleShowPhotosClick = () => {
     setShowPhotosModal(true);
@@ -157,7 +164,7 @@ const StaysDetail: React.FC = () => {
     const fetchReviews = async () => {
       try {
         const response = await getReviews(hotelId || "");
-        setReviews(response);
+        setReviews((response ?? []) as Review[]);
       } catch (error) {
         console.error("Error fetching reviews:", error);
       }
@@ -188,8 +195,8 @@ const StaysDetail: React.FC = () => {
     { name: selectedHotel?.name || "Hotel Details" },
   ];
 
-  const amenities =
-    selectedHotel?.amenities?.map((amenity) => ({
+  const amenities: { icon: JSX.Element; name: string }[] =
+    selectedHotel?.amenities?.map((amenity: string) => ({
       icon: <FaCheckCircle className="text-blue-600" />,
       name: amenity,
     })) || [];
@@ -481,7 +488,7 @@ const StaysDetail: React.FC = () => {
 
           <div className="grid grid-cols-1 gap-4 mt-2 md:grid-cols-3 lg:grid-cols-4">
             {!isMobile &&
-              amenities.map((item: any, index: any) => (
+              amenities.map((item, index) => (
                 <p key={index} className="flex items-center gap-2">
                   {item.icon} {item.name}
                 </p>

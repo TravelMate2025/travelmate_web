@@ -16,7 +16,7 @@ import { PiSignpostFill } from "react-icons/pi";
 interface GuestInformationProps {
   onGuestInfoChange: (info: GuestInfoProps) => void;
   formData: GuestInfoProps;
-  errors: GuestInfoProps;
+  errors: Partial<Record<keyof GuestInfoProps, string>>;
 }
 
 const GuestInformation: React.FC<GuestInformationProps> = ({
@@ -27,11 +27,6 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
 }) => {
   const [useProfileInfo, setUseProfileInfo] = useState(false);
   const [modal, setModal] = useState(false);
-  const [state, setState] = useState({
-    gilad: true,
-    jason: false,
-    antoine: true,
-  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -41,9 +36,8 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
   };
 
   const handleProfileSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUseProfileInfo(!useProfileInfo);
     const checked = e.target.checked;
-    setState((prev: any) => ({ ...prev, jason: checked }));
+    setUseProfileInfo(checked);
     handleChange(e);
 
     const userInfo = JSON.parse(localStorage.getItem("persist:root") || "{}");
@@ -138,9 +132,9 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
               className="w-full "
               control={
                 <Switch
-                  checked={state.jason}
+                  checked={useProfileInfo}
                   onChange={handleProfileSwitch}
-                  name="jason"
+                  name="useProfileInfo"
                 />
               }
               label=""

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import Footer from "../components/2Footer";
 import Navbar from "./homePage/Navbar";
 import { InfoProvider } from "../features/account/api/info";
-import { Skeleton } from "antd";
+import Skeleton from "@mui/material/Skeleton";
 
 export function AboutPage() {
   const [loading, setLoading] = useState(false);
@@ -42,7 +42,13 @@ export function AboutPage() {
           </p>
           <div className="mt-6 text-sm lg:text-lg lg:mt-12">
             {loading ? (
-              <Skeleton active paragraph={{ rows: 5 }} />
+              <div className="space-y-3">
+                <Skeleton variant="text" width="92%" height={28} />
+                <Skeleton variant="text" width="100%" height={28} />
+                <Skeleton variant="text" width="96%" height={28} />
+                <Skeleton variant="text" width="90%" height={28} />
+                <Skeleton variant="text" width="84%" height={28} />
+              </div>
             ) : (
               <div
                 dangerouslySetInnerHTML={{

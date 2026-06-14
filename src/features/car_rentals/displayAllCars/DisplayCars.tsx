@@ -24,6 +24,7 @@ import CarList from "./CarList";
 import Navbar from "../../../pages/homePage/Navbar";
 import EmptyState from "./EmptyState";
 import { BookingFormData, PassengerCounts } from "../types/booking";
+import type { CarTransferOption } from "../types/booking";
 import { transferService } from "../services/transferService";
 import SearchDropOffLocation from "../carsFirstScreen/modals/searchDropOff";
 import SearchPickUpLocation from "../carsFirstScreen/modals/searchPickUp";
@@ -101,7 +102,7 @@ const DisplayCars: React.FC = () => {
       search_id: state.search_id,
       rate_key: "",
     } as BookingFormData;
-  }, [carInfo]);
+  }, [carInfo, state]);
 
   const {
     formData,
@@ -183,7 +184,7 @@ const DisplayCars: React.FC = () => {
       updateField("priceRange", { min, max });
       closeModal("priceRange");
     },
-    [updateField, openModal, closeModal]
+    [updateField, closeModal]
   );
 
   const handlePassengerUpdate = useCallback(
@@ -249,7 +250,10 @@ const DisplayCars: React.FC = () => {
       if (!result?.data?.results?.services) {
         throw new Error(result.error || "No transfer results found");
       }
-      updateField("searchResults", result?.data?.results?.services || []);
+      updateField(
+        "searchResults",
+        (result?.data?.results?.services || []) as CarTransferOption[]
+      );
       if (isMobile) {
         setForm(false);
       }
@@ -264,10 +268,10 @@ const DisplayCars: React.FC = () => {
     isValid,
     formData,
     isMobile,
+    setFormData,
     setLoading,
     setSubmitError,
     updateField,
-    transferService,
   ]);
   // Memoized display values
   const displayValues = useMemo(

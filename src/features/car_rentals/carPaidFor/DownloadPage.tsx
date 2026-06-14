@@ -2,14 +2,33 @@ import { Divider } from "@mui/material";
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
 import { useEffect, useState } from "react";
 import TravelMateLogo from "../../../assets/Logo.svg";
+import type { CarTransferOption } from "../types/booking";
+
+type BookingData = {
+  transfers?: CarTransferOption[];
+  reference?: string;
+  id?: string | number;
+  totalNetAmount?: string | number;
+  supplier?: {
+    name?: string;
+  };
+  holder?: {
+    name?: string;
+    surname?: string;
+    email?: string;
+    phone?: string;
+  };
+};
 
 const DownloadPage = () => {
   const search = new URLSearchParams(window.location.search);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  let bookingData: any = {};
+  let bookingData: BookingData = {};
   try {
-    bookingData = JSON.parse(search.get("data") || "{}");
-  } catch {}
+    bookingData = JSON.parse(search.get("data") || "{}") as BookingData;
+  } catch {
+    /* ignore JSON parse errors */
+  }
 
   useEffect(() => {
     if (isImageLoaded) {
@@ -21,14 +40,15 @@ const DownloadPage = () => {
 
   if (!bookingData) return <div>No booking data found.</div>;
 
-  const transfer = bookingData.transfers?.[0] || {};
-  const pickupInfo = transfer.pickupInformation || {};
-  const content = transfer.content || {};
+  const transfer = bookingData.transfers?.[0];
+  const pickupInfo = transfer?.pickupInformation || {};
+  const content = transfer?.content || {};
   const transferDetailInfo = content.transferDetailInfo || [];
-  const infoRemarks = content.transferRemarks[0].description;
-  const category = transfer.category || {};
+  const infoRemarks = content.transferRemarks?.[0]?.description;
+  const category = transfer?.category || {};
   const supplier = bookingData.supplier || {};
   const holder = bookingData.holder || {};
+  const paymentStatus = transfer?.status || "Not Available";
 
   return (
     <div>
@@ -55,7 +75,7 @@ const DownloadPage = () => {
               Payment Status
             </p>
             <p className="text-[#2D9C5E] text-[14px] font-normal">
-              {transfer.status}
+              {paymentStatus}
             </p>
           </div>
           <div className="flex justify-normal gap-2">
@@ -132,7 +152,7 @@ const DownloadPage = () => {
                   Type:
                 </p>
                 <p className="text-[#181818] text-[14px] font-inter">
-                  {category.name} Car
+                  {category.name || "Not Available"} Car
                 </p>
               </div>
               <div className="flex justify-normal gap-2">

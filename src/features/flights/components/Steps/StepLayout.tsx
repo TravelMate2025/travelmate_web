@@ -43,6 +43,7 @@ interface StepContextType {
 
 const StepContext = React.createContext<StepContextType | undefined>(undefined);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useStepContext = () => {
   const ctx = React.useContext(StepContext);
   if (!ctx) throw new Error("useStepContext must be used inside StepLayout");

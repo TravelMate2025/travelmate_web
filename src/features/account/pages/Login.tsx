@@ -19,6 +19,15 @@ import { fetchUserProfile } from "../api/profile";
 import { FaGoogle } from "react-icons/fa";
 import { useGoogleLogin } from "@react-oauth/google";
 
+type ApiErrorLike = {
+  response?: {
+    data?: {
+      Message?: string;
+      non_field_errors?: string[];
+    };
+  };
+};
+
 export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -101,9 +110,9 @@ export default function Login() {
         toast.success(`Welcome back, ${fullName || "User"}!`);
         navigate("/", { replace: true });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       let errorMsg = "Something went wrong. Please try again.";
-      const serverMessage = err.response?.data?.Message;
+      const serverMessage = (err as ApiErrorLike)?.response?.data?.Message;
 
       if (
         serverMessage &&
@@ -175,10 +184,10 @@ export default function Login() {
           toast.error("Unexpected response format. Please try again.");
           console.error("Unexpected Google login response:", res);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Google login failed:", error);
 
-        const backendError = error?.response?.data;
+        const backendError = (error as ApiErrorLike)?.response?.data;
 
         // Handle known error: already registered
         if (

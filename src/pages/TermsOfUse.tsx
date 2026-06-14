@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from "react";
 import Footer from "../components/2Footer";
 import { InfoProvider } from "../features/account/api/info";
 import Navbar from "./homePage/Navbar";
-import { Skeleton } from "antd";
+import Skeleton from "@mui/material/Skeleton";
 
 export function TermsOfUsePage() {
 
@@ -47,7 +47,13 @@ export function TermsOfUsePage() {
         </div>
         <div className="mt-6 text-sm lg:text-lg lg:mt-12">
           {loading ? (
-            <Skeleton active paragraph={{ rows: 5 }} />
+            <div className="space-y-3">
+              <Skeleton variant="text" width="94%" height={28} />
+              <Skeleton variant="text" width="100%" height={28} />
+              <Skeleton variant="text" width="97%" height={28} />
+              <Skeleton variant="text" width="90%" height={28} />
+              <Skeleton variant="text" width="82%" height={28} />
+            </div>
           ) : (
             <div
               dangerouslySetInnerHTML={{

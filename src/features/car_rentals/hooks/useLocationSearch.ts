@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { debounce } from 'lodash';
 import instance from '../../../utils/axiosConfig';
 
@@ -8,9 +8,9 @@ export const useLocationSearch = () => {
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
 
-    // Debounced search function
-    const debouncedSearch = useCallback(
-        debounce(async (query: string) => {
+    // Debounced search function — useMemo is correct here; useCallback can't analyse debounce deps
+    const debouncedSearch = useMemo(
+        () => debounce(async (query: string) => {
             if (!query.trim()) return;
 
             setSearchLoading(true);

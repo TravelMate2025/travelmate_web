@@ -8,62 +8,78 @@ import { transferService } from "../services/transferService";
 import toast from "react-hot-toast";
 import { RootState } from "../../../store";
 import { useSelector } from "react-redux";
-// import { useDispatch } from "react-redux";
-// import { resetForm } from "../carPaymentSlice";
+import type { Dispatch, SetStateAction } from "react";
 
-export type DeskProps = {
+export interface CarOfferInfo {
+  vehicle?: { name?: string; code?: string };
+  category?: { name?: string };
+  content?: {
+    images?: Array<{ url?: string }>;
+    transferDetailInfo?: Array<{ value?: string; description?: string }>;
+    transferRemarks?: Array<{ description?: string }>;
+  };
+  maxPaxCapacity?: number | string;
+  supplier?: { name?: string } | string;
+  price?: { totalAmountWithFee?: number | string };
+  rateKey?: string;
+}
+
+type DepartureInfo = {
+  pickupLocaDescription: string;
+  pickupDate: string;
+  pickupTime: string;
+  dropoffLocaDescription: string;
+  selectedRide: string;
+  priceRange: string;
+};
+
+type PassengerFormData = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  countryCode: string;
+};
+
+type FormDataState = {
+  agreement: boolean;
+};
+
+type StepState = {
+  gilad: boolean;
+  jason: boolean;
+  antoine: boolean;
+};
+
+export interface DeskProps {
+  activeStep: number;
+  steps: string[];
   handleBack: () => void;
   handleNext: () => void;
   handleConfirm: () => void;
-  steps: any[];
-  activeStep: number;
-  formData: {
-    agreement: boolean;
-  };
-
-  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  state: {
-    gilad: boolean;
-    jason: boolean;
-    antoine: boolean;
-  };
-  handleChangePayment: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  handleBlur: (event: React.FocusEvent<HTMLInputElement>) => void;
-  handleCheckboxChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  isFormValids: boolean;
   handleSubmit: () => void;
-  isFormValid: boolean;
-  isFormValids: boolean | string;
-  passFormData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    dateOfBirth: string;
-    countryCode: string;
-  };
-  setPassFormData: (passFormData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    dateOfBirth: string;
-    countryCode: string;
-    [key: string]: any;
-  }) => void;
-  isTheFormValid: boolean;
-  setIsTheFormValid: (isTheFormValid: boolean) => void;
-  setState: (state: any) => void;
+  passFormData: PassengerFormData;
+  setPassFormData: Dispatch<SetStateAction<PassengerFormData>>;
   loadingSubmit?: boolean;
-  errors: {
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string;
-    email: string;
-    phone: string;
-    countryCode: string;
-  };
+  isTheFormValid: boolean;
+  state: StepState;
+  setState: Dispatch<SetStateAction<StepState>>;
+  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  errors: Record<string, string>;
   submitted: boolean;
-};
+  handleCheckboxChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleChangePayment: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
+  handleBlur: () => void;
+  formData: FormDataState;
+  isFormValid: boolean;
+  setIsTheFormValid: Dispatch<SetStateAction<boolean>>;
+  car?: CarOfferInfo;
+  departureInfo?: DepartureInfo;
+}
 
 const Page = () => {
   const navigate = useNavigate();
@@ -76,12 +92,16 @@ const Page = () => {
 
   const steps = ["Booking Overview", "Passenger Information", "Payment"];
 
-  const [state, setState] = useState({
+  const [state, setState] = useState<StepState>({
     gilad: true,
     jason: false,
     antoine: true,
   });
-  const { search_id, departureInfo } = location.state;
+  const { search_id, departureInfo } = location.state as {
+    search_id: string;
+    departureInfo: DepartureInfo;
+    car?: CarOfferInfo;
+  };
   const rate_key = location.state?.car?.rateKey || "";
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({
@@ -90,12 +110,12 @@ const Page = () => {
     });
   };
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataState>({
     agreement: false,
   });
 
   const handleBlur = () => {};
-  const [passFormData, setPassFormData] = useState({
+  const [passFormData, setPassFormData] = useState<PassengerFormData>({
     firstName: "",
     lastName: "",
     email: "",
@@ -112,7 +132,14 @@ const Page = () => {
     countryCode: "",
   });
   const validatePersonalInfo = () => {
-    const newErrors: any = {};
+    const newErrors = {
+      firstName: "",
+      lastName: "",
+      dateOfBirth: "",
+      email: "",
+      phone: "",
+      countryCode: "",
+    };
     if (!passFormData.firstName.trim())
       newErrors.firstName = "First name is required.";
     if (!passFormData.lastName.trim())
@@ -215,9 +242,11 @@ const Page = () => {
       } else {
         return;
       }
-    } catch (error: any) {
-      console.error("Booking failed:", error);
-      toast.error(`${error?.response?.data?.detail[0]} Please search again`);
+      } catch (error: unknown) {
+      console.error("Booking failed:", String(error));
+      // Try to extract message safely
+      const msg = (error as { response?: { data?: { detail?: string[] } } })?.response?.data?.detail?.[0];
+      toast.error(`${msg ?? "Booking failed"} Please search again`);
     } finally {
       setLoadingSubmit(false);
     }

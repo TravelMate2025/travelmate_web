@@ -3,11 +3,11 @@ import Breadcrumbs from "../../../components/Breadcrumbs";
 import Navbar from "../../../pages/homePage/Navbar";
 import { useNavigate, useParams } from "react-router-dom";
 import { deleteUserReview, getUserReview } from "../../stays/api";
-import { Skeleton } from "antd";
 import { ChevronLeft, CircleAlert, LoaderCircle, X } from "lucide-react";
 import { DateTime } from "luxon";
 import Footer from "../../../components/2Footer";
 import TravelmateApp from "../../../pages/homePage/TravelmateApp";
+import Skeleton from "@mui/material/Skeleton";
 
 interface Review {
   id: number;
@@ -109,14 +109,15 @@ const Loader = () => {
   return (
     <div className="shadow-lg p-4 gap-x-6 border border-black/10 flex rounded-lg">
       <div className="flex-1">
-        <Skeleton.Button style={{ height: 150 }} block active />
+        <Skeleton variant="rectangular" width="100%" height={150} animation="wave" />
       </div>
       <div className="flex-2 space-y-4">
-        <Skeleton.Button active block />
-        <Skeleton active paragraph={{ rows: 2 }} />
+        <Skeleton variant="text" width="85%" height={28} animation="wave" />
+        <Skeleton variant="text" width="100%" height={20} animation="wave" />
+        <Skeleton variant="text" width="92%" height={20} animation="wave" />
       </div>
       <div>
-        <Skeleton.Button active />
+        <Skeleton variant="rounded" width={96} height={40} animation="wave" />
       </div>
     </div>
   );
@@ -154,7 +155,7 @@ export function ReviewDetails() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hotel_id]);
 
   const deleteReview = async () => {
     setDeleting(true);

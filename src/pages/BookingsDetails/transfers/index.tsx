@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import "react-toastify/dist/ReactToastify.css";
-
 // Icons
 import { Divider } from "@mui/material";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
@@ -17,6 +15,10 @@ import SkeletonDetails from "../Skeleton";
 import ShareModal from "../../../features/stays/components/modals/ShareModal";
 import ConfirmCancel from "./ConfirmCancel";
 
+type TransfersBookingResponse = {
+  bookings?: TransfersDetailsResponse[];
+};
+
 // API
 import {
   CancelTransferBookings,
@@ -24,7 +26,6 @@ import {
 } from "../../../features/stays/api";
 
 import toast from "react-hot-toast";
-import { ToastContainer } from "react-toastify";
 import { TransfersDetailsResponse } from "./type";
 import { useNavigate } from "react-router-dom";
 import NotFound from "../NotFound";
@@ -50,7 +51,8 @@ const BookingTransfersDetails = () => {
       try {
         setLoading(true);
         const res = await verifyTransfersBooking(sessionId);
-        setBooking(res?.data?.bookings[0] ?? null);
+        const payload = res?.data as TransfersBookingResponse | undefined;
+        setBooking(payload?.bookings?.[0]);
       } catch (error) {
         console.error("Error fetching details:", error);
         toast.error("Could not load booking details.");
@@ -61,7 +63,11 @@ const BookingTransfersDetails = () => {
     fetchDetails();
   }, [sessionId]);
 
-  const handleDownload = (bookingItem: any) => {
+  const handleDownload = (bookingItem: TransfersDetailsResponse | undefined) => {
+    if (!bookingItem) {
+      toast.error("No booking data available to download");
+      return;
+    }
     try {
       setDownloadLoading(true);
       window.open(
@@ -70,7 +76,7 @@ const BookingTransfersDetails = () => {
         )}`,
         "_blank"
       );
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to download, try again");
     } finally {
       setDownloadLoading(false);
@@ -97,8 +103,8 @@ const BookingTransfersDetails = () => {
       await CancelTransferBookings(bookingId, setCancelLoad);
       toast.success("Booking cancelled successfully");
 
-      setBooking((prev: any) => {
-        if (!prev) return null;
+      setBooking((prev) => {
+        if (!prev) return undefined;
         return {
           ...prev,
           status: "CANCELLED",
@@ -107,9 +113,10 @@ const BookingTransfersDetails = () => {
 
       setCancelSubmitted(true);
       setOpenConfirm(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to cancel booking";
       console.error("Error cancelling booking:", error);
-      toast.error(error.message || "Failed to cancel booking");
+      toast.error(message);
     }
   };
 
@@ -119,7 +126,6 @@ const BookingTransfersDetails = () => {
   return (
     <div className="bg-white min-h-screen w-full flex flex-col">
       <Navbar />
-      <ToastContainer />
       <div className="py-20 w-full">
         {showShareModal && (
           <ShareModal

@@ -95,7 +95,7 @@ import ShareModal from "../../../features/flights/components/ShareModal";
 import { ReactElement, useState } from "react";
 import toast from "react-hot-toast";
 import { Skeleton, } from "@mui/material";
-const generatePdfFile = async (bookingData: any, bookingId: number) => {
+const generatePdfFile = async (bookingData: LocalState, bookingId: number) => {
   const blob = await pdf(
     (
       <FlightItineraryPDF bookingData={bookingData} />
@@ -212,7 +212,7 @@ const FlightCard = ({
   ticketNumber,
 }: {
   title: string;
-  flight: any;
+  flight: FlightOffer;
   ticketNumber?: string;
 }) => {
   if (!flight) return null;
@@ -235,7 +235,7 @@ const FlightCard = ({
       <div className="md:border border-[#CDCED1] md:p-[24px] rounded-[12px]">
         {/* Airline */}
         <div className="flex gap-[4px] mb-[10px]">
-          <img src={flight.validatingAirlineLogo || "/airline.png"} alt="" />
+          <img src="/airline.png" alt={flight.validatingAirlineCodes?.[0] ?? "airline"} />
           <p className="text-[#181818] md:text-lg text-sm mt-[5px]">
             {departure.operating.airline.name || "Unknown Airline"}
           </p>
@@ -332,7 +332,7 @@ const FlightCard = ({
   );
 };
 const FlightConfirmationPage = () => {
-const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false)
 const navigate = useNavigate()
  const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("session_id");
@@ -340,13 +340,13 @@ const navigate = useNavigate()
 
  console.log(sessionId);
  // Get booking from localStorage
- const savedBooking = JSON.parse(localStorage.getItem("bookingData") || "null") as LocalState;
- const bookingId = savedBooking?.id;
+ const savedBooking = JSON.parse(localStorage.getItem("bookingData") || "null") as LocalState | null;
+ const bookingId = savedBooking?.id ?? 0;
 
 
 
  // Fetch booking by id from localStorage
- const { data, isFetching } = useFetchBookingByIdQuery(bookingId.toString(), {
+ const { data, isFetching } = useFetchBookingByIdQuery(String(bookingId), {
    skip: !bookingId,
  });
 
@@ -371,6 +371,10 @@ const navigate = useNavigate()
  if (isFetching || !data) {
    return <FlightConfirmationPageSkeleton />;
  }
+
+  if (!savedBooking) {
+    return <FlightConfirmationPageSkeleton />;
+  }
 
   
   if (data?.payment_details?.payment_status === "REFUNDED") {
@@ -655,7 +659,7 @@ const navigate = useNavigate()
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  {savedBooking?.passengers?.map((p: any, index: number) => (
+                  {savedBooking?.passengers?.map((p: Passenger, index: number) => (
                     <div
                       key={index}
                       className="md:border border-[#CDCED1] md:p-[24px] rounded-[12px]"
@@ -746,7 +750,7 @@ const navigate = useNavigate()
             <Divider sx={{ my: 3 }} />
             <div className="flex-1  grid max-h-[350px]">
               <PriceSummary
-                state={savedBooking.state as any}
+                state={savedBooking.state}
                 final
                 nextStep={() => navigate("/")}
               />

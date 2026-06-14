@@ -11,6 +11,26 @@ export type MapLocation = {
     isAirport: boolean;
 };
 
+type NominatimAddress = {
+    road?: string;
+    pedestrian?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    postcode?: string;
+    country_code?: string;
+};
+
+type NominatimResult = {
+    lat?: string;
+    lon?: string;
+    address?: NominatimAddress;
+    type?: string;
+    category?: string;
+    display_name?: string;
+    osm_id?: number | string;
+};
+
 const cache: Record<string, MapLocation[]> = {};
 
 
@@ -54,14 +74,14 @@ export async function searchDetailedLocation(
             throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
         }
 
-        const data: any[] = await response.json();
+        const data: NominatimResult[] = await response.json();
         if (!Array.isArray(data) || data.length === 0) {
             return [];
         }
 
         const locations: MapLocation[] = data.map((item) => {
-            const lat = item.lat;
-            const lon = item.lon;
+            const lat = Number(item.lat ?? 0);
+            const lon = Number(item.lon ?? 0);
             const address = item.address ?? {};
             const type = item.type ?? "";
             const category = item.category ?? "";

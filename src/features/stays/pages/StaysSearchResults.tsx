@@ -84,7 +84,7 @@ export default function StaysSearchResults() {
         console.error("No search parameters found. add search parameters");
       }
     }
-  }, [searchParams, filters, dispatch]);
+  }, [searchParams, filters, dispatch, hotels.length, loading]);
 
   const handleApplyFilter = (newFilters: FilterState) => {
     setFilters(newFilters);

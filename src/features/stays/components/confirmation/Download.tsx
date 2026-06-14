@@ -2,14 +2,35 @@ import { Divider } from "@mui/material";
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
 import { useEffect, useState } from "react";
 import TravelMateLogo from "../../../../assets/Logo.svg";
+import type { BookingDetailsVerifyData } from "../../../stays/types";
+
+type DownloadBooking = BookingDetailsVerifyData & {
+  room_details?: Array<string | number> | string;
+  hotel_location?: {
+    address?: string;
+    destination?: {
+      city_name?: string;
+    };
+  };
+  guest_details?: {
+    primary_guest?: {
+      name?: string;
+      surname?: string;
+      email?: string;
+      phone?: string;
+    };
+  };
+};
 
 const DownloadStaysPage = () => {
   const search = new URLSearchParams(window.location.search);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  let bookingData: any = {};
+  let bookingData: DownloadBooking | null = null;
   try {
-    bookingData = JSON.parse(search.get("data") || "{}");
-  } catch {}
+    bookingData = JSON.parse(search.get("data") || "{}") as DownloadBooking;
+  } catch {
+    /* ignore JSON parse errors */
+  }
 
   useEffect(() => {
     if (isImageLoaded) {
@@ -19,7 +40,11 @@ const DownloadStaysPage = () => {
     }
   }, [isImageLoaded]);
   if (!bookingData) return <div>No booking data found.</div>;
-
+  const roomDetails = Array.isArray(bookingData.room_details)
+    ? bookingData.room_details
+    : bookingData.room_details
+      ? [bookingData.room_details]
+      : [];
 
   return (
     <div>
@@ -46,7 +71,7 @@ const DownloadStaysPage = () => {
               Payment Status
             </p>
             <p className="text-[#2D9C5E] text-[14px] font-normal">
-              {bookingData?.payment_status.toUpperCase()}
+              {bookingData.payment_status?.toUpperCase()}
             </p>
           </div>
           <div className="flex justify-normal gap-2">
@@ -78,8 +103,8 @@ const DownloadStaysPage = () => {
                   Hotel Location
                 </p>
                 <p className="text-[#181818] text-[14px] font-inter">
-                  {bookingData?.hotel_location?.address}{" "}
-                  {bookingData?.hotel_location?.destination?.city_name}
+                  {bookingData.hotel_location?.address}{" "}
+                  {bookingData.hotel_location?.destination?.city_name}
                 </p>
               </div>
               <div className="flex justify-normal gap-2">
@@ -100,7 +125,7 @@ const DownloadStaysPage = () => {
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
             Room Details
           </p>
-          {Array(bookingData?.room_details).length > 0 ? (
+          {roomDetails.length > 0 ? (
             <div>
               <div className="flex flex-col gap-1">
                 <div className="flex justify-normal gap-2">
@@ -108,7 +133,7 @@ const DownloadStaysPage = () => {
                     Room Type:
                   </p>
                   <p className="text-[#181818] text-[14px] font-inter">
-                    {Array(bookingData?.room_details).map((item)=> item)}
+                    {roomDetails.join(", ")}
                   </p>
                 </div>
               </div>
@@ -128,20 +153,20 @@ const DownloadStaysPage = () => {
             <div className="flex justify-normal gap-2 mb-[6px]">
               <p className="text-[#4E4F52] text-[14px]">Name:</p>
               <p className="text-[#181818] text-[14px]">
-                {bookingData?.guest_details?.primary_guest.name}{" "}
-                {bookingData?.guest_details?.primary_guest.surname}
+                {bookingData.guest_details?.primary_guest?.name}{" "}
+                {bookingData.guest_details?.primary_guest?.surname}
               </p>
             </div>
             <div className="flex justify-normal gap-2 mb-[6px]">
               <p className="text-[#4E4F52] text-[14px]">Email Address:</p>
               <p className="text-[#181818] text-[14px]">
-                {bookingData?.guest_details?.primary_guest.email}
+                {bookingData.guest_details?.primary_guest?.email}
               </p>
             </div>
             <div className="flex justify-normal gap-2 mb-[6px]">
               <p className="text-[#4E4F52] text-[14px] ">Phone Number:</p>
               <p className="text-[#181818] text-[14px]">
-                {bookingData?.guest_details?.primary_guest.phone}
+                {bookingData.guest_details?.primary_guest?.phone}
               </p>
             </div>
           </div>
@@ -159,7 +184,7 @@ const DownloadStaysPage = () => {
                 Total:
               </p>
               <p className="text-[#181818] text-[14px] font-inter">
-                €{bookingData?.total_price}
+                €{bookingData.total_price}
               </p>
             </div>
           </div>

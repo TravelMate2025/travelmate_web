@@ -40,7 +40,7 @@ const SearchFilter: React.FC = () => {
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [guestText, setGuestText] = useState(
-    `${searchParams?.adults || 2} adults, ${searchParams?.rooms || 1} rooms ` || ""
+    `${searchParams?.adults || 2} adults, ${searchParams?.rooms || 1} rooms `
   );
   const [counts, setCounts] = useState({
     rooms: searchParams?.rooms || 1,

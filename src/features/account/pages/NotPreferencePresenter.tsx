@@ -9,7 +9,7 @@ import { PiSignOutFill } from "react-icons/pi";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import SwitchButton from "../components/SwitchButton";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import SuccessModal from "../components/SuccessModal";
 import LogoutButton from "../components/LogoutButton";
 

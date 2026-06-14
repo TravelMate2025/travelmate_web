@@ -77,7 +77,6 @@ export const ClassSelector = memo<ClassSelectorProps>(
           return  (
               <React.Fragment key={flightClass.label}>
                 <FormControlLabel
-                  // @ts-ignore
                   value={flightClass.value}
                   control={<Radio />}
                   label={flightClass.label}

@@ -1,8 +1,13 @@
-import { configureStore, combineReducers } from "@reduxjs/toolkit";
+import { configureStore, combineReducers, type Reducer } from "@reduxjs/toolkit";
 import authReducer from "../features/account/slices/authSlice";
 import profileReducer from "../features/account/slices/profileSlice";
 import staysReducer from "../features/stays/slice";
-import { persistStore, persistReducer } from "redux-persist";
+import {
+  persistStore,
+  persistReducer,
+  createTransform,
+  type PersistConfig,
+} from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { PersistPartial } from "redux-persist/es/persistReducer";
 
@@ -10,6 +15,7 @@ import { flightsApi } from "../features/flights/api/flightApi";
 import { nationsApi } from "../features/flights/api/nationalityApi";
 import { locationApi } from "../features/flights/api/locationApi";
 import carsReducer from "../features/car_rentals/carPaymentSlice";
+import type { AuthState } from "../features/account/slices/authSlice";
 // 1. Combine all your reducers
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -22,21 +28,45 @@ const rootReducer = combineReducers({
 });
 
 // 2. Persist config
-const persistConfig = {
+// Transform to remove sensitive fields (e.g., tokens) from the `auth` slice before persisting
+type RootReducerState = ReturnType<typeof rootReducer>;
+const persistStorage = (storage as typeof storage & { default?: typeof storage }).default ?? storage;
+
+const removeSensitiveTransform = createTransform<AuthState, AuthState, RootReducerState, RootReducerState>(
+  // inbound: state being persisted
+  (inboundState, key) => {
+    if (key === "auth" && inboundState) {
+      return {
+        ...inboundState,
+        accessToken: null,
+        refreshToken: null,
+      };
+    }
+    return inboundState;
+  },
+  // outbound: state being rehydrated (we keep as-is)
+  (outboundState) => outboundState,
+  { whitelist: ["auth"] }
+);
+
+const persistConfig: PersistConfig<RootReducerState, RootReducerState, AuthState, AuthState> = {
   key: "root",
-  storage,
+  storage: persistStorage,
   whitelist: ["auth", "profile", "stays", "cars"],
+  transforms: [removeSensitiveTransform],
 };
 
-// 3. Persisted reducer
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+// 3. Persisted reducer — type assertion needed due to redux-persist + RTK strict TypeScript compatibility
+const persistedReducer = persistReducer<RootReducerState>(persistConfig, rootReducer as Reducer<RootReducerState>);
 
 // 4. Create the store
 export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false,
+      serializableCheck: {
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE', 'persist/PAUSE', 'persist/PURGE', 'persist/FLUSH', 'persist/REGISTER'],
+      },
     })
       .concat(flightsApi.middleware)
       .concat(nationsApi.middleware)

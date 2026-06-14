@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import Draggable from "react-draggable";
+import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import { useNavigate } from "react-router-dom";
 import { FaQuestion, FaRegEnvelope } from "react-icons/fa";
 import { FiChevronRight } from "react-icons/fi";
@@ -35,12 +35,12 @@ const FloatingChatButton = () => {
 
   const dragStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
-const handleStart = (_e: any, data: any) => {
+const handleStart = (_e: DraggableEvent, data: DraggableData) => {
   wasDragged.current = false;
   dragStartPos.current = { x: data.x, y: data.y };
 };
 
-const handleStop = (_e: any, data: any) => {
+const handleStop = (_e: DraggableEvent, data: DraggableData) => {
   const dx = data.x - dragStartPos.current.x;
   const dy = data.y - dragStartPos.current.y;
   const distance = Math.sqrt(dx * dx + dy * dy);

@@ -108,7 +108,7 @@ const Navbar: React.FC = () => {
       localStorage.setItem("logout_reason", "account_deleted");
       dispatch(navlogout());
       navigate("/create-account");
-    } catch (error) {
+    } catch (_error) {
       localStorage.clear();
       dispatch(navlogout());
     } finally {

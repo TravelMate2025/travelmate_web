@@ -48,7 +48,7 @@ export default function UpdateSearchFilter() {
   const [guestText, setGuestText] = useState(
     ` ${searchParams?.rooms} rooms, ${
       counts.adults + counts.children + counts.infants
-    } guests, ` || ""
+    } guests, `
   );
 
   useEffect(() => {

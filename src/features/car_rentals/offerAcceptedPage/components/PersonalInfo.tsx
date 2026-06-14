@@ -34,7 +34,7 @@ const PersonalInfo = ({
   };
   const handleProfileSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
-    setState((prev: any) => ({ ...prev, jason: checked }));
+    setState((prev) => ({ ...prev, jason: checked }));
     handleChange(e);
 
     const userInfo = JSON.parse(localStorage.getItem("persist:root") || "{}");
@@ -78,7 +78,6 @@ const PersonalInfo = ({
         phone: "",
         countryCode: "",
       });
-      profile;
     }
   };
 
@@ -286,7 +285,7 @@ const PersonalInfo = ({
                             id: "countryCode",
                             value: e.target.value,
                           },
-                        } as any);
+                        } as React.ChangeEvent<HTMLInputElement>);
                       }}
                       InputProps={{
                         endAdornment: (
