@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import "./App.css";
 import { Toaster } from "react-hot-toast";
 import PrivateRoute from "./routes/PrivateRoute";
+import { bookingFlowRoutes, legacyBookingFlowRoutes } from "./features/shared/bookingFlowRoutes";
 
 // Eagerly loaded — lightweight, always needed on first paint
 import Home from "./pages/Home";
@@ -26,6 +27,7 @@ const ReviewDetails = lazy(() => import("./features/account/pages/ReviewDetails"
 
 // Stays pages (lazy)
 const StaysSearchResults = lazy(() => import("./features/stays/pages/StaysSearchResults"));
+const PartnerStaySearchPage = lazy(() => import("./features/stays/pages/PartnerStaySearchPage"));
 const StaysDetail = lazy(() => import("./features/stays/pages/StaysDetail"));
 const BookingConfirmationPage = lazy(() => import("./features/stays/pages/BookingConfirmationPage"));
 const BookingProgress = lazy(() => import("./features/stays/pages/BookingProgress"));
@@ -87,19 +89,22 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Stays */}
-        <Route path="/stays-search-result" element={<StaysSearchResults />} />
-        <Route path="/booking-progress" element={<BookingProgress />} />
-        <Route path="/stays-detail/:hotelId" element={<StaysDetail />} />
+        <Route path={bookingFlowRoutes.staySearch} element={<PartnerStaySearchPage />} />
+        <Route path={bookingFlowRoutes.stayResults} element={<StaysSearchResults />} />
+        <Route path={legacyBookingFlowRoutes.staySearch} element={<StaysSearchResults />} />
+        <Route path={bookingFlowRoutes.stayBookingReview} element={<BookingProgress />} />
+        <Route path={legacyBookingFlowRoutes.stayBookingReview} element={<BookingProgress />} />
+        <Route path={`${bookingFlowRoutes.stayDetail}/:hotelId`} element={<StaysDetail />} />
+        <Route path={`${legacyBookingFlowRoutes.stayDetail}/:hotelId`} element={<StaysDetail />} />
         <Route path="/stays-paid/download" element={<DownloadStaysPage />} />
         <Route
-          path="/booking-confirmation"
+          path={bookingFlowRoutes.stayConfirmation}
           element={
             <PrivateRoute>
               <BookingConfirmationPage />
             </PrivateRoute>
           }
         />
-
         {/* FAQ & Customer Support */}
         <Route path="/faqs" element={<FaqPage />} />
         <Route path="/chat-with-us" element={<ChatPage />} />
@@ -216,7 +221,7 @@ function App() {
         />
 
         <Route
-          path="/booking/success"
+          path={legacyBookingFlowRoutes.stayConfirmation}
           element={
             <PrivateRoute>
               <BookingConfirmationPage />
@@ -276,9 +281,18 @@ function App() {
 
         {/* Cars */}
         <Route path="/cars-searchResults" element={<DisplayCars />} />
+        <Route path={bookingFlowRoutes.transferBookingReview} element={<CarOfferPage />} />
         <Route path="/cars-booking" element={<CarOfferPage />} />
         <Route
           path="/car-confirmation"
+          element={
+            <PrivateRoute>
+              <CarConfirmPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path={bookingFlowRoutes.transferConfirmation}
           element={
             <PrivateRoute>
               <CarConfirmPage />

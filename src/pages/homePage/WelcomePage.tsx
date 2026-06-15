@@ -8,8 +8,9 @@ import plane from "../../assets/plane.svg";
 import car from "../../assets/car.svg";
 import stay from "../../assets/stay.svg";
 import RoundTrip from "./Flight";
-import SearchFilter from "../../features/stays/components/SearchFilter";
 import Page from "../../features/car_rentals/carsFirstScreen/CarBookingFirstScreen";
+import PartnerFlowPreview from "../../features/shared/booking/PartnerFlowPreview";
+import PartnerStaySearchPage from "../../features/stays/pages/PartnerStaySearchPage";
 import { useMediaQuery } from "react-responsive";
 
 const WelcomePage = () => {
@@ -103,7 +104,8 @@ const WelcomePage = () => {
                   </TabList>
                 </Box>
                 <TabPanel value="1">
-                  <SearchFilter />
+                  <PartnerFlowPreview />
+                  <PartnerStaySearchPage />
                 </TabPanel>
                 <TabPanel value="2">
                   <RoundTrip />
@@ -181,7 +183,7 @@ const WelcomePage = () => {
                   </TabList>
                 </Box>
                 <TabPanel value="1">
-                  <SearchFilter />
+                  <PartnerStaySearchPage />
                 </TabPanel>
                 <TabPanel value="2">
                   <RoundTrip />

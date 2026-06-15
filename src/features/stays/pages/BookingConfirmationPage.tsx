@@ -18,6 +18,7 @@ import { useLocation } from "react-router-dom";
 import { verifyHotelBooking } from "../api";
 import { BookingDetailsVerifyData } from "../types";
 import { Loader } from "lucide-react";
+import { bookingConfirmationLabel } from "../../shared/booking/bookingFlowLabels";
 // import { BookingStaysVerifyDetails } from "../types";
 
 const BookingConfirmationPage: React.FC = () => {
@@ -91,7 +92,7 @@ const BookingConfirmationPage: React.FC = () => {
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
           <h1 className="text-2xl sm:text-3xl font-bold">
-            Booking Confirmation
+            {bookingConfirmationLabel()}
           </h1>
           <div className="flex gap-3 flex-wrap">
             <button

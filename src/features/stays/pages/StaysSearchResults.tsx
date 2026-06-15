@@ -9,9 +9,23 @@ import SortModal from "../components/modals/SortModal";
 import FilterModal from "../components/modals/FilterModal";
 import UpdateSearchFilter from "../components/UpdateSearchFilter";
 import Navbar from "../../../pages/homePage/Navbar";
+import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../../store";
-import { fetchHotelsAsync } from "../slice";
+import { fetchHotelsAsync, setLocationDetails, setSearchParams } from "../slice";
+import {
+  stayResultsLabel,
+  staySearchLabel,
+  stayTypeDisplayLabel,
+} from "../../shared/booking/bookingFlowLabels";
+import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
+import PartnerFlowPreview from "../../shared/booking/PartnerFlowPreview";
+import {
+  mockStayLocationDetails,
+  mockStaySearchParams,
+  usePartnerMockData,
+} from "../../shared/partnerMockData";
 
 // Define the type for the filter state
 interface FilterState {
@@ -24,6 +38,8 @@ interface FilterState {
 export default function StaysSearchResults() {
   // Use Redux hooks to access state and dispatch actions
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const [queryParams] = useSearchParams();
   const { hotels, loading, error, searchParams, locationDetails } = useSelector(
     (state: RootState) => state.stays
   );
@@ -43,9 +59,39 @@ export default function StaysSearchResults() {
     propertyTypes: [],
   });
 
+  useEffect(() => {
+    if (!usePartnerMockData || searchParams) {
+      return;
+    }
+
+    dispatch(fetchHotelsAsync({ ...mockStaySearchParams, ...filters }));
+    dispatch(setLocationDetails(mockStayLocationDetails));
+    dispatch(setSearchParams(mockStaySearchParams));
+  }, [dispatch, filters, searchParams]);
+
   // Use a memoized value for the sorted hotels to avoid re-sorting on every render
   const sortedHotels = useMemo(() => {
-    let sorted = [...hotels];
+    const filtered = hotels.filter((hotel) => {
+      const matchesCountry =
+        !searchParams?.country ||
+        (hotel.country ?? hotel.destination?.name ?? "").toLowerCase() ===
+          searchParams.country.toLowerCase();
+      const matchesAdmin =
+        !searchParams?.adminLevel1 ||
+        (hotel.adminLevel1 ?? "").toLowerCase() ===
+          searchParams.adminLevel1.toLowerCase();
+      const matchesCity =
+        !searchParams?.city ||
+        (hotel.city ?? hotel.destination?.name ?? "").toLowerCase() ===
+          searchParams.city.toLowerCase();
+      const matchesStayType =
+        !searchParams?.stayType ||
+        ((hotel.saleMode ?? hotel.accommodation_type) ?? "").toLowerCase() ===
+          searchParams.stayType.toLowerCase();
+
+      return matchesCountry && matchesAdmin && matchesCity && matchesStayType;
+    });
+    let sorted = [...filtered];
     if (selectedSort === "Price: low to high") {
       sorted.sort((a, b) => {
         const aPrice = parseFloat(a.rooms?.[0]?.rates?.[0]?.net || "0");
@@ -93,14 +139,15 @@ export default function StaysSearchResults() {
   const breadcrumbs = [
     { name: "Home", link: "/" },
     {
-      name: locationDetails?.name || searchParams?.destination || "Search",
-      // link: `/locations/${locationDetails?.code || searchParams?.destination || ""}`,
+      name: locationDetails?.name || searchParams?.destination || mockStayLocationDetails.name || "Search",
     },
-    { name: "Search Results" },
+    { name: stayResultsLabel() },
   ];
 
   const formatDateRange = () => {
-    if (!searchParams?.checkIn || !searchParams?.checkOut) return "Select dates";
+    if (!searchParams?.checkIn || !searchParams?.checkOut) {
+      return `${mockStaySearchParams.checkIn} - ${mockStaySearchParams.checkOut}`;
+    }
     
     const checkInDate = new Date(searchParams.checkIn);
     const checkOutDate = new Date(searchParams.checkOut);
@@ -110,20 +157,31 @@ export default function StaysSearchResults() {
   };
 
   const filterDetails = {
-    state: locationDetails?.country_name || "Unknown",
-    city: locationDetails?.name || "Unknown",
+    state: searchParams?.country || locationDetails?.country_name || mockStayLocationDetails.country_name || "Unknown",
+    city: searchParams?.city || locationDetails?.name || mockStayLocationDetails.name || "Unknown",
+    admin: searchParams?.adminLevel1 || locationDetails?.adminLevel1 || "Unknown",
     dates: formatDateRange(),
     roomsGuests: searchParams 
-      ? `${searchParams.rooms} Room${searchParams.rooms > 1 ? 's' : ''}, ${searchParams.adults + searchParams.children} Guest${(searchParams.adults + searchParams.children) > 1 ? 's' : ''}`
-      : "1 Room, 1 Guest",
+      ? `${searchParams.rooms ?? 1} Room${(searchParams.rooms ?? 1) > 1 ? 's' : ''}, ${(searchParams.adults ?? 0) + (searchParams.children ?? 0)} Guest${((searchParams.adults ?? 0) + (searchParams.children ?? 0)) > 1 ? 's' : ''}`
+      : `${mockStaySearchParams.rooms} Room, ${mockStaySearchParams.adults + mockStaySearchParams.children} Guests`,
+    stayType: searchParams?.stayType ? stayTypeDisplayLabel(searchParams.stayType) : "Any stay type",
   };
 
   const handleEditClick = () => setShowUpdateSearch(!showUpdateSearch);
+  const hasSearchContext = Boolean(
+    searchParams?.country ||
+      searchParams?.adminLevel1 ||
+      searchParams?.city ||
+      searchParams?.stayType ||
+      usePartnerMockData,
+  );
+  const partnerFlowMode = queryParams.get("flow") === "partner";
 
   return (
     <div className="h-screen flex flex-col mt-20">
       <Navbar />
-      {(!isMobile || showUpdateSearch) && <UpdateSearchFilter />}
+      {partnerFlowMode && <PartnerFlowPreview legacyLabel="Use legacy flow" />}
+      {(!isMobile || showUpdateSearch) && !partnerFlowMode && <UpdateSearchFilter />}
       {!isMobile && <Breadcrumbs items={breadcrumbs} />}
 
       <div className="min-h-screen px-0">
@@ -135,10 +193,10 @@ export default function StaysSearchResults() {
             >
               <div className="text-left w-11/12">
                 <p className="truncate text-sm">
-                  {`${filterDetails.city}, ${filterDetails.state}`}
+                  {`${filterDetails.city}, ${filterDetails.admin}, ${filterDetails.state}`}
                 </p>
                 <p className="truncate text-sm">
-                  {`${filterDetails.dates} • ${filterDetails.roomsGuests}`}
+                  {`${filterDetails.dates} • ${filterDetails.roomsGuests} • ${filterDetails.stayType}`}
                 </p>
               </div>
               <span className="text-gray-700 text-sm">
@@ -153,7 +211,7 @@ export default function StaysSearchResults() {
                 ? "Searching..."
                 : error
                 ? "Error"
-                : `${hotels.length} Results`}
+                : `${hotels.length} ${stayResultsLabel()}`}
             </span>
             <div className="flex gap-4">
               <button
@@ -191,7 +249,21 @@ export default function StaysSearchResults() {
         {/* Conditional rendering based on loading/error state */}
         {loading && <div className="text-center py-10">Loading hotels...</div>}
         {error && <div className="text-center py-10 text-red-600">{error}</div>}
-        {!loading && !error && <StayList hotels={sortedHotels} />}
+        {!loading && !error && hasSearchContext && <StayList hotels={sortedHotels} />}
+        {!loading && !error && !hasSearchContext && (
+          <div className="mx-4 sm:mx-10 my-10 rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-900">{staySearchLabel()}</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Start a stay search to see results and pricing.
+            </p>
+            <button
+              className="mt-4 rounded-lg bg-[#023E8A] px-4 py-2 text-white"
+              onClick={() => navigate(bookingFlowRoutes.staySearch)}
+            >
+              Go to search
+            </button>
+          </div>
+        )}
 
         <div className="py-10 bg-gray-100">
           <TravelmateApp />

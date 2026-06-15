@@ -36,10 +36,11 @@ import { logout as navlogout } from "../../features/account/slices/authSlice";
 import toast from "react-hot-toast";
 import Spinner from "../../features/account/components/Spinner";
 import { useNotifications } from "../../features/account/components/notifications/NotificationProvider";
+import { bookingFlowRoutes } from "../../features/shared/bookingFlowRoutes";
 
 const navItems = [
   { name: "Home", path: "/" },
-  { name: "Stays", path: "/stays-search-result" },
+  { name: "Stays", path: bookingFlowRoutes.staySearch },
   { name: "Flights", path: "/flight/departure" },
   { name: "Airport Taxi", path: "/airport-taxi" },
 ];
