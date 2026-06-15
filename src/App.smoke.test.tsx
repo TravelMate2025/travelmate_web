@@ -1,10 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import authReducer from "./features/account/slices/authSlice";
 import staysReducer from "./features/stays/slice";
+import type { Hotel } from "./features/stays/types";
 
 const { mockGoogleLogin } = vi.hoisted(() => ({
   mockGoogleLogin: vi.fn(),
@@ -52,6 +53,49 @@ vi.mock("./features/stays/components/StayList", () => ({
 
 vi.mock("./features/stays/components/UpdateSearchFilter", () => ({
   default: () => <div>update search filter</div>,
+}));
+
+vi.mock("./features/stays/api", () => ({
+  getReviews: vi.fn().mockResolvedValue([]),
+  searchHotels: vi.fn().mockResolvedValue({ count: 0, results: [] }),
+  createCheckoutSession: vi.fn().mockResolvedValue({
+    success: true,
+    checkout_url: "https://example.com/mock-checkout",
+  }),
+  fetchDestinations: vi.fn().mockResolvedValue([]),
+  getHotelDetails: vi.fn().mockResolvedValue({
+    reviewsCount: 0,
+    code: "hotel-1",
+    name: "Hotel One",
+    address: "1 Test Street",
+    coordinates: { latitude: 6.5244, longitude: 3.3792 },
+    destination: { name: "Lagos", code: "lag" },
+    amenities: [],
+    images: [],
+    accommodation_type: "unit_level",
+    rooms: [],
+  }),
+  verifyHotelBooking: vi.fn().mockResolvedValue({ success: true, data: {} }),
+  verifyTransfersBooking: vi.fn().mockResolvedValue({ success: true, data: {} }),
+}));
+
+vi.mock("./features/stays/pages/StaysDetail", () => ({
+  default: () => (
+    <div>
+      <h1>Stay details</h1>
+      <span>unit stay</span>
+      <span>pricing source</span>
+    </div>
+  ),
+}));
+
+vi.mock("./features/stays/pages/BookingProgress", () => ({
+  default: () => (
+    <div>
+      <h1>Booking review</h1>
+      <div>booking progress hotel card</div>
+    </div>
+  ),
 }));
 
 vi.mock("./features/stays/components/modals/SortModal", () => ({
@@ -112,8 +156,32 @@ vi.mock("./features/account/api/profile", () => ({
 }));
 
 import App from "./App";
+import { bookingFlowRoutes } from "./features/shared/bookingFlowRoutes";
 
-const createStore = (options?: { authenticated?: boolean }) =>
+const createStore = (options?: {
+  authenticated?: boolean;
+  hotels?: Hotel[];
+  searchParams?: {
+    destination?: string;
+    country?: string;
+    adminLevel1?: string;
+    city?: string;
+    stayType?: string;
+    checkIn: string;
+    checkOut: string;
+    adults: number;
+    children: number;
+    rooms: number;
+  } | null;
+  locationDetails?: {
+    name: string;
+    country_name: string;
+    country_code: string;
+    code: string;
+    adminLevel1?: string;
+    city?: string;
+  } | null;
+}) =>
   configureStore({
     reducer: {
       auth: authReducer,
@@ -141,11 +209,11 @@ const createStore = (options?: { authenticated?: boolean }) =>
             registrationComplete: false,
           },
       stays: {
-        hotels: [],
+        hotels: options?.hotels ?? [],
         loading: false,
         error: null,
-        searchParams: null,
-        locationDetails: null,
+        searchParams: options?.searchParams ?? null,
+        locationDetails: options?.locationDetails ?? null,
         selectedHotel: null,
         detailsLoading: false,
         detailsError: null,
@@ -159,7 +227,33 @@ const createStore = (options?: { authenticated?: boolean }) =>
     },
   });
 
-const renderRoute = (path: string, options?: { authenticated?: boolean }) => {
+const renderRoute = (
+  path: string,
+  options?: {
+    authenticated?: boolean;
+    hotels?: Hotel[];
+    searchParams?: {
+      destination?: string;
+      country?: string;
+      adminLevel1?: string;
+      city?: string;
+      stayType?: string;
+      checkIn: string;
+      checkOut: string;
+      adults: number;
+      children: number;
+      rooms: number;
+    } | null;
+    locationDetails?: {
+      name: string;
+      country_name: string;
+      country_code: string;
+      code: string;
+      adminLevel1?: string;
+      city?: string;
+    } | null;
+  },
+) => {
   const store = createStore(options);
 
   return render(
@@ -191,16 +285,94 @@ describe("App route smoke coverage", () => {
   });
 
   it("renders the stays search route", async () => {
-    renderRoute("/stays-search-result");
+    renderRoute(`${bookingFlowRoutes.staySearch}?flow=partner`);
 
-    expect(await screen.findByText(/results/i)).toBeInTheDocument();
-    expect(screen.getByText("update search filter")).toBeInTheDocument();
+    expect(
+      await screen.findByText(/find a destination/i, {}, { timeout: 15000 }),
+    ).toBeInTheDocument();
+    const destinationInput = screen.getByLabelText(/destination/i);
+    fireEvent.change(destinationInput, { target: { value: "Benin" } });
+
+    const suggestion = await screen.findByText("Benin City, Edo, Nigeria");
+    fireEvent.click(suggestion);
+
+    expect(screen.getByDisplayValue("Benin City, Edo, Nigeria")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /show stay results/i })).toBeEnabled();
+  }, 20000);
+
+  it("renders the stay results route", async () => {
+    renderRoute(`${bookingFlowRoutes.stayResults}?flow=partner`, {
+      hotels: [
+        {
+          code: "tm-room-001",
+          name: "Riverside Hotel",
+          reviewsCount: 126,
+          address: "48 Broad Street, Lagos",
+          coordinates: { latitude: 6.432, longitude: 3.409 },
+          destination: { name: "Lagos", code: "lag" },
+          country: "Nigeria",
+          adminLevel1: "Edo",
+          city: "Egor",
+          amenities: [],
+          images: [],
+          accommodation_type: "room_level",
+          rooms: [],
+        },
+      ],
+      searchParams: {
+        country: "Nigeria",
+        adminLevel1: "Edo",
+        city: "Egor",
+        stayType: "room_level",
+        checkIn: "2026-07-01",
+        checkOut: "2026-07-05",
+        adults: 2,
+        children: 1,
+        rooms: 1,
+      },
+      locationDetails: {
+        name: "Egor",
+        country_name: "Nigeria",
+        country_code: "NG",
+        code: "egor",
+        adminLevel1: "Edo",
+        city: "Egor",
+      },
+    });
+
+    expect(
+      await screen.findByText(/stay results/i, {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/new partner-aligned stay flow/i)).toBeInTheDocument();
+  });
+
+  it("renders the stay detail route", async () => {
+    renderRoute(`${bookingFlowRoutes.stayDetail}/hotel-1`, {
+      hotels: [
+        {
+          code: "hotel-1",
+          name: "Hotel One",
+          reviewsCount: 0,
+          address: "1 Test Street",
+          coordinates: { latitude: 6.5244, longitude: 3.3792 },
+          destination: { name: "Lagos", code: "lag" },
+          amenities: [],
+          images: [],
+          accommodation_type: "unit_level",
+          rooms: [],
+        },
+      ],
+    });
+
+    expect(await screen.findByRole("heading", { name: /stay details/i })).toBeInTheDocument();
+    expect(await screen.findByText(/unit stay/i)).toBeInTheDocument();
+    expect(await screen.findByText(/pricing source/i)).toBeInTheDocument();
   });
 
   it("renders the booking progress route", async () => {
-    renderRoute("/booking-progress", { authenticated: true });
+    renderRoute(bookingFlowRoutes.stayBookingReview, { authenticated: true });
 
-    expect(await screen.findByRole("heading", { name: /booking overview/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /booking review/i })).toBeInTheDocument();
     expect(await screen.findByText("booking progress hotel card")).toBeInTheDocument();
   });
 

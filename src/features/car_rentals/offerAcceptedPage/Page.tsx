@@ -9,6 +9,11 @@ import toast from "react-hot-toast";
 import { RootState } from "../../../store";
 import { useSelector } from "react-redux";
 import type { Dispatch, SetStateAction } from "react";
+import {
+  bookingReviewLabel,
+  continueToPaymentLabel,
+  guestDetailsLabel,
+} from "../../shared/booking/bookingFlowLabels";
 
 export interface CarOfferInfo {
   vehicle?: { name?: string; code?: string };
@@ -90,7 +95,7 @@ const Page = () => {
   const [submitted, setSubmitted] = useState(false);
   // const dispatch = useDispatch();
 
-  const steps = ["Booking Overview", "Passenger Information", "Payment"];
+  const steps = [bookingReviewLabel(), guestDetailsLabel(), continueToPaymentLabel()];
 
   const [state, setState] = useState<StepState>({
     gilad: true,

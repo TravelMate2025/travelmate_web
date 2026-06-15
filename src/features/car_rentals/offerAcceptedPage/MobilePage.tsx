@@ -187,7 +187,7 @@ const MobilePage = ({
               disabled={!isFormValids || loadingSubmit}
               onClick={handleSubmit}
             >
-              <span>Pay with Stripe</span>
+              <span>Continue to payment</span>
               {loadingSubmit && (
                 <Loader className="animate-spin " stroke="#ffffff" />
               )}

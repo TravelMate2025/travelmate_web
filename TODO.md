@@ -70,6 +70,14 @@
 
 ## Pending
 
+### Phase 1 — New Flow Foundation
+- [x] Add shared OTA booking labels for search, detail, pricing, quote, hold, payment, confirmation, and management.
+- [x] Share guest-details naming across the booking stepper and confirmation screens.
+- [x] Map the new booking flow names to the current web routes, pages, and state objects.
+- [x] Introduce the new stays and transfers flow scaffolding without removing the current UI.
+- [x] Keep the legacy pages reachable until the new flow is complete and verified.
+- [x] Make the payment handoff wording redirect-based and non-Stripe specific.
+
 ### LOW — Lint And Accessibility
 - [ ] Run Lighthouse / axe on the home, booking, and account flows and capture the main issues
 - [ ] Ensure all `<img>` tags have `alt` attributes

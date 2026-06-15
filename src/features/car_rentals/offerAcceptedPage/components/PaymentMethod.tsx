@@ -1,8 +1,8 @@
 import { Checkbox, Divider, FormControlLabel } from "@mui/material";
 import { ArrowRight } from "lucide-react";
-import Paypal from "../../../../assets/images/stripe.png";
 import { DeskProps } from "../Page";
 import type { CarTransferOption } from "../../types/booking";
+import { getPaymentProviderLabel, getPaymentRedirectCopy } from "../../../shared/bookingFlowLabels";
 
 type PaymentMethodProps = {
   car: CarTransferOption;
@@ -19,17 +19,17 @@ const PaymentMethod = ({
     <div className="lg:px-6 px-4 mt-12">
       <div className="border-[#CDCED1] lg:border rounded-lg p-5">
         <div className="flex items-center gap-1 mb-4">
-          <img
-            src={Paypal}
-            alt="stripe icon"
-            className="lg:w-24 w-16 h-6 lg:h-10 object-cover bg-white rounded-lg p-2 border-1 border-[#CDCED1]"
-          />
-          <p className="font-bold text-lg">Stripe</p>
+          <div className="lg:w-24 w-16 h-6 lg:h-10 bg-[#FAFAFA] rounded-lg p-2 border-1 border-[#CDCED1] flex items-center justify-center">
+            <span className="text-[11px] font-semibold text-[#4E4F52]">
+              {getPaymentProviderLabel()}
+            </span>
+          </div>
+          <p className="font-bold text-lg">{getPaymentProviderLabel()}</p>
         </div>
         <div className="flex flex-col justify-center items-center gap-4 bg-[#FAFAFA] rounded-lg lg:p-26 p-12 ">
           <ArrowRight className="font-bold lg:w-12 lg:h-12 h-8 w-8" />
           <p className="text-[#4E4F52]">
-            You'll be redirected to Stripe to complete your secure payment
+            {getPaymentRedirectCopy()}
           </p>
         </div>
       </div>

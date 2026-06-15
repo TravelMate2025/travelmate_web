@@ -17,6 +17,17 @@ interface Destination {
   accommodation_type?: string;
 }
 
+function normalizeLocations(input: unknown): Destination[] {
+  if (Array.isArray(input)) return input as Destination[];
+  if (input && typeof input === "object") {
+    const maybe = input as { results?: unknown };
+    if (Array.isArray(maybe.results)) {
+      return maybe.results as Destination[];
+    }
+  }
+  return [];
+}
+
 export default function UpdateSearchFilter() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -57,10 +68,10 @@ export default function UpdateSearchFilter() {
         setLoadingLocations(true);
         if (destination.length >= 2) {
           const data = await fetchDestinations(destination);
-          setLocations(data);
+          setLocations(normalizeLocations(data));
         } else if (!destination) {
           const data = await fetchDestinations(undefined);
-          setLocations(data);
+          setLocations(normalizeLocations(data));
         } else {
           setLoadingLocations(false);
         }

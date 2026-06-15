@@ -8,9 +8,17 @@ export interface Destination {
 }
 
 export interface HotelImage {
-  url: string;
-  code: string;
-  type: string;
+  /** Actual partner API field */
+  secureUrl?: string;
+  /** Legacy / mock field */
+  url?: string;
+  code?: string;
+  type?: string;
+  order?: number;
+  roomId?: string | null;
+  spaceType?: string | null;
+  uploadedAt?: string;
+  publicId?: string;
 }
 
 export interface HotelDestination {
@@ -43,29 +51,70 @@ export interface Rate {
 
 
 export interface Room {
-  code: string;
+  /** Actual partner API field */
+  id?: string;
+  /** Legacy / mock field */
+  code?: string;
   name: string;
   description?: string;
+  /** Actual partner API field */
+  bedConfiguration?: string;
+  /** Legacy / mock field */
   bedType?: string;
-  size_sqm?: number | null;
+  bed_type?: string;
+  /** Actual partner API field */
+  occupancy?: number;
+  /** Legacy / mock field */
   max_occupancy?: number;
-  amenities: string[];
-  images: HotelImage[];
-  rates: Rate[];
+  /** Actual partner API field — per-room nightly base rate (room_level) */
+  baseRate?: number;
+  isBookable?: boolean;
+  totalInventory?: number;
+  maxPerBooking?: number;
+  size_sqm?: number | null;
+  amenities?: string[];
+  images?: HotelImage[];
+  rates?: Rate[];
+}
+
+export interface AmenityDetail {
+  code: string;
+  label: string;
 }
 
 export interface Hotel {
-  reviewsCount: number | null;
-  code: string;
+  /** Actual partner API field (UUID) */
+  id?: string;
+  /** Legacy / mock field */
+  code?: string;
   name: string;
+  /** Actual partner API field */
+  saleMode?: string;
+  /** Legacy / mock field */
   accommodation_type?: string;
+  /** Actual partner API field */
+  propertyType?: string;
+  /** Legacy / mock field */
+  category?: string;
+  reviewsCount?: number | null;
+  country?: string;
+  adminLevel1?: string;
+  city?: string;
   description?: string | null;
   address: string;
-  category?: string;
-  coordinates: HotelCoordinates;
-  destination: HotelDestination;
-  amenities: string[];
-  images: HotelImage[];
+  /** Nightly price from (for list display) */
+  priceFrom?: number;
+  /** Quality / rating score 0–100 */
+  ratingScore?: number;
+  checkInTime?: string;
+  checkOutTime?: string;
+  houseRules?: string;
+  status?: string;
+  coordinates?: HotelCoordinates;
+  destination?: HotelDestination;
+  amenities?: string[];
+  amenityDetails?: AmenityDetail[];
+  images?: HotelImage[];
   available?: boolean;
   rooms?: Room[];
   is_favorite?: boolean;
@@ -170,6 +219,83 @@ export interface CancellationPolicy {
   comments: string | null;
 }
 
+// --- Partner pricing types (aligned to actual API response) ---
+
+export interface StayPricingCancellationPolicy {
+  policyType: string;                          // "non_refundable" | "free_cancellation_until"
+  penaltyType: string;                         // "full_charge" | "none"
+  cancelDeadlineHoursBeforeCheckIn?: number | null;
+  terms?: string | null;
+  penaltyAmount?: number | null;
+  penaltyPercent?: number | null;
+}
+
+export interface StayPricingRatePlan {
+  id: string;
+  roomId: string;
+  code: string;
+  name: string;
+  planType: string;                            // "non_refundable" | "refundable"
+  isActive: boolean;
+  nightlyRate: number;
+  policyVersion?: number;
+  startsOn?: string | null;
+  endsOn?: string | null;
+  cancellationPolicy: StayPricingCancellationPolicy;
+}
+
+/** One selectable option surfaced to the guest (e.g. NON_CANCELLABLE / FREE_CANCELLATION) */
+export interface StayPricingCancellationOption {
+  optionId: string;                            // "NON_CANCELLABLE" | "FREE_CANCELLATION"
+  label: string;
+  amount: number;
+  currency: string;
+  cancelDeadlineHoursBeforeCheckIn?: number | null;
+  policyCopy: string;
+}
+
+export interface StayPricingRoomCancellationOptions {
+  roomId: string;
+  cancellationOptions: StayPricingCancellationOption[];
+}
+
+export interface StayPricingAmount {
+  amount: number;
+}
+
+export interface StayPricingPriceBreakdown {
+  currency: string;
+  base: StayPricingAmount;
+  taxes: { amount: number; inclusive: boolean };
+  fees: { amount: number; inclusive: boolean };
+  total: StayPricingAmount;
+  rateBands: {
+    weekday: StayPricingAmount;
+    weekend: StayPricingAmount;
+  };
+  previewOptionId: string;
+  notes?: string;
+}
+
+export interface StayPricing {
+  currency: string;
+  baseRate: number;
+  weekdayRate: number;
+  weekendRate: number;
+  minStayNights?: number;
+  maxStayNights?: number;
+  seasonalOverrides?: unknown[];
+  blackoutDates?: string[];
+  ratePlans: StayPricingRatePlan[];
+  /** Property-level options (unit_level stays, or cheapest-room preview for room_level) */
+  cancellationOptions: StayPricingCancellationOption[];
+  /** Per-room options — primary data source for room_level rate plan selection */
+  roomCancellationOptions: StayPricingRoomCancellationOptions[];
+  priceBreakdown: StayPricingPriceBreakdown;
+}
+
+// --- end partner pricing types ---
+
 export interface BookingTransfersVerifyDetails {
   id: string;
 
@@ -207,4 +333,3 @@ export interface BookingTransfersVerifyDetails {
 
   date_booked: string; // ISO datetime string
 }
-

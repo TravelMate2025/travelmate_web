@@ -81,7 +81,7 @@ const StayList: React.FC<StayListProps> = ({ hotels }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {currentStays.map((hotel) => (
             <StayCard
-              key={hotel.code} // Using hotel.code as unique identifier
+              key={hotel.id ?? hotel.code}
               hotel={hotel}
               checkIn={searchParams?.checkIn}
               checkOut={searchParams?.checkOut}

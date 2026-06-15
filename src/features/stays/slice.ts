@@ -1,12 +1,15 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { searchHotels, createCheckoutSession } from '../stays/api';
-import { BookStaysRequest, BookStaysResponse, Hotel, HotelSearchResponse } from './types';
+import { searchHotels, createCheckoutSession, fetchStayPricing } from '../stays/api';
+import { BookStaysRequest, BookStaysResponse, Hotel, HotelSearchResponse, StayPricing } from './types';
 
 interface locationDetails {
   name: string
   country_name: string
   country_code: string
   code: string
+  adminLevel1?: string
+  city?: string
+  stayType?: string
 }
 interface BookingState {
   loading: boolean;
@@ -15,12 +18,16 @@ interface BookingState {
 }
 
 interface SearchParams {
-  destination: string;
-  checkIn: string;
-  checkOut: string;
-  adults: number;
-  children: number;
-  rooms: number;
+  destination?: string;
+  country?: string;
+  adminLevel1?: string;
+  city?: string;
+  stayType?: string;
+  checkIn?: string;
+  checkOut?: string;
+  adults?: number;
+  children?: number;
+  rooms?: number;
 }
 
 interface StaysState {
@@ -34,6 +41,9 @@ interface StaysState {
   detailsError: string | null;
   booking: BookingState;
   guestInfo: GuestInfoProps | null;
+  stayPricing: StayPricing | null;
+  pricingLoading: boolean;
+  pricingError: string | null;
 }
 
 const initialState: StaysState = {
@@ -50,7 +60,10 @@ const initialState: StaysState = {
     error: null,
     booking: null
   },
-  guestInfo: null
+  guestInfo: null,
+  stayPricing: null,
+  pricingLoading: false,
+  pricingError: null,
 };
 export interface GuestInfoProps {
   firstName: string;
@@ -69,14 +82,32 @@ export const fetchHotelsAsync = createAsyncThunk(
   async (params: SearchParams & { token?: string }, { rejectWithValue }) => {
     try {
       const searchParams = params as SearchParams;
+      const destination =
+        searchParams.city ??
+        searchParams.adminLevel1 ??
+        searchParams.country ??
+        searchParams.destination ??
+        '';
       return await searchHotels(
-        searchParams.destination,
-        searchParams.checkIn,
-        searchParams.checkOut,
+        destination,
+        searchParams.checkIn ?? '',
+        searchParams.checkOut ?? '',
         searchParams.adults ?? 1,
         searchParams.children ?? 0,
-        searchParams.rooms,
+        searchParams.rooms ?? 1,
       );
+    } catch (error: unknown) {
+      if (error instanceof Error) return rejectWithValue(error.message);
+      return rejectWithValue(String(error));
+    }
+  }
+);
+
+export const fetchStayPricingAsync = createAsyncThunk(
+  'stays/fetchStayPricing',
+  async (stayId: string, { rejectWithValue }) => {
+    try {
+      return await fetchStayPricing(stayId);
     } catch (error: unknown) {
       if (error instanceof Error) return rejectWithValue(error.message);
       return rejectWithValue(String(error));
@@ -139,7 +170,11 @@ const staysSlice = createSlice({
     clearSelectedHotel: (state) => {
       state.selectedHotel = null;
       state.detailsError = null;
-    }
+    },
+    clearStayPricing: (state) => {
+      state.stayPricing = null;
+      state.pricingError = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -158,6 +193,20 @@ const staysSlice = createSlice({
         state.error = action.payload as string;
 
       })
+      // Stay pricing
+      .addCase(fetchStayPricingAsync.pending, (state) => {
+        state.pricingLoading = true;
+        state.pricingError = null;
+        state.stayPricing = null;
+      })
+      .addCase(fetchStayPricingAsync.fulfilled, (state, action: PayloadAction<StayPricing>) => {
+        state.pricingLoading = false;
+        state.stayPricing = action.payload;
+      })
+      .addCase(fetchStayPricingAsync.rejected, (state, action) => {
+        state.pricingLoading = false;
+        state.pricingError = action.payload as string;
+      })
       //Bookings
       .addCase(createBookingAsync.pending, (state) => {
         state.booking.loading = true;
@@ -174,6 +223,5 @@ const staysSlice = createSlice({
   }
 });
 
-export const { setSearchParams, setGuestInfo, clearStaysCache, clearSearchState, clearSelectedHotel, setLocationDetails } = staysSlice.actions;
+export const { setSearchParams, setGuestInfo, clearStaysCache, clearSearchState, clearSelectedHotel, setLocationDetails, clearStayPricing } = staysSlice.actions;
 export default staysSlice.reducer;
-

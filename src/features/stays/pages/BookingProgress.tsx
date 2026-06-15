@@ -19,6 +19,11 @@ import toast from "react-hot-toast";
 import { Info, Loader } from "lucide-react";
 import { BookStaysRequest } from "../types";
 import type { GuestInfoProps } from "../slice";
+import {
+  bookingReviewLabel,
+  continueToPaymentLabel,
+  guestDetailsLabel,
+} from "../../shared/booking/bookingFlowLabels";
 
 type BookingGuestInfo = GuestInfoProps & {
   address: string;
@@ -27,9 +32,9 @@ type BookingGuestInfo = GuestInfoProps & {
 };
 
 const steps = [
-  { title: "Booking Overview" },
-  { title: "Guest Information" },
-  { title: "Payment Details" },
+  { title: bookingReviewLabel() },
+  { title: guestDetailsLabel() },
+  { title: continueToPaymentLabel() },
 ];
 
 const BookingStepper = ({ activeStep }: { activeStep: number }) => (
@@ -84,7 +89,7 @@ const BookingProgress: React.FC = () => {
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedRoom, selectedRate } = location.state || {};
+  const { selectedRoom, selectedOption } = location.state || {};
   const [currentStep, setCurrentStep] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
   // const [isValid, setIsValid] = useState(false);
@@ -163,7 +168,7 @@ const BookingProgress: React.FC = () => {
     if (!searchParams || !accessToken || !selectedRoom) return;
 
     const bookingData: BookStaysRequest = {
-      rate_key: selectedRate.rateKey,
+      rate_key: selectedOption?.optionId,
       customer: {
         name: guestInfo.firstName,
         surname: guestInfo.lastName,
@@ -215,13 +220,13 @@ const BookingProgress: React.FC = () => {
             <IoChevronBack size={24} />
           </button>
 
-          <h1 className="text-2xl sm:text-3xl font-bold">
-            {currentStep === 0
-              ? "Booking Overview"
-              : currentStep === 1
-              ? "Guest Information"
-              : "Payment Details"}
-          </h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">
+              {currentStep === 0
+                ? bookingReviewLabel()
+                : currentStep === 1
+                ? guestDetailsLabel()
+                : continueToPaymentLabel()}
+            </h1>
         </div>
 
         <div className="lg:px-4 justify-center flex items-center">
@@ -260,18 +265,30 @@ const BookingProgress: React.FC = () => {
 
               <HotelCard
                 imageUrl={
-                  selectedRoom?.images[0].url ||
+                  selectedRoom?.images?.[0]?.secureUrl ??
+                  selectedRoom?.images?.[0]?.url ??
                   "src/assets/images/StayImage3.png"
                 }
-                roomDetails={selectedRoom?.description || "---"}
-                name={selectedRoom?.bed_type || "---"}
+                roomDetails={selectedRoom?.description || selectedRoom?.name || "---"}
+                name={selectedRoom?.bedConfiguration ?? selectedRoom?.bedType ?? selectedRoom?.bed_type ?? selectedRoom?.name ?? "---"}
                 location="80 Ademola Adetokumbo Street, Victoria Island Lagos."
-                refundableUntil={formattedTime || "---"}
+                refundableUntil={
+                  selectedOption?.cancelDeadlineHoursBeforeCheckIn
+                    ? `${selectedOption.cancelDeadlineHoursBeforeCheckIn}h before check-in`
+                    : formattedTime
+                }
               />
+              {selectedOption && (
+                <div className="mx-4 sm:mx-0 mt-2 rounded-lg border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm">
+                  <span className="font-semibold text-blue-800">{selectedOption.label}</span>
+                  <span className="mx-2 text-blue-400">·</span>
+                  <span className="text-blue-700">{selectedOption.policyCopy}</span>
+                </div>
+              )}
               <div className="lg:grid grid-cols-2 gap-4 items-start">
                 <BookingDetails
-                  roomType={selectedRoom?.description}
-                  bedType={selectedRoom?.bed_type}
+                  roomType={selectedRoom?.description ?? selectedRoom?.name}
+                  bedType={selectedRoom?.bedConfiguration ?? selectedRoom?.bedType ?? selectedRoom?.bed_type}
                   checkIn={searchParams?.checkIn}
                   checkOut={searchParams?.checkOut}
                   guests={`${searchParams?.adults} Adults${
@@ -282,11 +299,9 @@ const BookingProgress: React.FC = () => {
                 />
                 <div className="lg:order-5">
                   <PriceSummary
-                    roomPrice={
-                      selectedRate?.net ? parseFloat(selectedRate?.net) : 0
-                    }
+                    roomPrice={selectedOption?.amount ?? 0}
                     nights={
-                      searchParams
+                      searchParams?.checkIn && searchParams?.checkOut
                         ? Math.ceil(
                             (new Date(searchParams.checkOut).getTime() -
                               new Date(searchParams.checkIn).getTime()) /
@@ -367,9 +382,7 @@ const BookingProgress: React.FC = () => {
               <PaymentMethod
                 checked={isChecked}
                 toggleCheck={() => setIsChecked(!isChecked)}
-                roomPrice={
-                  selectedRate?.net ? parseFloat(selectedRate?.net) : 0
-                }
+                roomPrice={selectedOption?.amount ?? 0}
               />
               <div className="flex justify-center items-center">
                 <button
