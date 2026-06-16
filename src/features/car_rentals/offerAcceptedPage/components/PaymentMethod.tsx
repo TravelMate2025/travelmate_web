@@ -35,10 +35,10 @@ const PaymentMethod = ({
       </div>
 
       <p className="text-[14px] font-inter  text-[#181818] py-3 font-bold text-lg lg:text-xl">
-        Price Summary
+        Estimated price summary
       </p>
       <div className="px-6  border-[#CDCED1] lg:border rounded-lg p-5 flex justify-between items-center w-full">
-        <p className="font-bold text-[#4E4F52]">Total</p>
+        <p className="font-bold text-[#4E4F52]">Estimated total</p>
         <p className="font-bold">€{car?.price?.totalAmountWithFee ?? "0"}</p>
       </div>
 

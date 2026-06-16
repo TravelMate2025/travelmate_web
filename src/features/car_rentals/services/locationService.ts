@@ -11,6 +11,80 @@ export type MapLocation = {
     isAirport: boolean;
 };
 
+const usePartnerMockLocations = import.meta.env.VITE_USE_PARTNER_MOCKS !== "false";
+
+const mockPickupLocations: MapLocation[] = [
+    {
+        name: "Murtala Muhammed International Airport",
+        placeId: "los",
+        latitude: 6.577,
+        longitude: 3.321,
+        city: "Lagos",
+        country: "NG",
+        airportCode: "LOS",
+        isAirport: true,
+    },
+    {
+        name: "Nnamdi Azikiwe International Airport",
+        placeId: "abv",
+        latitude: 9.006,
+        longitude: 7.263,
+        city: "Abuja",
+        country: "NG",
+        airportCode: "ABV",
+        isAirport: true,
+    },
+    {
+        name: "Lekki, Lagos, Nigeria",
+        placeId: "lekki-pickup",
+        latitude: 6.458,
+        longitude: 3.476,
+        city: "Lagos",
+        country: "NG",
+        airportCode: "LEK",
+        isAirport: false,
+    },
+];
+
+const mockDropoffLocations: MapLocation[] = [
+    {
+        name: "Victoria Island, Lagos, Nigeria",
+        placeId: "victoria-island",
+        latitude: 6.4281,
+        longitude: 3.4219,
+        city: "Lagos",
+        country: "NG",
+        isAirport: false,
+    },
+    {
+        name: "Lekki Phase 1, Lagos, Nigeria",
+        placeId: "lekki-phase-1",
+        latitude: 6.4516,
+        longitude: 3.4737,
+        city: "Lagos",
+        country: "NG",
+        isAirport: false,
+    },
+    {
+        name: "Ikeja, Lagos, Nigeria",
+        placeId: "ikeja",
+        latitude: 6.6018,
+        longitude: 3.3515,
+        city: "Lagos",
+        country: "NG",
+        isAirport: false,
+    },
+    {
+        name: "Benin City, Edo, Nigeria",
+        placeId: "benin-city",
+        latitude: 6.335,
+        longitude: 5.6037,
+        city: "Benin City",
+        country: "NG",
+        isAirport: false,
+    },
+];
+
 type NominatimAddress = {
     road?: string;
     pedestrian?: string;
@@ -45,6 +119,13 @@ export async function searchDetailedLocation(
     input: string,
     countryCode?: string
 ): Promise<MapLocation[]> {
+    if (usePartnerMockLocations) {
+        const normalized = input.trim().toLowerCase();
+        return mockDropoffLocations.filter((location) =>
+            location.name.toLowerCase().includes(normalized)
+        );
+    }
+
     const key = input.trim().toLowerCase();
     if (cache[key]) return cache[key];
 

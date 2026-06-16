@@ -17,7 +17,7 @@ const Complete = ({ closeDialog, car }: Props) => {
             <X onClick={closeDialog} className="font-bold cursor-pointer" />
           </div>
           <h1 className="font-bold text-xl lg:text-2xl text-[#181818] text-center">
-            Important Information
+            Transfer information
           </h1>
         </div>
         {car?.content?.transferRemarks?.[0]?.description && (

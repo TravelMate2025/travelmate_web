@@ -61,7 +61,7 @@ const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
 
       <div className="mx-6  my-4 ">
         <p className="text-[16px] font-inter font-medium text-[#181818]">
-          Trip Details
+          Transfer details
         </p>
         <div className="lg:border rounded-lg lg:p-5 mt-[10px] flex flex-col justify-normal items-start gap-4 border-[#CDCED1]">
           <div className="flex justify-normal gap-4 items-center">
@@ -112,7 +112,7 @@ const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
 
       <div className="lg:px-6 px-3">
         <p className="text-[16px] font-inter font-medium text-[#181818] pl-3 lg:pl-0">
-          Taxi Details
+          Vehicle details
         </p>
 
         <div className="flex flex-col gap-2 items-center  mt-[10px] lg:border rounded-lg p-5 border-[#CDCED1]">
@@ -164,11 +164,11 @@ const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
 
       <div className="lg:px-6 px-3">
         <p className="text-[16px] font-inter font-medium text-[#181818] pt-4 pl-3 lg:pl-0">
-          Price Summary
+          Estimated price summary
         </p>
         <div className="flex  justify-between w-full itmes-center lg:border rounded-lg p-5 mt-[10px border-[#CDCED1]]">
           <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-            Total
+            Estimated total
           </p>
 
           <p className="text-[#181818] text-[14px] font-bold font-inter">
@@ -182,13 +182,13 @@ const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
       <div className="lg:px-6 px-3">
         <div className="flex w-full justify-between items-center p-4 pl-3 lg:pl-0">
           <p className="text-[16px] font-inter font-bold text-[#181818]">
-            Important information
+            Transfer information
           </p>
           <div
             className="flex gap-1 items-center text-[#023E8A]"
             onClick={() => setShowAllModal(true)}
           >
-            <p>Show all</p>
+            <p>View all</p>
             <ChevronRight />
           </div>
         </div>
@@ -207,7 +207,7 @@ const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
       />
       <div className="lg:px-6 px-3">
         <p className="text-[16px] font-inter font-bold text-[#181818] lg:p-4 p-3 lg:pl-0">
-          Refunds and Cancellations
+          Cancellation policy
         </p>
         <div className="lg:border rounded-lg lg:p-5 p-3 lg:mt-2 border-[#CDCED1]">
           <ul className="list-disc pl-4 flex flex-col gap-2">

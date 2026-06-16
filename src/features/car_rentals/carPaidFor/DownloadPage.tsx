@@ -68,7 +68,7 @@ const DownloadPage = () => {
       <div className="w-full bg-white">
         <div className="px-6 lg:px-8 m-auto lg:m-0 ">
           <p className="text-[16px] font-bold text-[#181818] mb-[15px]">
-            Taxi Confirmation
+              Transfer Confirmation
           </p>
           <div className="flex justify-normal gap-2">
             <p className="text-[#4E4F52] text-[14px] font-normal">
@@ -90,7 +90,7 @@ const DownloadPage = () => {
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
-            Trip Details
+            Transfer details
           </p>
           <div>
             <div className="flex flex-col gap-1">
@@ -143,7 +143,7 @@ const DownloadPage = () => {
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
-            Taxi Details
+            Vehicle details
           </p>
           <div>
             <div className="flex flex-col gap-1">
@@ -188,7 +188,7 @@ const DownloadPage = () => {
 
         <div className="px-6 lg:px-8 m-auto lg:m-0 ">
           <p className="text-[14px] font-bold text-[#181818] py-2">
-            Passenger Details
+            Guest details
           </p>
           <div>
             <div className="flex justify-normal gap-2 mb-[6px]">
@@ -212,7 +212,7 @@ const DownloadPage = () => {
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
-            Price Summary
+            Estimated price summary
           </p>
           <div>
             <div className="flex justify-normal gap-2">
@@ -230,7 +230,7 @@ const DownloadPage = () => {
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
-            Important Information
+            Transfer information
           </p>
           <div>
             {infoRemarks ? (

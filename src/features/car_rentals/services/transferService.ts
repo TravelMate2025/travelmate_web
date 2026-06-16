@@ -353,6 +353,17 @@ class TransferService {
                     name: 'Nnamdi Azikiwe International Airport',
                     type: 'airport',
                 },
+                {
+                    cityName: 'Lagos',
+                    countryCode: 'NG',
+                    countryName: 'Nigeria',
+                    displayName: 'Lekki, Lagos, Nigeria',
+                    geoCode: { latitude: 6.458, longitude: 3.476 },
+                    iataCode: 'LEK',
+                    id: 'lekki-pickup',
+                    name: 'Lekki, Lagos, Nigeria',
+                    type: 'city',
+                },
             ].filter((item) => item.displayName.toLowerCase().includes(normalized));
             return {
                 success: true,

@@ -51,6 +51,7 @@ const CarFailedPayment = lazy(() => import("./features/car_rentals/carPaidFor/Ca
 
 // Other pages (lazy)
 const AirportTaxi = lazy(() => import("./pages/AirportTaxi"));
+const TransferFlow = lazy(() => import("./pages/TransferFlow"));
 const FaqPage = lazy(() => import("./features/customer-management/pages/faq"));
 const ChatPage = lazy(() => import("./features/customer-management/pages/ChatPage"));
 const TicketsPage = lazy(() => import("./features/customer-management/pages/TicketsPage"));
@@ -284,6 +285,7 @@ function App() {
         {/* Cars */}
         <Route path="/cars-searchResults" element={<DisplayCars />} />
         <Route path={bookingFlowRoutes.transferBookingReview} element={<CarOfferPage />} />
+        <Route path={bookingFlowRoutes.transferGuestDetails} element={<CarOfferPage />} />
         <Route path="/cars-booking" element={<CarOfferPage />} />
         <Route
           path="/car-confirmation"
@@ -329,6 +331,7 @@ function App() {
 
         {/* Airport Taxi */}
         <Route path="/airport-taxi" element={<AirportTaxi />} />
+        <Route path="/transfer-flow" element={<TransferFlow />} />
       </Routes>
       </Suspense>
     </>
