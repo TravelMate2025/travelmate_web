@@ -31,6 +31,7 @@ const PartnerStaySearchPage = lazy(() => import("./features/stays/pages/PartnerS
 const StaysDetail = lazy(() => import("./features/stays/pages/StaysDetail"));
 const BookingConfirmationPage = lazy(() => import("./features/stays/pages/BookingConfirmationPage"));
 const BookingProgress = lazy(() => import("./features/stays/pages/BookingProgress"));
+const StayHoldSummaryPage = lazy(() => import("./features/stays/pages/StayHoldSummaryPage"));
 const DownloadStaysPage = lazy(() => import("./features/stays/components/confirmation/Download"));
 
 // Flights pages (lazy)
@@ -94,6 +95,7 @@ function App() {
         <Route path={legacyBookingFlowRoutes.staySearch} element={<StaysSearchResults />} />
         <Route path={bookingFlowRoutes.stayBookingReview} element={<BookingProgress />} />
         <Route path={legacyBookingFlowRoutes.stayBookingReview} element={<BookingProgress />} />
+        <Route path={bookingFlowRoutes.stayHoldSummary} element={<StayHoldSummaryPage />} />
         <Route path={`${bookingFlowRoutes.stayDetail}/:hotelId`} element={<StaysDetail />} />
         <Route path={`${legacyBookingFlowRoutes.stayDetail}/:hotelId`} element={<StaysDetail />} />
         <Route path="/stays-paid/download" element={<DownloadStaysPage />} />

@@ -296,6 +296,108 @@ export interface StayPricing {
 
 // --- end partner pricing types ---
 
+// --- Partner booking types (quote + hold flow) ---
+
+export interface Traveler {
+  firstName: string;
+  lastName: string;
+  type: "adult" | "child";
+  email: string;
+}
+
+export interface BookingQuoteRoomSelection {
+  roomId: string;
+  quantity?: number;
+}
+
+export interface BookingQuoteReq {
+  listingType: "stay";
+  listingId: string;
+  cancellationOptionId: string;
+  currency: string;
+  checkInDate: string;
+  checkOutDate: string;
+  roomSelections?: BookingQuoteRoomSelection[];
+  ratePlanId?: string | null;
+}
+
+export interface QuoteCancellationOptionSelection {
+  optionId: string;
+  label: string;
+  amount: number;
+  currency: string;
+  cancelDeadlineHoursBeforeCheckIn?: number | null;
+  policyCopy: string;
+  selectedAt?: string;
+  timezone?: string;
+  cancellationCutoffAtLocal?: string;
+  cancellationCutoffAtUtc?: string;
+}
+
+export interface QuotePricing {
+  currency: string;
+  base: number;
+  tax: number;
+  fees: number;
+  total: number;
+}
+
+export interface BookingQuoteResp {
+  lockId: string;
+  expiresAt: string;
+  roomSelections: BookingQuoteRoomSelection[];
+  ratePlanSelection?: string | null;
+  cancellationOptionSelection: QuoteCancellationOptionSelection | null;
+  availableCancellationOptions: StayPricingCancellationOption[];
+  pricing: QuotePricing;
+}
+
+export interface BookingHoldReq {
+  listingType: "stay";
+  listingId: string;
+  quoteLockId: string;
+  guestCount: number;
+  travelers: Traveler[];
+  customerReference: string;
+}
+
+export interface HoldIdempotency {
+  key?: string;
+  replayed: boolean;
+}
+
+export interface HoldCancellationOptionSelection {
+  optionId: string;
+  label: string;
+  amount: number;
+  currency: string;
+  policyCopy: string;
+  cancellationCutoffAtLocal?: string;
+  cancellationCutoffAtUtc?: string;
+  cancelDeadlineHoursBeforeCheckIn?: number | null;
+}
+
+export interface BookingHoldResp {
+  status: string;
+  currency: string;
+  bookingReference: string;
+  holdExpiresAt: string;
+  checkout_url?: string;
+  checkoutUrl?: string;
+  requestId?: string;
+  baseAmount: number;
+  taxAmount: number;
+  feeAmount: number;
+  totalAmount: number;
+  travelers: Traveler[];
+  roomSelections?: BookingQuoteRoomSelection[];
+  ratePlanSelection?: string | null;
+  idempotency?: HoldIdempotency;
+  cancellationOptionSelection?: HoldCancellationOptionSelection;
+}
+
+// --- end partner booking types ---
+
 export interface BookingTransfersVerifyDetails {
   id: string;
 

@@ -219,6 +219,13 @@ const StaysDetail: React.FC = () => {
   const isRoomLevel =
     (selectedHotel?.saleMode ?? selectedHotel?.accommodation_type) === "room_level";
 
+  // Pre-select the first cancellation option for unit_level when pricing loads
+  useEffect(() => {
+    if (!isRoomLevel && stayPricing?.cancellationOptions?.length) {
+      setSelectedOptionId((prev) => prev ?? stayPricing!.cancellationOptions[0].optionId);
+    }
+  }, [isRoomLevel, stayPricing]);
+
   /** Returns the cancellation options to display for a given room. */
   const getRoomOptions = (roomId: string) => {
     if (!stayPricing) return [];
@@ -229,6 +236,33 @@ const StaysDetail: React.FC = () => {
       );
     }
     return stayPricing.cancellationOptions ?? [];
+  };
+
+  const resolveRatePlanId = (roomId: string, optionId?: string) => {
+    if (!isRoomLevel) return null;
+    const wantsRefundable = optionId === "FREE_CANCELLATION";
+    const matched = stayPricing?.ratePlans?.find((plan) => {
+      if (plan.roomId !== roomId || !plan.isActive) return false;
+      return wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable";
+    });
+    return matched?.id ?? stayPricing?.ratePlans?.find((plan) => plan.roomId === roomId && plan.isActive)?.id ?? null;
+  };
+
+  const handleReserveUnitLevel = () => {
+    const options = stayPricing?.cancellationOptions ?? [];
+    const option = options.find((o) => o.optionId === selectedOptionId) ?? options[0];
+    if (!option) return;
+    navigate(bookingFlowRoutes.stayBookingReview, {
+      state: {
+        selectedOption: option,
+        selectedRoom: null,
+        hotel: selectedHotel,
+        checkIn: searchParams?.checkIn,
+        checkOut: searchParams?.checkOut,
+        guestsAdults: searchParams?.adults,
+        guestsChild: searchParams?.children,
+      },
+    });
   };
 
   const handleBookRoom = (roomId: string) => {
@@ -245,6 +279,7 @@ const StaysDetail: React.FC = () => {
         checkOut: searchParams?.checkOut,
         guestsAdults: searchParams?.adults,
         guestsChild: searchParams?.children,
+        ratePlanId: resolveRatePlanId(roomId, option.optionId),
       },
     });
   };
@@ -573,6 +608,71 @@ const StaysDetail: React.FC = () => {
           amenities={amenities}
         />
         <section id="Select a room" className="mt-10">
+          {!isRoomLevel ? (
+            /* ── unit_level: full-property reserve panel ── */
+            <div>
+              <h3 className="font-semibold mx-1 my-2 text-xl">Reserve this property</h3>
+              {pricingLoading && (
+                <p className="text-blue-500 animate-pulse text-sm mt-2">Loading rates…</p>
+              )}
+              {stayPricing?.cancellationOptions?.length ? (
+                <div className="border border-blue-100 rounded-xl overflow-hidden max-w-lg mt-4">
+                  <div className="bg-blue-50 px-4 py-2 text-xs text-blue-700 font-medium">
+                    Choose your rate
+                  </div>
+                  {stayPricing.cancellationOptions.map((option) => (
+                    <label
+                      key={option.optionId}
+                      className={`flex items-start gap-3 px-4 py-3 cursor-pointer border-b border-gray-100 last:border-0 hover:bg-gray-50 ${
+                        selectedOptionId === option.optionId ? "bg-blue-50/60" : ""
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="unit-rate"
+                        value={option.optionId}
+                        checked={selectedOptionId === option.optionId}
+                        onChange={() => setSelectedOptionId(option.optionId)}
+                        className="mt-0.5 accent-[#023E8A]"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="font-semibold text-sm">{option.label}</span>
+                          <span className="font-bold text-sm whitespace-nowrap">
+                            {stayPricing.currency} {option.amount.toLocaleString()}
+                            <span className="text-xs font-normal text-gray-500">/night</span>
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5">{option.policyCopy}</p>
+                      </div>
+                    </label>
+                  ))}
+                  <div className="px-4 py-4 bg-white">
+                    <button
+                      className="w-full bg-[#023E8A] text-white py-2.5 rounded-lg hover:bg-[#023E9E] transition-colors cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                      disabled={!selectedOptionId || !searchParams?.checkIn}
+                      onClick={handleReserveUnitLevel}
+                    >
+                      Reserve
+                    </button>
+                    {!searchParams?.checkIn && (
+                      <p className="text-xs text-center text-gray-400 mt-2">
+                        Select dates above to continue
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                !pricingLoading && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    No rates available. Try refreshing.
+                  </p>
+                )
+              )}
+            </div>
+          ) : (
+          /* ── room_level: per-room cards ── */
+          <div>
           <h3 className="font-semibold mx-1 my-2 text-xl">Select a room</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {availableRooms.length > 0 ? (
@@ -738,6 +838,8 @@ const StaysDetail: React.FC = () => {
               </div>
             )}
           </div>
+          </div>
+          )}
         </section>
         <section id="Reviews" className="mt-10">
           <hr className="text-gray-300" />

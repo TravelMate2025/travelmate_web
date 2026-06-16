@@ -1,5 +1,9 @@
 import {
   BookingDetailsVerifyData,
+  BookingHoldReq,
+  BookingHoldResp,
+  BookingQuoteReq,
+  BookingQuoteResp,
   BookingStaysVerifyDetails,
   BookStaysRequest,
   BookStaysResponse,
@@ -12,6 +16,8 @@ import api from "../../api/services/api";
 import axios, { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
 import {
+  mockCreateHold,
+  mockCreateQuote,
   mockDestinations,
   mockHotelDetails,
   mockHotelReviews,
@@ -466,6 +472,42 @@ export const CancelStaysBookings = async (
     throw new Error(errorMessage);
   } finally {
     setLoading?.(false);
+  }
+};
+
+/**
+ * Create a quote lock — POST /api/v1/public/bookings/quote
+ */
+export const createQuote = async (req: BookingQuoteReq): Promise<BookingQuoteResp> => {
+  if (usePartnerMockData) {
+    await new Promise((r) => setTimeout(r, 600));
+    return mockCreateQuote(req);
+  }
+  try {
+    const response = await axios.post(`${BASE_URL}/api/v1/public/bookings/quote`, req);
+    return (response.data?.data ?? response.data) as BookingQuoteResp;
+  } catch (error: unknown) {
+    const msg = getErrorMessage(error) || "Failed to create quote";
+    toast.error(msg);
+    throw new Error(msg);
+  }
+};
+
+/**
+ * Create a hold from a quote lock — POST /api/v1/public/bookings/holds
+ */
+export const createHold = async (req: BookingHoldReq): Promise<BookingHoldResp> => {
+  if (usePartnerMockData) {
+    await new Promise((r) => setTimeout(r, 600));
+    return mockCreateHold(req);
+  }
+  try {
+    const response = await axios.post(`${BASE_URL}/api/v1/public/bookings/holds`, req);
+    return (response.data?.data ?? response.data) as BookingHoldResp;
+  } catch (error: unknown) {
+    const msg = getErrorMessage(error) || "Failed to create hold";
+    toast.error(msg);
+    throw new Error(msg);
   }
 };
 

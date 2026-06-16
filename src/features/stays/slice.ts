@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { searchHotels, createCheckoutSession, fetchStayPricing } from '../stays/api';
-import { BookStaysRequest, BookStaysResponse, Hotel, HotelSearchResponse, StayPricing } from './types';
+import { searchHotels, createCheckoutSession, fetchStayPricing, createQuote, createHold } from '../stays/api';
+import { BookingHoldReq, BookingHoldResp, BookingQuoteReq, BookingQuoteResp, BookStaysRequest, BookStaysResponse, Hotel, HotelSearchResponse, StayPricing } from './types';
 
 interface locationDetails {
   name: string
@@ -44,6 +44,12 @@ interface StaysState {
   stayPricing: StayPricing | null;
   pricingLoading: boolean;
   pricingError: string | null;
+  quoteResp: BookingQuoteResp | null;
+  quoteLoading: boolean;
+  quoteError: string | null;
+  holdResp: BookingHoldResp | null;
+  holdLoading: boolean;
+  holdError: string | null;
 }
 
 const initialState: StaysState = {
@@ -64,6 +70,12 @@ const initialState: StaysState = {
   stayPricing: null,
   pricingLoading: false,
   pricingError: null,
+  quoteResp: null,
+  quoteLoading: false,
+  quoteError: null,
+  holdResp: null,
+  holdLoading: false,
+  holdError: null,
 };
 export interface GuestInfoProps {
   firstName: string;
@@ -134,6 +146,30 @@ export const createBookingAsync = createAsyncThunk(
   }
 );
 
+export const createQuoteAsync = createAsyncThunk(
+  'stays/createQuote',
+  async (req: BookingQuoteReq, { rejectWithValue }) => {
+    try {
+      return await createQuote(req);
+    } catch (error: unknown) {
+      if (error instanceof Error) return rejectWithValue(error.message);
+      return rejectWithValue('Failed to create quote');
+    }
+  }
+);
+
+export const createHoldAsync = createAsyncThunk(
+  'stays/createHold',
+  async (req: BookingHoldReq, { rejectWithValue }) => {
+    try {
+      return await createHold(req);
+    } catch (error: unknown) {
+      if (error instanceof Error) return rejectWithValue(error.message);
+      return rejectWithValue('Failed to create hold');
+    }
+  }
+);
+
 const staysSlice = createSlice({
   name: 'stays',
   initialState,
@@ -174,6 +210,12 @@ const staysSlice = createSlice({
     clearStayPricing: (state) => {
       state.stayPricing = null;
       state.pricingError = null;
+    },
+    clearQuoteHold: (state) => {
+      state.quoteResp = null;
+      state.quoteError = null;
+      state.holdResp = null;
+      state.holdError = null;
     },
   },
   extraReducers: (builder) => {
@@ -219,9 +261,37 @@ const staysSlice = createSlice({
       .addCase(createBookingAsync.rejected, (state, action) => {
         state.booking.loading = false;
         state.booking.error = action.payload as string;
+      })
+      // Quote
+      .addCase(createQuoteAsync.pending, (state) => {
+        state.quoteLoading = true;
+        state.quoteError = null;
+        state.quoteResp = null;
+      })
+      .addCase(createQuoteAsync.fulfilled, (state, action: PayloadAction<BookingQuoteResp>) => {
+        state.quoteLoading = false;
+        state.quoteResp = action.payload;
+      })
+      .addCase(createQuoteAsync.rejected, (state, action) => {
+        state.quoteLoading = false;
+        state.quoteError = action.payload as string;
+      })
+      // Hold
+      .addCase(createHoldAsync.pending, (state) => {
+        state.holdLoading = true;
+        state.holdError = null;
+        state.holdResp = null;
+      })
+      .addCase(createHoldAsync.fulfilled, (state, action: PayloadAction<BookingHoldResp>) => {
+        state.holdLoading = false;
+        state.holdResp = action.payload;
+      })
+      .addCase(createHoldAsync.rejected, (state, action) => {
+        state.holdLoading = false;
+        state.holdError = action.payload as string;
       });
   }
 });
 
-export const { setSearchParams, setGuestInfo, clearStaysCache, clearSearchState, clearSelectedHotel, setLocationDetails, clearStayPricing } = staysSlice.actions;
+export const { setSearchParams, setGuestInfo, clearStaysCache, clearSearchState, clearSelectedHotel, setLocationDetails, clearStayPricing, clearQuoteHold } = staysSlice.actions;
 export default staysSlice.reducer;
