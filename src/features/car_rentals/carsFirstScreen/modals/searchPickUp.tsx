@@ -69,8 +69,7 @@ const SearchPickUpLocation = ({
       setError(null);
       const response = await transferService.lookupTerminal(searchQuery);
       if (response?.data && Array.isArray(response.data)) {
-        const airportResults = response.data.filter((loc) => loc.type === "AIRPORT");
-        setSuggestions(airportResults.length > 0 ? airportResults : response.data);
+        setSuggestions(response.data);
       } else {
         setSuggestions([]);
         setError(response.error || "Failed to fetch airports");

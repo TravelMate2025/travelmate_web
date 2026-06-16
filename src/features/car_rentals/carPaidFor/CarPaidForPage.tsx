@@ -121,8 +121,8 @@ const CarPaidForPage = () => {
                 Done
               </p>
             </Link>
-            <p className="text-[20px] font-semibold font-inter">
-              Taxi Confirmation
+              <p className="text-[20px] font-semibold font-inter">
+              Transfer Confirmation
             </p>
 
             <div
@@ -135,8 +135,8 @@ const CarPaidForPage = () => {
             </div>
           </div>
           <div className="hidden px-6 lg:px-8 py-6 m-auto lg:flex justify-between">
-            <p className="text-[20px] font-semibold font-inter">
-              Taxi Confirmation
+              <p className="text-[20px] font-semibold font-inter">
+              Transfer Confirmation
             </p>
 
             <div className="flex items-center justify-end gap-4">
@@ -182,7 +182,7 @@ const CarPaidForPage = () => {
                   </div>
 
                   <div className="text-[12px]">
-                    Payment Successful. Car confirmation Details will also be
+                    Payment successful. Transfer confirmation details will also be
                     sent to {cars.holder?.email ?? "your email"}
                   </div>
                 </div>
@@ -223,7 +223,7 @@ const CarPaidForPage = () => {
 
             <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-3">
               <p className="text-[14px] font-inter py-4 font-medium text-[#181818]">
-                Trip Details
+                Transfer details
               </p>
               <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3]">
                 <div className="flex flex-col gap-1">
@@ -288,7 +288,7 @@ const CarPaidForPage = () => {
             />
             <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-5">
               <p className="text-[14px] font-inter py-4 font-medium text-[#181818]">
-                Taxi Details
+                Vehicle details
               </p>
               <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3]">
                 <div className="flex flex-col gap-1">
@@ -344,7 +344,7 @@ const CarPaidForPage = () => {
 
             <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-7">
               <p className="text-[14px] font-medium text-[#181818] py-4">
-                Passenger Details
+                Guest details
               </p>
 
               <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3]">
@@ -382,7 +382,7 @@ const CarPaidForPage = () => {
 
             <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-2">
               <p className="text-[14px] font-inter py-4 font-medium text-[#181818]">
-                Price Summary
+                Estimated price summary
               </p>
               <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3]">
                 <div className="flex justify-between">

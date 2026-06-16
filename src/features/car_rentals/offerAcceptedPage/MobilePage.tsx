@@ -206,7 +206,7 @@ const MobilePage = ({
                 if (activeStep === 0) { handleNext(); } else { handleConfirm(); }
               }}
             >
-              <span>Continue</span>
+              <span>{activeStep === 0 ? "Continue to guest details" : "Continue"}</span>
               {loadingSubmit && (
                 <Loader className="animate-spin " stroke="#ffffff" />
               )}

@@ -90,7 +90,7 @@ const PersonalInfo = ({
           <div className=" mt-[10px]">
             <div>
               <h2 className="py-3 text-lg lg:tex-x;l font-bold p-5 lg:p-0">
-                Passenger Information
+                Guest details
               </h2>
               <div className="lg:border rounded-lg p-5 border-[#CDCED1]">
                 <div className="flex justify-between gap-6 w-[100%]">
@@ -99,8 +99,8 @@ const PersonalInfo = ({
                       Use my Profile Information
                     </p>
                     <p className="text-[#4E4F52] font-normal text-[14px]">
-                      The fields will be automatically field based on your
-                      information with us
+                      The fields will be filled automatically from your saved
+                      profile information.
                     </p>
                   </div>
 

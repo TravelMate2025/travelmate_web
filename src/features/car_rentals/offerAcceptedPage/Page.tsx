@@ -10,9 +10,9 @@ import { RootState } from "../../../store";
 import { useSelector } from "react-redux";
 import type { Dispatch, SetStateAction } from "react";
 import {
-  bookingReviewLabel,
   continueToPaymentLabel,
   guestDetailsLabel,
+  transferReviewLabel,
 } from "../../shared/booking/bookingFlowLabels";
 
 export interface CarOfferInfo {
@@ -95,7 +95,7 @@ const Page = () => {
   const [submitted, setSubmitted] = useState(false);
   // const dispatch = useDispatch();
 
-  const steps = [bookingReviewLabel(), guestDetailsLabel(), continueToPaymentLabel()];
+  const steps = [transferReviewLabel(), guestDetailsLabel(), continueToPaymentLabel()];
 
   const [state, setState] = useState<StepState>({
     gilad: true,
