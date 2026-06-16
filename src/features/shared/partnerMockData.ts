@@ -1,4 +1,4 @@
-import type { BookStaysResponse, Hotel, HotelSearchResponse, Destination, BookingStaysVerifyDetails, BookingDetailsVerifyData, StayPricing, StayPricingCancellationOption, StayPricingRatePlan } from "../stays/types";
+import type { BookStaysResponse, Hotel, HotelSearchResponse, Destination, BookingStaysVerifyDetails, BookingDetailsVerifyData, StayPricing, StayPricingCancellationOption, StayPricingRatePlan, BookingQuoteReq, BookingQuoteResp, BookingHoldReq, BookingHoldResp } from "../stays/types";
 import type { CarTransferOption } from "../car_rentals/types/booking";
 
 export const usePartnerMockData = import.meta.env.VITE_USE_PARTNER_MOCKS !== "false";
@@ -623,6 +623,91 @@ export function mockStayPricing(stayId: string): StayPricing {
       previewOptionId: "NON_CANCELLABLE",
       notes: "Tax and fee components are placeholder zero-values.",
     },
+  };
+}
+
+export function mockCreateQuote(req: BookingQuoteReq): BookingQuoteResp {
+  const cfg = stayPricingConfig[req.listingId];
+  const nonRefRate = cfg?.rooms[0]?.nonRefRate ?? cfg?.baseRate ?? 120000;
+  const refRate = cfg?.rooms[0]?.refRate ?? cfg?.baseRate ?? 135000;
+  const amount = req.cancellationOptionId === "FREE_CANCELLATION" ? refRate : nonRefRate;
+  const nights = Math.max(
+    1,
+    Math.ceil(
+      (new Date(req.checkOutDate).getTime() - new Date(req.checkInDate).getTime()) /
+        (1000 * 60 * 60 * 24),
+    ),
+  );
+  const base = amount * nights;
+  const tax = Math.round(base * 0.05);
+  const fees = Math.round(base * 0.05);
+
+  return {
+    lockId: `qlock_mock_${Date.now().toString(36)}`,
+    expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+    roomSelections: req.roomSelections ?? [],
+    ratePlanSelection: req.ratePlanId ?? null,
+    cancellationOptionSelection: {
+      optionId: req.cancellationOptionId,
+      label: req.cancellationOptionId === "FREE_CANCELLATION" ? "Free cancellation" : "Non-cancellable",
+      amount,
+      currency: req.currency,
+      cancelDeadlineHoursBeforeCheckIn: req.cancellationOptionId === "FREE_CANCELLATION" ? 24 : null,
+      policyCopy:
+        req.cancellationOptionId === "FREE_CANCELLATION"
+          ? "Free cancellation up to 24 hours before check-in."
+          : "Non-cancellable. No refund after booking.",
+      cancellationCutoffAtLocal: `${req.checkInDate}T14:00:00+01:00`,
+      cancellationCutoffAtUtc: `${req.checkInDate}T13:00:00+00:00`,
+    },
+    availableCancellationOptions: [
+      {
+        optionId: "NON_CANCELLABLE",
+        label: "Non-cancellable",
+        amount: nonRefRate,
+        currency: req.currency,
+        cancelDeadlineHoursBeforeCheckIn: null,
+        policyCopy: "Non-cancellable. No refund after booking.",
+      },
+      {
+        optionId: "FREE_CANCELLATION",
+        label: "Free cancellation",
+        amount: refRate,
+        currency: req.currency,
+        cancelDeadlineHoursBeforeCheckIn: 24,
+        policyCopy: "Free cancellation up to 24 hours before check-in.",
+      },
+    ],
+    pricing: {
+      currency: req.currency,
+      base,
+      tax,
+      fees,
+      total: base + tax + fees,
+    },
+  };
+}
+
+export function mockCreateHold(req: BookingHoldReq): BookingHoldResp {
+  const cfg = stayPricingConfig[req.listingId];
+  const baseAmount = (cfg?.baseRate ?? 120000) * 2;
+  const tax = Math.round(baseAmount * 0.05);
+  const fees = Math.round(baseAmount * 0.05);
+  return {
+    status: "hold",
+    currency: "NGN",
+    bookingReference: `BOOKREQ-MOCK-${Date.now().toString(36).toUpperCase()}`,
+    holdExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    checkout_url: "https://payments.travelmate.local/stays/checkout/mock-session",
+    requestId: `bkr-mock-${Date.now().toString(36)}`,
+    baseAmount,
+    taxAmount: tax,
+    feeAmount: fees,
+    totalAmount: baseAmount + tax + fees,
+    travelers: req.travelers,
+    roomSelections: [],
+    ratePlanSelection: null,
+    idempotency: { key: `mock-idem-${Date.now().toString(36)}`, replayed: false },
   };
 }
 
