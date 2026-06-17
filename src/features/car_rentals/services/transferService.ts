@@ -3,13 +3,6 @@ import { BookingFormData } from '../types/booking';
 import axios from 'axios';
 import instance from '../../../utils/axiosConfig';
 import toast from 'react-hot-toast';
-import {
-  mockTransferBookingBySession,
-  mockTransferBookingConfirmation,
-  mockTransferCheckoutSession,
-  mockTransferSearchResults,
-  usePartnerMockData,
-} from '../../shared/partnerMockData';
 
 interface ApiErrorPayload {
     error?: string;
@@ -57,6 +50,42 @@ interface BookingConfirmationParams {
     phone: string;
     remark?: string;
 
+}
+
+interface TransferQuoteParams {
+    listingType: string;
+    listingId: string;
+    cancellationOptionId?: string;
+    currency?: string;
+    pickupAt?: string;
+}
+
+interface TransferHoldTraveler {
+    firstName: string;
+    lastName: string;
+    type: string;
+    email: string;
+}
+
+interface TransferHoldParams {
+    listingType: string;
+    listingId: string;
+    quoteLockId: string;
+    guestCount: number;
+    travelers: TransferHoldTraveler[];
+    customerReference?: string;
+    cancellationOptionId?: string;
+}
+
+interface TransferPaymentIntentParams {
+    quoteLockId: string;
+    bookingReference: string;
+    redirectUrl: string;
+    customer: {
+        name: string;
+        email: string;
+        phone: string;
+    };
 }
 
 interface TransferResult {
@@ -122,9 +151,11 @@ interface LookupLocation {
 }
 
 interface TransferSearchPayload {
+    transfers?: unknown[];
     results?: {
         services?: unknown[];
         data?: unknown[];
+        search?: unknown;
     };
     search_id?: string;
     fallback_info?: {
@@ -135,7 +166,7 @@ interface TransferSearchPayload {
 }
 
 class TransferService {
-    private baseUrl = import.meta.env.VITE_API_BASE_URL;
+    private baseUrl = (instance.defaults.baseURL || "https://travelmate.com").replace(/\/$/, "");
     private terminalCache: Map<string, LookupLocation[]> = new Map();
 
     private getErrorMessage(error: unknown): string {
@@ -148,35 +179,35 @@ class TransferService {
 
 
     async searchTransfers(params: TransferSearchParams): Promise<TransferResult> {
-        if (usePartnerMockData) {
-            return {
-                success: true,
-                data: {
-                    results: {
-                        services: mockTransferSearchResults(),
-                        data: mockTransferSearchResults(),
-                    },
-                    search_id: 'mock-search-001',
-                },
-            };
-        }
-
         try {
-            const queryString = new URLSearchParams();
-            Object.entries(params).forEach(([key, value]) => {
-                if (value !== undefined && value !== null && value !== '') {
-                    queryString.append(key, value.toString());
-                }
-            });
+            const departingDateTime = new Date(params.departing);
+            const pickupDate = isValid(departingDateTime) ? format(departingDateTime, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+            const pickupTime = isValid(departingDateTime) ? format(departingDateTime, 'HH:mm') : '10:00';
+            const passengers = Number(params.adults || 0) + Number(params.children || 0) + Number(params.infants || 0);
+            const payload = {
+                pickup_location: params.fcode,
+                pickup_location_type: params.ftype,
+                dropoff_location: params.tcode,
+                dropoff_location_type: params.ttype,
+                pickup_date: pickupDate,
+                pickup_time: pickupTime,
+                passengers: passengers > 0 ? passengers : 1,
+                q: [params.fcode, params.tcode].filter(Boolean).join(' '),
+                vehicleClass: params.transfer_type,
+                min_price: params.min_price,
+                max_price: params.max_price,
+                date: pickupDate,
+            };
 
-
-            const response = await axios.get<TransferSearchPayload>(`${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
+            const response = await instance.post<TransferSearchPayload>(`${this.baseUrl}/transfers/search/`, payload);
+            const backendTransfers = response.data?.results?.services ?? response.data?.results?.data ?? response.data?.transfers ?? [];
             return {
                 success: true,
                 data: {
                     results: {
-                        services: response.data?.results?.services ?? [],
-                        data: response.data?.results?.data ?? [],
+                        services: backendTransfers,
+                        data: backendTransfers,
+                        search: response.data?.results?.search,
                     },
                     search_id: response.data?.search_id ?? "",
                 },
@@ -200,14 +231,6 @@ class TransferService {
 
 
     async createBookingConfirmation(accessToken: string, params: BookingConfirmationParams): Promise<BookingConfirmationResult> {
-        if (usePartnerMockData) {
-            return {
-                success: true,
-                data: mockTransferBookingConfirmation(),
-                status: 200,
-            };
-        }
-
         try {
             const response = await instance.post<BookingConfirmationResult['data']>(`${this.baseUrl}/transfers/booking/confirmation/`,
                 JSON.stringify(params), {
@@ -231,11 +254,52 @@ class TransferService {
         }
     }
 
-    async createCheckoutSession(confirmationId: string): Promise<CheckoutSessionResult> {
-        if (usePartnerMockData) {
-            return mockTransferCheckoutSession();
+    async createTransferQuote(params: TransferQuoteParams): Promise<BookingFinalizeResult> {
+        try {
+            const response = await instance.post(`${this.baseUrl}/transfers/booking/quote/`, params);
+            return {
+                success: true,
+                data: response.data,
+            };
+        } catch (error: unknown) {
+            return {
+                success: false,
+                error: this.getErrorMessage(error),
+            };
         }
+    }
 
+    async createTransferHold(params: TransferHoldParams): Promise<BookingFinalizeResult> {
+        try {
+            const response = await instance.post(`${this.baseUrl}/transfers/booking/holds/`, params);
+            return {
+                success: true,
+                data: response.data,
+            };
+        } catch (error: unknown) {
+            return {
+                success: false,
+                error: this.getErrorMessage(error),
+            };
+        }
+    }
+
+    async createTransferPaymentIntent(params: TransferPaymentIntentParams): Promise<BookingFinalizeResult> {
+        try {
+            const response = await instance.post(`${this.baseUrl}/transfers/payments/intents/`, params);
+            return {
+                success: true,
+                data: response.data,
+            };
+        } catch (error: unknown) {
+            return {
+                success: false,
+                error: this.getErrorMessage(error),
+            };
+        }
+    }
+
+    async createCheckoutSession(confirmationId: string): Promise<CheckoutSessionResult> {
         try {
 
             const response = await instance.post<CheckoutSessionResult>(`${this.baseUrl}/transfers/booking/${confirmationId}/create-checkout-session/`);
@@ -256,13 +320,6 @@ class TransferService {
     }
 
     async cancelBooking(confirmationId: string): Promise<BookingFinalizeResult> {
-        if (usePartnerMockData) {
-            return {
-                success: true,
-                data: { confirmationId, status: 'cancelled' },
-            };
-        }
-
         try {
             const response = await axios.post(`${this.baseUrl}/transfers/booking/${confirmationId}/cancel/`);
             return {
@@ -278,13 +335,6 @@ class TransferService {
         }
     }
     async finalizeBooking(confirmationId: string): Promise<BookingFinalizeResult> {
-        if (usePartnerMockData) {
-            return {
-                success: true,
-                data: { confirmationId, status: 'finalized' },
-            };
-        }
-
         try {
             const response = await instance.post(`${this.baseUrl}/transfers/booking/finalize/${confirmationId}/`);
             return {
@@ -303,13 +353,6 @@ class TransferService {
     }
 
     async getBookingBySession(sessionId: string | null): Promise<BookingConfirmationResult> {
-        if (usePartnerMockData) {
-            return {
-                success: true,
-                data: mockTransferBookingBySession().data,
-            };
-        }
-
         try {
             const response = await instance.get(`${this.baseUrl}/transfers/booking/confirmation/by-session/?session_id=${sessionId}`);
             return {
@@ -328,49 +371,6 @@ class TransferService {
 
 
     async lookupTerminal(name: string): Promise<LookupResult> {
-        if (usePartnerMockData) {
-            const normalized = name.toLowerCase().trim();
-            const data: LookupLocation[] = [
-                {
-                    cityName: 'Lagos',
-                    countryCode: 'NG',
-                    countryName: 'Nigeria',
-                    displayName: 'Murtala Muhammed International Airport',
-                    geoCode: { latitude: 6.577, longitude: 3.321 },
-                    iataCode: 'LOS',
-                    id: 'los',
-                    name: 'Murtala Muhammed International Airport',
-                    type: 'airport',
-                },
-                {
-                    cityName: 'Abuja',
-                    countryCode: 'NG',
-                    countryName: 'Nigeria',
-                    displayName: 'Nnamdi Azikiwe International Airport',
-                    geoCode: { latitude: 9.006, longitude: 7.263 },
-                    iataCode: 'ABV',
-                    id: 'abv',
-                    name: 'Nnamdi Azikiwe International Airport',
-                    type: 'airport',
-                },
-                {
-                    cityName: 'Lagos',
-                    countryCode: 'NG',
-                    countryName: 'Nigeria',
-                    displayName: 'Lekki, Lagos, Nigeria',
-                    geoCode: { latitude: 6.458, longitude: 3.476 },
-                    iataCode: 'LEK',
-                    id: 'lekki-pickup',
-                    name: 'Lekki, Lagos, Nigeria',
-                    type: 'city',
-                },
-            ].filter((item) => item.displayName.toLowerCase().includes(normalized));
-            return {
-                success: true,
-                data,
-            };
-        }
-
         const cacheKey = name.toLowerCase().trim();
         if (this.terminalCache.has(cacheKey)) {
             return {
@@ -380,7 +380,9 @@ class TransferService {
         }
 
         try {
-            const response = await axios.get<{ results?: LookupLocation[]; data?: LookupLocation[] }>(`${this.baseUrl}/flights/search/search_airports/?keyword=${encodeURIComponent(name)}`);
+            const response = await instance.get<{ results?: LookupLocation[]; data?: LookupLocation[] }>(
+                `${this.baseUrl}/transfers/lookup/terminal/?name=${encodeURIComponent(name)}`
+            );
             const results = (response.data?.results || response.data?.data || response.data || []) as LookupLocation[];
             this.terminalCache.set(cacheKey, results);
 
