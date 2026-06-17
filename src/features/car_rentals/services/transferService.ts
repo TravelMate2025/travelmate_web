@@ -323,7 +323,7 @@ class TransferService {
 
     async cancelBooking(confirmationId: string): Promise<BookingFinalizeResult> {
         try {
-            const response = await axios.post(`${this.baseUrl}/transfers/booking/${confirmationId}/cancel/`);
+            const response = await instance.post(`${this.baseUrl}/transfers/booking/${confirmationId}/cancel/`);
             return {
                 success: true,
                 data: response.data,
