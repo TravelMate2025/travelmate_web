@@ -94,6 +94,7 @@ interface TransferResult {
         results: {
             services: unknown[];
             data: unknown[];
+            search?: unknown;
         };
         search_id: string;
     };
@@ -163,6 +164,7 @@ interface TransferSearchPayload {
         locations_tried?: string[];
         suggestions?: string[];
     };
+    search?: unknown;
 }
 
 class TransferService {
@@ -412,8 +414,8 @@ class TransferService {
         if (!formData.pickupTime) {
             throw new Error('Pickup time is required');
         }
-        if (!formData.pickupLocation || !/^[A-Z]{3}$/.test(formData.pickupLocation)) {
-            throw new Error('Invalid pickup location: Must be a 3-letter IATA code');
+        if (!formData.pickupLocation) {
+            throw new Error('Invalid pickup location');
         }
         if (!formData.dropoffLocation) {
             throw new Error('Invalid dropoff location');
