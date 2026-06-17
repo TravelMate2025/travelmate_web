@@ -223,8 +223,8 @@ const CarBookingFirstScreen: React.FC = () => {
       const params = transferService.convertFormToApiParams({
         ...formData,
       });
-      if (!params.fcode || !/^[A-Z]{3}$/.test(params.fcode)) {
-        throw new Error("Invalid pickup location code");
+      if (!params.fcode) {
+        throw new Error("Invalid pickup location");
       }
       if (!params.tcode || params.tcode === "undefined,undefined") {
         setFormData((prev) => ({ ...prev, dropoffLocaDescription: "" }));
@@ -529,8 +529,9 @@ const CarBookingFirstScreen: React.FC = () => {
           value={formData.pickupLocaDescription}
           setValue={handleLocationSelect}
           setExtraFields={(fields) => {
-            updateField("toLat", fields.toLat);
-            updateField("toLon", fields.toLon);
+            if (fields.pickupLocaDescription) {
+              updateField("pickupLocaDescription", fields.pickupLocaDescription);
+            }
           }}
           ChangeValue={(query) =>
             setFormData((prev) => ({

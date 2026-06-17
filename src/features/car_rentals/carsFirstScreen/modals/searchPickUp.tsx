@@ -31,6 +31,7 @@ interface PickUp {
   geoCode?: { latitude: number; longitude: number };
   iataCode?: string;
   id?: string;
+  code?: string;
   name?: string;
   type?: string;
 }
@@ -93,7 +94,7 @@ const SearchPickUpLocation = ({
   const handleSelect = (location: PickUp) => {
     ChangeValue(location.displayName);
     setQuery(location.displayName);
-    setValue(location.iataCode ?? "");
+    setValue(location.iataCode ?? location.code ?? location.displayName);
     if (setExtraFields) {
       const fields: Parameters<NonNullable<typeof setExtraFields>>[0] = {
         pickupLocaDescription: location.displayName,
@@ -201,10 +202,10 @@ const SearchPickUpLocation = ({
                     >
                       <ListItemText
                         primary={`${location.displayName} ${location.countryName}`}
-                        secondary="Airport"
+                        secondary={location.type ? location.type.replace(/_/g, " ") : "Location"}
                       />
                     </ListItem>
-                    <p className="pr-3">{location.iataCode}</p>
+                    <p className="pr-3">{location.iataCode ?? location.code ?? ""}</p>
                   </div>
                 ))
               ) : (
