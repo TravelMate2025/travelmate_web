@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "https://travelmate.com",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -29,8 +29,9 @@ instance.interceptors.response.use(
       if (refreshToken) {
         try {
           // Try refreshing access token
+          const baseUrl = instance.defaults.baseURL || "http://127.0.0.1:8000/api";
           const res = await axios.post(
-            `${import.meta.env.VITE_API_BASE_URL}auth/token/refresh/`,
+            `${baseUrl.replace(/\/$/, "")}/auth/token/refresh/`,
             { refresh: refreshToken },
             { withCredentials: true }
           );

@@ -17,8 +17,8 @@ export const useLocationSearch = () => {
             setSearchError(null);
 
             try {
-                const response = await instance.get(`/api/transfers/lookup/terminal/?q=${encodeURIComponent(query)}`);
-                setLocations(response.data || []);
+                const response = await instance.get(`/transfers/lookup/terminal/?name=${encodeURIComponent(query)}`);
+                setLocations(response.data?.results || response.data?.data || response.data || []);
             } catch (error) {
                 setSearchError(error instanceof Error ? error.message : 'Search failed');
                 setLocations([]);

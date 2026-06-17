@@ -89,7 +89,9 @@ export interface DeskProps {
 const Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [confirmationId, setConfirmationId] = useState("");
+  const [quoteLockId, setQuoteLockId] = useState("");
+  const [bookingReference, setBookingReference] = useState("");
+  const [paymentLink, setPaymentLink] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const [submitted, setSubmitted] = useState(false);
@@ -107,6 +109,7 @@ const Page = () => {
     departureInfo: DepartureInfo;
     car?: CarOfferInfo;
   };
+  const listingId = String(location.state?.car?.id ?? location.state?.car?.rateKey ?? "");
   const rate_key = location.state?.car?.rateKey || "";
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({
@@ -218,40 +221,63 @@ const Page = () => {
       toast.error("Please fill in all required fields correctly.");
       return;
     }
+    if (!accessToken) {
+      toast.error("You must be logged in to continue.");
+      return;
+    }
     try {
       setLoadingSubmit(true);
-      const payload = {
-        search_id,
-        rate_key,
-        first_name: passFormData.firstName,
-        last_name: passFormData.lastName,
-        dob: passFormData.dateOfBirth,
-        email: passFormData.email,
-        country_code: passFormData.countryCode,
-        phone: passFormData.phone,
-      };
+      const quoteResult = await transferService.createTransferQuote({
+        listingType: "transfer",
+        listingId,
+        currency: "NGN",
+        pickupAt: `${departureInfo.pickupDate}T${departureInfo.pickupTime}`,
+      });
 
-      if (!accessToken) {
-        toast.error("You must be logged in to continue.");
-        setLoadingSubmit(false);
-        return;
+      if (!quoteResult.success) {
+        throw new Error(quoteResult.error || "Failed to create transfer quote");
       }
-      const result = await transferService.createBookingConfirmation(
-        accessToken,
-        payload
-      );
-      if (result.success) {
-        setActiveStep(2);
-        setConfirmationId(result?.data?.id ?? "");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      } else {
-        return;
+
+      const quoteData = (quoteResult.data as { data?: { quoteLockId?: string; lockId?: string } } | undefined)?.data;
+      const resolvedQuoteLockId = quoteData?.quoteLockId ?? quoteData?.lockId ?? "";
+      if (!resolvedQuoteLockId) {
+        throw new Error("Quote lock was not returned");
       }
-      } catch (error: unknown) {
+
+      const holdResult = await transferService.createTransferHold({
+        listingType: "transfer",
+        listingId,
+        quoteLockId: resolvedQuoteLockId,
+        guestCount: 1,
+        travelers: [
+          {
+            firstName: passFormData.firstName,
+            lastName: passFormData.lastName,
+            type: "adult",
+            email: passFormData.email,
+          },
+        ],
+        customerReference: `WEB-${Date.now()}`,
+      });
+
+      if (!holdResult.success) {
+        throw new Error(holdResult.error || "Failed to create transfer hold");
+      }
+
+      const holdData = (holdResult.data as { data?: { bookingReference?: string; bookingId?: string } } | undefined)?.data;
+      const resolvedBookingReference = holdData?.bookingReference ?? holdData?.bookingId ?? "";
+      if (!resolvedBookingReference) {
+        throw new Error("Booking reference was not returned");
+      }
+
+      setQuoteLockId(resolvedQuoteLockId);
+      setBookingReference(resolvedBookingReference);
+      setActiveStep(2);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error: unknown) {
       console.error("Booking failed:", String(error));
-      // Try to extract message safely
-      const msg = (error as { response?: { data?: { detail?: string[] } } })?.response?.data?.detail?.[0];
-      toast.error(`${msg ?? "Booking failed"} Please search again`);
+      const msg = error instanceof Error ? error.message : "Booking failed";
+      toast.error(`${msg} Please search again`);
     } finally {
       setLoadingSubmit(false);
     }
@@ -279,17 +305,28 @@ const Page = () => {
   const handleSubmit = async () => {
     try {
       setLoadingSubmit(true);
-      const response = await transferService.createCheckoutSession(
-        confirmationId
-      );
-      console.log(response);
-      if (response.success && response.checkout_url) {
-        window.location.href = response.checkout_url;
+      const response = await transferService.createTransferPaymentIntent({
+        quoteLockId,
+        bookingReference,
+        redirectUrl: `${window.location.origin}/transfers/payment-success`,
+        customer: {
+          name: `${passFormData.firstName} ${passFormData.lastName}`.trim(),
+          email: passFormData.email,
+          phone: passFormData.phone,
+        },
+      });
+
+      const payload = response.data as { data?: { paymentLink?: string; nextAction?: { url?: string } } } | undefined;
+      const paymentUrl = payload?.data?.paymentLink ?? payload?.data?.nextAction?.url;
+      if (response.success && paymentUrl) {
+        window.location.href = paymentUrl;
       } else {
-        console.error("Payment failed or invalid response:", response);
+        throw new Error(response.error || "Payment handoff unavailable");
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Error in payment";
       console.error("Error in payment:", error);
+      toast.error(message);
     } finally {
       setLoadingSubmit(false);
     }
