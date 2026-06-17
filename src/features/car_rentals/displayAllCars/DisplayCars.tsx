@@ -240,6 +240,9 @@ const DisplayCars: React.FC = () => {
       if (!params.fcode) {
         throw new Error("Invalid pickup location");
       }
+      if (!params.departing) {
+        throw new Error("Pickup date and time are required");
+      }
       if (!params.tcode || params.tcode === "undefined,undefined") {
         setFormData((prev) => ({ ...prev, dropoffLocaDescription: "" }));
         throw new Error(

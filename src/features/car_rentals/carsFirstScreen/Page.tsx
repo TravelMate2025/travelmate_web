@@ -208,13 +208,14 @@ const CarBookingFirstScreen: React.FC = () => {
       passengers: true,
     });
     const errors = [];
-    validateBookingForm(formData);
-    if (!isValid) {
+    const validation = validateBookingForm(formData);
+    if (!validation.isValid) {
       errors.push("Please fill in all required fields correctly");
     }
 
     if (errors.length > 0) {
       setSubmitError(errors.join(", "));
+      return;
     }
 
     setSubmitError(null);
