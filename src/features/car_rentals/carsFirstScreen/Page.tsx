@@ -87,7 +87,7 @@ const CarBookingFirstScreen: React.FC = () => {
       selectedRide: baseData.selectedRide || "",
       priceRange: baseData.priceRange || { min: 0, max: 0 },
       passengerCounts: baseData.passengerCounts || {
-        adults: 0,
+        adults: 1,
         children: 0,
         infant: 0,
       },
@@ -227,10 +227,10 @@ const CarBookingFirstScreen: React.FC = () => {
       if (!params.fcode) {
         throw new Error("Invalid pickup location");
       }
-      if (!params.tcode || params.tcode === "undefined,undefined") {
+      if (!params.tcode || params.tcode === "undefined,undefined" || params.tcode === "null,null") {
         setFormData((prev) => ({ ...prev, dropoffLocaDescription: "" }));
         throw new Error(
-          "Invalid destination coordinates, enter drop off location again"
+          "Please select a drop off location again"
         );
       }
       const result = await transferService.searchTransfers(params);
@@ -369,7 +369,7 @@ const CarBookingFirstScreen: React.FC = () => {
                 variant="outlined"
                 size="small"
                 placeholder="Search Destination"
-                value={formData.dropoffLocation}
+                value={formData.dropoffLocaDescription || formData.dropoffLocation}
                 onClick={() => handleDropLocationClick("drop")}
                 onBlur={() => handleBlur("dropoffpLocation")}
                 error={

@@ -12,14 +12,28 @@ import Page from "../../features/car_rentals/carsFirstScreen/CarBookingFirstScre
 import PartnerFlowPreview from "../../features/shared/booking/PartnerFlowPreview";
 import PartnerStaySearchPage from "../../features/stays/pages/PartnerStaySearchPage";
 import { useMediaQuery } from "react-responsive";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+
+const tabFromSearch = (search: string): string | null => {
+  const params = new URLSearchParams(search);
+  const tab = params.get("tab");
+  if (tab === "transfers") return "3";
+  if (tab === "flights") return "2";
+  if (tab === "stays") return "1";
+  return null;
+};
 
 const WelcomePage = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
-  const navigate = useNavigate();
+  const location = useLocation();
   const [value, setValue] = React.useState<string>(() => {
-    return localStorage.getItem("selectedTab") || "1";
+    return tabFromSearch(location.search) ?? localStorage.getItem("selectedTab") ?? "1";
   });
+
+  React.useEffect(() => {
+    const tab = tabFromSearch(location.search);
+    if (tab) setValue(tab);
+  }, [location.search]);
 
   const handleChange = (_event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -31,28 +45,6 @@ const WelcomePage = () => {
       {isMobile ? (
         <div className="w-[100%] m-auto">
           <div className="mt-[100px] border-none h-[100%] rounded-[4px]">
-            <div className="mx-4 sm:mx-10 my-5 rounded-xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    New partner-aligned transfer flow
-                  </h2>
-                  <p className="mt-2 text-sm text-gray-700">
-                    Search → detail → pricing → review
-                  </p>
-                  <p className="mt-1 text-sm text-gray-600">
-                    The current airport taxi UI stays available as fallback until the new flow is fully verified.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="rounded-md bg-[#023E8A] px-4 py-2 text-sm font-medium text-white"
-                  onClick={() => navigate("/transfer-flow")}
-                >
-                  Open new transfer flow
-                </button>
-              </div>
-            </div>
             <Box sx={{ width: "100%", typography: "body1" }}>
               <TabContext value={value}>
                 <Box
@@ -96,7 +88,7 @@ const WelcomePage = () => {
                           alt="stay"
                           style={{ width: 20, height: 20 }}
                         />
-                      }   
+                      }
                       iconPosition="start"
                       label="Stays"
                       value="1"
@@ -145,28 +137,6 @@ const WelcomePage = () => {
         // web view
         <div className="w-[90%] m-auto">
           <div className="mt-[100px] border border-[#CDCED1] h-[100%] rounded-[4px]">
-            <div className="mx-10 my-5 rounded-xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    New partner-aligned transfer flow
-                  </h2>
-                  <p className="mt-2 text-sm text-gray-700">
-                    Search → detail → pricing → review
-                  </p>
-                  <p className="mt-1 text-sm text-gray-600">
-                    The current airport taxi UI stays available as fallback until the new flow is fully verified.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="rounded-md bg-[#023E8A] px-4 py-2 text-sm font-medium text-white"
-                  onClick={() => navigate("/transfer-flow")}
-                >
-                  Open new transfer flow
-                </button>
-              </div>
-            </div>
             <Box sx={{ width: "100%", typography: "body1" }}>
               <TabContext value={value}>
                 <Box
@@ -194,7 +164,7 @@ const WelcomePage = () => {
                       icon={
                         <img
                           src={stay}
-                          alt="plane"
+                          alt="stay"
                           style={{ width: 20, height: 20 }}
                         />
                       }
@@ -206,7 +176,7 @@ const WelcomePage = () => {
                       icon={
                         <img
                           src={plane}
-                          alt="stay"
+                          alt="flights"
                           style={{ width: 20, height: 20 }}
                         />
                       }

@@ -1,3 +1,5 @@
+import type { PartnerStayLocation } from "../partnerLocationsService";
+
 export type StaySearchStayType = "unit_level" | "room_level";
 
 export type StaySearchLocationOption = {
@@ -27,6 +29,15 @@ export const staySearchLocationOptions: StaySearchLocationOption[] = [
     cities: ["Dubai"],
   },
 ];
+
+export function partnerStayLocationToOption(loc: PartnerStayLocation): StaySearchLocationOption {
+  return {
+    destinationLabel: loc.displayName,
+    country: loc.country,
+    adminLevels: loc.adminLevel1 ? [loc.adminLevel1] : [],
+    cities: [loc.city, ...(loc.areas ?? [])].filter(Boolean),
+  };
+}
 
 export const staySearchStayTypeOptions: Array<{
   label: string;
