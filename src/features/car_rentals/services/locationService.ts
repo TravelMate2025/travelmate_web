@@ -1,196 +1,47 @@
+import {
+  fetchPartnerTransferLocations,
+  filterDestinations,
+  type PartnerTransferDestination,
+} from "../../shared/partnerLocationsService";
+
 export type MapLocation = {
-    name: string;
-    placeId: string;
-    latitude: number;
-    longitude: number;
-    street?: string;
-    city?: string;
-    postalCode?: string;
-    country: string;
-    airportCode?: string;
-    isAirport: boolean;
+  name: string;
+  placeId: string;
+  latitude: number | null;
+  longitude: number | null;
+  street?: string;
+  city?: string;
+  postalCode?: string;
+  country: string;
+  airportCode?: string;
+  isAirport: boolean;
 };
 
-const usePartnerMockLocations = import.meta.env.VITE_USE_PARTNER_MOCKS !== "false";
-
-const mockPickupLocations: MapLocation[] = [
-    {
-        name: "Murtala Muhammed International Airport",
-        placeId: "los",
-        latitude: 6.577,
-        longitude: 3.321,
-        city: "Lagos",
-        country: "NG",
-        airportCode: "LOS",
-        isAirport: true,
-    },
-    {
-        name: "Nnamdi Azikiwe International Airport",
-        placeId: "abv",
-        latitude: 9.006,
-        longitude: 7.263,
-        city: "Abuja",
-        country: "NG",
-        airportCode: "ABV",
-        isAirport: true,
-    },
-    {
-        name: "Lekki, Lagos, Nigeria",
-        placeId: "lekki-pickup",
-        latitude: 6.458,
-        longitude: 3.476,
-        city: "Lagos",
-        country: "NG",
-        airportCode: "LEK",
-        isAirport: false,
-    },
-];
-
-const mockDropoffLocations: MapLocation[] = [
-    {
-        name: "Victoria Island, Lagos, Nigeria",
-        placeId: "victoria-island",
-        latitude: 6.4281,
-        longitude: 3.4219,
-        city: "Lagos",
-        country: "NG",
-        isAirport: false,
-    },
-    {
-        name: "Lekki Phase 1, Lagos, Nigeria",
-        placeId: "lekki-phase-1",
-        latitude: 6.4516,
-        longitude: 3.4737,
-        city: "Lagos",
-        country: "NG",
-        isAirport: false,
-    },
-    {
-        name: "Ikeja, Lagos, Nigeria",
-        placeId: "ikeja",
-        latitude: 6.6018,
-        longitude: 3.3515,
-        city: "Lagos",
-        country: "NG",
-        isAirport: false,
-    },
-    {
-        name: "Benin City, Edo, Nigeria",
-        placeId: "benin-city",
-        latitude: 6.335,
-        longitude: 5.6037,
-        city: "Benin City",
-        country: "NG",
-        isAirport: false,
-    },
-];
-
-type NominatimAddress = {
-    road?: string;
-    pedestrian?: string;
-    city?: string;
-    town?: string;
-    village?: string;
-    postcode?: string;
-    country_code?: string;
-};
-
-type NominatimResult = {
-    lat?: string;
-    lon?: string;
-    address?: NominatimAddress;
-    type?: string;
-    category?: string;
-    display_name?: string;
-    osm_id?: number | string;
-};
-
-const cache: Record<string, MapLocation[]> = {};
-
-
-function extractAirportCode(displayName?: string): string | undefined {
-    if (!displayName) return undefined;
-    const match = displayName.match(/\(([A-Z]{3})\)/); // e.g. "Lagos (LOS)"
-    return match ? match[1] : undefined;
+function destinationToMapLocation(dest: PartnerTransferDestination): MapLocation {
+  return {
+    name: dest.displayName,
+    placeId: dest.id,
+    latitude: null,
+    longitude: null,
+    city: dest.city || dest.area,
+    country: dest.country,
+    isAirport: false,
+  };
 }
 
 export async function searchDetailedLocation(
-    setLoading: (loading: boolean) => void,
-    input: string,
-    countryCode?: string
+  setLoading: (loading: boolean) => void,
+  input: string,
+  _countryCode?: string,
 ): Promise<MapLocation[]> {
-    if (usePartnerMockLocations) {
-        const normalized = input.trim().toLowerCase();
-        return mockDropoffLocations.filter((location) =>
-            location.name.toLowerCase().includes(normalized)
-        );
-    }
-
-    const key = input.trim().toLowerCase();
-    if (cache[key]) return cache[key];
-
-    try {
-        setLoading(true);
-        const params = new URLSearchParams({
-            q: key,
-            format: "json",
-            addressdetails: "1",
-            limit: "20",
-            featuretype: "airport,settlement",
-        });
-        if (countryCode) params.append("countrycodes", countryCode.toUpperCase());
-
-        const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
-
-        // Add a small delay to respect Nominatim's rate limit (1 request per second)
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        const response = await fetch(url, {
-            headers: {
-                "User-Agent": "TravelMateApp/1.0 (travelmate925@gmail.com)",
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
-        }
-
-        const data: NominatimResult[] = await response.json();
-        if (!Array.isArray(data) || data.length === 0) {
-            return [];
-        }
-
-        const locations: MapLocation[] = data.map((item) => {
-            const lat = Number(item.lat ?? 0);
-            const lon = Number(item.lon ?? 0);
-            const address = item.address ?? {};
-            const type = item.type ?? "";
-            const category = item.category ?? "";
-            return {
-                name: item.display_name?.toString() ?? "Unknown",
-                placeId: item.osm_id?.toString() ?? "",
-                latitude: lat,
-                longitude: lon,
-                street: address.road?.toString() ?? address.pedestrian?.toString(),
-                city:
-                    address.city?.toString() ??
-                    address.town?.toString() ??
-                    address.village?.toString() ??
-                    "",
-                postalCode: address.postcode?.toString(),
-                country: (address.country_code?.toString() ?? "").toUpperCase(),
-                airportCode: extractAirportCode(item.display_name?.toString()),
-                isAirport: type === "aeroway" || category === "aerodrome",
-            };
-
-        });
-
-        cache[key] = locations;
-        return locations;
-    } catch (e) {
-        console.error("Nominatim search failed:", e);
-        return [];
-    } finally {
-        setLoading(false);
-    }
+  try {
+    setLoading(true);
+    const catalog = await fetchPartnerTransferLocations();
+    const matched = filterDestinations(catalog.destinations, input);
+    return matched.map(destinationToMapLocation);
+  } catch {
+    return [];
+  } finally {
+    setLoading(false);
+  }
 }

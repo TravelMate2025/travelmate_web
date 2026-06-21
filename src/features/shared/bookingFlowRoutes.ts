@@ -7,6 +7,7 @@ export const bookingFlowRoutes = {
   stayPayment: "/booking-payment",
   stayHoldSummary: "/stay-hold-summary",
   stayConfirmation: "/booking-confirmation",
+  transferDetail: "/transfer-details",
   transferBookingReview: "/transfer-review",
   transferGuestDetails: "/transfer-guest-details",
   transferConfirmation: "/transfer-confirmation",

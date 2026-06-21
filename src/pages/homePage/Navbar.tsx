@@ -42,7 +42,7 @@ const navItems = [
   { name: "Home", path: "/" },
   { name: "Stays", path: bookingFlowRoutes.staySearch },
   { name: "Flights", path: "/flight/departure" },
-  { name: "Airport Taxi", path: "/airport-taxi" },
+  { name: "Transfers", path: "/?tab=transfers" },
 ];
 
 const menuItems = [

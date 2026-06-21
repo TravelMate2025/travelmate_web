@@ -45,6 +45,7 @@ interface FormState {
     cardinfo: CardInfo | null;
     personalDetails: PersonalDetails | null;
     carInfo: CarInfo | null;
+    selectedTransfer: CarTransferOption | null;
 }
 const initialCarInfo: CarInfo = {
     pickupLocation: "",
@@ -64,6 +65,7 @@ const initialState: FormState = {
     cardinfo: null,
     personalDetails: null,
     carInfo: initialCarInfo,
+    selectedTransfer: null,
 };
 
 const carPaymentSlice = createSlice({
@@ -89,6 +91,9 @@ const carPaymentSlice = createSlice({
                 state.carInfo[action.payload.field] = action.payload.value as never;
             }
         },
+        setSelectedTransfer: (state, action: PayloadAction<CarTransferOption | null>) => {
+            state.selectedTransfer = action.payload;
+        },
         resetForm: () => initialState,
     },
 });
@@ -99,6 +104,7 @@ export const {
     setCarInfo,
     setSearchResults,
     updateCarInfoField,
+    setSelectedTransfer,
     resetForm
 } = carPaymentSlice.actions;
 

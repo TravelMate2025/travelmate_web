@@ -32,8 +32,9 @@ import SearchPickUpLocation from "../carsFirstScreen/modals/searchPickUp";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../store";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "../../../store";
+import { setSearchResults } from "../carPaymentSlice";
 
 const DisplayCars: React.FC = () => {
   const { state } = useLocation();
@@ -44,6 +45,7 @@ const DisplayCars: React.FC = () => {
   const [form, setForm] = useState<boolean>(!isMobile);
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
   const carInfo = useSelector((state: RootState) => state.cars.carInfo);
+  const dispatch = useDispatch<AppDispatch>();
 
   const collectTo = (
     data: string,
@@ -211,9 +213,6 @@ const DisplayCars: React.FC = () => {
     if (!formData.dropoffLocation) {
       errors.push("Please enter a valid dropoff location");
     }
-    if (!formData.toLat || !formData.toLon) {
-      errors.push("Dropoff location must have valid GPS coordinates");
-    }
     if (!formData.pickupDate) {
       errors.push("Please select a pickup date");
     }
@@ -253,10 +252,8 @@ const DisplayCars: React.FC = () => {
       if (!result?.data?.results?.services) {
         throw new Error(result.error || "No transfer results found");
       }
-      updateField(
-        "searchResults",
-        (result?.data?.results?.services || []) as CarTransferOption[]
-      );
+      const newResults = (result?.data?.results?.services || []) as CarTransferOption[];
+      dispatch(setSearchResults(newResults));
       if (isMobile) {
         setForm(false);
       }
@@ -271,10 +268,10 @@ const DisplayCars: React.FC = () => {
     isValid,
     formData,
     isMobile,
+    dispatch,
     setFormData,
     setLoading,
     setSubmitError,
-    updateField,
   ]);
   // Memoized display values
   const displayValues = useMemo(

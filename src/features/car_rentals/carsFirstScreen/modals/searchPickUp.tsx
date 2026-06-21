@@ -6,10 +6,13 @@ import {
   TextField,
 } from "@mui/material";
 import { Loader, SearchIcon, X } from "lucide-react";
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import { transferService } from "../../services/transferService";
+import { useEffect, useState, useMemo } from "react";
+import {
+  fetchPartnerTransferLocations,
+  filterPickups,
+  type PartnerTransferPickup,
+} from "../../../shared/partnerLocationsService";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
-import toast from "react-hot-toast";
 
 interface SearchLocationProps {
   closeDialog: () => void;
@@ -23,19 +26,6 @@ interface SearchLocationProps {
   }) => void;
 }
 
-interface PickUp {
-  cityName?: string;
-  countryCode?: string;
-  countryName?: string;
-  displayName: string;
-  geoCode?: { latitude: number; longitude: number };
-  iataCode?: string;
-  id?: string;
-  code?: string;
-  name?: string;
-  type?: string;
-}
-
 const SearchPickUpLocation = ({
   closeDialog,
   value,
@@ -44,79 +34,35 @@ const SearchPickUpLocation = ({
   ChangeValue,
 }: SearchLocationProps) => {
   const [query, setQuery] = useState(value);
-  const [suggestions, setSuggestions] = useState<PickUp[]>([]);
+  const [allPickups, setAllPickups] = useState<PartnerTransferPickup[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Debounce function to limit API calls
-  const timeoutRef = useRef<number | null>(null);
-  const debounce = (func: (searchQuery: string) => void, wait: number) => {
-    return (searchQuery: string) => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = window.setTimeout(() => func(searchQuery), wait);
-    };
-  };
-  
-  const fetchLocations = useCallback(async (searchQuery: string) => {
-    if (searchQuery.length < 3) {
-      setSuggestions([]);
-      setError(null);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await transferService.lookupTerminal(searchQuery);
-      if (response?.data && Array.isArray(response.data)) {
-        setSuggestions(response.data);
-      } else {
-        setSuggestions([]);
-        setError(response.error || "Failed to fetch airports");
-      }
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : String(error);
-      setError(msg || "Failed to fetch airports");
-      toast.error(msg || "Failed to fetch airports");
-      setSuggestions([]);
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    fetchPartnerTransferLocations()
+      .then((data) => setAllPickups(data.pickups))
+      .catch(() => setError("Failed to load pickup locations"))
+      .finally(() => setLoading(false));
   }, []);
 
-  // Debounced fetchLocations to prevent excessive API calls
-  const debouncedFetchLocations = useMemo(
-    () => debounce(fetchLocations, 300),
-    [fetchLocations]
+  const suggestions = useMemo(
+    () => filterPickups(allPickups, query),
+    [allPickups, query],
   );
 
-  const handleSelect = (location: PickUp) => {
+  const handleSelect = (location: PartnerTransferPickup) => {
+    const code = location.area || location.city || location.displayName;
     ChangeValue(location.displayName);
     setQuery(location.displayName);
-    setValue(location.iataCode ?? location.code ?? location.displayName);
+    setValue(code);
     if (setExtraFields) {
-      const fields: Parameters<NonNullable<typeof setExtraFields>>[0] = {
-        pickupLocaDescription: location.displayName,
-      };
-      setExtraFields(fields);
+      setExtraFields({ pickupLocaDescription: location.displayName });
     }
-    // setQuery("");
     closeDialog();
   };
 
-  useEffect(() => {
-    if (query) {
-      debouncedFetchLocations(query);
-    } else {
-      setSuggestions([]);
-      setError(null);
-    }
-  }, [query, debouncedFetchLocations]);
-
   return (
     <div className="inset-0 fixed z-50">
-      {/* Backdrop */}
       <div className="fixed inset-0 " onClick={closeDialog} />
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full lg:h-[450px] lg:w-[450px] lg:min-w-lg lg:max-w-sm bg-white lg:rounded-lg shadow-2xl z-[999] flex flex-col mt-6 lg:mt-0">
         <div className="p-6 pb-0 relative">
@@ -140,7 +86,7 @@ const SearchPickUpLocation = ({
             size="small"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Enter airport name or location"
+            placeholder="Enter pickup area or city"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -163,54 +109,36 @@ const SearchPickUpLocation = ({
           />
           <div>
             <List
-              className="lg:max-h-[300px] max-h-[600px] "
+              className="lg:max-h-[300px] max-h-[600px]"
               sx={{
-                // maxHeight: "300px",
-
                 overflowY: "auto",
                 padding: 0,
-                "&::-webkit-scrollbar": {
-                  width: "8px",
-                },
-                "&::-webkit-scrollbar-track": {
-                  background: "#f1f1f1",
-                },
-                "&::-webkit-scrollbar-thumb": {
-                  background: "#888",
-                  borderRadius: "4px",
-                },
-                "&::-webkit-scrollbar-thumb:hover": {
-                  background: "#555",
-                },
+                "&::-webkit-scrollbar": { width: "8px" },
+                "&::-webkit-scrollbar-track": { background: "#f1f1f1" },
+                "&::-webkit-scrollbar-thumb": { background: "#888", borderRadius: "4px" },
+                "&::-webkit-scrollbar-thumb:hover": { background: "#555" },
               }}
             >
               {loading ? (
                 <div className="text-center py-4">Loading...</div>
               ) : suggestions.length > 0 ? (
-                suggestions.map((location, index) => (
+                suggestions.map((location) => (
                   <div
-                    key={location.id ?? location.iataCode ?? index}
+                    key={location.id}
                     className="flex justify-between w-full items-center cursor-pointer hover:bg-gray-100 rounded mt-3 pl-3"
                   >
-                    <RoomOutlinedIcon
-                      className="text-[#FF6F1E]"
-                      sx={{ fontSize: "20px" }}
-                    />
-                    <ListItem
-                      onClick={() => handleSelect(location)}
-                      sx={{ cursor: "pointer" }}
-                    >
+                    <RoomOutlinedIcon className="text-[#FF6F1E]" sx={{ fontSize: "20px" }} />
+                    <ListItem onClick={() => handleSelect(location)} sx={{ cursor: "pointer" }}>
                       <ListItemText
-                        primary={`${location.displayName} ${location.countryName}`}
-                        secondary={location.type ? location.type.replace(/_/g, " ") : "Location"}
+                        primary={`${location.displayName}`}
+                        secondary={[location.area, location.city, location.country].filter(Boolean).join(" · ")}
                       />
                     </ListItem>
-                    <p className="pr-3">{location.iataCode ?? location.code ?? ""}</p>
                   </div>
                 ))
               ) : (
                 <div className="text-center py-4">
-                  {error ? error : "Enter a valid airport name or location"}
+                  {error ?? (query.length > 0 ? "No matching pickup locations" : "Enter a pickup area or city")}
                 </div>
               )}
             </List>

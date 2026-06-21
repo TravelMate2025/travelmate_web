@@ -1,5 +1,5 @@
 import { parse, format, isValid } from 'date-fns';
-import { BookingFormData } from '../types/booking';
+import { BookingFormData, CarTransferOption } from '../types/booking';
 import axios from 'axios';
 import instance from '../../../utils/axiosConfig';
 import toast from 'react-hot-toast';
@@ -256,6 +256,15 @@ class TransferService {
         }
     }
 
+    async getTransferDetail(transferId: string): Promise<{ success: boolean; data?: CarTransferOption; error?: string }> {
+        try {
+            const response = await instance.get<CarTransferOption>(`${this.baseUrl}/transfers/${transferId}/`);
+            return { success: true, data: response.data };
+        } catch (error: unknown) {
+            return { success: false, error: this.getErrorMessage(error) };
+        }
+    }
+
     async createTransferQuote(params: TransferQuoteParams): Promise<BookingFinalizeResult> {
         try {
             const response = await instance.post(`${this.baseUrl}/transfers/booking/quote/`, params);
@@ -432,20 +441,26 @@ class TransferService {
         }
         const { departing } = this.formatDateTime(formData.pickupDate, formData.pickupTime);
 
+        const hasGps = formData.toLat != null && formData.toLon != null
+            && formData.toLat !== 0 && formData.toLon !== 0;
+
+        // Partner catalog pickups use area/city codes, not IATA. Use IATA only when
+        // the code looks like a real IATA code (2-3 uppercase letters).
+        const isIata = /^[A-Z]{2,3}$/.test(formData.pickupLocation);
+
         return {
             adults: formData.passengerCounts.adults.toString(),
             children: formData.passengerCounts.children.toString(),
             infants: formData.passengerCounts.infant.toString(),
             departing,
             fcode: formData.pickupLocation,
-            ftype: 'IATA',
-            tcode: `${formData.toLat},${formData.toLon}`,
-            ttype: 'GPS',
+            ftype: isIata ? 'IATA' : 'CITY',
+            tcode: hasGps ? `${formData.toLat},${formData.toLon}` : (formData.dropoffLocation || formData.dropoffLocaDescription),
+            ttype: hasGps ? 'GPS' : 'CITY',
             language: 'en',
             transfer_type,
             min_price: formData.priceRange.min,
             max_price: formData.priceRange.max,
-
         };
     }
 

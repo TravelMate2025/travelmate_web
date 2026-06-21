@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Autocomplete, Box, Button, TextField } from "@mui/material";
 import { format, addDays } from "date-fns";
 import "react-date-range/dist/styles.css";
@@ -11,9 +11,11 @@ import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 import {
   staySearchLocationOptions,
   staySearchStayTypeOptions,
+  partnerStayLocationToOption,
   type StaySearchLocationOption,
   type StaySearchStayType,
 } from "../../shared/booking/staySearchOptions";
+import { fetchPartnerStayLocations } from "../../shared/partnerLocationsService";
 import {
   staySearchLabel,
   stayResultsLabel,
@@ -67,15 +69,18 @@ export default function PartnerStaySearchPage() {
   const navigate = useNavigate();
   const storedSearch = useSelector((state: RootState) => state.stays.searchParams);
 
+  const [locationOptions, setLocationOptions] = useState<StaySearchLocationOption[]>(staySearchLocationOptions);
+
   const initialDestination = useMemo(
     () =>
-      staySearchLocationOptions.find(
+      locationOptions.find(
         (option) =>
           option.country === storedSearch?.country &&
           option.adminLevels.includes(storedSearch?.adminLevel1 ?? "") &&
           option.cities.includes(storedSearch?.city ?? ""),
       ) ?? null,
-    [storedSearch?.adminLevel1, storedSearch?.city, storedSearch?.country],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [locationOptions, storedSearch?.adminLevel1, storedSearch?.city, storedSearch?.country],
   );
 
   const [selectedDestination, setSelectedDestination] =
@@ -94,19 +99,28 @@ export default function PartnerStaySearchPage() {
   const [rooms, setRooms] = useState(storedSearch?.rooms ?? 1);
   const [recentSearches, setRecentSearches] = useState<string[]>(readRecentSearches);
 
+  useEffect(() => {
+    fetchPartnerStayLocations()
+      .then((data) => {
+        const mapped = data.locations.map(partnerStayLocationToOption);
+        if (mapped.length > 0) setLocationOptions(mapped);
+      })
+      .catch(() => {/* keep static fallback */});
+  }, []);
+
   // Recents first, then the rest of the canonical list deduplicated
   const autocompleteOptions = useMemo(() => {
     const recentOptions = recentSearches
       .map((label) =>
-        staySearchLocationOptions.find((option) => option.destinationLabel === label),
+        locationOptions.find((option) => option.destinationLabel === label),
       )
       .filter((option): option is StaySearchLocationOption => Boolean(option));
     const recentLabels = new Set(recentOptions.map((option) => option.destinationLabel));
     return [
       ...recentOptions,
-      ...staySearchLocationOptions.filter((option) => !recentLabels.has(option.destinationLabel)),
+      ...locationOptions.filter((option) => !recentLabels.has(option.destinationLabel)),
     ];
-  }, [recentSearches]);
+  }, [recentSearches, locationOptions]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();

@@ -17,6 +17,8 @@ export const mockStayLocationDetails = {
   country_name: "Nigeria",
   country_code: "NG",
   code: "lagos",
+  adminLevel1: "Lagos",
+  city: "Lekki",
 };
 
 export const mockDestinations: Destination[] = [

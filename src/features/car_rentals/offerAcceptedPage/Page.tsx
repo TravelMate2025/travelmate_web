@@ -109,6 +109,8 @@ const Page = () => {
     departureInfo: DepartureInfo;
     car?: CarOfferInfo;
   };
+  const precomputedQuoteLockId: string = location.state?.quoteLockId ?? "";
+  const precomputedCancellationOptionId: string = location.state?.cancellationOptionId ?? "";
   const listingId = String(location.state?.car?.id ?? location.state?.car?.rateKey ?? "");
   const rate_key = location.state?.car?.rateKey || "";
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -227,21 +229,26 @@ const Page = () => {
     }
     try {
       setLoadingSubmit(true);
-      const quoteResult = await transferService.createTransferQuote({
-        listingType: "transfer",
-        listingId,
-        currency: "NGN",
-        pickupAt: `${departureInfo.pickupDate}T${departureInfo.pickupTime}`,
-      });
+      let resolvedQuoteLockId = precomputedQuoteLockId;
 
-      if (!quoteResult.success) {
-        throw new Error(quoteResult.error || "Failed to create transfer quote");
-      }
-
-      const quoteData = (quoteResult.data as { data?: { quoteLockId?: string; lockId?: string } } | undefined)?.data;
-      const resolvedQuoteLockId = quoteData?.quoteLockId ?? quoteData?.lockId ?? "";
       if (!resolvedQuoteLockId) {
-        throw new Error("Quote lock was not returned");
+        const quoteResult = await transferService.createTransferQuote({
+          listingType: "transfer",
+          listingId,
+          currency: "NGN",
+          cancellationOptionId: precomputedCancellationOptionId || undefined,
+          pickupAt: `${departureInfo.pickupDate}T${departureInfo.pickupTime}`,
+        });
+
+        if (!quoteResult.success) {
+          throw new Error(quoteResult.error || "Failed to create transfer quote");
+        }
+
+        const quoteData = (quoteResult.data as { data?: { quoteLockId?: string; lockId?: string } } | undefined)?.data;
+        resolvedQuoteLockId = quoteData?.quoteLockId ?? quoteData?.lockId ?? "";
+        if (!resolvedQuoteLockId) {
+          throw new Error("Quote lock was not returned");
+        }
       }
 
       const holdResult = await transferService.createTransferHold({

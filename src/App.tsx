@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import { Toaster } from "react-hot-toast";
 import PrivateRoute from "./routes/PrivateRoute";
@@ -44,14 +44,13 @@ const PaymentFailed = lazy(() => import("./features/flights/components/PaymentFa
 // Car rental pages (lazy)
 const CarConfirmPage = lazy(() => import("./features/car_rentals/carsFirstScreen/Page"));
 const DisplayCars = lazy(() => import("./features/car_rentals/displayAllCars/DisplayCars"));
+const TransferDetail = lazy(() => import("./features/car_rentals/transferDetail/TransferDetail"));
 const CarOfferPage = lazy(() => import("./features/car_rentals/offerAcceptedPage/Page"));
 const CarPaidForPage = lazy(() => import("./features/car_rentals/carPaidFor/CarPaidForPage"));
 const DownloadPage = lazy(() => import("./features/car_rentals/carPaidFor/DownloadPage"));
 const CarFailedPayment = lazy(() => import("./features/car_rentals/carPaidFor/CarFailedPayment"));
 
 // Other pages (lazy)
-const AirportTaxi = lazy(() => import("./pages/AirportTaxi"));
-const TransferFlow = lazy(() => import("./pages/TransferFlow"));
 const FaqPage = lazy(() => import("./features/customer-management/pages/faq"));
 const ChatPage = lazy(() => import("./features/customer-management/pages/ChatPage"));
 const TicketsPage = lazy(() => import("./features/customer-management/pages/TicketsPage"));
@@ -284,6 +283,7 @@ function App() {
 
         {/* Cars */}
         <Route path="/cars-searchResults" element={<DisplayCars />} />
+        <Route path={`${bookingFlowRoutes.transferDetail}/:transferId`} element={<TransferDetail />} />
         <Route path={bookingFlowRoutes.transferBookingReview} element={<CarOfferPage />} />
         <Route path={bookingFlowRoutes.transferGuestDetails} element={<CarOfferPage />} />
         <Route path="/cars-booking" element={<CarOfferPage />} />
@@ -329,9 +329,9 @@ function App() {
           }
         />
 
-        {/* Airport Taxi */}
-        <Route path="/airport-taxi" element={<AirportTaxi />} />
-        <Route path="/transfer-flow" element={<TransferFlow />} />
+        {/* Legacy airport-taxi routes redirect to the canonical Transfers tab */}
+        <Route path="/airport-taxi" element={<Navigate to="/?tab=transfers" replace />} />
+        <Route path="/transfer-flow" element={<Navigate to="/?tab=transfers" replace />} />
       </Routes>
       </Suspense>
     </>
