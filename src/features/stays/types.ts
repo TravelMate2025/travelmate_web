@@ -3,6 +3,9 @@ export interface Destination {
   code: string;
   name: string;
   country_code: string;
+  country_name?: string;
+  adminLevel1?: string;
+  area?: string;
   city_name?: string;
   token?: string;
 }
@@ -104,6 +107,7 @@ export interface Hotel {
   address: string;
   /** Nightly price from (for list display) */
   priceFrom?: number;
+  currency?: string;
   /** Quality / rating score 0–100 */
   ratingScore?: number;
   checkInTime?: string;
@@ -117,6 +121,13 @@ export interface Hotel {
   images?: HotelImage[];
   available?: boolean;
   rooms?: Room[];
+  roomSummary?: Record<string, unknown>;
+  mediaSummary?: Record<string, unknown>;
+  bookingOptions?: {
+    saleMode?: string;
+    cancellationOptions?: unknown[];
+    [key: string]: unknown;
+  };
   is_favorite?: boolean;
 }
 
@@ -187,12 +198,17 @@ export interface GuestDetails {
 export interface BookingDetailsVerifyData {
   id: number;
   reference: string;
+  booking_reference?: string;
   hotel_code: string | number;
   hotel_name: string;
   check_in: string;
   check_out: string;
   currency: string;
   payment_status: string;
+  payment_state?: string;
+  payment_intent_id?: string;
+  payment_reference?: string;
+  provider_payment_reference?: string;
   status: string;
   total_price: string;
   created_at: string;
@@ -382,6 +398,8 @@ export interface BookingHoldResp {
   currency: string;
   bookingReference: string;
   holdExpiresAt: string;
+  paymentIntentId?: string;
+  paymentLink?: string;
   checkout_url?: string;
   checkoutUrl?: string;
   requestId?: string;

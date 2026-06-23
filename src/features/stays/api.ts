@@ -15,44 +15,130 @@ import {
 import api from "../../api/services/api";
 import axios, { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
-import {
-  mockCreateHold,
-  mockCreateQuote,
-  mockDestinations,
-  mockHotelDetails,
-  mockHotelReviews,
-  mockHotelSearchResponse,
-  mockStayBookingResponse,
-  mockStayPricing,
-  mockStayVerification,
-  mockTransferBookingBySession,
-  usePartnerMockData,
-} from "../shared/partnerMockData";
+import { fetchPartnerStayLocations } from "../shared/partnerLocationsService";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Legacy hotel booking API wiring. This stays in the codebase only until the
-// partner API booking flow fully replaces it.
+type StaySearchParams = {
+  destination?: string;
+  country?: string;
+  adminLevel1?: string;
+  city?: string;
+  stayType?: string;
+  checkIn?: string;
+  checkOut?: string;
+  adults?: number;
+  children?: number;
+  rooms?: number;
+};
 
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
+function mapPartnerStayLocationToDestination(
+  location: {
+    country: string;
+    adminLevel1: string;
+    city: string;
+    listingCount: number;
+    areas: string[];
+    displayName: string;
+  },
+): Destination {
+  return {
+    code: location.city,
+    name: location.displayName,
+    country_code: location.country.slice(0, 2).toUpperCase(),
+    country_name: location.country,
+    city_name: location.city,
+  };
 }
 
-function normalizeDestinationResults(input: unknown): Destination[] {
-  if (Array.isArray(input)) return input as Destination[];
+function normalizePublicCatalogResults(input: unknown): unknown[] {
+  if (Array.isArray(input)) {
+    return input;
+  }
   if (input && typeof input === "object") {
-    const maybe = input as { results?: unknown };
+    const maybe = input as {
+      data?: unknown;
+      results?: unknown;
+    };
     if (Array.isArray(maybe.results)) {
-      return maybe.results as Destination[];
+      return maybe.results;
+    }
+    if (Array.isArray(maybe.data)) {
+      return maybe.data;
+    }
+    if (maybe.data && typeof maybe.data === "object") {
+      const nested = maybe.data as { results?: unknown };
+      if (Array.isArray(nested.results)) {
+        return nested.results;
+      }
     }
   }
   return [];
 }
 
-// Cache for destinations
-const recommendedHotelsCache: { [key: string]: CacheEntry<Destination[]> } = {};
-const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
+function mapPublicCatalogStayToHotel(item: unknown): Hotel {
+  const stay = item as {
+    id?: string;
+    code?: string;
+    name?: string;
+    propertyType?: string;
+    saleMode?: string;
+    bookingOptions?: { saleMode?: string };
+    country?: string;
+    adminLevel1?: string;
+    city?: string;
+    area?: string;
+    priceFrom?: number;
+    ratingScore?: number;
+    reviewsCount?: number;
+    address?: string;
+    description?: string;
+    rooms?: Hotel["rooms"];
+    images?: Hotel["images"];
+    amenities?: string[];
+    amenityDetails?: Hotel["amenityDetails"];
+    coordinates?: Hotel["coordinates"];
+    destination?: Hotel["destination"];
+    roomSummary?: unknown;
+    mediaSummary?: unknown;
+    checkInTime?: string;
+    checkOutTime?: string;
+  };
+
+  return {
+    id: stay.id ?? stay.code,
+    code: stay.code ?? stay.id,
+    name: stay.name ?? "Stay",
+    saleMode: stay.bookingOptions?.saleMode ?? stay.saleMode,
+    propertyType: stay.propertyType,
+    country: stay.country,
+    adminLevel1: stay.adminLevel1,
+    city: stay.city,
+    address: stay.address ?? "",
+    description: stay.description,
+    priceFrom: stay.priceFrom,
+    ratingScore: stay.ratingScore,
+    reviewsCount: stay.reviewsCount,
+    checkInTime: stay.checkInTime,
+    checkOutTime: stay.checkOutTime,
+    rooms: stay.rooms,
+    images: stay.images,
+    amenities: stay.amenities,
+    amenityDetails: stay.amenityDetails,
+    coordinates: stay.coordinates,
+    roomSummary: stay.roomSummary as Record<string, unknown> | undefined,
+    mediaSummary: stay.mediaSummary as Record<string, unknown> | undefined,
+    bookingOptions: stay.bookingOptions as Record<string, unknown> | undefined,
+    destination:
+      stay.destination ??
+      (stay.city
+        ? {
+            code: stay.city.toLowerCase().replace(/\s+/g, "-"),
+            name: stay.city,
+          }
+        : undefined),
+  };
+}
 
 function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
@@ -68,46 +154,24 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 /**
- * Fetch hotel destinations with optional search and token.
- * Uses caching for repeated requests.
+ * Fetch partner stay destinations with optional search.
  */
 export const fetchDestinations = async (
   search?: string,
   token?: string | null,
 ): Promise<Destination[]> => {
-  if (usePartnerMockData) {
-    const query = search?.toLowerCase().trim();
-    return mockDestinations.filter((item) => {
-      if (!query) return true;
-      return [item.code, item.name, item.city_name, item.country_code]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(query));
-    });
-  }
-
-  const now = Date.now();
-  const normalizedSearch = search?.toLowerCase().trim() || "default";
-  const cacheKey = `hotel_destinations_${normalizedSearch}`;
-  const cachedEntry = recommendedHotelsCache[cacheKey];
-
-  if (cachedEntry && now - cachedEntry.timestamp < CACHE_DURATION_MS) {
-    return cachedEntry.data;
-  }
-
+  void token;
   try {
-    const params = search ? { search: normalizedSearch } : {};
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-    const response = await axios.get(`${BASE_URL}/hotels/destinations/`, {
-      params,
-      headers,
-    });
-
-    const results = normalizeDestinationResults(response.data);
-
-    recommendedHotelsCache[cacheKey] = { data: results, timestamp: now };
-
-    return results;
+    const response = await fetchPartnerStayLocations();
+    const query = search?.toLowerCase().trim();
+    return response.locations
+      .map(mapPartnerStayLocationToDestination)
+      .filter((item) => {
+        if (!query) return true;
+        return [item.code, item.name, item.city_name, item.country_code]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(query));
+      });
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error) || "Error fetching destinations";
     console.error("Error fetching destinations:", errorMessage);
@@ -120,10 +184,6 @@ export const fetchDestinations = async (
  * Fetch recommended hotels
  */
 export const fetchRecommendedHotels = async (): Promise<Destination[]> => {
-  if (usePartnerMockData) {
-    return mockDestinations;
-  }
-
   try {
     const response = await axios.get(`${BASE_URL}/hotels/recommend/`);
     return response.data.results;
@@ -135,34 +195,27 @@ export const fetchRecommendedHotels = async (): Promise<Destination[]> => {
 };
 
 /**
- * Search hotels
+ * Search partner stays
  */
-export const searchHotels = async (
-  destination: string,
-  checkIn: string,
-  checkOut: string,
-  adults: number = 1,
-  children: number = 0,
-  rooms: number = 1,
+export const searchStays = async (
+  searchParams: StaySearchParams,
 ): Promise<HotelSearchResponse> => {
-  if (usePartnerMockData) {
-    return mockHotelSearchResponse;
-  }
-
   try {
-    const response = await axios.get(`${BASE_URL}/hotels/search/`, {
+    const response = await axios.get(`${BASE_URL}/v1/public/catalog/stays`, {
       params: {
-        destination,
-        check_in: checkIn,
-        check_out: checkOut,
-        adults,
-        children,
-        rooms,
-        include_details: true,
+        country: searchParams.country,
+        adminLevel1: searchParams.adminLevel1,
+        city: searchParams.city ?? searchParams.destination,
+        area: undefined,
       },
     });
-    console.log(response.data);
-    return response.data;
+    const results = normalizePublicCatalogResults(response.data).map(mapPublicCatalogStayToHotel);
+    const normalized: HotelSearchResponse = {
+      count: results.length,
+      results,
+    };
+    console.debug("[Stays][search] response", normalized);
+    return normalized;
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error);
     toast.error("Search error: " + errorMessage);
@@ -170,17 +223,15 @@ export const searchHotels = async (
   }
 };
 
+export const searchHotels = searchStays;
+
 /**
  * Fetch partner stay pricing — GET /api/v1/public/catalog/stays/{stayId}/pricing
  */
 export const fetchStayPricing = async (stayId: string): Promise<StayPricing> => {
-  if (usePartnerMockData) {
-    return mockStayPricing(stayId);
-  }
-
   try {
     const response = await axios.get(
-      `${BASE_URL}/api/v1/public/catalog/stays/${stayId}/pricing`,
+      `${BASE_URL}/v1/public/catalog/stays/${stayId}/pricing`,
     );
     return (response.data?.data ?? response.data) as StayPricing;
   } catch (error: unknown) {
@@ -201,12 +252,8 @@ export const getHotelDetails = async (
   children: number = 0,
   rooms: number = 1,
 ): Promise<Hotel> => {
-  if (usePartnerMockData) {
-    return mockHotelDetails(hotelId);
-  }
-
   try {
-    const response = await axios.get(`${BASE_URL}/hotels/${hotelId}/details/`, {
+    const response = await axios.get(`${BASE_URL}/v1/public/catalog/stays/${hotelId}`, {
       params: {
         check_in: checkIn,
         check_out: checkOut,
@@ -215,8 +262,8 @@ export const getHotelDetails = async (
         rooms,
       },
     });
-    console.log(response.data);
-    return response.data;
+    console.debug("[Stays][detail] response", response.data);
+    return (response.data?.data ?? response.data) as Hotel;
   } catch (error: unknown) {
     let errorMessage = `Failed to get details for hotel ${hotelId}`;
     if (axios.isAxiosError(error)) {
@@ -239,15 +286,6 @@ export const createCheckoutSession = async (
   bookingData: BookStaysRequest,
   setLoading?: (loading: boolean) => void,
 ): Promise<BookStaysResponse> => {
-  if (usePartnerMockData) {
-    setLoading?.(true);
-    try {
-      return mockStayBookingResponse();
-    } finally {
-      setLoading?.(false);
-    }
-  }
-
   try {
     setLoading?.(true);
     const response = await api.post("/hotels/checkout/", bookingData);
@@ -267,17 +305,16 @@ export const createCheckoutSession = async (
 export const verifyHotelBooking = async (
   sessionId: string | null,
 ): Promise<BookingStaysVerifyDetails> => {
-  if (usePartnerMockData) {
-    return mockStayVerification(sessionId || "tm-unit-001");
-  }
-
+  console.debug("[Stays][verify] request", { sessionId });
   try {
     const response = await api.get(
-      `/hotels/verify-booking/?session_id=${sessionId}`,
+      `/v1/public/bookings/verification?payment_intent_id=${encodeURIComponent(sessionId ?? "")}`,
     );
+    console.debug("[Stays][verify] response", response.data);
     return { success: true, data: response.data };
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error) || "Something went wrong!";
+    console.debug("[Stays][verify] failed", error);
     toast.error(errorMessage);
     return {
       data: {} as BookingDetailsVerifyData,
@@ -293,16 +330,9 @@ export const verifyHotelBooking = async (
 export const verifyTransfersBooking = async (
   sessionId: string | null,
 ): Promise<BookingStaysVerifyDetails> => {
-  if (usePartnerMockData) {
-    return {
-      success: true,
-      data: mockTransferBookingBySession().data.bookings[0] as unknown as BookingDetailsVerifyData,
-    };
-  }
-
   try {
     const response = await api.get(
-      `/transfers/booking/confirmation/by-session/?session_id=${sessionId}`,
+      `/transfers/booking/confirmation/by-session/?payment_intent_id=${encodeURIComponent(sessionId ?? "")}`,
     );
     return { success: true, data: response.data };
   } catch (error: unknown) {
@@ -319,10 +349,6 @@ export const verifyTransfersBooking = async (
 // Fetch all reviews
 
 export const getReviews = async (hotelId: string | number | undefined) => {
-  if (usePartnerMockData) {
-    return mockHotelReviews(String(hotelId)).user_reviews;
-  }
-
   try {
     const response = await axios.get(`/hotels/${hotelId}/reviews/`);
     console.log(response);
@@ -479,12 +505,8 @@ export const CancelStaysBookings = async (
  * Create a quote lock — POST /api/v1/public/bookings/quote
  */
 export const createQuote = async (req: BookingQuoteReq): Promise<BookingQuoteResp> => {
-  if (usePartnerMockData) {
-    await new Promise((r) => setTimeout(r, 600));
-    return mockCreateQuote(req);
-  }
   try {
-    const response = await axios.post(`${BASE_URL}/api/v1/public/bookings/quote`, req);
+    const response = await axios.post(`${BASE_URL}/v1/public/bookings/quote`, req);
     return (response.data?.data ?? response.data) as BookingQuoteResp;
   } catch (error: unknown) {
     const msg = getErrorMessage(error) || "Failed to create quote";
@@ -497,12 +519,8 @@ export const createQuote = async (req: BookingQuoteReq): Promise<BookingQuoteRes
  * Create a hold from a quote lock — POST /api/v1/public/bookings/holds
  */
 export const createHold = async (req: BookingHoldReq): Promise<BookingHoldResp> => {
-  if (usePartnerMockData) {
-    await new Promise((r) => setTimeout(r, 600));
-    return mockCreateHold(req);
-  }
   try {
-    const response = await axios.post(`${BASE_URL}/api/v1/public/bookings/holds`, req);
+    const response = await axios.post(`${BASE_URL}/v1/public/bookings/holds`, req);
     return (response.data?.data ?? response.data) as BookingHoldResp;
   } catch (error: unknown) {
     const msg = getErrorMessage(error) || "Failed to create hold";

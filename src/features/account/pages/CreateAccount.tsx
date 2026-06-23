@@ -1,40 +1,17 @@
 import { useState } from "react";
-import { FaGoogle, FaApple } from "react-icons/fa";
+import { FaApple } from "react-icons/fa";
 import AuthNavbar from "../components/AuthNavbar";
-import Spinner from "../components/Spinner"; 
+import Spinner from "../components/Spinner";
+import GoogleLoginButton from "../components/GoogleLoginButton";
 import { useNavigate } from "react-router-dom";
-import { submitEmail, socialGoogleLogin } from "../api/auth";
+import { submitEmail } from "../api/auth";
 import { toast } from "react-hot-toast";
-
-import { useGoogleLogin } from "@react-oauth/google";
-import { useDispatch } from "react-redux";
-import { loginSuccess } from "../slices/authSlice";
-// import { facebookLogin } from "../utils/firebase";
-
-type ApiErrorLike = {
-  response?: {
-    data?: {
-      Message?: string;
-      error?: string;
-      non_field_errors?: string[];
-    };
-  };
-};
-
-const getErrorMessage = (error: unknown): string => {
-  const apiError = error as ApiErrorLike;
-  return (
-    apiError.response?.data?.Message ||
-    apiError.response?.data?.error ||
-    "Failed to send verification email. Please try again."
-  );
-};
+import AppErrorBoundary from "../../../AppErrorBoundary";
 
 export default function CreateAccount() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,90 +34,17 @@ export default function CreateAccount() {
     } catch (err: unknown) {
       console.error(err);
 
-      if ((err as ApiErrorLike)?.response?.data?.Message === "Enter your password to log in.") {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg === "Enter your password to log in.") {
         navigate("/login", { state: { email } });
         return;
       }
 
-      toast.error(getErrorMessage(err));
+      toast.error(errMsg || "Failed to send verification email. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
-
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      let googleEmail = "";
-
-      try {
-        const access_token = tokenResponse.access_token;
-        console.log("Google Access Token:", access_token);
-        localStorage.setItem("google_access_token", access_token);
-
-        if (!access_token) {
-          toast.error("Google login failed: No access token received.");
-          return;
-        }
-
-        // Fetch user info from Google
-        try {
-          const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-            headers: { Authorization: `Bearer ${access_token}` },
-          });
-          const googleUser = await userInfoRes.json();
-          googleEmail = googleUser?.email || "";
-        } catch (err) {
-          console.error("Failed to fetch Google user info:", err);
-        }
-
-        const res = await socialGoogleLogin(access_token);
-
-        // Dispatch login if successful
-        toast.success("User successfully Logged in!");
-        if (res?.access && res?.refresh) {
-          dispatch(
-            loginSuccess({
-              accessToken: res.access,
-              refreshToken: res.refresh,
-              user: {
-                id: res.user?.id ?? 0,
-                email: res.user?.email ?? "",
-                name: res.user?.name ?? "",
-              },
-              registrationComplete: res.registration_complete ?? false,
-            })
-          );
-          localStorage.setItem("accessToken", res.access);
-          localStorage.setItem("refreshToken", res.refresh);
-          localStorage.setItem("email", res.user?.email ?? googleEmail ?? "");
-          navigate("/", { replace: true });
-        } else {
-          toast.error("Unexpected response format. Please try again.");
-          console.error("Unexpected Google login response:", res);
-        }
-      } catch (error: unknown) {
-        console.error("Google login failed:", error);
-        const backendError = (error as ApiErrorLike)?.response?.data;
-
-        if (
-          backendError?.non_field_errors?.includes(
-            "User is already registered with this e-mail address."
-          )
-        ) {
-          toast.success("This Google account is already registered. Please log in instead.");
-          navigate("/login", { state: { email: googleEmail } });
-        } else {
-          toast.error("Google login failed. Please try again.");
-          console.error("Google login error response:", backendError);
-        }
-      }
-    },
-    onError: () => {
-      toast.error("Google login was unsuccessful.");
-    },
-    flow: "implicit",
-    scope: "openid email profile",
-  });
 
   return (
     <div className="h-screen flex flex-col relative bg-white">
@@ -180,16 +84,11 @@ export default function CreateAccount() {
             <hr className="flex-grow border-gray-300" />
           </div>
 
-          <button
-            type="button"
-            onClick={() => googleLogin()}
-            className="relative w-full border border-[#023E8A] text-[#023E8A] cursor-pointer flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition"
-          >
-            <span className="absolute left-4"><FaGoogle /></span>
-            <span>Continue with Google</span>
-          </button>
+          <AppErrorBoundary fallback={null}>
+            <GoogleLoginButton />
+          </AppErrorBoundary>
 
-          <button 
+          <button
             className="relative w-full border border-[#023E8A] text-[#023E8A] cursor-pointer flex items-center justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition"
           >
             <span className="absolute left-4"><FaApple /></span>
@@ -207,7 +106,7 @@ export default function CreateAccount() {
       {isLoading && (
         <>
           <div className="fixed inset-0 bg-[#CCD8E8] opacity-50 z-40"></div>
-          <div style={{ position:'fixed', top:0, right:0, bottom:0, left:0, display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }}>
+          <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
             <Spinner />
           </div>
         </>

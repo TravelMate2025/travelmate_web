@@ -21,8 +21,8 @@ type PickupSuggestion = {
 
 type DropoffSuggestion = {
   name: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export default function AirportTaxiBooking() {
@@ -155,8 +155,8 @@ export default function AirportTaxiBooking() {
           selectedRide: "Transfer",
           priceRange: { min: priceMin, max: priceMax },
           passengerCounts,
-          toLat: resolvedDropoff?.latitude,
-          toLon: resolvedDropoff?.longitude,
+          toLat: resolvedDropoff?.latitude ?? undefined,
+          toLon: resolvedDropoff?.longitude ?? undefined,
           searchResults: result.data.results.services as CarTransferOption[],
         })
       );

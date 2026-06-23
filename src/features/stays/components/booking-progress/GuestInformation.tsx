@@ -2,16 +2,9 @@ import React, { useState } from "react";
 import {
   FaUser,
   FaEnvelope,
-  FaCalendarAlt,
-  FaCaretDown,
-  FaPhoneAlt,
-  FaCity,
 } from "react-icons/fa";
 import { GuestInfoProps } from "../../slice";
 import { FormControlLabel, Switch } from "@mui/material";
-import CountryCodeModal from "../modals/CountryCodeModal";
-import { MdLocationOn } from "react-icons/md";
-import { PiSignpostFill } from "react-icons/pi";
 
 interface GuestInformationProps {
   onGuestInfoChange: (info: GuestInfoProps) => void;
@@ -23,22 +16,18 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
   onGuestInfoChange,
   formData,
   errors,
-  // guestAdults
 }) => {
   const [useProfileInfo, setUseProfileInfo] = useState(false);
-  const [modal, setModal] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const newData = { ...formData, [name]: value };
-    onGuestInfoChange(newData);
     onGuestInfoChange(newData);
   };
 
   const handleProfileSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
     setUseProfileInfo(checked);
-    handleChange(e);
 
     const userInfo = JSON.parse(localStorage.getItem("persist:root") || "{}");
     const profileStr = userInfo.profile || "{}";
@@ -46,16 +35,12 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
     type Profile = {
       first_name: string;
       last_name: string;
-      date_of_birth: string;
       email: string;
-      mobile_number: string;
     };
     let profile: Profile = {
       first_name: "",
       last_name: "",
-      date_of_birth: "",
       email: "",
-      mobile_number: "",
     };
     try {
       profile = JSON.parse(profileStr).profile;
@@ -66,55 +51,20 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
       onGuestInfoChange({
         firstName: profile?.first_name || "",
         lastName: profile?.last_name || "",
-        dateOfBirth: profile?.date_of_birth || "",
         email: profile?.email || "",
-        phone: profile?.mobile_number || "",
-        countryCode: "",
-        postal: "",
-        address: "",
-        city: "",
       });
     } else {
       onGuestInfoChange({
         firstName: "",
         lastName: "",
-        dateOfBirth: "",
         email: "",
-        phone: "",
-        countryCode: "",
-        postal: "",
-        address: "",
-        city: "",
       });
     }
-  };
-  const handleSubmit = () => {
-    console.log("submitted");
   };
 
   return (
     <div>
-      {modal && (
-        <CountryCodeModal
-          closeDialog={() => setModal(false)}
-          formData={formData}
-          setFormData={onGuestInfoChange}
-        />
-      )}
       <div className="w-full">
-        {/* Notification */}
-        {/* <div className="bg-blue-100 border border-[#023E8A] px-4 py-3 rounded-lg flex flex-row items-start sm:items-center gap-3 w-full">
-          <div className="pt-1">
-            <FaExclamationCircle className="text-[#023E8A] text-lg mt-4 sm:mt-0 sm:text-xl" />
-          </div>
-          <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
-            Guests checking into hotel rooms must be 21 or older and should
-            present a valid photo ID card.
-          </p>
-        </div> */}
-
-        {/* <hr className="border-gray-300" /> */}
-
         {/* Profile Info Toggle */}
         <div className="flex justify-between items-center">
           <div className="flex-1 py-4">
@@ -143,7 +93,7 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit}>
+        <form>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 border-[1px] border-gray-300 rounded-lg p-6">
             {/* First Name */}
             <div className="flex flex-col gap-2">
@@ -193,180 +143,26 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
                 <p className="text-red-600">{errors.lastName}</p>
               )}
             </div>
-
-            {/* Date of Birth (Full Width) */}
-            <div className="flex flex-col gap-2">
-              <p className="font-semibold text-base">Date of Birth</p>
+            <div className="flex flex-col gap-2 lg:col-span-2">
+              <p className="font-semibold text-base">Email Address</p>
               <div
-                className={`flex items-center border  ${
-                  errors.dateOfBirth ? `border-red-600` : `border-gray-300`
-                }  p-2 rounded-lg col-span-1 md:col-span-2`}
+                className={`flex items-center border ${
+                  errors.email ? "border-red-600" : "border-gray-300"
+                } p-2 rounded-lg`}
               >
-                <FaCalendarAlt className="text-gray-500 mr-2" />
+                <FaEnvelope className="text-gray-500 mr-2" />
                 <input
-                  type="date"
-                  name="dateOfBirth"
-                  className="w-full outline-none bg-transparent "
-                  value={formData.dateOfBirth}
+                  type="email"
+                  placeholder="Email Address"
+                  className="w-full outline-none bg-transparent"
+                  value={formData.email}
+                  name="email"
                   onChange={handleChange}
                   required
+                  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                 />
               </div>
-              {errors.dateOfBirth && (
-                <p className="text-red-600">{errors.dateOfBirth}</p>
-              )}
-            </div>
-          </div>
-          <div className="mt-5">
-            <h5 className="py-4 font-bold text-lg">Contact Details</h5>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 border-[1px] border-gray-300 rounded-lg p-6">
-              {/* Email Address */}
-              <div className="flex flex-col gap-2  lg:col-span-2">
-                <p className="font-semibold text-base">Email Address</p>
-                <div
-                  className={`flex items-center border  ${
-                    errors.email ? `border-red-600` : `border-gray-300`
-                  }  p-2 rounded-lg`}
-                >
-                  <FaEnvelope className="text-gray-500 mr-2" />
-                  <input
-                    type="email"
-                    placeholder="Email Address"
-                    className="w-full outline-none bg-transparent"
-                    value={formData.email}
-                    name="email"
-                    onChange={handleChange}
-                    required
-                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" // Email pattern validation
-                  />
-                </div>
-                {errors.email && <p className="text-red-600">{errors.email}</p>}
-              </div>
-              {/* Country Code  */}
-              <div className="flex flex-col gap-2">
-                <p className="font-semibold text-base">Country Code</p>
-                <div
-                  className={`flex items-center border  ${
-                    errors.countryCode ? `border-red-600` : `border-gray-300`
-                  }  p-2 rounded-lg`}
-                >
-                  <input
-                    type="text"
-                    placeholder="Select Country Code"
-                    className="w-full outline-none bg-transparent cursor-pointer"
-                    value={formData.countryCode}
-                    name="countryCode"
-                    onChange={handleChange}
-                    onFocus={() => setModal(true)}
-                    required
-                    readOnly
-                  />
-                  <FaCaretDown />
-                </div>
-                {errors.countryCode && (
-                  <p className="text-red-600">{errors.countryCode}</p>
-                )}
-              </div>
-              {/* Phone Number */}
-              <div className="flex flex-col gap-2">
-                <p className="font-semibold text-base">Phone Number</p>
-                <div
-                  className={`flex items-center border  ${
-                    errors.phone ? `border-red-600` : `border-gray-300`
-                  }  p-2 rounded-lg`}
-                >
-                  <FaPhoneAlt className="text-gray-500 mr-2" />
-                  <input
-                    type="tel"
-                    placeholder="Enter Phone Number"
-                    className="w-full outline-none bg-transparent"
-                    value={formData.phone}
-                    name="phone"
-                    onChange={handleChange}
-                    required
-                    pattern="^\+?[0-9]{10,15}$" // Phone number pattern validation (basic)
-                  />
-                </div>
-                {errors.phone && <p className="text-red-600">{errors.phone}</p>}
-              </div>
-            </div>
-          </div>
-          <div className="mt-5">
-            <h5 className="py-4 font-bold text-lg">Address Details</h5>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 border-[1px] border-gray-300 rounded-lg p-6">
-              {/* Residential Address */}
-              <div className="flex flex-col gap-2  lg:col-span-2">
-                <p className="font-semibold text-base">Resedential Address</p>
-                <div
-                  className={`flex items-center border  ${
-                    errors.email ? `border-red-600` : `border-gray-300`
-                  }  p-2 rounded-lg`}
-                >
-                  <MdLocationOn className="text-gray-500 mr-2" />
-                  <input
-                    type="text"
-                    placeholder="Enter Permanent Address"
-                    className="w-full outline-none bg-transparent capitalize"
-                    value={formData.address}
-                    name="address"
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                {errors.postal && (
-                  <p className="text-red-600">{errors.address}</p>
-                )}
-              </div>
-              {/* City  */}
-              <div className="flex flex-col gap-2">
-                <p className="font-semibold text-base">City</p>
-                <div
-                  className={`flex items-center border  ${
-                    errors.email ? `border-red-600` : `border-gray-300`
-                  }  p-2 rounded-lg`}
-                >
-                  <FaCity className="text-gray-500 mr-2" />
-                  <input
-                    type="text"
-                    placeholder="e.g Paris"
-                    className="w-full outline-none bg-transparent capitalize placeholder:lowercase"
-                    value={formData.city}
-                    name="city"
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                {errors.city && (
-                  <p className="text-red-600">{errors.city}</p>
-                )}
-              </div>
-
-              {/* Postal Code*/}
-              <div className="flex flex-col gap-2">
-                <p className="font-semibold text-base">Postal Code</p>
-                <div
-                  className={`flex items-center border  ${
-                    errors.phone ? `border-red-600` : `border-gray-300`
-                  }  p-2 rounded-lg`}
-                >
-                  <PiSignpostFill className="text-gray-500 mr-2" />
-                  <input
-                    type="number"
-                    placeholder="Enter Postal Code"
-                    className="w-full outline-none bg-transparent"
-                    value={formData.postal}
-                    name="postal"
-                    onChange={handleChange}
-                    required
-                    pattern="^\+?[0-9]{10,15}$" // Phone number pattern validation (basic)
-                  />
-                </div>
-                {errors.postal && (
-                  <p className="text-red-600">{errors.postal}</p>
-                )}
-              </div>
+              {errors.email && <p className="text-red-600">{errors.email}</p>}
             </div>
           </div>
         </form>

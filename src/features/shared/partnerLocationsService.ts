@@ -48,16 +48,24 @@ let _transfersCache: PartnerTransferLocations | null = null;
 
 export async function fetchPartnerStayLocations(): Promise<PartnerStayLocations> {
   if (_staysCache) return _staysCache;
-  const response = await instance.get<PartnerStayLocations>(`${base}/locations/?kind=stays`);
-  _staysCache = response.data;
-  return _staysCache;
+  const response = await instance.get<PartnerStayLocations>(`${base}/v1/public/locations`, {
+    params: { kind: "stays" },
+  });
+  if (Array.isArray(response.data?.locations) && response.data.locations.length > 0) {
+    _staysCache = response.data;
+  }
+  return response.data;
 }
 
 export async function fetchPartnerTransferLocations(): Promise<PartnerTransferLocations> {
   if (_transfersCache) return _transfersCache;
-  const response = await instance.get<PartnerTransferLocations>(`${base}/locations/?kind=transfers`);
-  _transfersCache = response.data;
-  return _transfersCache;
+  const response = await instance.get<PartnerTransferLocations>(`${base}/v1/public/locations`, {
+    params: { kind: "transfers" },
+  });
+  if (Array.isArray(response.data?.pickups) || Array.isArray(response.data?.destinations)) {
+    _transfersCache = response.data;
+  }
+  return response.data;
 }
 
 export function filterPickups(

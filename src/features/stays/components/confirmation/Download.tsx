@@ -18,6 +18,7 @@ type DownloadBooking = BookingDetailsVerifyData & {
       surname?: string;
       email?: string;
       phone?: string;
+      address?: string;
     };
   };
 };
@@ -163,12 +164,22 @@ const DownloadStaysPage = () => {
                 {bookingData.guest_details?.primary_guest?.email}
               </p>
             </div>
-            <div className="flex justify-normal gap-2 mb-[6px]">
-              <p className="text-[#4E4F52] text-[14px] ">Phone Number:</p>
-              <p className="text-[#181818] text-[14px]">
-                {bookingData.guest_details?.primary_guest?.phone}
-              </p>
-            </div>
+            {bookingData.guest_details?.primary_guest?.phone && (
+              <div className="flex justify-normal gap-2 mb-[6px]">
+                <p className="text-[#4E4F52] text-[14px] ">Phone Number:</p>
+                <p className="text-[#181818] text-[14px]">
+                  {bookingData.guest_details.primary_guest.phone}
+                </p>
+              </div>
+            )}
+            {bookingData.guest_details?.primary_guest?.address && (
+              <div className="flex justify-normal gap-2 mb-[6px]">
+                <p className="text-[#4E4F52] text-[14px] ">Address:</p>
+                <p className="text-[#181818] text-[14px]">
+                  {bookingData.guest_details.primary_guest.address}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

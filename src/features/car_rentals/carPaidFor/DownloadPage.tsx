@@ -9,6 +9,8 @@ type BookingData = {
   reference?: string;
   id?: string | number;
   totalNetAmount?: string | number;
+  passenger_capacity?: number | string;
+  luggage_capacity?: number | string;
   supplier?: {
     name?: string;
   };
@@ -49,6 +51,16 @@ const DownloadPage = () => {
   const supplier = bookingData.supplier || {};
   const holder = bookingData.holder || {};
   const paymentStatus = transfer?.status || "Not Available";
+  const seatCount =
+    bookingData.passenger_capacity ??
+    transfer?.passenger_capacity ??
+    transferDetailInfo.find((item) => (item.description ?? "").toLowerCase().includes("seat"))?.value ??
+    "Not Available";
+  const luggageCount =
+    bookingData.luggage_capacity ??
+    transfer?.luggage_capacity ??
+    transferDetailInfo.find((item) => (item.description ?? "").toLowerCase().includes("luggage"))?.value ??
+    "Not Available";
 
   return (
     <div>
@@ -159,8 +171,8 @@ const DownloadPage = () => {
                 <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
                   Seats:
                 </p>
-                <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                  {transferDetailInfo[2]?.value} Seats
+                <p className="text-[#181818] text-[14px] font-inter">
+                  {seatCount} Seats
                 </p>
               </div>
               <div className="flex justify-normal gap-2">
@@ -168,8 +180,7 @@ const DownloadPage = () => {
                   Luggages:
                 </p>
                 <p className="text-[#181818] text-[14px] font-inter">
-                  {transferDetailInfo[3]?.value}{" "}
-                  {transferDetailInfo[3]?.description ||"Not Available"}
+                  {luggageCount}
                 </p>
               </div>
               <div className="flex justify-normal gap-2">

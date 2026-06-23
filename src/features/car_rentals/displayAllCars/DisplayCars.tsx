@@ -650,7 +650,6 @@ const DisplayCars: React.FC = () => {
           searchResults={carInfo?.searchResults || stateData.searchResults}
           OpenForm={() => setForm(true)}
           loading={loading}
-          rate_key={formData.rate_key ?? ""}
         />
       ) : (
         <EmptyState

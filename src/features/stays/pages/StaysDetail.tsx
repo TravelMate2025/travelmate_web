@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../store";
-import { fetchStayPricingAsync, clearStayPricing } from "../slice";
+import { clearSelectedHotel, fetchStayDetailsAsync, fetchStayPricingAsync, clearStayPricing } from "../slice";
 import UpdateSearchFilter from "../components/UpdateSearchFilter";
 import Breadcrumbs from "../../../components/Breadcrumbs";
 import {
@@ -63,7 +63,8 @@ const StaysDetail: React.FC = () => {
   const { detailsLoading, searchParams, hotels, stayPricing, pricingLoading, pricingError } = useSelector(
     (state: RootState) => state.stays
   );
-  const selectedHotel = hotels.find((hotel) => (hotel.id ?? hotel.code) === hotelId);
+  const selectedHotelFromList = hotels.find((hotel) => (hotel.id ?? hotel.code) === hotelId);
+  const selectedHotel = useSelector((state: RootState) => state.stays.selectedHotel) ?? selectedHotelFromList;
   const [activeTab, setActiveTab] = useState("Overview");
   const [openModal, setOpenModal] = useState(false);
   const [showPhotosModal, setShowPhotosModal] = useState(false);
@@ -91,12 +92,21 @@ const StaysDetail: React.FC = () => {
 
   useEffect(() => {
     if (hotelId) {
+      dispatch(fetchStayDetailsAsync({
+        stayId: hotelId,
+        checkIn: searchParams?.checkIn,
+        checkOut: searchParams?.checkOut,
+        adults: searchParams?.adults,
+        children: searchParams?.children,
+        rooms: searchParams?.rooms,
+      }));
       dispatch(fetchStayPricingAsync(hotelId));
     }
     return () => {
+      dispatch(clearSelectedHotel());
       dispatch(clearStayPricing());
     };
-  }, [dispatch, hotelId]);
+  }, [dispatch, hotelId, searchParams?.checkIn, searchParams?.checkOut, searchParams?.adults, searchParams?.children, searchParams?.rooms]);
 
   // Sync the carousel with the current index when a navigation dot is clicked
   const handleSelectImage = (index: number) => {
@@ -218,6 +228,26 @@ const StaysDetail: React.FC = () => {
 
   const isRoomLevel =
     (selectedHotel?.saleMode ?? selectedHotel?.accommodation_type) === "room_level";
+
+  const roomSummary = (selectedHotel?.roomSummary ?? {}) as Record<string, unknown>;
+  const mediaSummary = (selectedHotel?.mediaSummary ?? {}) as Record<string, unknown>;
+  const coordinates = selectedHotel?.coordinates;
+  const formatSummaryValue = (value: unknown) => {
+    if (value === null || value === undefined || value === "") return null;
+    if (typeof value === "number") return value.toLocaleString();
+    if (typeof value === "boolean") return value ? "Yes" : "No";
+    return String(value);
+  };
+  const summaryRows = [
+    { label: "Base rate", value: formatSummaryValue(roomSummary.minBaseRate ?? selectedHotel?.priceFrom) },
+    { label: "Rooms", value: formatSummaryValue(roomSummary.totalRooms ?? roomSummary.availableRooms ?? selectedHotel?.rooms?.length) },
+    { label: "Media items", value: formatSummaryValue(mediaSummary.total ?? mediaSummary.imagesCount ?? selectedHotel?.images?.length) },
+    { label: "Check-in", value: formatSummaryValue(selectedHotel?.checkInTime) },
+    { label: "Check-out", value: formatSummaryValue(selectedHotel?.checkOutTime) },
+    { label: "Rating", value: formatSummaryValue(selectedHotel?.ratingScore) },
+    { label: "Latitude", value: formatSummaryValue(coordinates?.latitude) },
+    { label: "Longitude", value: formatSummaryValue(coordinates?.longitude) },
+  ].filter((row): row is { label: string; value: string } => Boolean(row.value));
 
   // Pre-select the first cancellation option for unit_level when pricing loads
   useEffect(() => {
@@ -349,7 +379,7 @@ const StaysDetail: React.FC = () => {
                 {" · "}
                 Weekend: {currency} {weekend.toLocaleString()}
               </span>
-              {bd?.taxesInclusive && (
+              {"taxesInclusive" in (bd ?? {}) && (bd as { taxesInclusive?: boolean })?.taxesInclusive && (
                 <span className="text-xs text-blue-500">Taxes &amp; fees inclusive</span>
               )}
             </div>
@@ -531,6 +561,14 @@ const StaysDetail: React.FC = () => {
               <FaMapMarkerAlt className="text-gray-500" />
               {selectedHotel?.address}
             </p>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {summaryRows.map((row) => (
+                <div key={row.label} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-wide text-gray-500">{row.label}</p>
+                  <p className="text-sm font-semibold text-gray-900">{row.value}</p>
+                </div>
+              ))}
+            </div>
             {/* Refundability info is not directly in HotelDetail, you might need to infer from rooms */}
             <p className="text-green-600 flex items-center gap-2 mt-2">
               <FaCheckCircle />
@@ -540,11 +578,11 @@ const StaysDetail: React.FC = () => {
             <div className="flex items-center gap-2 mt-2">
               <span className="text-yellow-500 flex items-center gap-1">
                 <FaStar />
-                {selectedHotel &&
-                  reviews?.length > 0 &&
-                  parseInt(selectedHotel?.category?.match(/\d+/)?.[0] || "0")}
+                {selectedHotel?.ratingScore ?? "N/A"}
               </span>
-              <span className="text-gray-600">({reviews?.length || "0"})</span>
+              <span className="text-gray-600">
+                ({selectedHotel?.reviewsCount ?? reviews.length ?? "0"})
+              </span>
               {reviews?.length > 0 && (
                 <button
                   className="text-blue-600 underline cursor-pointer"
@@ -569,7 +607,7 @@ const StaysDetail: React.FC = () => {
             <p className="text-gray-700 mt-2">
               {selectedHotel?.description || "No description available."}
               <br />
-              <strong>Check-in:</strong> 3pm, <strong>Check-out:</strong> 12pm.
+              <strong>Check-in:</strong> {selectedHotel?.checkInTime || "3pm"}, <strong>Check-out:</strong> {selectedHotel?.checkOutTime || "12pm"}.
             </p>
           </div>
         </section>
@@ -678,7 +716,7 @@ const StaysDetail: React.FC = () => {
             {availableRooms.length > 0 ? (
               availableRooms.map((room) => {
                 const roomId = room.id ?? room.code ?? "";
-                // "from" price: cheapest option from pricing endpoint, fallback to baseRate
+                // "from" price: cheapest option from pricing endpoint, otherwise baseRate
                 const roomOptions = getRoomOptions(roomId);
                 const fromPrice =
                   roomOptions[0]?.amount ?? room.baseRate ??
@@ -689,7 +727,7 @@ const StaysDetail: React.FC = () => {
                     key={roomId}
                     className="relative w-full h-auto flex flex-col bg-white shadow-lg rounded-lg p-4 border border-gray-200"
                   >
-                    {/* Room Image - with better fallbacks */}
+                    {/* Room Image - with priority image sources */}
                     <div className="relative h-[234px] bg-gray-100 rounded-lg overflow-hidden">
                       <img
                         src={
@@ -744,6 +782,21 @@ const StaysDetail: React.FC = () => {
                             )}
                           </div>
                         )}
+                        {room.rates?.[0]?.boardName && (
+                          <div className="flex items-center gap-2 text-gray-600 text-sm">
+                            <FaCheckCircle />
+                            <span>{room.rates[0].boardName}</span>
+                          </div>
+                        )}
+                        {room.rates?.[0]?.cancellationPolicies?.[0]?.from && (
+                          <div className="flex items-center gap-2 text-gray-600 text-sm">
+                            <FaCheckCircle />
+                            <span>
+                              Refundable until{" "}
+                              {new Date(room.rates[0].cancellationPolicies[0].from || "").toLocaleDateString()}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Pricing — "from" price using cheapest rate plan */}
@@ -759,7 +812,7 @@ const StaysDetail: React.FC = () => {
                       </div>
 
                       {/* Rate plan selector — expands inline when room is selected */}
-                      <div className="mt-auto pt-4">
+                          <div className="mt-auto pt-4">
                         {expandedRoomId !== roomId ? (
                           <button
                             className="w-full bg-[#023E8A] text-white py-2 rounded-lg hover:bg-[#023E9E] transition-colors cursor-pointer"

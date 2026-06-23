@@ -2,12 +2,9 @@ import { InputAdornment, TextField } from "@mui/material";
 import axios from "axios";
 import { Loader, SearchIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { GuestInfoProps } from "../../slice";
 
 interface countryModalProps {
   closeDialog: () => void;
-  formData?: GuestInfoProps;
-  setFormData: (value: GuestInfoProps) => void;
 }
 
 type RawCountry = {
@@ -19,8 +16,6 @@ type RawCountry = {
 type CountryCode = { cca2: string; name: { common: string }; dialCode: string };
 const CountryCodeModal = ({
   closeDialog,
-  setFormData,
-  formData,
 }: countryModalProps) => {
   const [query, setQuery] = useState("");
   const [countryCodes, setCountryCodes] = useState<CountryCode[]>([]);
@@ -120,10 +115,6 @@ const CountryCodeModal = ({
                   <p
                     key={country.cca2}
                     onClick={() => {
-                      setFormData({
-                        ...formData!,
-                        countryCode: `${country.dialCode}`,
-                      });
                       closeDialog();
                     }}
                     className="p-2 pl-7 border-b-[1px] border-b-neutral-300 hover:bg-gray-200 cursor-pointer"

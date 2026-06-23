@@ -11,7 +11,7 @@ import { useState } from "react";
 import { IoChevronBack } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { createQuoteAsync, createHoldAsync, clearQuoteHold } from "../slice";
+import { createQuoteAsync, createHoldAsync, clearQuoteHold, fetchStayPricingAsync } from "../slice";
 import { RootState, AppDispatch } from "../../../store";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -26,9 +26,6 @@ import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 import { useEffect } from "react";
 
 type BookingGuestInfo = GuestInfoProps & {
-  address: string;
-  postal: string;
-  city: string;
 };
 
 const steps = [
@@ -81,6 +78,7 @@ const BookingProgress: React.FC = () => {
     })
   );
   const quoteResp = useSelector((state: RootState) => state.stays.quoteResp);
+  const holdResp = useSelector((state: RootState) => state.stays.holdResp);
   const navigate = useNavigate();
   const location = useLocation();
   const { selectedRoom, selectedOption, hotel, checkIn, checkOut, guestsAdults, guestsChild } =
@@ -93,12 +91,6 @@ const BookingProgress: React.FC = () => {
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
-    dateOfBirth: "",
-    countryCode: "",
-    address: "",
-    postal: "",
-    city: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof GuestInfoProps, string>>>({});
 
@@ -106,6 +98,11 @@ const BookingProgress: React.FC = () => {
   useEffect(() => {
     dispatch(clearQuoteHold());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!hotel?.id || stayPricing) return;
+    dispatch(fetchStayPricingAsync(hotel.id));
+  }, [dispatch, hotel?.id, stayPricing]);
 
   const cancellationDate = new Date();
   cancellationDate.setDate(cancellationDate.getDate() + 1);
@@ -125,31 +122,12 @@ const BookingProgress: React.FC = () => {
         )
       : 1;
 
-  const resolveRatePlanId = () => {
-    if (isUnitLevel || !selectedRoom || !selectedOption) return null;
-    const roomId = selectedRoom.id ?? selectedRoom.code ?? "";
-    const wantsRefundable = selectedOption.optionId === "FREE_CANCELLATION";
-    const matched = stayPricing?.ratePlans?.find((plan) => {
-      if (plan.roomId !== roomId || !plan.isActive) return false;
-      return wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable";
-    });
-    return matched?.id ?? stayPricing?.ratePlans?.find((plan) => plan.roomId === roomId && plan.isActive)?.id ?? null;
-  };
-
   const validatePersonalInfo = () => {
     const newErrors: Partial<Record<keyof GuestInfoProps, string>> = {};
     if (!guestInfo.firstName.trim()) newErrors.firstName = "First name is required.";
     if (!guestInfo.lastName.trim()) newErrors.lastName = "Last name is required.";
     if (!guestInfo.email.trim()) newErrors.email = "Email is required.";
     else if (!/\S+@\S+\.\S+/.test(guestInfo.email)) newErrors.email = "Email is invalid.";
-    if (!isUnitLevel) {
-      if (!guestInfo.phone.trim()) newErrors.phone = "Phone number is required.";
-      if (!guestInfo.countryCode.trim()) newErrors.countryCode = "Country code is required.";
-      if (!guestInfo.dateOfBirth.trim()) newErrors.dateOfBirth = "Date of birth is required.";
-      if (!guestInfo.address.trim()) newErrors.address = "Address is required.";
-      if (!guestInfo.postal.trim()) newErrors.postal = "Postal code is required.";
-      if (!guestInfo.city.trim()) newErrors.city = "City is required.";
-    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -166,13 +144,47 @@ const BookingProgress: React.FC = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const isLoading = quoteLoading || holdLoading;
+  const handleGuestStepContinue = async () => {
+    if (!validatePersonalInfo()) return;
+    await handleQuoteAndHold();
+  };
 
-  const handleConfirm = async () => {
+  const isLoading = quoteLoading || holdLoading;
+  const reviewPricing =
+    quoteResp?.pricing ??
+    (stayPricing
+      ? {
+          currency: stayPricing.currency,
+          base: stayPricing.priceBreakdown.base.amount,
+          tax: stayPricing.priceBreakdown.taxes.amount,
+          fees: stayPricing.priceBreakdown.fees.amount,
+          total: stayPricing.priceBreakdown.total.amount,
+        }
+      : null);
+  const quoteCurrency = reviewPricing?.currency ?? selectedOption?.currency ?? stayPricing?.currency ?? "NGN";
+  const quoteRateLabel = quoteResp?.cancellationOptionSelection?.label ?? selectedOption?.label ?? "—";
+  const quoteRateCopy = quoteResp?.cancellationOptionSelection?.policyCopy ?? selectedOption?.policyCopy ?? "";
+  const quoteNote = quoteResp?.pricing
+    ? "Prices are shown from the quote response."
+    : stayPricing
+      ? "Initial estimate based on the current stay pricing. Final totals will be locked after quote creation."
+      : "Prices will appear once stay pricing is loaded.";
+
+  const handleQuoteAndHold = async () => {
     const stayId = hotel?.id;
     if (!stayId || !selectedOption || !effectiveCheckIn || !effectiveCheckOut) {
       toast.error("Missing booking details. Please go back and try again.");
       return;
+    }
+
+    let resolvedStayPricing = stayPricing;
+    if (!resolvedStayPricing?.ratePlans?.length) {
+      try {
+        resolvedStayPricing = await dispatch(fetchStayPricingAsync(stayId)).unwrap();
+      } catch {
+        toast.error("Unable to load stay pricing. Please try again.");
+        return;
+      }
     }
 
     // Step 1: Quote
@@ -180,23 +192,50 @@ const BookingProgress: React.FC = () => {
     try {
       const roomSelections =
         isUnitLevel || !selectedRoom
-          ? []
+          ? undefined
           : [
               {
                 roomId: selectedRoom.id ?? selectedRoom.code ?? "",
               },
             ];
+      const ratePlanId = (() => {
+        if (!selectedOption || !resolvedStayPricing?.ratePlans?.length) return null;
+        const wantsRefundable = selectedOption.optionId === "FREE_CANCELLATION";
+        const activePlans = resolvedStayPricing.ratePlans.filter((plan) => plan.isActive);
+
+        if (isUnitLevel) {
+          return (
+            activePlans.find((plan) =>
+              wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable",
+            )?.id ?? activePlans[0]?.id ?? null
+          );
+        }
+
+        const roomId = selectedRoom?.id ?? selectedRoom?.code ?? "";
+        const matchedByScope = activePlans.find((plan) => {
+          if (plan.roomId !== roomId) return false;
+          return wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable";
+        });
+
+        return (
+          matchedByScope?.id ??
+          activePlans.find((plan) => plan.roomId === roomId)?.id ??
+          activePlans[0]?.id ??
+          null
+        );
+      })();
+      const quotePayload = {
+        listingType: "stay" as const,
+        listingId: stayId,
+        cancellationOptionId: selectedOption.optionId,
+        currency: resolvedStayPricing.currency ?? selectedOption.currency ?? "NGN",
+        checkInDate: effectiveCheckIn,
+        checkOutDate: effectiveCheckOut,
+        ...(roomSelections ? { roomSelections } : {}),
+        ...(ratePlanId ? { ratePlanId } : {}),
+      };
       const quoteResult = await dispatch(
-        createQuoteAsync({
-          listingType: "stay",
-          listingId: stayId,
-          cancellationOptionId: selectedOption.optionId,
-          currency: selectedOption.currency ?? "NGN",
-          checkInDate: effectiveCheckIn,
-          checkOutDate: effectiveCheckOut,
-          roomSelections,
-          ratePlanId: resolveRatePlanId(),
-        }),
+        createQuoteAsync(quotePayload),
       ).unwrap();
       lockId = quoteResult.lockId;
     } catch {
@@ -226,8 +265,8 @@ const BookingProgress: React.FC = () => {
           customerReference: `WEB-${Date.now()}`,
         }),
       ).unwrap();
-
-      navigate(bookingFlowRoutes.stayHoldSummary);
+      setCurrentStep(2);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       // holdError already in Redux state
     }
@@ -329,13 +368,14 @@ const BookingProgress: React.FC = () => {
                   }`}
                 />
                 <div className="lg:order-5">
-                  <PriceSummary
-                    pricing={quoteResp?.pricing}
-                    nights={nights}
-                    roomType={selectedRoom?.description ?? hotel?.name}
-                    numberOfRooms={isUnitLevel ? 1 : (searchParams?.rooms ?? 1)}
-                    currency={quoteResp?.pricing?.currency ?? selectedOption?.currency}
-                  />
+                <PriceSummary
+                  pricing={reviewPricing}
+                  nights={nights}
+                  roomType={selectedRoom?.description ?? hotel?.name}
+                  numberOfRooms={isUnitLevel ? 1 : (searchParams?.rooms ?? 1)}
+                  currency={quoteCurrency}
+                  note={quoteNote}
+                />
                   <div className="lg:flex hidden justify-center items-center">
                     <button
                       onClick={handleNext}
@@ -379,12 +419,6 @@ const BookingProgress: React.FC = () => {
                     firstName: info.firstName || "",
                     lastName: info.lastName || "",
                     email: info.email || "",
-                    phone: info.phone || "",
-                    dateOfBirth: info.dateOfBirth || "",
-                    countryCode: info.countryCode || "",
-                    address: info.address || "",
-                    postal: info.postal || "",
-                    city: info.city || "",
                   })
                 }
                 formData={guestInfo}
@@ -392,10 +426,17 @@ const BookingProgress: React.FC = () => {
               />
               <div className="flex justify-center items-center">
                 <button
-                  onClick={handleNext}
+                  onClick={handleGuestStepContinue}
+                  disabled={isLoading}
                   className="bg-[#023E8A] text-white p-3 mt-12 rounded-lg lg:w-[40%] w-full"
                 >
-                  Continue
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      Processing… <Loader className="animate-spin" size={16} />
+                    </span>
+                  ) : (
+                    "Continue"
+                  )}
                 </button>
               </div>
             </>
@@ -468,30 +509,96 @@ const BookingProgress: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-500">Base</span>
                   <span className="font-medium">
-                    {quoteResp?.pricing
-                      ? `${quoteResp.pricing.currency} ${quoteResp.pricing.base.toLocaleString()}`
-                      : "--"}
+                  {reviewPricing
+                    ? `${reviewPricing.currency} ${reviewPricing.base.toLocaleString()}`
+                    : "--"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Taxes & Fees</span>
                   <span className="font-medium">
-                    {quoteResp?.pricing
-                      ? `${quoteResp.pricing.currency} ${(quoteResp.pricing.tax + quoteResp.pricing.fees).toLocaleString()}`
+                    {reviewPricing
+                      ? `${reviewPricing.currency} ${(reviewPricing.tax + reviewPricing.fees).toLocaleString()}`
                       : "--"}
                   </span>
                 </div>
                 <div className="border-t pt-2 flex justify-between font-semibold">
                   <span>Total</span>
                   <span>
-                    {quoteResp?.pricing
-                      ? `${quoteResp.pricing.currency} ${quoteResp.pricing.total.toLocaleString()}`
+                    {reviewPricing
+                      ? `${reviewPricing.currency} ${reviewPricing.total.toLocaleString()}`
                       : "--"}
                   </span>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Prices are shown from the quote response only.
+                  {quoteNote}
                 </p>
+              </div>
+
+              <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3 text-sm">
+                <h3 className="font-semibold text-gray-700">Quote & Hold Context</h3>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Quote Lock</span>
+                  <span className="font-medium font-mono text-xs">
+                    {quoteResp?.lockId ?? "—"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Quote Expires</span>
+                  <span className="font-medium">{quoteResp?.expiresAt ?? "—"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Rate Option</span>
+                  <span className="font-medium text-right">{quoteRateLabel}</span>
+                </div>
+                {quoteRateCopy && (
+                  <p className="text-xs text-gray-500 leading-relaxed">{quoteRateCopy}</p>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Selected Rooms</span>
+                  <span className="font-medium">
+                    {quoteResp?.roomSelections?.length ?? 0}
+                  </span>
+                </div>
+                {quoteResp?.ratePlanSelection && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Rate Plan ID</span>
+                    <span className="font-medium font-mono text-xs text-right">
+                      {quoteResp.ratePlanSelection}
+                    </span>
+                  </div>
+                )}
+                {holdResp && (
+                  <>
+                    <div className="border-t pt-3" />
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Hold Reference</span>
+                      <span className="font-medium text-right">
+                        {holdResp.bookingReference}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Hold Expires</span>
+                      <span className="font-medium">{holdResp.holdExpiresAt}</span>
+                    </div>
+                    {holdResp.paymentIntentId && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Payment Intent</span>
+                        <span className="font-medium font-mono text-xs text-right">
+                          {holdResp.paymentIntentId}
+                        </span>
+                      </div>
+                    )}
+                    {holdResp.paymentLink && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Payment Link</span>
+                        <span className="font-medium truncate max-w-[60%] text-right">
+                          {holdResp.paymentLink}
+                        </span>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* Error display */}
@@ -513,17 +620,11 @@ const BookingProgress: React.FC = () => {
 
               <div className="flex justify-center">
                 <button
-                  onClick={handleConfirm}
-                  disabled={isLoading}
+                  onClick={() => navigate(bookingFlowRoutes.stayHoldSummary)}
+                  disabled={isLoading || !holdResp}
                   className="bg-[#023E8A] text-white p-3 rounded-lg lg:w-[60%] w-full disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
                 >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      Processing… <Loader className="animate-spin" size={16} />
-                    </span>
-                  ) : (
-                    "Confirm Reservation"
-                  )}
+                  Continue to Payment
                 </button>
               </div>
             </div>

@@ -45,7 +45,20 @@ const removeSensitiveTransform = createTransform<AuthState, AuthState, RootReduc
     return inboundState;
   },
   // outbound: state being rehydrated (we keep as-is)
-  (outboundState) => outboundState,
+  (outboundState, key) => {
+    if (key === "auth" && outboundState) {
+      const storedAccessToken =
+        typeof window !== "undefined" ? window.localStorage.getItem("accessToken") : null;
+      const storedRefreshToken =
+        typeof window !== "undefined" ? window.localStorage.getItem("refreshToken") : null;
+      return {
+        ...outboundState,
+        accessToken: outboundState.accessToken || storedAccessToken,
+        refreshToken: outboundState.refreshToken || storedRefreshToken,
+      };
+    }
+    return outboundState;
+  },
   { whitelist: ["auth"] }
 );
 

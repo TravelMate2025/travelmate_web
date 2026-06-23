@@ -29,7 +29,8 @@ const StayHoldSummaryPage: React.FC = () => {
   }
 
   const currency = holdResp.currency;
-  const checkoutUrl = holdResp.checkoutUrl ?? holdResp.checkout_url;
+  const paymentLink = holdResp.paymentLink;
+  const quoteCurrency = quoteResp?.pricing.currency ?? currency;
 
   const formatDate = (iso: string) => {
     try {
@@ -66,6 +67,12 @@ const StayHoldSummaryPage: React.FC = () => {
             <span className="text-gray-500">Booking Reference</span>
             <span className="font-bold text-[#023E8A]">{holdResp.bookingReference}</span>
           </div>
+          {holdResp.paymentIntentId && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">Payment Intent</span>
+              <span className="font-mono text-xs font-medium">{holdResp.paymentIntentId}</span>
+            </div>
+          )}
           {holdResp.requestId && (
             <div className="flex justify-between">
               <span className="text-gray-500">Request ID</span>
@@ -93,6 +100,12 @@ const StayHoldSummaryPage: React.FC = () => {
           {holdResp.idempotency?.replayed && (
             <div className="rounded-md bg-yellow-50 border border-yellow-200 px-3 py-2 text-xs text-yellow-700">
               This hold already existed and was returned as-is.
+            </div>
+          )}
+          {quoteResp?.lockId && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">Quote Lock</span>
+              <span className="font-mono text-xs font-medium">{quoteResp.lockId}</span>
             </div>
           )}
         </div>
@@ -139,11 +152,11 @@ const StayHoldSummaryPage: React.FC = () => {
         ) : null}
 
         {/* Price breakdown */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3 text-sm">
-          <h2 className="font-semibold text-gray-700 text-base">Price Breakdown</h2>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Base</span>
-            <span className="font-medium">{currency} {holdResp.baseAmount.toLocaleString()}</span>
+          <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3 text-sm">
+            <h2 className="font-semibold text-gray-700 text-base">Price Breakdown</h2>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Base</span>
+              <span className="font-medium">{currency} {holdResp.baseAmount.toLocaleString()}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Tax</span>
@@ -153,22 +166,27 @@ const StayHoldSummaryPage: React.FC = () => {
             <span className="text-gray-500">Fees</span>
             <span className="font-medium">{currency} {holdResp.feeAmount.toLocaleString()}</span>
           </div>
-          <div className="border-t pt-2 flex justify-between font-bold text-base">
-            <span>Total</span>
-            <span>{currency} {holdResp.totalAmount.toLocaleString()}</span>
+            <div className="border-t pt-2 flex justify-between font-bold text-base">
+              <span>Total</span>
+              <span>{currency} {holdResp.totalAmount.toLocaleString()}</span>
+            </div>
+            {quoteResp?.pricing && (
+              <p className="text-xs text-gray-500">
+                Quote total: {quoteCurrency} {quoteResp.pricing.total.toLocaleString()}
+              </p>
+            )}
           </div>
-        </div>
 
         {/* Actions */}
         <div className="flex flex-col gap-3">
           <button
             className="w-full bg-[#023E8A] text-white py-3 rounded-xl font-semibold hover:bg-[#023E9E] transition-colors"
             onClick={() => {
-              if (!checkoutUrl) {
+              if (!paymentLink) {
                 alert("Payment handoff is not available for this booking yet.");
                 return;
               }
-              window.location.assign(checkoutUrl);
+              window.location.assign(paymentLink);
             }}
           >
             Continue to Payment

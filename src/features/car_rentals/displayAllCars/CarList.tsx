@@ -24,7 +24,6 @@ export interface CarListProps {
   searchResults: CarTransferOption[];
   loading: boolean;
   OpenForm: () => void;
-  rate_key: string;
 }
 
 const ITEMS_PER_PAGE = 8;
@@ -52,7 +51,6 @@ const CarList: React.FC<CarListProps> = ({
   departureInfo,
   searchResults,
   OpenForm,
-  rate_key,
   loading,
 }) => {
   const isMobile = useMediaQuery({ maxWidth: 768 });

@@ -21,14 +21,18 @@ const GuestDetails = ({ guest }: GuestDetailsProps) => {
             <p className="font-medium">Email</p>
             <p>{guest?.email|| "N/A"}</p>
           </div>
-          <div className="flex justify-between items-center w-full">
-            <p className="font-medium">Phone</p>
-            <p>{guest?.phone|| "N/A"}</p>
-          </div>
-          <div className="flex justify-between items-center w-full ">
-            <p className="font-medium flex justify-end">Address</p>
-            <p className="flex justify-end">{guest?.address|| "N/A"}</p>
-          </div>
+          {guest?.phone && (
+            <div className="flex justify-between items-center w-full">
+              <p className="font-medium">Phone</p>
+              <p>{guest.phone}</p>
+            </div>
+          )}
+          {guest?.address && (
+            <div className="flex justify-between items-center w-full ">
+              <p className="font-medium flex justify-end">Address</p>
+              <p className="flex justify-end">{guest.address}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -9,7 +9,6 @@ import { AppDispatch, RootState } from "../../../store";
 import { clearStaysCache, setLocationDetails, setSearchParams } from "../slice";
 import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 import {
-  staySearchLocationOptions,
   staySearchStayTypeOptions,
   partnerStayLocationToOption,
   type StaySearchLocationOption,
@@ -23,7 +22,7 @@ import {
 import ReusableDateSelector from "../components/ReusableDateSelector";
 
 const recentSearchStorageKey = "travelmate_recent_destination_searches";
-const initialStayType: StaySearchStayType = "unit_level";
+const initialStayType = "" as StaySearchStayType;
 
 function normalizeText(value: string) {
   return value.toLowerCase().trim();
@@ -69,7 +68,7 @@ export default function PartnerStaySearchPage() {
   const navigate = useNavigate();
   const storedSearch = useSelector((state: RootState) => state.stays.searchParams);
 
-  const [locationOptions, setLocationOptions] = useState<StaySearchLocationOption[]>(staySearchLocationOptions);
+  const [locationOptions, setLocationOptions] = useState<StaySearchLocationOption[]>([]);
 
   const initialDestination = useMemo(
     () =>
@@ -105,8 +104,16 @@ export default function PartnerStaySearchPage() {
         const mapped = data.locations.map(partnerStayLocationToOption);
         if (mapped.length > 0) setLocationOptions(mapped);
       })
-      .catch(() => {/* keep static fallback */});
+      .catch((error) => {
+        console.error("[Stays][locations] failed to load partner inventory", error);
+      });
   }, []);
+
+  useEffect(() => {
+    if (!selectedDestination && initialDestination) {
+      setSelectedDestination(initialDestination);
+    }
+  }, [initialDestination, selectedDestination]);
 
   // Recents first, then the rest of the canonical list deduplicated
   const autocompleteOptions = useMemo(() => {
@@ -143,6 +150,7 @@ export default function PartnerStaySearchPage() {
     );
     dispatch(
       setSearchParams({
+        destination: selectedDestination.cities[0] || selectedDestination.destinationLabel,
         country: selectedDestination.country,
         adminLevel1: selectedDestination.adminLevels[0],
         city: selectedDestination.cities[0],
@@ -218,6 +226,7 @@ export default function PartnerStaySearchPage() {
                 onChange={(event) => setStayType(event.target.value as StaySearchStayType)}
                 className="rounded-md border border-gray-300 px-3 py-2 text-sm"
               >
+                <option value="">Any stay type</option>
                 {staySearchStayTypeOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
