@@ -4,6 +4,7 @@ import { RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import AuthNav from "../components/AuthNavbar";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
+import GoogleLoginButton from "../components/GoogleLoginButton";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../../store";
 import {
@@ -12,18 +13,16 @@ import {
   updateUserName,
 } from "../slices/authSlice";
 import { useLocation } from "react-router-dom";
-import { loginUser, socialGoogleLogin } from "../api/auth";
+import { loginUser } from "../api/auth";
 import { setUserProfile as setProfileInRedux } from "../slices/profileSlice";
 import { toast } from "react-hot-toast";
 import { fetchUserProfile } from "../api/profile";
-import { FaGoogle } from "react-icons/fa";
-import { useGoogleLogin } from "@react-oauth/google";
+import AppErrorBoundary from "../../../AppErrorBoundary";
 
 type ApiErrorLike = {
   response?: {
     data?: {
       Message?: string;
-      non_field_errors?: string[];
     };
   };
 };
@@ -73,56 +72,47 @@ export default function Login() {
       localStorage.setItem("refreshToken", res.refresh);
       localStorage.setItem("email", res.setup_info.email);
 
-      // Step 3: Fetch full user profile
-      const profileData = await fetchUserProfile(res.access);
+      // Step 3: Fetch full user profile — non-critical, auth is already complete
+      let welcomeName = `${res.setup_info.first_name || ""} ${res.setup_info.last_name || ""}`.trim() || "User";
+      try {
+        const profileData = await fetchUserProfile(res.access);
+        dispatch(setProfileInRedux(profileData));
 
-      // Ensure the profile data is saved in Redux
-      dispatch(setProfileInRedux(profileData));
+        const fullName = `${profileData.first_name || ""} ${profileData.last_name || ""}`.trim();
+        if (fullName) {
+          dispatch(updateUserName(fullName));
+          welcomeName = fullName;
+        }
+        if (profileData.id) dispatch(updateProfileId(profileData.id));
 
-      // Step 4: Update full name if needed (already set during login step, but ensure consistency)
-      const fullName = `${profileData.first_name || ""} ${
-        profileData.last_name || ""
-      }`.trim();
-      if (fullName) {
-        dispatch(updateUserName(fullName));
+        const isProfileIncomplete =
+          !profileData.first_name ||
+          !profileData.last_name ||
+          !profileData.gender ||
+          !profileData.date_of_birth;
+
+        if (isProfileIncomplete) {
+          toast.success(`Welcome back, ${welcomeName}! Please complete your profile.`);
+        } else {
+          toast.success(`Welcome back, ${welcomeName}!`);
+        }
+      } catch (profileErr) {
+        console.warn("Profile fetch failed, continuing:", profileErr);
+        toast.success(`Welcome back, ${welcomeName}!`);
       }
 
-      // Step 5: Update profile ID if available
-      if (profileData.id) {
-        dispatch(updateProfileId(profileData.id));
-      }
-
-      // Step 6: Check for missing profile information
-      const isProfileIncomplete =
-        !profileData.first_name ||
-        !profileData.last_name ||
-        !profileData.gender ||
-        !profileData.date_of_birth;
-
-      if (isProfileIncomplete) {
-        toast.success(
-          `Welcome back, ${
-            fullName || "User"
-          }!, Please navigate to the profile page to complete your profile`
-        );
-        navigate("/", { replace: true });
-      } else {
-        toast.success(`Welcome back, ${fullName || "User"}!`);
-        navigate("/", { replace: true });
-      }
+      navigate("/", { replace: true });
     } catch (err: unknown) {
       let errorMsg = "Something went wrong. Please try again.";
       const serverMessage = (err as ApiErrorLike)?.response?.data?.Message;
+      const errMsg = err instanceof Error ? err.message : "";
 
-      if (
-        serverMessage &&
-        serverMessage.includes(
-          "The password you entered doesn't match our records"
-        )
-      ) {
+      if (serverMessage?.includes("The password you entered doesn't match our records")) {
         errorMsg = "Invalid email or password.";
       } else if (serverMessage) {
         errorMsg = serverMessage;
+      } else if (errMsg) {
+        errorMsg = errMsg;
       }
 
       toast.error(errorMsg);
@@ -131,88 +121,6 @@ export default function Login() {
       setIsLoading(false);
     }
   };
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      let googleEmail = "";
-
-      try {
-        const access_token = tokenResponse.access_token;
-
-        if (!access_token) {
-          toast.error("Google login failed: No access token received.");
-          return;
-        }
-
-        // Fetch user info from Google
-        try {
-          const userInfoRes = await fetch(
-            "https://www.googleapis.com/oauth2/v3/userinfo",
-            {
-              headers: {
-                Authorization: `Bearer ${access_token}`,
-              },
-            }
-          );
-          const googleUser = await userInfoRes.json();
-          googleEmail = googleUser?.email || "";
-        } catch (err) {
-          console.error("Failed to fetch Google user info:", err);
-        }
-
-        const res = await socialGoogleLogin(access_token);
-
-        // Check if response contains expected access/refresh tokens
-        toast.success("User successfully Logged in!");
-        if (res?.access && res?.refresh) {
-          dispatch(
-            loginSuccess({
-              accessToken: res.access,
-              refreshToken: res.refresh,
-              user: {
-                id: res.user?.id ?? 0,
-                email: res.user?.email ?? "",
-                name: res.user?.name ?? "",
-              },
-              registrationComplete: res.registration_complete ?? false,
-            })
-          );
-          localStorage.setItem("accessToken", res.access);
-          localStorage.setItem("refreshToken", res.refresh);
-          localStorage.setItem("email", res.user?.email ?? googleEmail ?? "");
-          navigate("/", { replace: true });
-        } else {
-          toast.error("Unexpected response format. Please try again.");
-          console.error("Unexpected Google login response:", res);
-        }
-      } catch (error: unknown) {
-        console.error("Google login failed:", error);
-
-        const backendError = (error as ApiErrorLike)?.response?.data;
-
-        // Handle known error: already registered
-        if (
-          backendError?.non_field_errors?.includes(
-            "User is already registered with this e-mail address."
-          )
-        ) {
-          toast.success(
-            "This Google account is already registered. Please log in instead."
-          );
-          navigate("/login", { state: { email: googleEmail } }); // ✅ pass the fetched email here
-        } else {
-          // Generic fallback
-          toast.error("Google login failed. Please try again.");
-          console.error("Google login error response:", backendError);
-        }
-      }
-    },
-    onError: () => {
-      toast.error("Google login was unsuccessful.");
-    },
-    flow: "implicit",
-    scope: "openid email profile", // ✅ make sure this is included
-  });
-
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <AuthNav />
@@ -278,15 +186,11 @@ export default function Login() {
               )}
             </button>
           </form>
-          <button
-            type="button"
-            onClick={() => googleLogin()}
-            className="mt-6 relative w-full border border-[#023E8A] text-[#023E8A] cursor-pointer flex items-center gap-2 justify-center py-2 rounded-lg mb-2 hover:bg-gray-100 transition"
-          >
-            <FaGoogle />
-
-            <span>Continue with Google</span>
-          </button>
+          <div className="mt-6">
+            <AppErrorBoundary fallback={null}>
+              <GoogleLoginButton />
+            </AppErrorBoundary>
+          </div>
 
           <p className="text-gray-700 text-sm text-center mt-40">
             By continuing, you agree to our{" "}

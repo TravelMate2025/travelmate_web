@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { searchHotels, createCheckoutSession, fetchStayPricing, createQuote, createHold } from '../stays/api';
+import { searchStays, createCheckoutSession, fetchStayPricing, createQuote, createHold, getHotelDetails } from '../stays/api';
 import { BookingHoldReq, BookingHoldResp, BookingQuoteReq, BookingQuoteResp, BookStaysRequest, BookStaysResponse, Hotel, HotelSearchResponse, StayPricing } from './types';
 
 interface locationDetails {
@@ -81,12 +81,6 @@ export interface GuestInfoProps {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
-  dateOfBirth: string;
-  countryCode: string;
-  address?: string
-  postal?: string
-  city?: string
 }
 
 export const fetchHotelsAsync = createAsyncThunk(
@@ -95,19 +89,15 @@ export const fetchHotelsAsync = createAsyncThunk(
     try {
       const searchParams = params as SearchParams;
       const destination =
+        searchParams.destination ??
         searchParams.city ??
         searchParams.adminLevel1 ??
         searchParams.country ??
-        searchParams.destination ??
         '';
-      return await searchHotels(
+      return await searchStays({
+        ...searchParams,
         destination,
-        searchParams.checkIn ?? '',
-        searchParams.checkOut ?? '',
-        searchParams.adults ?? 1,
-        searchParams.children ?? 0,
-        searchParams.rooms ?? 1,
-      );
+      });
     } catch (error: unknown) {
       if (error instanceof Error) return rejectWithValue(error.message);
       return rejectWithValue(String(error));
@@ -120,6 +110,36 @@ export const fetchStayPricingAsync = createAsyncThunk(
   async (stayId: string, { rejectWithValue }) => {
     try {
       return await fetchStayPricing(stayId);
+    } catch (error: unknown) {
+      if (error instanceof Error) return rejectWithValue(error.message);
+      return rejectWithValue(String(error));
+    }
+  }
+);
+
+export const fetchStayDetailsAsync = createAsyncThunk(
+  'stays/fetchStayDetails',
+  async (
+    params: {
+      stayId: string;
+      checkIn?: string;
+      checkOut?: string;
+      adults?: number;
+      children?: number;
+      rooms?: number;
+    },
+    { rejectWithValue },
+  ) => {
+    try {
+      const { stayId, checkIn, checkOut, adults, children, rooms } = params;
+      return await getHotelDetails(
+        stayId,
+        checkIn ?? "",
+        checkOut ?? "",
+        adults ?? 1,
+        children ?? 0,
+        rooms ?? 1,
+      );
     } catch (error: unknown) {
       if (error instanceof Error) return rejectWithValue(error.message);
       return rejectWithValue(String(error));
@@ -248,6 +268,19 @@ const staysSlice = createSlice({
       .addCase(fetchStayPricingAsync.rejected, (state, action) => {
         state.pricingLoading = false;
         state.pricingError = action.payload as string;
+      })
+      // Stay details
+      .addCase(fetchStayDetailsAsync.pending, (state) => {
+        state.detailsLoading = true;
+        state.detailsError = null;
+      })
+      .addCase(fetchStayDetailsAsync.fulfilled, (state, action: PayloadAction<Hotel>) => {
+        state.detailsLoading = false;
+        state.selectedHotel = action.payload;
+      })
+      .addCase(fetchStayDetailsAsync.rejected, (state, action) => {
+        state.detailsLoading = false;
+        state.detailsError = action.payload as string;
       })
       //Bookings
       .addCase(createBookingAsync.pending, (state) => {

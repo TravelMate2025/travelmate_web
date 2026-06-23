@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import { Toaster } from "react-hot-toast";
+import AppErrorBoundary from "./AppErrorBoundary";
 import PrivateRoute from "./routes/PrivateRoute";
 import { bookingFlowRoutes, legacyBookingFlowRoutes } from "./features/shared/bookingFlowRoutes";
 
@@ -71,6 +72,7 @@ function App() {
   return (
     <>
       <Toaster />
+      <AppErrorBoundary>
       <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" /></div>}>
       <Routes>
         {/* Public Pages */}
@@ -101,11 +103,7 @@ function App() {
         <Route path="/stays-paid/download" element={<DownloadStaysPage />} />
         <Route
           path={bookingFlowRoutes.stayConfirmation}
-          element={
-            <PrivateRoute>
-              <BookingConfirmationPage />
-            </PrivateRoute>
-          }
+          element={<BookingConfirmationPage />}
         />
         {/* FAQ & Customer Support */}
         <Route path="/faqs" element={<FaqPage />} />
@@ -224,11 +222,7 @@ function App() {
 
         <Route
           path={legacyBookingFlowRoutes.stayConfirmation}
-          element={
-            <PrivateRoute>
-              <BookingConfirmationPage />
-            </PrivateRoute>
-          }
+          element={<BookingConfirmationPage />}
         />
         <Route
           path="/favorites"
@@ -305,19 +299,11 @@ function App() {
         />
         <Route
           path="/transfers/payment-success"
-          element={
-            <PrivateRoute>
-              <CarPaidForPage />
-            </PrivateRoute>
-          }
+          element={<CarPaidForPage />}
         />
         <Route
           path="/transfers/payment-failure"
-          element={
-            <PrivateRoute>
-              <CarFailedPayment />
-            </PrivateRoute>
-          }
+          element={<CarFailedPayment />}
         />
         <Route path="/offer-accepted-page" element={<CarOfferPage />} />
         <Route
@@ -334,6 +320,7 @@ function App() {
         <Route path="/transfer-flow" element={<Navigate to="/?tab=transfers" replace />} />
       </Routes>
       </Suspense>
+      </AppErrorBoundary>
     </>
   );
 }

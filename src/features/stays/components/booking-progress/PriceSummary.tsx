@@ -7,6 +7,7 @@ interface PriceSummaryProps {
   nights?: number;
   numberOfRooms?: number;
   currency?: string;
+  note?: string;
 }
 
 const PriceSummary: React.FC<PriceSummaryProps> = ({
@@ -15,6 +16,7 @@ const PriceSummary: React.FC<PriceSummaryProps> = ({
   numberOfRooms,
   roomType,
   currency,
+  note,
 }) => {
   const formatAmount = (value?: number) =>
     value != null
@@ -44,6 +46,7 @@ const PriceSummary: React.FC<PriceSummaryProps> = ({
             <span>Total</span>
             <span className="text-[#023E8A]">{formatAmount(pricing?.total)}</span>
           </p>
+          {note && <p className="text-xs text-gray-400 leading-relaxed">{note}</p>}
         </div>
       </div>
     </div>

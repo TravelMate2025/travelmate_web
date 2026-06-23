@@ -39,19 +39,6 @@ interface PostTransferSearchParams {
     price_max?: number;
 }
 
-interface BookingConfirmationParams {
-    search_id: string;
-    rate_key: string;
-    first_name: string;
-    last_name: string;
-    dob: string;
-    email: string;
-    country_code: string;
-    phone: string;
-    remark?: string;
-
-}
-
 interface TransferQuoteParams {
     listingType: string;
     listingId: string;
@@ -108,19 +95,6 @@ interface TransferResult {
 
 }
 
-interface BookingConfirmationResult {
-    success: boolean;
-    data?: {
-        id: string;
-        status: string;
-        total_price: string;
-        booking_id: string;
-        bookings: unknown[];
-    };
-    status?: number;
-    error?: string;
-}
-
 interface CheckoutSessionResult {
     success: boolean;
     checkout_url?: string;
@@ -128,6 +102,12 @@ interface CheckoutSessionResult {
 }
 
 interface BookingFinalizeResult {
+    success: boolean;
+    data?: unknown;
+    error?: string;
+}
+
+interface PaymentConfirmResult {
     success: boolean;
     data?: unknown;
     error?: string;
@@ -231,30 +211,6 @@ class TransferService {
         }
     }
 
-
-    async createBookingConfirmation(accessToken: string, params: BookingConfirmationParams): Promise<BookingConfirmationResult> {
-        try {
-            const response = await instance.post<BookingConfirmationResult['data']>(`${this.baseUrl}/transfers/booking/confirmation/`,
-                JSON.stringify(params), {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`
-                }
-            }
-            );
-            return {
-                success: true,
-                data: response.data,
-                status: response.status,
-            };
-        } catch (error: unknown) {
-            console.error('Create booking confirmation failed:', error);
-            toast.error(this.getErrorMessage(error) || 'Network Error');
-            return {
-                success: false,
-                error: this.getErrorMessage(error),
-            };
-        }
-    }
 
     async getTransferDetail(transferId: string): Promise<{ success: boolean; data?: CarTransferOption; error?: string }> {
         try {
@@ -363,9 +319,9 @@ class TransferService {
         }
     }
 
-    async getBookingBySession(sessionId: string | null): Promise<BookingConfirmationResult> {
+    async getBookingBySession(sessionId: string | null): Promise<BookingFinalizeResult> {
         try {
-            const response = await instance.get(`${this.baseUrl}/transfers/booking/confirmation/by-session/?session_id=${sessionId}`);
+            const response = await instance.get(`${this.baseUrl}/transfers/booking/confirmation/by-session/?payment_intent_id=${sessionId}`);
             return {
                 success: true,
                 data: response.data,
@@ -373,6 +329,22 @@ class TransferService {
         } catch (error: unknown) {
             console.error('Get booking by session failed:', error);
             toast.error(this.getErrorMessage(error) || 'Failed to fetch booking');
+            return {
+                success: false,
+                error: this.getErrorMessage(error),
+            };
+        }
+    }
+
+    async confirmPaymentIntent(paymentIntentId: string): Promise<PaymentConfirmResult> {
+        try {
+            const response = await instance.post(`${this.baseUrl}/transfers/payments/intents/${paymentIntentId}/confirm/`, {});
+            return {
+                success: true,
+                data: response.data,
+            };
+        } catch (error: unknown) {
+            console.error('Confirm payment intent failed:', error);
             return {
                 success: false,
                 error: this.getErrorMessage(error),

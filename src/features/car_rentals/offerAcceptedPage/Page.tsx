@@ -16,6 +16,7 @@ import {
 } from "../../shared/booking/bookingFlowLabels";
 
 export interface CarOfferInfo {
+  id?: string | number;
   vehicle?: { name?: string; code?: string };
   category?: { name?: string };
   content?: {
@@ -43,8 +44,6 @@ type PassengerFormData = {
   lastName: string;
   email: string;
   phone: string;
-  dateOfBirth: string;
-  countryCode: string;
 };
 
 type FormDataState = {
@@ -55,6 +54,24 @@ type StepState = {
   gilad: boolean;
   jason: boolean;
   antoine: boolean;
+};
+
+export type QuotePricing = {
+  currency?: string;
+  base?: number;
+  tax?: number;
+  fees?: number;
+  total?: number;
+};
+
+type TransferSuccessCache = {
+  bookingReference?: string;
+  quoteLockId?: string;
+  departureInfo?: DepartureInfo;
+  passFormData?: PassengerFormData;
+  car?: CarOfferInfo;
+  quotePricing?: QuotePricing;
+  storedAt?: string;
 };
 
 export interface DeskProps {
@@ -78,99 +95,109 @@ export interface DeskProps {
   handleChangePayment: (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  handleBlur: () => void;
   formData: FormDataState;
   isFormValid: boolean;
   setIsTheFormValid: Dispatch<SetStateAction<boolean>>;
   car?: CarOfferInfo;
   departureInfo?: DepartureInfo;
+  quotePricing?: QuotePricing;
 }
 
 const Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Derive route state (no hooks, safe to do before hooks)
+  const routeState = (location.state ?? {}) as {
+    search_id?: string;
+    departureInfo?: DepartureInfo;
+    car?: CarOfferInfo;
+    quoteLockId?: string;
+    cancellationOptionId?: string;
+  };
+  const departureInfo: DepartureInfo = routeState.departureInfo ?? {
+    pickupLocaDescription: "",
+    pickupDate: "",
+    pickupTime: "",
+    dropoffLocaDescription: "",
+    selectedRide: "",
+    priceRange: "",
+  };
+  const precomputedQuoteLockId: string = routeState.quoteLockId ?? "";
+  const precomputedCancellationOptionId: string = routeState.cancellationOptionId ?? "";
+  const listingId = String(routeState.car?.id ?? routeState.car?.rateKey ?? "");
+
+  const getTransferSuccessRedirectUrl = () => {
+    const url = new URL("/transfers/payment-success", window.location.origin);
+    const isLocalHost =
+      url.hostname === "localhost" ||
+      url.hostname === "127.0.0.1" ||
+      url.hostname === "::1";
+    if (!isLocalHost && url.protocol === "http:") {
+      url.protocol = "https:";
+    }
+    return url.toString();
+  };
+
+  // ALL hooks unconditionally — no early returns until after this block
   const [quoteLockId, setQuoteLockId] = useState("");
+  const [quotePricing, setQuotePricing] = useState<QuotePricing | undefined>(undefined);
   const [bookingReference, setBookingReference] = useState("");
-  const [paymentLink, setPaymentLink] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const [submitted, setSubmitted] = useState(false);
-  // const dispatch = useDispatch();
-
   const steps = [transferReviewLabel(), guestDetailsLabel(), continueToPaymentLabel()];
-
-  const [state, setState] = useState<StepState>({
-    gilad: true,
-    jason: false,
-    antoine: true,
-  });
-  const { search_id, departureInfo } = location.state as {
-    search_id: string;
-    departureInfo: DepartureInfo;
-    car?: CarOfferInfo;
-  };
-  const precomputedQuoteLockId: string = location.state?.quoteLockId ?? "";
-  const precomputedCancellationOptionId: string = location.state?.cancellationOptionId ?? "";
-  const listingId = String(location.state?.car?.id ?? location.state?.car?.rateKey ?? "");
-  const rate_key = location.state?.car?.rateKey || "";
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState({
-      ...state,
-      [event.target.name]: event.target.checked,
-    });
-  };
-
-  const [formData, setFormData] = useState<FormDataState>({
-    agreement: false,
-  });
-
-  const handleBlur = () => {};
+  const [state, setState] = useState<StepState>({ gilad: true, jason: false, antoine: true });
+  const [formData, setFormData] = useState<FormDataState>({ agreement: false });
   const [passFormData, setPassFormData] = useState<PassengerFormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    dateOfBirth: "",
-    countryCode: "",
+    firstName: "", lastName: "", email: "", phone: "",
   });
   const [errors, setErrors] = useState({
-    firstName: "",
-    lastName: "",
-    dateOfBirth: "",
-    email: "",
-    phone: "",
-    countryCode: "",
+    firstName: "", lastName: "", email: "", phone: "",
   });
+  const [isFormValid, setIsFormValid] = useState(true);
+  const [activeStep, setActiveStep] = useState(0);
+  const [isTheFormValid, setIsTheFormValid] = useState(false);
+
+  useEffect(() => { setIsFormValid(formData.agreement); }, [formData]);
+
+  useEffect(() => {
+    const isValid =
+      passFormData.firstName.trim() !== "" &&
+      passFormData.lastName.trim() !== "" &&
+      passFormData.email.trim() !== "" &&
+      /\S+@\S+\.\S+/.test(passFormData.email) &&
+      passFormData.phone.trim() !== "";
+    setIsTheFormValid(isValid);
+  }, [passFormData]);
+
+  // Guard: redirect if page was opened without router state (e.g. on refresh)
+  useEffect(() => {
+    if (!routeState.departureInfo) navigate("/", { replace: true });
+  }, [routeState.departureInfo, navigate]);
+
+  if (!routeState.departureInfo) return null;
+
+  // Handlers (after all hooks and the early-return guard)
+  const isFormValids = formData.agreement;
+
   const validatePersonalInfo = () => {
     const newErrors = {
-      firstName: "",
-      lastName: "",
-      dateOfBirth: "",
-      email: "",
-      phone: "",
-      countryCode: "",
+      firstName: "", lastName: "", email: "", phone: "",
     };
-    if (!passFormData.firstName.trim())
-      newErrors.firstName = "First name is required.";
-    if (!passFormData.lastName.trim())
-      newErrors.lastName = "Last name is required.";
-    if (!passFormData.dateOfBirth.trim())
-      newErrors.dateOfBirth = "Date of birth is required.";
-    if (
-      new Date(passFormData.dateOfBirth).toISOString() >
-      new Date().toISOString()
-    )
-      newErrors.dateOfBirth = "Date of Birth invalid!";
+    if (!passFormData.firstName.trim()) newErrors.firstName = "First name is required.";
+    if (!passFormData.lastName.trim()) newErrors.lastName = "Last name is required.";
     if (!passFormData.email.trim()) newErrors.email = "Email is required.";
-    else if (!/\S+@\S+\.\S+/.test(passFormData.email))
-      newErrors.email = "Email is invalid.";
-    if (!passFormData.phone.trim())
-      newErrors.phone = "Phone number is required.";
-    if (!passFormData.countryCode.trim())
-      newErrors.countryCode = "Country code is required.";
+    else if (!/\S+@\S+\.\S+/.test(passFormData.email)) newErrors.email = "Email is invalid.";
+    if (!passFormData.phone.trim()) newErrors.phone = "Phone number is required.";
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return Object.values(newErrors).every((v) => v === "");
   };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setState({ ...state, [event.target.name]: event.target.checked });
+  };
+
   const handleChangePayment = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -181,37 +208,18 @@ const Page = () => {
     setFormData((prev) => ({ ...prev, agreement: e.target.checked }));
   };
 
-  const [isFormValid, setIsFormValid] = useState(true);
-
-  useEffect(() => {
-    setIsFormValid(formData.agreement);
-  }, [formData]);
-  const [activeStep, setActiveStep] = useState(0);
-
   const handleNext = () => {
-    if (activeStep === 1) {
-      if (!validatePersonalInfo()) {
-        return;
-      }
-    }
-    if (activeStep < steps.length - 1) {
-      setActiveStep((prevStep) => prevStep + 1);
-    }
+    if (activeStep === 1 && !validatePersonalInfo()) return;
+    if (activeStep < steps.length - 1) setActiveStep((prev) => prev + 1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleBack = () => {
     if (activeStep > 0) {
-      setActiveStep((prevStep) => prevStep - 1);
+      setActiveStep((prev) => prev - 1);
     } else {
       navigate(
-        `/cars-searchResults?ride=${encodeURIComponent(
-          departureInfo.selectedRide
-        )}&from=${departureInfo.pickupLocaDescription}&to=${
-          departureInfo.dropoffLocaDescription
-        }&time=${departureInfo.pickupDate}&pricerange=${
-          departureInfo.priceRange
-        }`
+        `/cars-searchResults?ride=${encodeURIComponent(departureInfo.selectedRide)}&from=${departureInfo.pickupLocaDescription}&to=${departureInfo.dropoffLocaDescription}&time=${departureInfo.pickupDate}&pricerange=${departureInfo.priceRange}`
       );
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -237,18 +245,26 @@ const Page = () => {
           listingId,
           currency: "NGN",
           cancellationOptionId: precomputedCancellationOptionId || undefined,
-          pickupAt: `${departureInfo.pickupDate}T${departureInfo.pickupTime}`,
+          pickupAt: (() => {
+            const dt = new Date(`${departureInfo.pickupDate}T${departureInfo.pickupTime}:00`);
+            const off = -dt.getTimezoneOffset();
+            const sign = off >= 0 ? "+" : "-";
+            const hh = String(Math.floor(Math.abs(off) / 60)).padStart(2, "0");
+            const mm = String(Math.abs(off) % 60).padStart(2, "0");
+            return `${departureInfo.pickupDate}T${departureInfo.pickupTime}:00${sign}${hh}:${mm}`;
+          })(),
         });
 
         if (!quoteResult.success) {
           throw new Error(quoteResult.error || "Failed to create transfer quote");
         }
 
-        const quoteData = (quoteResult.data as { data?: { quoteLockId?: string; lockId?: string } } | undefined)?.data;
+        const quoteData = (quoteResult.data as { data?: { quoteLockId?: string; lockId?: string; pricing?: QuotePricing } } | undefined)?.data;
         resolvedQuoteLockId = quoteData?.quoteLockId ?? quoteData?.lockId ?? "";
         if (!resolvedQuoteLockId) {
           throw new Error("Quote lock was not returned");
         }
+        if (quoteData?.pricing) setQuotePricing(quoteData.pricing);
       }
 
       const holdResult = await transferService.createTransferHold({
@@ -272,13 +288,13 @@ const Page = () => {
       }
 
       const holdData = (holdResult.data as { data?: { bookingReference?: string; bookingId?: string } } | undefined)?.data;
-      const resolvedBookingReference = holdData?.bookingReference ?? holdData?.bookingId ?? "";
-      if (!resolvedBookingReference) {
+      const holdBookingReference = holdData?.bookingReference ?? holdData?.bookingId ?? "";
+      if (!holdBookingReference) {
         throw new Error("Booking reference was not returned");
       }
 
       setQuoteLockId(resolvedQuoteLockId);
-      setBookingReference(resolvedBookingReference);
+      setBookingReference(holdBookingReference);
       setActiveStep(2);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error: unknown) {
@@ -290,32 +306,32 @@ const Page = () => {
     }
   };
 
-  const [isTheFormValid, setIsTheFormValid] = useState(false);
-
-  useEffect(() => {
-    // Validation: Check if all fields are filled
-    const isValid =
-      passFormData.firstName.trim() !== "" &&
-      passFormData.lastName.trim() !== "" &&
-      passFormData.email.trim() !== "" &&
-      /\S+@\S+\.\S+/.test(passFormData.email) &&
-      passFormData.phone.trim() !== "" &&
-      /^\d+$/.test(passFormData.phone) &&
-      passFormData.dateOfBirth.trim() !== "" &&
-      passFormData.countryCode.trim() !== "";
-
-    setIsTheFormValid(isValid);
-  }, [passFormData]);
-
-  const isFormValids = formData.agreement;
-
   const handleSubmit = async () => {
     try {
       setLoadingSubmit(true);
+      const successCache: TransferSuccessCache = {
+        bookingReference,
+        quoteLockId,
+        departureInfo,
+        passFormData,
+        car: routeState.car,
+        quotePricing,
+        storedAt: new Date().toISOString(),
+      };
+      console.debug("Transfer payment intent payload", {
+        quoteLockId,
+        bookingReference,
+        redirectUrl: getTransferSuccessRedirectUrl(),
+        customer: {
+          name: `${passFormData.firstName} ${passFormData.lastName}`.trim(),
+          email: passFormData.email,
+          phone: passFormData.phone,
+        },
+      });
       const response = await transferService.createTransferPaymentIntent({
         quoteLockId,
         bookingReference,
-        redirectUrl: `${window.location.origin}/transfers/payment-success`,
+        redirectUrl: getTransferSuccessRedirectUrl(),
         customer: {
           name: `${passFormData.firstName} ${passFormData.lastName}`.trim(),
           email: passFormData.email,
@@ -323,9 +339,20 @@ const Page = () => {
         },
       });
 
-      const payload = response.data as { data?: { paymentLink?: string; nextAction?: { url?: string } } } | undefined;
+      const payload = response.data as {
+        data?: {
+          paymentIntentId?: string;
+          paymentLink?: string;
+          nextAction?: { url?: string };
+        };
+      } | undefined;
+      console.debug("Transfer payment intent response", {
+        paymentIntentId: payload?.data?.paymentIntentId,
+        paymentLink: payload?.data?.paymentLink ?? payload?.data?.nextAction?.url,
+      });
       const paymentUrl = payload?.data?.paymentLink ?? payload?.data?.nextAction?.url;
       if (response.success && paymentUrl) {
+        window.localStorage.setItem("transferPaymentSuccess", JSON.stringify(successCache));
         window.location.href = paymentUrl;
       } else {
         throw new Error(response.error || "Payment handoff unavailable");
@@ -359,15 +386,14 @@ const Page = () => {
         isFormValid={isFormValid}
         handleChangePayment={handleChangePayment}
         handleCheckboxChange={handleCheckboxChange}
-        handleBlur={handleBlur}
         passFormData={passFormData}
         setPassFormData={setPassFormData}
         setIsTheFormValid={setIsTheFormValid}
         isTheFormValid={isTheFormValid}
         loadingSubmit={loadingSubmit}
         submitted={submitted}
+        quotePricing={quotePricing}
       />
-
       <Footer />
     </div>
   );

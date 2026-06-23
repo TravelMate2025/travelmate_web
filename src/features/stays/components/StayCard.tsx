@@ -45,6 +45,7 @@ const StayCard: React.FC<StayCardProps> = ({
   const address =
     hotel.address || hotel.destination?.name || "Unknown location";
   const reviewsCount = hotel.reviewsCount || 0;
+  const currencyCode = hotel.currency ?? "NGN";
 
   // Calculate number of nights
   const nights =
@@ -80,7 +81,7 @@ const StayCard: React.FC<StayCardProps> = ({
   const formatPrice = (amount?: string | number) => {
     if (amount === undefined) return "N/A";
     const num = typeof amount === "string" ? parseFloat(amount) : amount;
-    return `€${num.toLocaleString()}`;
+    return `${currencyCode} ${num.toLocaleString("en-NG")}`;
   };
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {

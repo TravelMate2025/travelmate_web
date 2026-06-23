@@ -13,11 +13,29 @@ const ConfirmationDetails = ({ getStatusColor, confirmDetails }: props) => {
       <div className="space-y-3 rounded-lg sm:p-6 sm:border border-gray-300">
         <p className="flex justify-between">
           <span className="font-medium">Confirmation Number</span>{" "}
-          {confirmDetails?.reference}
+          {confirmDetails?.reference ?? confirmDetails?.booking_reference ?? "N/A"}
+        </p>
+        <p className="flex justify-between">
+          <span className="font-medium">Payment Intent</span>{" "}
+          <span className="font-mono text-xs text-right">
+            {confirmDetails?.payment_intent_id ?? "N/A"}
+          </span>
+        </p>
+        <p className="flex justify-between">
+          <span className="font-medium">Provider Reference</span>{" "}
+          <span className="font-mono text-xs text-right">
+            {confirmDetails?.provider_payment_reference ?? confirmDetails?.payment_reference ?? "N/A"}
+          </span>
         </p>
         <p className="flex justify-between">
           <span className="font-medium">Hotel Code</span>
           {confirmDetails?.hotel_code || "N/A"}
+        </p>
+        <p className="flex justify-between">
+          <span className="font-medium">Payment State</span>{" "}
+          <span className="font-semibold uppercase">
+            {confirmDetails?.payment_state ?? "N/A"}
+          </span>
         </p>
         <p className="flex justify-between">
           <span className="font-medium">Payment Status</span>{" "}
