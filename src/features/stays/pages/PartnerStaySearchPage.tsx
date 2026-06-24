@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Autocomplete, Box, Button, TextField } from "@mui/material";
-import { format, addDays } from "date-fns";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -87,12 +86,8 @@ export default function PartnerStaySearchPage() {
   const [stayType, setStayType] = useState<StaySearchStayType>(
     (storedSearch?.stayType as StaySearchStayType | undefined) ?? initialStayType,
   );
-  const [checkIn, setCheckIn] = useState(
-    storedSearch?.checkIn ?? format(new Date(), "yyyy-MM-dd"),
-  );
-  const [checkOut, setCheckOut] = useState(
-    storedSearch?.checkOut ?? format(addDays(new Date(), 7), "yyyy-MM-dd"),
-  );
+  const [checkIn, setCheckIn] = useState(storedSearch?.checkIn ?? "");
+  const [checkOut, setCheckOut] = useState(storedSearch?.checkOut ?? "");
   const [adults, setAdults] = useState(storedSearch?.adults ?? 2);
   const [children, setChildren] = useState(storedSearch?.children ?? 0);
   const [rooms, setRooms] = useState(storedSearch?.rooms ?? 1);
@@ -131,7 +126,7 @@ export default function PartnerStaySearchPage() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!selectedDestination) return;
+    if (!selectedDestination || !checkIn || !checkOut) return;
 
     writeRecentSearches(selectedDestination.destinationLabel);
     setRecentSearches(readRecentSearches());
@@ -242,6 +237,7 @@ export default function PartnerStaySearchPage() {
                   setCheckIn(start);
                   setCheckOut(end);
                 }}
+                initialValue={checkIn && checkOut ? `${checkIn} - ${checkOut}` : ""}
               />
             </div>
 
@@ -284,7 +280,7 @@ export default function PartnerStaySearchPage() {
               <Button
                 type="submit"
                 variant="contained"
-                disabled={!selectedDestination}
+                disabled={!selectedDestination || !checkIn || !checkOut}
                 sx={{ textTransform: "none" }}
               >
                 Show {stayResultsLabel()}

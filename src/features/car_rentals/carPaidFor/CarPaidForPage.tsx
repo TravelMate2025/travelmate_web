@@ -57,6 +57,7 @@ interface TransferConfirmation {
 type TransferSuccessCache = {
   bookingReference?: string;
   quoteLockId?: string;
+  paymentIntentId?: string;
   departureInfo?: {
     pickupLocaDescription: string;
     pickupDate: string;
@@ -189,17 +190,18 @@ const CarPaidForPage = () => {
       return null;
     }
   }, [isSuccess]);
+  // paymentIntentId is the TravelMate-issued ID saved before the Flutterwave
+  // redirect. Used for Path B confirm and for the by-session lookup.
+  const paymentIntentId =
+    successCache?.paymentIntentId ??
+    searchParams.get("payment_intent_id") ??
+    "";
   const sessionId =
     successCache?.bookingReference ??
     searchParams.get("booking_reference") ??
     searchParams.get("session_id") ??
     searchParams.get("tx_ref") ??
     searchParams.get("transaction_id") ??
-    "";
-  const paymentReference =
-    searchParams.get("tx_ref") ??
-    searchParams.get("transaction_id") ??
-    searchParams.get("payment_intent_id") ??
     "";
 
   useEffect(() => {
@@ -211,27 +213,24 @@ const CarPaidForPage = () => {
     const fetchBooking = async () => {
       try {
         setLoading(true);
+
+        // Path B — call once before polling so the booking is marked confirmed
+        // even if the Flutterwave webhook fires late. Idempotent — safe to call
+        // if the webhook already fired.
+        if (isSuccess && paymentIntentId) {
+          await transferService.confirmPaymentIntent(paymentIntentId);
+        }
+
+        // Poll the verification endpoint until the booking details are available.
         const maxAttempts = 5;
         const retryDelayMs = 1500;
+        const lookupId = paymentIntentId || sessionId;
 
         for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
           if (cancelled) return;
 
-          if (isSuccess && paymentReference) {
-            const confirmRes = await transferService.confirmPaymentIntent(paymentReference);
-            const confirmedBooking = (confirmRes?.data as TransferConfirmation) || null;
-            if (
-              confirmedBooking?.reference ||
-              confirmedBooking?.booking_reference ||
-              confirmedBooking?.transfers?.length
-            ) {
-              setBooking(confirmedBooking);
-              return;
-            }
-          }
-
-          if (isSuccess && sessionId) {
-            const res = await transferService.getBookingBySession(sessionId);
+          if (isSuccess && lookupId) {
+            const res = await transferService.getBookingBySession(lookupId);
             const fetchedBooking = (res?.data as TransferConfirmation) || null;
             if (
               fetchedBooking?.reference ||
@@ -268,7 +267,7 @@ const CarPaidForPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [isSuccess, sessionId, paymentReference, successCache]);
+  }, [isSuccess, sessionId, paymentIntentId, successCache]);
 
   if (loading) return <SkeletonConfirm />;
   if (!isSuccess && !booking) return <CarFailedPayment />;
