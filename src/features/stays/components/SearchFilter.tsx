@@ -152,7 +152,7 @@ const SearchFilter: React.FC = () => {
     dispatch(setSearchParams(searchParams));
 
     navigate(
-      `/stays-search-result?location=${encodeURIComponent(destinationCode)}&checkin=${formatDate(checkIn)}&checkout=${formatDate(checkOut)}&adults=${counts.adults}&children=${totalChildren}&rooms=${counts.rooms}`
+      `/stay-results?location=${encodeURIComponent(destinationCode)}&checkin=${formatDate(checkIn)}&checkout=${formatDate(checkOut)}&adults=${counts.adults}&children=${totalChildren}&rooms=${counts.rooms}`
     );
   };
 

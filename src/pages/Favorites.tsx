@@ -61,7 +61,7 @@ const Favorites = () => {
                 <div
                   key={hotel.id}
                   className="border rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer p-4 border-gray-300 "
-                  onClick={() => navigate(`/stays-detail/${hotel.id}`)}
+                  onClick={() => navigate(`/stay-details/${hotel.id}`)}
                 >
                   <img
                     src={hotel?.images[0]?.url || hotelImage}

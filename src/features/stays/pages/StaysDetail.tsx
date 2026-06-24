@@ -506,7 +506,7 @@ const StaysDetail: React.FC = () => {
         {showShareModal && selectedHotel && (
           <ShareModal
             onClose={() => setShowShareModal(false)}
-            shareLink={`/stays-detail/${selectedHotel?.code}`}
+            shareLink={`/stay-details/${selectedHotel?.code}`}
           />
         )}
       </div>

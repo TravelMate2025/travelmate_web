@@ -203,10 +203,19 @@ export const searchStays = async (
   try {
     const response = await axios.get(`${BASE_URL}/v1/public/catalog/stays`, {
       params: {
+        destination:
+          searchParams.destination ??
+          searchParams.city ??
+          searchParams.adminLevel1 ??
+          searchParams.country,
         country: searchParams.country,
         adminLevel1: searchParams.adminLevel1,
         city: searchParams.city ?? searchParams.destination,
-        area: undefined,
+        check_in: searchParams.checkIn,
+        check_out: searchParams.checkOut,
+        adults: searchParams.adults,
+        children: searchParams.children,
+        rooms: searchParams.rooms,
       },
     });
     const results = normalizePublicCatalogResults(response.data).map(mapPublicCatalogStayToHotel);
@@ -296,6 +305,36 @@ export const createCheckoutSession = async (
     throw new Error(errorMessage);
   } finally {
     setLoading?.(false);
+  }
+};
+
+/**
+ * Create payment intent for a stay hold — POST /api/v1/public/payments/intents
+ */
+export const createStayPaymentIntent = async (payload: {
+  quoteLockId: string;
+  bookingReference: string;
+  redirectUrl: string;
+  customer: { name: string; email: string; phone: string };
+}): Promise<{ success: boolean; paymentLink?: string; paymentIntentId?: string; error?: string }> => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/v1/public/payments/intents`,
+      payload,
+      { headers: { "Idempotency-Key": `pi-${payload.bookingReference}` } },
+    );
+    const data = response.data?.data ?? response.data;
+    console.debug("[Stays][paymentIntent] response", data);
+    const paymentLink = data?.paymentLink ?? data?.nextAction?.url;
+    return {
+      success: true,
+      paymentLink,
+      paymentIntentId: data?.paymentIntentId,
+    };
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || "Failed to create payment intent";
+    console.error("[Stays][paymentIntent] error", error);
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -520,7 +559,7 @@ export const createQuote = async (req: BookingQuoteReq): Promise<BookingQuoteRes
  */
 export const createHold = async (req: BookingHoldReq): Promise<BookingHoldResp> => {
   try {
-    const response = await axios.post(`${BASE_URL}/v1/public/bookings/holds`, req);
+    const response = await api.post("/v1/public/bookings/holds", req);
     return (response.data?.data ?? response.data) as BookingHoldResp;
   } catch (error: unknown) {
     const msg = getErrorMessage(error) || "Failed to create hold";

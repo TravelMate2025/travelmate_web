@@ -201,16 +201,23 @@ export interface BookingDetailsVerifyData {
   booking_reference?: string;
   hotel_code: string | number;
   hotel_name: string;
+  hotelName?: string;
+  hotelCode?: string | number;
   check_in: string;
   check_out: string;
+  checkIn?: string;
+  checkOut?: string;
   currency: string;
   payment_status: string;
   payment_state?: string;
   payment_intent_id?: string;
+  paymentIntentId?: string;
   payment_reference?: string;
   provider_payment_reference?: string;
+  providerPaymentReference?: string;
   status: string;
   total_price: string;
+  totalPrice?: string;
   created_at: string;
   user: UserSummary;
   cancellation_fee?: string | null;
@@ -218,8 +225,13 @@ export interface BookingDetailsVerifyData {
   refund_amount?: string | null;
   refund_status?: string;
   rooms_details?: unknown[]; // unknown[] until concrete shape is defined
+  roomsDetails?: unknown[];
   guest_details?: GuestDetails | undefined;
+  guestDetails?: GuestDetails | undefined;
   hotel_location?: HotelLocationDetails;
+  hotelLocation?: HotelLocationDetails;
+  bookingSnapshot?: Record<string, unknown>;
+  booking_snapshot?: Record<string, unknown>;
   [key: string]: unknown;
 }
 export interface BookingStaysVerifyDetails {
@@ -375,6 +387,17 @@ export interface BookingHoldReq {
   guestCount: number;
   travelers: Traveler[];
   customerReference: string;
+  hotel_name?: string;
+  check_in?: string;
+  check_out?: string;
+  hotel_address?: string;
+  hotel_city?: string;
+  hotel_country?: string;
+  room_name?: string;
+  room_selections?: BookingQuoteRoomSelection[];
+  rate_plan_id?: string | null;
+  cancellation_option_id?: string;
+  cancellation_option_label?: string;
 }
 
 export interface HoldIdempotency {

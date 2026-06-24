@@ -158,7 +158,7 @@ export default function UpdateSearchFilter() {
       await dispatch(setSearchParams(updatedSearchParams));
 
       navigate(
-        `/stays-search-result?location=${encodeURIComponent(
+        `/stay-results?location=${encodeURIComponent(
           destination
         )}&checkin=${formatDate(checkIn)}&checkout=${formatDate(
           checkOut

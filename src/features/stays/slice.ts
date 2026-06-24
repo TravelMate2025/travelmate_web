@@ -81,6 +81,7 @@ export interface GuestInfoProps {
   firstName: string;
   lastName: string;
   email: string;
+  phone: string;
 }
 
 export const fetchHotelsAsync = createAsyncThunk(

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FaPencilAlt, FaSortAmountDown } from "react-icons/fa";
 import { HiAdjustmentsHorizontal } from "react-icons/hi2";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Breadcrumbs from "../../../components/Breadcrumbs";
 import Footer from "../../../components/2Footer";
 import Navbar from "../../../pages/homePage/Navbar";
@@ -14,7 +14,6 @@ import {
   staySearchLabel,
   stayTypeDisplayLabel,
 } from "../../shared/booking/bookingFlowLabels";
-import PartnerFlowPreview from "../../shared/booking/PartnerFlowPreview";
 import UpdateSearchFilter from "../components/UpdateSearchFilter";
 import FilterModal from "../components/modals/FilterModal";
 import SortModal from "../components/modals/SortModal";
@@ -31,7 +30,6 @@ interface FilterState {
 export default function StaysSearchResults() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const [queryParams] = useSearchParams();
   const { hotels, loading, error, searchParams, locationDetails } = useSelector(
     (state: RootState) => state.stays,
   );
@@ -50,45 +48,13 @@ export default function StaysSearchResults() {
   const lastSearchSignature = useRef<string>("");
 
   const sortedHotels = useMemo(() => {
-    const filtered = hotels.filter((hotel) => {
-      const hotelCountry = (hotel.country ?? "").toLowerCase();
-      const hotelAdmin = (hotel.adminLevel1 ?? "").toLowerCase();
-      const hotelCity = (hotel.city ?? "").toLowerCase();
-      const hotelDestination = (
-        hotel.destination?.name ?? hotel.destination?.code ?? ""
-      ).toLowerCase();
-      const hotelStayType = (hotel.saleMode ?? hotel.accommodation_type ?? "").toLowerCase();
-
-      const matchesCountry =
-        !searchParams?.country ||
-        !hotelCountry ||
-        hotelCountry === searchParams.country.toLowerCase() ||
-        hotelDestination.includes(searchParams.country.toLowerCase());
-      const matchesAdmin =
-        !searchParams?.adminLevel1 ||
-        !hotelAdmin ||
-        hotelAdmin === searchParams.adminLevel1.toLowerCase() ||
-        hotelDestination.includes(searchParams.adminLevel1.toLowerCase());
-      const matchesCity =
-        !searchParams?.city ||
-        !hotelCity ||
-        hotelCity === searchParams.city.toLowerCase() ||
-        hotelDestination.includes(searchParams.city.toLowerCase());
-      const matchesStayType =
-        !searchParams?.stayType ||
-        !hotelStayType ||
-        hotelStayType === searchParams.stayType.toLowerCase();
-
-      return matchesCountry && matchesAdmin && matchesCity && matchesStayType;
-    });
-
     console.debug("[Stays][search] hotels", {
       total: hotels.length,
-      filtered: filtered.length,
+      filtered: hotels.length,
       searchParams,
     });
 
-    const sorted = [...filtered];
+    const sorted = [...hotels];
     if (selectedSort === "Price: low to high") {
       sorted.sort((a, b) => {
         const aPrice = parseFloat(a.rooms?.[0]?.rates?.[0]?.net || "0");
@@ -184,13 +150,10 @@ export default function StaysSearchResults() {
       searchParams?.city ||
       searchParams?.stayType,
   );
-  const partnerFlowMode = queryParams.get("flow") === "partner";
-
   return (
     <div className="mt-20 flex h-screen flex-col">
       <Navbar />
-      {partnerFlowMode && <PartnerFlowPreview legacyLabel="Use legacy flow" />}
-      {(!isMobile || showUpdateSearch) && !partnerFlowMode && <UpdateSearchFilter />}
+      {(!isMobile || showUpdateSearch) && <UpdateSearchFilter />}
       {!isMobile && <Breadcrumbs items={breadcrumbs} />}
 
       <div className="min-h-screen px-0">
