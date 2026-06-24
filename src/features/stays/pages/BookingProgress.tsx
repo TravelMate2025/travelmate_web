@@ -153,22 +153,50 @@ const BookingProgress: React.FC = () => {
   };
 
   const isLoading = quoteLoading || holdLoading;
-  const reviewPricing =
-    quoteResp?.pricing ??
-    (stayPricing
-      ? {
-          currency: stayPricing.currency,
-          base: stayPricing.priceBreakdown.base.amount,
-          tax: stayPricing.priceBreakdown.taxes.amount,
-          fees: stayPricing.priceBreakdown.fees.amount,
-          total: stayPricing.priceBreakdown.total.amount,
-        }
-      : null);
+  const reviewPricing = (() => {
+    if (quoteResp?.pricing) return quoteResp.pricing;
+    if (!stayPricing) return null;
+
+    if (!isUnitLevel && selectedRoom && selectedOption) {
+      const wantsRefundable = selectedOption.optionId === "FREE_CANCELLATION";
+      const roomId = selectedRoom.id ?? selectedRoom.code ?? "";
+      const matchingPlan =
+        stayPricing.ratePlans.find(
+          (plan) =>
+            plan.roomId === roomId &&
+            plan.isActive &&
+            (wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable"),
+        ) ?? stayPricing.ratePlans.find((plan) => plan.roomId === roomId && plan.isActive);
+
+      const nightlyRate = matchingPlan?.nightlyRate ?? selectedRoom.baseRate ?? 0;
+      const base = nightlyRate * nights;
+      const total = selectedOption.amount;
+      const taxAndFees = Math.max(0, total - base);
+
+      return {
+        currency: selectedOption.currency,
+        base,
+        tax: taxAndFees,
+        fees: 0,
+        total,
+      };
+    }
+
+    return {
+      currency: stayPricing.currency,
+      base: stayPricing.priceBreakdown.base.amount,
+      tax: stayPricing.priceBreakdown.taxes.amount,
+      fees: stayPricing.priceBreakdown.fees.amount,
+      total: stayPricing.priceBreakdown.total.amount,
+    };
+  })();
   const quoteCurrency = reviewPricing?.currency ?? selectedOption?.currency ?? stayPricing?.currency ?? "NGN";
   const quoteNote = quoteResp?.pricing
     ? "Prices are shown from the quote response."
     : stayPricing
-      ? "Initial estimate based on the current stay pricing. Final totals will be locked after quote creation."
+      ? !isUnitLevel && selectedRoom
+        ? "Estimate based on your selected room. Final totals will be confirmed after quote."
+        : "Initial estimate based on the current stay pricing. Final totals will be locked after quote creation."
       : "Prices will appear once stay pricing is loaded.";
 
   const handleQuoteAndHold = async () => {

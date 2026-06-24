@@ -67,6 +67,7 @@ export type QuotePricing = {
 type TransferSuccessCache = {
   bookingReference?: string;
   quoteLockId?: string;
+  paymentIntentId?: string;
   departureInfo?: DepartureInfo;
   passFormData?: PassengerFormData;
   car?: CarOfferInfo;
@@ -352,7 +353,11 @@ const Page = () => {
       });
       const paymentUrl = payload?.data?.paymentLink ?? payload?.data?.nextAction?.url;
       if (response.success && paymentUrl) {
-        window.localStorage.setItem("transferPaymentSuccess", JSON.stringify(successCache));
+        const cacheWithIntent: TransferSuccessCache = {
+          ...successCache,
+          paymentIntentId: payload?.data?.paymentIntentId,
+        };
+        window.localStorage.setItem("transferPaymentSuccess", JSON.stringify(cacheWithIntent));
         window.location.href = paymentUrl;
       } else {
         throw new Error(response.error || "Payment handoff unavailable");

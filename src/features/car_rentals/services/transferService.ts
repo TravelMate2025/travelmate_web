@@ -338,7 +338,11 @@ class TransferService {
 
     async confirmPaymentIntent(paymentIntentId: string): Promise<PaymentConfirmResult> {
         try {
-            const response = await instance.post(`${this.baseUrl}/transfers/payments/intents/${paymentIntentId}/confirm/`, {});
+            const response = await instance.post(
+                `${this.baseUrl}/v1/public/payments/intents/${paymentIntentId}/confirm`,
+                {},
+                { headers: { 'Idempotency-Key': `transfer-confirm-${paymentIntentId}` } },
+            );
             return {
                 success: true,
                 data: response.data,
