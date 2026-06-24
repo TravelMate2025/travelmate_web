@@ -24,9 +24,9 @@ import {
 } from "../../shared/booking/bookingFlowLabels";
 import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 import { useEffect } from "react";
+import { createStayPaymentIntent } from "../api";
 
-type BookingGuestInfo = GuestInfoProps & {
-};
+type BookingGuestInfo = GuestInfoProps;
 
 const steps = [
   { title: bookingReviewLabel() },
@@ -91,8 +91,10 @@ const BookingProgress: React.FC = () => {
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof GuestInfoProps, string>>>({});
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   // Clear stale quote/hold state on mount
   useEffect(() => {
@@ -128,6 +130,7 @@ const BookingProgress: React.FC = () => {
     if (!guestInfo.lastName.trim()) newErrors.lastName = "Last name is required.";
     if (!guestInfo.email.trim()) newErrors.email = "Email is required.";
     else if (!/\S+@\S+\.\S+/.test(guestInfo.email)) newErrors.email = "Email is invalid.";
+    if (!guestInfo.phone.trim()) newErrors.phone = "Phone number is required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -162,8 +165,6 @@ const BookingProgress: React.FC = () => {
         }
       : null);
   const quoteCurrency = reviewPricing?.currency ?? selectedOption?.currency ?? stayPricing?.currency ?? "NGN";
-  const quoteRateLabel = quoteResp?.cancellationOptionSelection?.label ?? selectedOption?.label ?? "—";
-  const quoteRateCopy = quoteResp?.cancellationOptionSelection?.policyCopy ?? selectedOption?.policyCopy ?? "";
   const quoteNote = quoteResp?.pricing
     ? "Prices are shown from the quote response."
     : stayPricing
@@ -187,43 +188,41 @@ const BookingProgress: React.FC = () => {
       }
     }
 
+    const roomSelections =
+      isUnitLevel || !selectedRoom
+        ? undefined
+        : [{ roomId: selectedRoom.id ?? selectedRoom.code ?? "", quantity: 1 }];
+
+    const ratePlanId = (() => {
+      if (!selectedOption || !resolvedStayPricing?.ratePlans?.length) return null;
+      const wantsRefundable = selectedOption.optionId === "FREE_CANCELLATION";
+      const activePlans = resolvedStayPricing.ratePlans.filter((plan) => plan.isActive);
+
+      if (isUnitLevel) {
+        return (
+          activePlans.find((plan) =>
+            wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable",
+          )?.id ?? activePlans[0]?.id ?? null
+        );
+      }
+
+      const roomId = selectedRoom?.id ?? selectedRoom?.code ?? "";
+      const matchedByScope = activePlans.find((plan) => {
+        if (plan.roomId !== roomId) return false;
+        return wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable";
+      });
+
+      return (
+        matchedByScope?.id ??
+        activePlans.find((plan) => plan.roomId === roomId)?.id ??
+        activePlans[0]?.id ??
+        null
+      );
+    })();
+
     // Step 1: Quote
     let lockId: string | null = null;
     try {
-      const roomSelections =
-        isUnitLevel || !selectedRoom
-          ? undefined
-          : [
-              {
-                roomId: selectedRoom.id ?? selectedRoom.code ?? "",
-              },
-            ];
-      const ratePlanId = (() => {
-        if (!selectedOption || !resolvedStayPricing?.ratePlans?.length) return null;
-        const wantsRefundable = selectedOption.optionId === "FREE_CANCELLATION";
-        const activePlans = resolvedStayPricing.ratePlans.filter((plan) => plan.isActive);
-
-        if (isUnitLevel) {
-          return (
-            activePlans.find((plan) =>
-              wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable",
-            )?.id ?? activePlans[0]?.id ?? null
-          );
-        }
-
-        const roomId = selectedRoom?.id ?? selectedRoom?.code ?? "";
-        const matchedByScope = activePlans.find((plan) => {
-          if (plan.roomId !== roomId) return false;
-          return wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable";
-        });
-
-        return (
-          matchedByScope?.id ??
-          activePlans.find((plan) => plan.roomId === roomId)?.id ??
-          activePlans[0]?.id ??
-          null
-        );
-      })();
       const quotePayload = {
         listingType: "stay" as const,
         listingId: stayId,
@@ -234,9 +233,7 @@ const BookingProgress: React.FC = () => {
         ...(roomSelections ? { roomSelections } : {}),
         ...(ratePlanId ? { ratePlanId } : {}),
       };
-      const quoteResult = await dispatch(
-        createQuoteAsync(quotePayload),
-      ).unwrap();
+      const quoteResult = await dispatch(createQuoteAsync(quotePayload)).unwrap();
       lockId = quoteResult.lockId;
     } catch {
       return; // quoteError already in Redux state
@@ -263,12 +260,61 @@ const BookingProgress: React.FC = () => {
             },
           ],
           customerReference: `WEB-${Date.now()}`,
+          hotel_name: hotel?.name || "",
+          check_in: effectiveCheckIn || "",
+          check_out: effectiveCheckOut || "",
+          hotel_address: hotel?.address || "",
+          hotel_city: hotel?.city || "",
+          hotel_country: hotel?.country || "",
+          room_name: selectedRoom?.name || selectedRoom?.description || "",
+          room_selections: roomSelections,
+          rate_plan_id: ratePlanId,
+          cancellation_option_id: selectedOption.optionId,
+          cancellation_option_label: selectedOption.label,
         }),
       ).unwrap();
       setCurrentStep(2);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       // holdError already in Redux state
+    }
+  };
+
+  const getStayConfirmationUrl = () => {
+    const url = new URL(bookingFlowRoutes.stayConfirmation, window.location.origin);
+    url.protocol = "https:";
+    return url.toString();
+  };
+
+  const handlePayment = async () => {
+    if (!quoteResp?.lockId || !holdResp?.bookingReference) {
+      toast.error("Booking details are missing. Please go back and try again.");
+      return;
+    }
+    try {
+      setPaymentLoading(true);
+      const result = await createStayPaymentIntent({
+        quoteLockId: quoteResp.lockId,
+        bookingReference: holdResp.bookingReference,
+        redirectUrl: getStayConfirmationUrl(),
+        customer: {
+          name: `${guestInfo.firstName} ${guestInfo.lastName}`.trim(),
+          email: guestInfo.email,
+          phone: guestInfo.phone,
+        },
+      });
+      if (!result.success || !result.paymentLink) {
+        toast.error(result.error || "Payment link unavailable. Please try again.");
+        return;
+      }
+      if (result.paymentIntentId) {
+        sessionStorage.setItem("stay_payment_intent_id", result.paymentIntentId);
+      }
+      window.location.href = result.paymentLink;
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -419,6 +465,7 @@ const BookingProgress: React.FC = () => {
                     firstName: info.firstName || "",
                     lastName: info.lastName || "",
                     email: info.email || "",
+                    phone: info.phone || "",
                   })
                 }
                 formData={guestInfo}
@@ -448,158 +495,132 @@ const BookingProgress: React.FC = () => {
               <h2 className="text-xl font-semibold">Booking Summary</h2>
 
               {/* Property / room summary */}
-              <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Property</span>
-                  <span className="font-medium text-right">
-                    {hotel?.name ?? selectedRoom?.name ?? "—"}
-                  </span>
-                </div>
-                {!isUnitLevel && (
+              <div className="rounded-xl border border-gray-200 bg-white p-5 text-sm">
+                <h3 className="font-semibold text-gray-700 pb-3 border-b border-gray-100">Booking Details</h3>
+                <div className="mt-3 space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Room</span>
+                    <span className="text-gray-500">Property</span>
                     <span className="font-medium text-right">
-                      {selectedRoom?.description ?? selectedRoom?.name ?? "—"}
+                      {hotel?.name ?? selectedRoom?.name ?? "—"}
                     </span>
                   </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Check-in</span>
-                  <span className="font-medium">{effectiveCheckIn ?? "—"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Check-out</span>
-                  <span className="font-medium">{effectiveCheckOut ?? "—"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Guests</span>
-                  <span className="font-medium">
-                    {guestsAdults ?? searchParams?.adults ?? 1} Adults
-                    {(guestsChild ?? searchParams?.children)
-                      ? `, ${guestsChild ?? searchParams?.children} Children`
-                      : ""}
-                  </span>
-                </div>
-                {selectedOption && (
+                  {!isUnitLevel && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Room</span>
+                      <span className="font-medium text-right">
+                        {selectedRoom?.description ?? selectedRoom?.name ?? "—"}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Rate</span>
-                    <span className="font-medium">{selectedOption.label}</span>
+                    <span className="text-gray-500">Check-in</span>
+                    <span className="font-medium">{effectiveCheckIn ?? "—"}</span>
                   </div>
-                )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Check-out</span>
+                    <span className="font-medium">{effectiveCheckOut ?? "—"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Guests</span>
+                    <span className="font-medium">
+                      {guestsAdults ?? searchParams?.adults ?? 1} Adults
+                      {(guestsChild ?? searchParams?.children)
+                        ? `, ${guestsChild ?? searchParams?.children} Children`
+                        : ""}
+                    </span>
+                  </div>
+                  {selectedOption && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Rate</span>
+                      <span className="font-medium">{selectedOption.label}</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Traveler summary */}
-              <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3 text-sm">
-                <h3 className="font-semibold text-gray-700">Guest Details</h3>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Name</span>
-                  <span className="font-medium">
-                    {guestInfo.firstName} {guestInfo.lastName}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Email</span>
-                  <span className="font-medium">{guestInfo.email}</span>
-                </div>
-              </div>
-
-              {/* Price estimate */}
-              <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3 text-sm">
-                <h3 className="font-semibold text-gray-700">Price Summary</h3>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Base</span>
-                  <span className="font-medium">
-                  {reviewPricing
-                    ? `${reviewPricing.currency} ${reviewPricing.base.toLocaleString()}`
-                    : "--"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Taxes & Fees</span>
-                  <span className="font-medium">
-                    {reviewPricing
-                      ? `${reviewPricing.currency} ${(reviewPricing.tax + reviewPricing.fees).toLocaleString()}`
-                      : "--"}
-                  </span>
-                </div>
-                <div className="border-t pt-2 flex justify-between font-semibold">
-                  <span>Total</span>
-                  <span>
-                    {reviewPricing
-                      ? `${reviewPricing.currency} ${reviewPricing.total.toLocaleString()}`
-                      : "--"}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-400">
-                  {quoteNote}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3 text-sm">
-                <h3 className="font-semibold text-gray-700">Quote & Hold Context</h3>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Quote Lock</span>
-                  <span className="font-medium font-mono text-xs">
-                    {quoteResp?.lockId ?? "—"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Quote Expires</span>
-                  <span className="font-medium">{quoteResp?.expiresAt ?? "—"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Rate Option</span>
-                  <span className="font-medium text-right">{quoteRateLabel}</span>
-                </div>
-                {quoteRateCopy && (
-                  <p className="text-xs text-gray-500 leading-relaxed">{quoteRateCopy}</p>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Selected Rooms</span>
-                  <span className="font-medium">
-                    {quoteResp?.roomSelections?.length ?? 0}
-                  </span>
-                </div>
-                {quoteResp?.ratePlanSelection && (
+              <div className="rounded-xl border border-gray-200 bg-white p-5 text-sm">
+                <h3 className="font-semibold text-gray-700 pb-3 border-b border-gray-100">Guest Details</h3>
+                <div className="mt-3 space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Rate Plan ID</span>
-                    <span className="font-medium font-mono text-xs text-right">
-                      {quoteResp.ratePlanSelection}
+                    <span className="text-gray-500">Name</span>
+                    <span className="font-medium">
+                      {guestInfo.firstName} {guestInfo.lastName}
                     </span>
                   </div>
-                )}
-                {holdResp && (
-                  <>
-                    <div className="border-t pt-3" />
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Email</span>
+                    <span className="font-medium">{guestInfo.email}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Price breakdown — always from the locked quote */}
+              <div className="rounded-xl border border-gray-200 bg-white p-5 text-sm">
+                <h3 className="font-semibold text-gray-700 pb-3 border-b border-gray-100">Price Breakdown</h3>
+                <div className="mt-3 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Base rate</span>
+                    <span className="font-medium">
+                      {quoteResp?.pricing
+                        ? `${quoteResp.pricing.currency} ${(quoteResp.pricing.base ?? 0).toLocaleString()}`
+                        : "—"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Taxes</span>
+                    <span className="font-medium">
+                      {quoteResp?.pricing
+                        ? `${quoteResp.pricing.currency} ${(quoteResp.pricing.tax ?? 0).toLocaleString()}`
+                        : "—"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Fees</span>
+                    <span className="font-medium">
+                      {quoteResp?.pricing
+                        ? `${quoteResp.pricing.currency} ${(quoteResp.pricing.fees ?? 0).toLocaleString()}`
+                        : "—"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-3 mt-1 border-t border-gray-200 font-semibold text-base">
+                    <span>Total</span>
+                    <span>
+                      {quoteResp?.pricing
+                        ? `${quoteResp.pricing.currency} ${(quoteResp.pricing.total ?? 0).toLocaleString()}`
+                        : "—"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cancellation policy — from the locked quote */}
+              {quoteResp?.cancellationOptionSelection && (
+                <div className="rounded-xl border border-gray-200 bg-white p-5 text-sm">
+                  <h3 className="font-semibold text-gray-700 pb-3 border-b border-gray-100">Cancellation Policy</h3>
+                  <div className="mt-3 space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Hold Reference</span>
+                      <span className="text-gray-500">Policy</span>
                       <span className="font-medium text-right">
-                        {holdResp.bookingReference}
+                        {quoteResp.cancellationOptionSelection.label}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Hold Expires</span>
-                      <span className="font-medium">{holdResp.holdExpiresAt}</span>
-                    </div>
-                    {holdResp.paymentIntentId && (
+                    {quoteResp.cancellationOptionSelection.cancellationCutoffAtLocal && (
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Payment Intent</span>
-                        <span className="font-medium font-mono text-xs text-right">
-                          {holdResp.paymentIntentId}
+                        <span className="text-gray-500">Cancel by</span>
+                        <span className="font-medium text-right">
+                          {new Date(quoteResp.cancellationOptionSelection.cancellationCutoffAtLocal).toLocaleString()}
                         </span>
                       </div>
                     )}
-                    {holdResp.paymentLink && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Payment Link</span>
-                        <span className="font-medium truncate max-w-[60%] text-right">
-                          {holdResp.paymentLink}
-                        </span>
-                      </div>
+                    {quoteResp.cancellationOptionSelection.policyCopy && (
+                      <p className="pt-1 text-xs text-gray-500 leading-relaxed">
+                        {quoteResp.cancellationOptionSelection.policyCopy}
+                      </p>
                     )}
-                  </>
-                )}
-              </div>
+                  </div>
+                </div>
+              )}
 
               {/* Error display */}
               {(quoteError || holdError) && (
@@ -620,11 +641,17 @@ const BookingProgress: React.FC = () => {
 
               <div className="flex justify-center">
                 <button
-                  onClick={() => navigate(bookingFlowRoutes.stayHoldSummary)}
-                  disabled={isLoading || !holdResp}
+                  onClick={handlePayment}
+                  disabled={isLoading || paymentLoading || !holdResp}
                   className="bg-[#023E8A] text-white p-3 rounded-lg lg:w-[60%] w-full disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
                 >
-                  Continue to Payment
+                  {paymentLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      Redirecting to payment… <Loader className="animate-spin" size={16} />
+                    </span>
+                  ) : (
+                    "Continue to Payment"
+                  )}
                 </button>
               </div>
             </div>

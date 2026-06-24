@@ -109,7 +109,7 @@ const StayCard: React.FC<StayCardProps> = ({
         const target = e.target as HTMLElement;
         if (!target.closest("button")) {
           navigate(
-            `/stays-detail/${hotelId}?location=${
+            `/stay-details/${hotelId}?location=${
               searchParams?.destination
             }&stay=${encodeURIComponent(hotel.name)}&available=${
               hotel.available

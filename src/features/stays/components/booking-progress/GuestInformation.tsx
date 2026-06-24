@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   FaUser,
   FaEnvelope,
+  FaPhone,
 } from "react-icons/fa";
 import { GuestInfoProps } from "../../slice";
 import { FormControlLabel, Switch } from "@mui/material";
@@ -36,11 +37,13 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
       first_name: string;
       last_name: string;
       email: string;
+      phone?: string;
     };
     let profile: Profile = {
       first_name: "",
       last_name: "",
       email: "",
+      phone: "",
     };
     try {
       profile = JSON.parse(profileStr).profile;
@@ -52,12 +55,14 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
         firstName: profile?.first_name || "",
         lastName: profile?.last_name || "",
         email: profile?.email || "",
+        phone: profile?.phone || "",
       });
     } else {
       onGuestInfoChange({
         firstName: "",
         lastName: "",
         email: "",
+        phone: "",
       });
     }
   };
@@ -134,7 +139,6 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
                   name="lastName"
                   className="w-full outline-none bg-transparent placeholder:text-xs"
                   value={formData.lastName}
-                  // error={!!errors.phone && submitted}
                   onChange={handleChange}
                   required
                 />
@@ -143,7 +147,9 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
                 <p className="text-red-600">{errors.lastName}</p>
               )}
             </div>
-            <div className="flex flex-col gap-2 lg:col-span-2">
+
+            {/* Email */}
+            <div className="flex flex-col gap-2">
               <p className="font-semibold text-base">Email Address</p>
               <div
                 className={`flex items-center border ${
@@ -163,6 +169,28 @@ const GuestInformation: React.FC<GuestInformationProps> = ({
                 />
               </div>
               {errors.email && <p className="text-red-600">{errors.email}</p>}
+            </div>
+
+            {/* Phone */}
+            <div className="flex flex-col gap-2">
+              <p className="font-semibold text-base">Phone Number</p>
+              <div
+                className={`flex items-center border ${
+                  errors.phone ? "border-red-600" : "border-gray-300"
+                } p-2 rounded-lg`}
+              >
+                <FaPhone className="text-gray-500 mr-2" />
+                <input
+                  type="tel"
+                  placeholder="e.g. +2348000000000"
+                  className="w-full outline-none bg-transparent placeholder:text-xs"
+                  value={formData.phone}
+                  name="phone"
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              {errors.phone && <p className="text-red-600">{errors.phone}</p>}
             </div>
           </div>
         </form>
