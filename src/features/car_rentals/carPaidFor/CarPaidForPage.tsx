@@ -233,9 +233,8 @@ const CarPaidForPage = () => {
             const res = await transferService.getBookingBySession(lookupId);
             const fetchedBooking = (res?.data as TransferConfirmation) || null;
             if (
-              fetchedBooking?.reference ||
-              fetchedBooking?.booking_reference ||
-              fetchedBooking?.transfers?.length
+              fetchedBooking?.transfers?.length ||
+              fetchedBooking?.reference
             ) {
               setBooking(fetchedBooking);
               return;
