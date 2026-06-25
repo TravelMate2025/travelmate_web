@@ -60,9 +60,7 @@ export default function Login() {
           user: {
             id: res.setup_info.id,
             email: res.setup_info.email,
-            name: `${res.setup_info.first_name || ""} ${
-              res.setup_info.last_name || ""
-            }`.trim(),
+            name: res.setup_info.name || "",
           },
           registrationComplete: res.registration_complete,
         })
@@ -73,7 +71,7 @@ export default function Login() {
       localStorage.setItem("email", res.setup_info.email);
 
       // Step 3: Fetch full user profile — non-critical, auth is already complete
-      let welcomeName = `${res.setup_info.first_name || ""} ${res.setup_info.last_name || ""}`.trim() || "User";
+      let welcomeName = res.setup_info.name || "User";
       try {
         const profileData = await fetchUserProfile(res.access);
         dispatch(setProfileInRedux(profileData));

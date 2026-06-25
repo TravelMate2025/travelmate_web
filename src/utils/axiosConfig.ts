@@ -31,7 +31,7 @@ instance.interceptors.response.use(
           // Try refreshing access token
           const baseUrl = instance.defaults.baseURL || "http://127.0.0.1:8000/api";
           const res = await axios.post(
-            `${baseUrl.replace(/\/$/, "")}/auth/token/refresh/`,
+            `${baseUrl.replace(/\/$/, "")}/auth/jwt/token/refresh/`,
             { refresh: refreshToken },
             { withCredentials: true }
           );

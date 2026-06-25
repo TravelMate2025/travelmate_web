@@ -67,9 +67,10 @@ export default function VerifyEmail() {
   }, [resendTimer]);
 
   const handleResend = async () => {
+    if (!email) return;
     setIsLoading(true);
     try {
-      await resendCode();
+      await resendCode(email);
       setCode(["", "", "", ""]);
       setResendTimer(120);
       setResendVisible(false);

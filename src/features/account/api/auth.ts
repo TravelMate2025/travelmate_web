@@ -59,10 +59,11 @@ export const verifyCode = async (email: string, otp: string) => {
   }
 };
 
-export const resendCode = async () => {
+export const resendCode = async (email: string) => {
   try {
     const response = await axios.post(
-      `${API_BASE_URL}/registration_with_otp/resend_code/`
+      `${API_BASE_URL}/registration_with_otp/resend_otp/`,
+      { email }
     );
     return response.data;
   } catch (error: unknown) {
@@ -130,15 +131,15 @@ export const logoutUser = async (accessToken: string) => {
   }
 };
 
-export const refreshToken = async (access: string) => {
+export const refreshToken = async (refresh: string) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/auth/jwt/token/refresh`, {
-      access,
+    const response = await axios.post(`${API_BASE_URL}/auth/jwt/token/refresh/`, {
+      refresh,
     });
     return response.data;
   } catch (error: unknown) {
     const msg = toErrorMessage(error);
-    console.error("❌ Login Error:", msg);
+    console.error("❌ Token refresh error:", msg);
     throw new Error(msg);
   }
 };
@@ -194,7 +195,7 @@ export const requestPasswordReset = async (email: string) => {
 export const validateResetToken = async (email: string, token: string) => {
   try {
     const response = await axios.post(
-      `${API_BASE_URL}/users/validate_reset_token/`,
+      `${API_BASE_URL}/users/validate-reset-token/`,
       { email, token },
       {
         headers: {

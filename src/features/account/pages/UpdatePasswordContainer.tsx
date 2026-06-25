@@ -3,7 +3,6 @@ import UpdatePasswordPresenter from "./UpdatePasswordPresenter"
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import api from "../../../api/services/api";
-// import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -28,8 +27,6 @@ function UpdatePasswordContainer() {
     const [error, setError] = useState("");
     const [isOtpValid, setIsOtpValid] = useState(false);
 
-    // const navigate = useNavigate()
-
     const requestPasswordResetToken = useCallback(async () => {
         setLoading(true);
         setError("");
@@ -39,15 +36,9 @@ function UpdatePasswordContainer() {
                 throw new Error("User email is not available.");
             }
 
-            const formData = new FormData();
-            formData.append("email", user.email);
-
             const response = await api.post(
-            `${API_BASE_URL}/users/reset_password/`,
-            formData,
-            {
-                headers: { "Content-Type": "multipart/form-data" },
-            }
+                `${API_BASE_URL}/users/reset_password/`,
+                { email: user.email }
             );
 
             if (response.status >= 200 && response.status < 300) {
@@ -69,30 +60,22 @@ function UpdatePasswordContainer() {
 
     const handleResendOtp = async () => {
         try {
-            if (!user || !user.name || !user.email) {
+            if (!user?.email) {
                 setError("User information is not available.");
                 return;
             }
-            const formData = new FormData();
-            formData.append("name", user.name);
-            formData.append("email", user.email);
-    
-            const res = await api.post(`${API_BASE_URL}/users/resend_reset_token/`,
-                formData,
-                {
-                    headers:{
-                        "Content-Type":"multipart/form-data"
-                    }
-                }
-            )
-             if (res.status === 200) {
+
+            const res = await api.post(`${API_BASE_URL}/users/resend_reset_token/`, {
+                email: user.email,
+            });
+            if (res.status === 200) {
                 console.log("OTP resent successfully!");
             }
         } catch (error) {
             console.error("Resend OTP error:", error);
         }
     }
-    
+
     const validateOtp = async (passwordToken: string) => {
         setLoading(true);
         setError("");
@@ -103,22 +86,14 @@ function UpdatePasswordContainer() {
                 setLoading(false);
                 return;
             }
-            const formData = new FormData();
-            formData.append("token", passwordToken);
-            formData.append("email", user.email);
 
             const res = await api.post(
-            `${API_BASE_URL}/users/validate-reset-token/`,
-            formData,
-            {
-                headers: {
-                "Content-Type": "multipart/form-data",
-                },
-            }
+                `${API_BASE_URL}/users/validate-reset-token/`,
+                { token: passwordToken, email: user.email }
             );
 
             if (res.status === 200) {
-            setIsOtpValid(true);
+                setIsOtpValid(true);
             }
         } catch (error: unknown) {
             console.error("OTP validation error:", error);
@@ -127,50 +102,34 @@ function UpdatePasswordContainer() {
             setLoading(false);
         }
     };
-    
-    const handleConfirmPassword = async (
-      userNewPassword: string
-    ) => {
-      setLoading(true);
-      setError("");
-    
-      try {
-        if (!user || !user.id) {
-          setError("User information is not available.");
-          setLoading(false);
-          return;
-        }
-        const formData = new FormData();
-        formData.append("email", user.email);
-        formData.append("new_password", userNewPassword);
-    
-    
-        const res = await api.post(
-          `${API_BASE_URL}/users/set_new_password/`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-    
-        if (res.status === 204) {
-          console.log("Email updated successfully!");
-          // setTimeout(() => {
-          //   navigate("/account/security");
-          // }, 3000)
-        } else {
-          setError("Unexpected response from server.");
-        }
-      } catch (error: unknown) {
-        console.error("Confirm email error:", error);
-        console.error("Error response data:", (error as { response?: { data?: unknown } })?.response?.data);
 
-        setError(getErrorMessage(error, "Failed to confirm new email."));
-      } finally {
-        setLoading(false);
-      }
+    const handleConfirmPassword = async (userNewPassword: string) => {
+        setLoading(true);
+        setError("");
+
+        try {
+            if (!user?.email) {
+                setError("User information is not available.");
+                setLoading(false);
+                return;
+            }
+
+            const res = await api.post(
+                `${API_BASE_URL}/users/set_new_password/`,
+                { email: user.email, new_password: userNewPassword }
+            );
+
+            if (res.status === 204) {
+                console.log("Password updated successfully!");
+            } else {
+                setError("Unexpected response from server.");
+            }
+        } catch (error: unknown) {
+            console.error("Confirm password error:", error);
+            setError(getErrorMessage(error, "Failed to update password."));
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
