@@ -40,7 +40,7 @@ import { bookingFlowRoutes } from "../../features/shared/bookingFlowRoutes";
 
 const navItems = [
   { name: "Home", path: "/" },
-  { name: "Stays", path: bookingFlowRoutes.staySearch },
+  { name: "Stays", path: "/?tab=stays" },
   { name: "Flights", path: "/flight/departure" },
   { name: "Transfers", path: "/?tab=transfers" },
 ];

@@ -1,4 +1,3 @@
-import { bookingFlowRoutes } from "../features/shared/bookingFlowRoutes";
 
 export default function Footer() {
   return (
@@ -9,7 +8,7 @@ export default function Footer() {
         <div>
           <h3 className="text-lg font-bold mb-3">Our Product</h3>
           <ul className="space-y-2">
-            <li><a href={bookingFlowRoutes.staySearch} className="hover:underline">Stays</a></li>
+            <li><a href="/?tab=stays" className="hover:underline">Stays</a></li>
             <li><a href="/departure-flight" className="hover:underline">Flight</a></li>
             <li><a href="/display-cars" className="hover:underline">Airport Taxi</a></li>
           </ul>
