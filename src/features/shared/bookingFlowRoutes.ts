@@ -7,5 +7,4 @@ export const bookingFlowRoutes = {
   transferDetail: "/transfer-details",
   transferBookingReview: "/transfer-review",
   transferGuestDetails: "/transfer-guest-details",
-  transferConfirmation: "/transfer-confirmation",
 } as const;

@@ -42,7 +42,6 @@ const FlightConfirmationPage = lazy(() => import("./pages/flights/flightConfirma
 const PaymentFailed = lazy(() => import("./features/flights/components/PaymentFailed"));
 
 // Car rental pages (lazy)
-const CarConfirmPage = lazy(() => import("./features/car_rentals/carsFirstScreen/Page"));
 const DisplayCars = lazy(() => import("./features/car_rentals/displayAllCars/DisplayCars"));
 const TransferDetail = lazy(() => import("./features/car_rentals/transferDetail/TransferDetail"));
 const CarOfferPage = lazy(() => import("./features/car_rentals/offerAcceptedPage/Page"));
@@ -271,23 +270,6 @@ function App() {
         <Route path={`${bookingFlowRoutes.transferDetail}/:transferId`} element={<TransferDetail />} />
         <Route path={bookingFlowRoutes.transferBookingReview} element={<CarOfferPage />} />
         <Route path={bookingFlowRoutes.transferGuestDetails} element={<CarOfferPage />} />
-        <Route path="/cars-booking" element={<CarOfferPage />} />
-        <Route
-          path="/car-confirmation"
-          element={
-            <PrivateRoute>
-              <CarConfirmPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path={bookingFlowRoutes.transferConfirmation}
-          element={
-            <PrivateRoute>
-              <CarConfirmPage />
-            </PrivateRoute>
-          }
-        />
         <Route
           path="/transfers/payment-success"
           element={<CarPaidForPage />}
@@ -296,7 +278,6 @@ function App() {
           path="/transfers/payment-failure"
           element={<CarFailedPayment />}
         />
-        <Route path="/offer-accepted-page" element={<CarOfferPage />} />
         <Route
           path="/car-paid/download"
           element={

@@ -168,9 +168,11 @@ const BookingProgress: React.FC = () => {
             (wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable"),
         ) ?? stayPricing.ratePlans.find((plan) => plan.roomId === roomId && plan.isActive);
 
-      const nightlyRate = matchingPlan?.nightlyRate ?? selectedRoom.baseRate ?? 0;
+      // selectedOption.amount is the per-night rate for this cancellation option.
+      // Multiply by nights to get the stay total.
+      const nightlyRate = matchingPlan?.nightlyRate ?? selectedRoom.baseRate ?? selectedOption.amount ?? 0;
       const base = nightlyRate * nights;
-      const total = selectedOption.amount;
+      const total = selectedOption.amount * nights;
       const taxAndFees = Math.max(0, total - base);
 
       return {
@@ -446,7 +448,7 @@ const BookingProgress: React.FC = () => {
                   pricing={reviewPricing}
                   nights={nights}
                   roomType={selectedRoom?.description ?? hotel?.name}
-                  numberOfRooms={isUnitLevel ? 1 : (searchParams?.rooms ?? 1)}
+                  numberOfRooms={1}
                   currency={quoteCurrency}
                   note={quoteNote}
                 />
