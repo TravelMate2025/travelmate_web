@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 
 export default function ResetEmailLink() {
   const [code, setCode] = useState<string[]>(["", "", "", ""]);
-  const [resendTimer, setResendTimer] = useState<number>(120);
+  const [resendTimer, setResendTimer] = useState<number>(300);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showError, setShowError] = useState<boolean>(false);
   const [resendVisible, setResendVisible] = useState<boolean>(false);
@@ -75,7 +75,7 @@ export default function ResetEmailLink() {
       await requestPasswordReset(email);
       toast.success("New code sent successfully");
       setCode(["", "", "", ""]);
-      setResendTimer(120);
+      setResendTimer(300);
       setResendVisible(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to resend code");

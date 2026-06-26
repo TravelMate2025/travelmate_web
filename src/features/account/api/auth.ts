@@ -30,7 +30,8 @@ export const submitEmail = async (email: string) => {
   try {
     const response = await axios.post(
       `${API_BASE_URL}/registration_with_otp/submit_email/`,
-      { email }
+      { email },
+      { validateStatus: () => true }
     );
     return response.data;
   } catch (error: unknown) {
