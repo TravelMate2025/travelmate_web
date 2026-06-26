@@ -12,7 +12,7 @@ import Footer from "../../../components/2Footer";
 import PaymentMethods from "../../../pages/PaymentMethods";
 import NotificationMethod from "./NotificationMethod";
 import { useMediaQuery } from "react-responsive";
-import { fetchUserProfile } from "../api/profile";
+import { fetchUserProfile, UserProfile } from "../api/profile";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import Spinner from "../components/Spinner";
@@ -20,17 +20,6 @@ import { useDispatch } from "react-redux";
 import { updateProfileId, updateUserName } from "../slices/authSlice";
 import { setUserProfile as setProfileInRedux } from "../slices/profileSlice";
 import UserReviews from "../../stays/components/UserReviews";
-
-interface UserProfile {
-  id: number;
-  first_name: string;
-  last_name: string;
-  gender: string | null;
-  date_of_birth: string | null;
-  email: string;
-  mobile_number: string | null;
-  address: string | null;
-}
 
 export default function ProfileInfo() {
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -65,6 +54,14 @@ export default function ProfileInfo() {
   const handleOptionClick = (tab: string) => {
     setActiveTab(tab);
     navigate(`/profile-info?tab=${encodeURIComponent(tab)}`);
+  };
+
+  const handleProfileUpdate = (updated: UserProfile) => {
+    setUserProfile(updated);
+    dispatch(setProfileInRedux(updated));
+    if (updated.first_name && updated.last_name) {
+      dispatch(updateUserName(`${updated.first_name} ${updated.last_name}`));
+    }
   };
 
   useEffect(() => {
@@ -316,6 +313,7 @@ export default function ProfileInfo() {
       <EditBasicInfoModal
         isOpen={showBasicInfoModal}
         onClose={() => setShowBasicInfoModal(false)}
+        onUpdate={handleProfileUpdate}
         currentUserInfo={{
           firstName: userProfile?.first_name ?? "",
           lastName: userProfile?.last_name ?? "",
@@ -327,8 +325,8 @@ export default function ProfileInfo() {
       <EditContactInfoModal
         isOpen={showContactInfoModal}
         onClose={() => setShowContactInfoModal(false)}
-        currentUserInfo={userProfile} // You might want to pass relevant contact info here
-        // onUpdate={handleUpdateContactInfo} // Implement this if you have a separate contact info update
+        onUpdate={handleProfileUpdate}
+        currentUserInfo={userProfile}
       />
       <DeleteAccountModal
         isOpen={showDeleteModal}

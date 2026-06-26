@@ -11,6 +11,7 @@ export interface UserProfile {
   email: string;
   mobile_number: string | null;
   address: string | null;
+  profile_pics: string | null;
 }
 
 
@@ -34,7 +35,7 @@ export const createUserProfile = async (
     typeof e === 'object' && e !== null && 'response' in e;
 
   try {
-    const response = await api.put(
+    const response = await api.patch(
       `${API_BASE_URL}/profile/${profileId}/`,
       profileData,
       {
