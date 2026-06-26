@@ -40,7 +40,7 @@ export default function CreateNewPassword() {
       setTimeout(() => setShowSpinner(true), 2000);
       setTimeout(() => {
         setShowSpinner(false);
-        navigate("/login"); // Redirect to login page
+        navigate("/login", { state: { email } });
       }, 4000);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to set new password");

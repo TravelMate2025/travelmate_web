@@ -24,23 +24,21 @@ export default function CreateAccount() {
       }
 
       const res = await submitEmail(email);
-      if (res?.Error === false && res?.Message) {
+
+      if (res?.Error === false) {
+        // New user — OTP sent, proceed to verification
         toast.success(res.Message || "Verification OTP sent to your email.");
         localStorage.setItem("verify_email", email);
         navigate("/verify-page", { state: { email } });
+      } else if (res?.Status === 307) {
+        // Existing user — navigate to login
+        navigate("/login", { state: { email } });
       } else {
         toast.error(res?.Message || "Failed to send verification email. Please try again.");
       }
     } catch (err: unknown) {
       console.error(err);
-
-      const errMsg = err instanceof Error ? err.message : String(err);
-      if (errMsg === "Enter your password to log in.") {
-        navigate("/login", { state: { email } });
-        return;
-      }
-
-      toast.error(errMsg || "Failed to send verification email. Please try again.");
+      toast.error("Failed to send verification email. Please try again.");
     } finally {
       setIsLoading(false);
     }
