@@ -10,7 +10,6 @@ import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import SwitchButton from "../components/SwitchButton";
 import toast from "react-hot-toast";
-import SuccessModal from "../components/SuccessModal";
 import LogoutButton from "../components/LogoutButton";
 
 interface NotificationPreferences {
@@ -21,6 +20,7 @@ interface NotificationPreferences {
 interface NotPreferencePresenterProps {
   preferences: NotificationPreferences | null;
   loading: boolean;
+  saving: boolean;
   error: string;
   onSavePreference: (prefs: NotificationPreferences) => Promise<void>;
 }
@@ -28,6 +28,7 @@ interface NotPreferencePresenterProps {
 function NotPreferencePresenter({
   preferences,
   loading,
+  saving,
   error,
   onSavePreference,
 }: NotPreferencePresenterProps) {
@@ -42,11 +43,8 @@ function NotPreferencePresenter({
   const [specialOffers, setSpecialOffers] = useState(false);
   const [latestFeatures, setLatestFeatures] = useState(false);
 
-  const [isSuccessfullySave, setIsSuccessfullySave] = useState(false);
-
   //Sync state with loaded preferences
   useEffect(() => {
-    console.log("Loaded preferences:", preferences);
     if (preferences) {
       setBrowserNotif(preferences.enabled_channels?.includes("push"));
       setEmailNotif(preferences.enabled_channels?.includes("email"));
@@ -129,11 +127,7 @@ function NotPreferencePresenter({
 
     try {
       await onSavePreference(payload);
-      setIsSuccessfullySave(true);
-
-      setTimeout(() => {
-        setIsSuccessfullySave(false);
-      }, 3000);
+      toast.success("Notification preferences saved successfully.");
     } catch (err) {
       console.error(err);
       toast.error("Failed to save preferences. Please try again.");
@@ -167,14 +161,6 @@ function NotPreferencePresenter({
           <Breadcrumbs items={breadcrumbs} />
         </div>
       </div>
-
-      {isSuccessfullySave && (
-        <SuccessModal>
-          <SuccessModal.Body>
-            <p>Notification Saved Successfully</p>
-          </SuccessModal.Body>
-        </SuccessModal>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6 px-4 md:px-10">
         {/* LEFT SIDE MENU */}
@@ -373,14 +359,14 @@ function NotPreferencePresenter({
               <div className="flex justify-center mt-6">
                 <button
                   onClick={handleSave}
-                  disabled={loading}
+                  disabled={loading || saving}
                   className={`bg-blue-700 cursor-pointer w-[300px] text-white px-10 py-2 rounded-md transition ${
-                    loading
+                    loading || saving
                       ? "opacity-70 cursor-not-allowed"
                       : "hover:bg-blue-800"
                   }`}
                 >
-                  {loading ? "Saving..." : "Save"}
+                  {saving ? "Saving..." : "Save"}
                 </button>
               </div>
             </>
