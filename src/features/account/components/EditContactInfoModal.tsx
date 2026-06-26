@@ -89,15 +89,12 @@ export default function EditContactInfoModal({ isOpen, onClose, onUpdate, curren
               <FaPhone />
             </span>
             <input
-              type="text"
+              type="tel"
               value={phone}
               onChange={(e) => {
-                const input = e.target.value;
-                if (/^\d*$/.test(input)) {
-                  setPhone(input.slice(0, 14));
-                }
+                setPhone(e.target.value.slice(0, 15));
               }}
-              maxLength={14}
+              maxLength={15}
               className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2"
               placeholder="Enter phone number"
             />

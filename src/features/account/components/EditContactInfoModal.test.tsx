@@ -179,15 +179,14 @@ describe("EditContactInfoModal", () => {
     });
   });
 
-  it("only accepts numeric input for phone number", () => {
+  it("allows valid phone formats up to the backend limit", () => {
     renderModal();
     const phoneInput = screen.getByPlaceholderText("Enter phone number");
 
-    // non-digit string: filter rejects the whole value, display stays unchanged
-    fireEvent.change(phoneInput, { target: { value: "abc" } });
-    expect(phoneInput).toHaveDisplayValue("08012345678");
+    fireEvent.change(phoneInput, { target: { value: "+234 801 234 5678" } });
+    expect(phoneInput).toHaveDisplayValue("+234 801 234 56");
 
-    // pure digits: accepted and displayed
+    // The field now accepts common international formats instead of stripping them.
     fireEvent.change(phoneInput, { target: { value: "07099887766" } });
     expect(phoneInput).toHaveDisplayValue("07099887766");
   });
