@@ -63,11 +63,17 @@ const authSlice = createSlice({
         state.user.profileId = action.payload;
       }
     },
+    updateUserEmail: (state, action: PayloadAction<string>) => {
+      if (state.user) {
+        state.user.email = action.payload;
+      }
+      state.email = action.payload;
+    },
     updateToken: (state, action: PayloadAction<string>) => {
       state.accessToken = action.payload;
     },
   },
 });
 
-export const { loginSuccess, logout, updateToken, updateUserName, updateProfileId } = authSlice.actions;
+export const { loginSuccess, logout, updateToken, updateUserName, updateProfileId, updateUserEmail } = authSlice.actions;
 export default authSlice.reducer;

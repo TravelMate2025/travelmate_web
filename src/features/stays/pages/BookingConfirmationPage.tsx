@@ -136,7 +136,6 @@ const BookingConfirmationPage: React.FC = () => {
   const hotelLocation = confirmation.hotelLocation ?? confirmation.hotel_location;
   const guestDetails = confirmation.guestDetails ?? confirmation.guest_details;
   const paymentLabel = confirmation.payment_state ?? confirmation.payment_status ?? "N/A";
-  const paymentIntentId = confirmation.paymentIntentId ?? confirmation.payment_intent_id ?? "N/A";
   const providerReference =
     confirmation.providerPaymentReference ??
     confirmation.provider_payment_reference ??
@@ -151,9 +150,6 @@ const BookingConfirmationPage: React.FC = () => {
   const hotelName = String(
     confirmation.hotelName ?? confirmation.hotel_name ?? (bookingSnapshot.hotelName as string | undefined) ?? "N/A",
   );
-  const hotelCode = String(
-    confirmation.hotelCode ?? confirmation.hotel_code ?? (bookingSnapshot.hotelCode as string | undefined) ?? "N/A",
-  );
   const checkIn = confirmation.checkIn ?? confirmation.check_in ?? (bookingSnapshot.checkIn as string | undefined);
   const checkOut = confirmation.checkOut ?? confirmation.check_out ?? (bookingSnapshot.checkOut as string | undefined);
   const totalPrice = confirmation.totalPrice ?? confirmation.total_price;
@@ -164,10 +160,6 @@ const BookingConfirmationPage: React.FC = () => {
     (confirmation.user?.email as string | undefined) ??
     "your email";
   const primaryGuest = guestDetails?.primary_guest;
-  const roomSelectionSummary = Array.isArray(bookingSnapshot.roomSelections)
-    ? bookingSnapshot.roomSelections
-    : [];
-
   if (loading) return <SkeletonConfirm />;
 
   if (isPendingPayment) {

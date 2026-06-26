@@ -16,12 +16,11 @@ interface NotificationPreferenceItem {
   enabled_channels: string | string[];
 }
 
-type NotificationPreferenceResponse =
-  | NotificationPreferenceItem
-  | {
-      message?: string;
-      data?: NotificationPreferenceItem;
-    };
+const isNotificationPreferenceItem = (
+  value: NotificationPreferenceItem | { message?: string; data?: NotificationPreferenceItem }
+): value is NotificationPreferenceItem => {
+  return typeof value === "object" && value !== null && "id" in value;
+};
 
 const normalizePreference = (pref: NotificationPreferenceItem): NotificationPreferences => ({
   id: pref.id,
@@ -51,13 +50,13 @@ function NotPreferenceContainer() {
     setError("");
 
     try {
-      const res = await api.get<NotificationPreferenceResponse>(
+      const res = await api.get<NotificationPreferenceItem | { message?: string; data?: NotificationPreferenceItem }>(
         `${API_BASE_URL}/notification-prefrence/`
       );
 
       const pref = "data" in res.data ? res.data.data : res.data;
 
-      if (pref) {
+      if (pref && isNotificationPreferenceItem(pref)) {
         setPreferences(normalizePreference(pref));
       } else {
         setPreferences(null);
@@ -90,7 +89,7 @@ function NotPreferenceContainer() {
 
       // Normalizing response
       const responseData = "data" in res.data ? res.data.data : res.data;
-      if (responseData) {
+      if (responseData && isNotificationPreferenceItem(responseData)) {
         setPreferences(normalizePreference(responseData));
       }
     } catch (error) {
