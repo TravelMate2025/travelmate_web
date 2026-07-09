@@ -14,6 +14,7 @@ import Footer from "../../../components/2Footer";
 import SkeletonDetails from "../Skeleton";
 import ShareModal from "../../../features/stays/components/modals/ShareModal";
 import ConfirmCancel from "./ConfirmCancel";
+import WriteAReview from "./WriteAReview";
 
 // API
 import {
@@ -108,13 +109,26 @@ const BookingTransfersDetails = () => {
   const [cancelLoad, setCancelLoad] = useState(false);
   const [openConfirm, setOpenConfirm] = useState(false);
   const [cancelSubmitted, setCancelSubmitted] = useState(false);
+  const [openReviewModal, setOpenReviewModal] = useState(false);
+  // Mirrors stays' `booking_status` query-param hint (BookingsDetails/stays/
+  // index.tsx) — the list page can pass this explicitly so the review/
+  // cancel gating doesn't depend solely on however the detail API happens
+  // to report status.
+  const bookingStatusHint = searchParams?.get("booking_status")?.toLowerCase();
 
   const transfer = booking?.transfers?.[0];
   const cancellationPolicy = transfer?.cancellationPolicies?.[0];
   const pickupDate = transfer?.pickupInformation?.date;
   const bookingStatus = booking?.status ?? booking?.booking_status;
-  const bookingState = getBookingLifecycleStatus(bookingStatus, pickupDate);
-  const bookingStateLabel = getBookingLifecycleLabel(bookingStatus, pickupDate);
+  const bookingState =
+    bookingStatusHint === "completed"
+      ? "completed"
+      : getBookingLifecycleStatus(bookingStatus, pickupDate);
+  const bookingStateLabel =
+    bookingStatusHint === "completed"
+      ? "Completed"
+      : getBookingLifecycleLabel(bookingStatus, pickupDate);
+  const isReviewableBooking = bookingState === "completed";
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -187,9 +201,9 @@ const BookingTransfersDetails = () => {
     }
   };
 
-  const handleCancelBookings = async (bookingId: string | undefined) => {
+  const handleCancelBookings = async (bookingId: string | undefined, reason?: string) => {
     try {
-      await CancelTransferBookings(bookingId, setCancelLoad);
+      await CancelTransferBookings(bookingId, setCancelLoad, reason);
       toast.success("Booking cancelled successfully");
 
       setBooking((prev) => {
@@ -231,8 +245,20 @@ const BookingTransfersDetails = () => {
           <ConfirmCancel
             bookings={booking}
             closeModal={() => setOpenConfirm(false)}
-            handleCancel={() => handleCancelBookings(displayReference)}
+            // POST /transfers/booking/{id}/cancel/ requires the
+            // TransferBooking row's own pk, not booking_reference — ignore
+            // ConfirmCancel's own `data` arg (it only knows the reference)
+            // and use the real id captured here instead.
+            handleCancel={(_data, _load, reason) =>
+              handleCancelBookings(booking?.id ?? displayReference, reason)
+            }
             loadCancel={cancelLoad}
+          />
+        )}
+        {openReviewModal && (
+          <WriteAReview
+            bookings={booking}
+            closeModal={() => setOpenReviewModal(false)}
           />
         )}
 
@@ -269,7 +295,12 @@ const BookingTransfersDetails = () => {
                 className="bg-white rounded-sm shadow-lg cursor-pointer"
                 onClick={() => navigate(-1)}
               />
-              <h1 className="text-2xl font-bold">Booking Details</h1>
+              <div>
+                <h1 className="text-2xl font-bold">Booking Details</h1>
+                {booking?.listing_name && (
+                  <p className="text-[#4E4F52] text-sm mt-1">{booking.listing_name}</p>
+                )}
+              </div>
             </div>
 
             <div className="flex gap-3 flex-wrap">
@@ -548,6 +579,16 @@ const BookingTransfersDetails = () => {
                   className="w-full border-[#D72638] border text-[#D72638] py-3 rounded-lg font-medium hover:bg-red-50 transition"
                 >
                   Cancel Booking
+                </button>
+              )}
+
+              {/* Write a Review Button (Visible only once completed) */}
+              {booking && isReviewableBooking && (
+                <button
+                  onClick={() => setOpenReviewModal(true)}
+                  className="w-full border-[#023E8A] border text-[#023E8A] py-3 rounded-lg font-medium hover:bg-blue-50 transition mt-4"
+                >
+                  Write a Review
                 </button>
               )}
             </div>

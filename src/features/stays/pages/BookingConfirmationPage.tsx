@@ -170,6 +170,7 @@ const BookingConfirmationPage: React.FC = () => {
   const totalPrice =
     confirmation.totalPrice ??
     confirmation.total_price ??
+    confirmation.total_amount ??
     (bookingSnapshot.totalPrice as string | undefined) ??
     (bookingSnapshot.total_price as string | undefined) ??
     (bookingSnapshot.totalAmount as string | undefined) ??

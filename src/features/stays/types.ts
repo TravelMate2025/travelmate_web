@@ -216,8 +216,13 @@ export interface BookingDetailsVerifyData {
   provider_payment_reference?: string;
   providerPaymentReference?: string;
   status: string;
+  // `StayBookingAdminSerializer` names this field `booking_status`, not `status`.
+  booking_status?: string;
   total_price: string;
   totalPrice?: string;
+  // `StayBookingAdminSerializer` (used by /bookings/my/search/{reference}/)
+  // only returns this field — no total_price/totalPrice there at all.
+  total_amount?: string;
   created_at: string;
   user: UserSummary;
   cancellation_fee?: string | null;

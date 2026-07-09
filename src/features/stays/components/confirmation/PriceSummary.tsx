@@ -58,6 +58,7 @@ const PriceSummary: React.FC<PriceSummaryProps> = ({ booking }) => {
   const totalPrice = parseAmount(
     booking?.total_price,
     booking?.totalPrice,
+    booking?.total_amount,
     (snapshot as Record<string, unknown>).totalPrice,
     (snapshot as Record<string, unknown>).total_price,
     (snapshot as Record<string, unknown>).totalAmount,

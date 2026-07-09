@@ -33,6 +33,12 @@ type BookingsResponse = {
   };
 };
 
+export const getTransferBookingName = (tRec: Record<string, unknown>): string => {
+  return String(
+    tRec['listing_name'] || tRec['dropoff_location_label'] || tRec['pickup_location_label'] || "",
+  );
+};
+
 const getImageUrlFromRecord = (record: Record<string, unknown>): string => {
   const hotelImageUrl = record["hotel_image_url"];
   if (typeof hotelImageUrl === "string" && hotelImageUrl.trim()) {
@@ -127,11 +133,14 @@ const Bookings = () => {
     const transfers = transfersArr.map((t) => {
       const tRec = t as Record<string, unknown>;
       return {
-        id: String(tRec['booking_reference']),
+        // Transfer cancellation (`POST /transfers/booking/{id}/cancel/`)
+        // requires the TransferBooking row's own pk, not the shared
+        // booking_reference — keep them distinct here.
+        id: String(tRec['id'] ?? tRec['booking_reference'] ?? ""),
         type: "transfer",
         reference: String(tRec['booking_reference']),
         status: String((tRec['booking_status'] as string) || "").toLowerCase(),
-        name: String(tRec['dropoff_location_label'] || ""),
+        name: getTransferBookingName(tRec),
         date: String(tRec['pickup_date'] || ""),
         date_to: String(tRec['pickup_date'] || ""),
         amount: Number(tRec['total_amount'] as number || 0),
@@ -215,9 +224,11 @@ const Bookings = () => {
         throw new Error("Booking not found");
       }
       if (bookingToCancel.type === "stay") {
-        await CancelStaysBookings(bookingId);
+        await CancelStaysBookings(bookingToCancel.reference);
       } else {
-        await CancelTransferBookings(bookingId);
+        // Transfer cancellation needs the TransferBooking row's own id,
+        // not the shared booking_reference passed in as `bookingId`.
+        await CancelTransferBookings(bookingToCancel.id);
       }
 
       toast.success("Booking cancelled successfully");

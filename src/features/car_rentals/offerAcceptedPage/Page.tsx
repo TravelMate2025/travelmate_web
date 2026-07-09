@@ -25,6 +25,9 @@ export interface CarOfferInfo {
     transferRemarks?: Array<{ description?: string }>;
   };
   maxPaxCapacity?: number | string;
+  passenger_capacity?: number;
+  luggage_capacity?: number;
+  transfer_type?: string;
   supplier?: { name?: string } | string;
   price?: { totalAmountWithFee?: number | string };
   rateKey?: string;
@@ -240,20 +243,22 @@ const Page = () => {
       setLoadingSubmit(true);
       let resolvedQuoteLockId = precomputedQuoteLockId;
 
+      const pickupAtIso = (() => {
+        const dt = new Date(`${departureInfo.pickupDate}T${departureInfo.pickupTime}:00`);
+        const off = -dt.getTimezoneOffset();
+        const sign = off >= 0 ? "+" : "-";
+        const hh = String(Math.floor(Math.abs(off) / 60)).padStart(2, "0");
+        const mm = String(Math.abs(off) % 60).padStart(2, "0");
+        return `${departureInfo.pickupDate}T${departureInfo.pickupTime}:00${sign}${hh}:${mm}`;
+      })();
+
       if (!resolvedQuoteLockId) {
         const quoteResult = await transferService.createTransferQuote({
           listingType: "transfer",
           listingId,
           currency: "NGN",
           cancellationOptionId: precomputedCancellationOptionId || undefined,
-          pickupAt: (() => {
-            const dt = new Date(`${departureInfo.pickupDate}T${departureInfo.pickupTime}:00`);
-            const off = -dt.getTimezoneOffset();
-            const sign = off >= 0 ? "+" : "-";
-            const hh = String(Math.floor(Math.abs(off) / 60)).padStart(2, "0");
-            const mm = String(Math.abs(off) % 60).padStart(2, "0");
-            return `${departureInfo.pickupDate}T${departureInfo.pickupTime}:00${sign}${hh}:${mm}`;
-          })(),
+          pickupAt: pickupAtIso,
         });
 
         if (!quoteResult.success) {
@@ -267,6 +272,18 @@ const Page = () => {
         }
         if (quoteData?.pricing) setQuotePricing(quoteData.pricing);
       }
+
+      // Client-metadata-only fields the backend needs to populate the local
+      // TransferBooking record — the partner's hold response doesn't echo
+      // listing details back, so these must come from what we already know
+      // about the selected offer. See docs/BOOKING_API_CONTRACT.md §2.
+      let rideType = "private_hire";
+      if (departureInfo.selectedRide === "Shared Ride") rideType = "shared";
+      else if (departureInfo.selectedRide === "Private and Shared Ride") rideType = "private_hire,shared";
+
+      const car = routeState.car;
+      const supplierName = typeof car?.supplier === "string" ? car.supplier : car?.supplier?.name;
+      const passengerCapacity = car?.passenger_capacity ?? (car?.maxPaxCapacity != null ? Number(car.maxPaxCapacity) || undefined : undefined);
 
       const holdResult = await transferService.createTransferHold({
         listingType: "transfer",
@@ -282,6 +299,14 @@ const Page = () => {
           },
         ],
         customerReference: `WEB-${Date.now()}`,
+        pickupLocationLabel: departureInfo.pickupLocaDescription || undefined,
+        destinationCity: departureInfo.dropoffLocaDescription || undefined,
+        pickupAt: pickupAtIso,
+        rideType,
+        vehicleClass: car?.category?.name ?? car?.vehicle?.name,
+        passengerCapacity,
+        luggageCapacity: car?.luggage_capacity,
+        providerName: supplierName,
       });
 
       if (!holdResult.success) {

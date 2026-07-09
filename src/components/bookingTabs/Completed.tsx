@@ -57,7 +57,7 @@ const Completed = ({ bookings }: BookingsProps) => {
                   );
                 } else if (item.type === "transfer") {
                   navigate(
-                    `/bookings/transfers-details/?session_id=${encodeURIComponent(item.session_id)}&booking_reference=${encodeURIComponent(item.reference)}`,
+                    `/bookings/transfers-details/?session_id=${encodeURIComponent(item.session_id)}&booking_reference=${encodeURIComponent(item.reference)}&booking_status=completed`,
                   );
                 } else {
                   navigate(`/bookings/flight-details/?session_id=${item.session_id}`);

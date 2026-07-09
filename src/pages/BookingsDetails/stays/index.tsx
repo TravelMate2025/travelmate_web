@@ -190,6 +190,7 @@ const normalizeBooking = (
   const totalPrice = text(
     booking.totalPrice ??
       booking.total_price ??
+      booking.total_amount ??
       snapshot.totalPrice ??
       snapshot.total_price ??
       snapshot.totalAmount ??
@@ -212,6 +213,11 @@ const normalizeBooking = (
       snapshot.bookingReference ??
       snapshot.booking_reference,
   );
+  // StayBookingAdminSerializer (used by searchHotelBookingByReference) names
+  // this field `booking_status`, not `status` — without this, every stay
+  // viewed via reference navigation fell through getBookingLifecycleStatus's
+  // "unknown -> confirmed" default, regardless of its real status.
+  const bookingStatus = text(booking.status ?? booking.booking_status ?? snapshot.status ?? snapshot.booking_status);
   const roomDetails = normalizeRoomSelections(snapshot);
   const guestDetails = normalizeGuestDetails(booking, snapshot);
   const hotelLocation = normalizeHotelLocation(booking, snapshot);
@@ -231,6 +237,7 @@ const normalizeBooking = (
     checkOut: checkOut || booking.checkOut,
     total_price: totalPrice || booking.total_price,
     totalPrice: totalPrice || booking.totalPrice,
+    status: bookingStatus || booking.status,
     currency: currency || booking.currency,
     created_at: createdAt || booking.created_at,
     rooms_details: (roomDetails.length ? roomDetails : booking.rooms_details) ?? [],
@@ -376,7 +383,9 @@ const BookingStaysDetailsPage: React.FC = () => {
           <ConfirmCancel
             bookings={booking}
             closeModal={() => setOpenConfirm(false)}
-            handleCancel={() => handleCancelBookings(booking?.reference)}
+            handleCancel={(bookingId, _load, reason) =>
+              handleCancelBookings(bookingId ?? booking?.reference, reason)
+            }
             loadCancel={cancelLoad}
           />
         )}

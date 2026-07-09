@@ -560,8 +560,7 @@ export const deleteReview = async (reviewId: number) => {
 export const fetchFavorites = async () => {
   try {
     const response = await api.get("/hotels/favorites/");
-    console.log(response.data);
-    return response;
+    return response.data;
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error);
     console.error("Error fetching favorites:", errorMessage);
@@ -571,14 +570,14 @@ export const fetchFavorites = async () => {
 
 export const addOrRemoveFavorite = async (
   hotelId: string | null,
-  setIsFavorite: (isFav: boolean) => void,
-  favorite: boolean,
 ) => {
+  if (!hotelId) {
+    throw new Error("Stay id is missing");
+  }
   try {
     const response = await api.post("/hotels/favorites/toggle/", {
       hotel_id: hotelId,
     });
-    setIsFavorite(!favorite);
     return response.data.message;
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error);
@@ -625,9 +624,13 @@ export const CancelStaysBookings = async (
 ) => {
   try {
     setLoading?.(true);
+    // Backend reads request.data.get('reason', '') — a bare string body
+    // (the previous behavior here) makes request.data a raw string, not a
+    // dict, which throws server-side and 500s instead of just dropping the
+    // reason. Must be wrapped in an object.
     const response = await api.post(
       `/hotels/${bookingId}/cancel-booking/`,
-      cancellation_reason,
+      { reason: cancellation_reason },
     );
     return response.data;
   } catch (error: unknown) {
@@ -674,9 +677,13 @@ export const CancelTransferBookings = async (
 ) => {
   try {
     setLoading?.(true);
+    // Backend reads request.data.get('reason', '') — a bare string body
+    // (the previous behavior here) makes request.data a raw string, not a
+    // dict, which throws server-side and 500s instead of just dropping the
+    // reason. Must be wrapped in an object.
     const response = await api.post(
       `/transfers/booking/${bookingId}/cancel/`,
-      reason,
+      { reason },
     );
     return response.data;
   } catch (error: unknown) {
