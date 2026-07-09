@@ -13,6 +13,9 @@ import EmptyState from "../components/bookingTabs/EmptyState";
 import TravelmateApp from "./homePage/TravelmateApp";
 import Footer from "../components/2Footer";
 import BookingsSkeleton from "../components/bookingTabs/SkeletonLoader";
+import {
+  getBookingLifecycleStatus,
+} from "../features/shared/bookingStatus";
 
 // API & Utils
 import {
@@ -28,6 +31,29 @@ type BookingsResponse = {
     transfers?: unknown[];
     flights?: unknown[];
   };
+};
+
+const getImageUrlFromRecord = (record: Record<string, unknown>): string => {
+  const hotelImageUrl = record["hotel_image_url"];
+  if (typeof hotelImageUrl === "string" && hotelImageUrl.trim()) {
+    return hotelImageUrl;
+  }
+
+  const images = record["images"];
+  if (Array.isArray(images)) {
+    for (const image of images) {
+      if (!image || typeof image !== "object") continue;
+      const img = image as Record<string, unknown>;
+      const url =
+        (typeof img["secureUrl"] === "string" && img["secureUrl"]) ||
+        (typeof img["secure_url"] === "string" && img["secure_url"]) ||
+        (typeof img["url"] === "string" && img["url"]) ||
+        (typeof img["imageUrl"] === "string" && img["imageUrl"]);
+      if (url) return url;
+    }
+  }
+
+  return "";
 };
 
 export interface NormalizedBooking {
@@ -65,10 +91,10 @@ const Bookings = () => {
   const currentTab = searchParams.get("tab") || "pending";
   const breadcrumbs = [{ name: "Home", link: "/" }, { name: "Bookings" }];
   const bookingTabs = [
-    { name: "Ongoing", value: "pending" },
+    { name: "Confirmed", value: "pending" },
     { name: "Completed", value: "completed" },
     { name: "Cancelled", value: "cancelled" },
-    { name: "Failed", value: "failed" },
+    { name: "Payment failed", value: "failed" },
   ];
 
   const mergeBookings = (data: unknown): NormalizedBooking[] => {
@@ -89,7 +115,7 @@ const Bookings = () => {
         date_to: String(sRec['check_out'] || ""),
         amount: Number(sRec['total_amount'] as number || 0),
         currency: String(sRec['currency'] || ""),
-        imageUrl: sRec['imageUrl'] as string | undefined,
+        imageUrl: getImageUrlFromRecord(sRec),
         originalData: sRec as Record<string, unknown>,
         session_id: String(sRec['session_id'] || ""),
       } as NormalizedBooking;
@@ -110,7 +136,7 @@ const Bookings = () => {
         date_to: String(tRec['pickup_date'] || ""),
         amount: Number(tRec['total_amount'] as number || 0),
         currency: String(tRec['currency'] || ""),
-        imageUrl: "",
+        imageUrl: getImageUrlFromRecord(tRec),
         originalData: tRec as Record<string, unknown>,
         session_id: String(tRec['payment_session_id'] || ""),
       } as NormalizedBooking;
@@ -140,7 +166,7 @@ const Bookings = () => {
         date_to: arr,
         amount: Number(fRec['total_amount'] as number || 0),
         currency: String(fRec['currency'] || ""),
-        imageUrl: "",
+        imageUrl: getImageUrlFromRecord(fRec),
         originalData: fRec as Record<string, unknown>,
         session_id: String(fRec['payment_session_id'] || ""),
       } as NormalizedBooking;
@@ -211,26 +237,21 @@ const Bookings = () => {
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((item) => {
-      const status = item.status.toLowerCase();
-      const date = new Date(item.date_to);
+      const lifecycleStatus = getBookingLifecycleStatus(item.status, item.date_to || item.date);
 
       // Map URL tabs to specific data statuses
       switch (currentTab) {
-        case "pending": // "Ongoing" tab
-          return status === "ongoing" ||
-            (status === "confirmed" && date > new Date());
+        case "pending":
+          return lifecycleStatus === "confirmed";
 
         case "completed":
-          return (
-            status === "completed" ||
-            (status === "confirmed" && date < new Date())
-          );
+          return lifecycleStatus === "completed";
 
         case "cancelled":
-          return status === "cancelled";
+          return lifecycleStatus === "cancelled";
 
         case "failed":
-          return status === "pending" || status === "failed";
+          return lifecycleStatus === "payment_failed";
 
         default:
           return false;

@@ -7,12 +7,14 @@ export default defineConfig({
     timeout: 10_000,
   },
   use: {
-    baseURL: "http://127.0.0.1:3100",
+    baseURL: "https://127.0.0.1:3100",
+    ignoreHTTPSErrors: true,
     trace: "on-first-retry",
   },
   webServer: {
     command: "npm run dev -- --host 127.0.0.1 --port 3100",
-    url: "http://127.0.0.1:3100",
+    url: "https://127.0.0.1:3100",
+    ignoreHTTPSErrors: true,
     reuseExistingServer: true,
     timeout: 120_000,
   },

@@ -1,10 +1,44 @@
 import { BookingDetailsVerifyData } from "../../types";
+import {
+  getBookingLifecycleLabel,
+  getBookingLifecycleStatus,
+} from "../../../shared/bookingStatus";
+
+type SnapshotRecord = Record<string, unknown>;
 
 type props = {
   getStatusColor: (data?: string) => string;
   confirmDetails?: BookingDetailsVerifyData | undefined;
 };
+
+const formatDate = (value?: string | null) => {
+  if (!value) return "N/A";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toDateString();
+};
+
 const ConfirmationDetails = ({ getStatusColor, confirmDetails }: props) => {
+  const snapshot = (confirmDetails?.bookingSnapshot ?? confirmDetails?.booking_snapshot ?? {}) as SnapshotRecord;
+  const bookingState = getBookingLifecycleStatus(
+    confirmDetails?.status,
+    confirmDetails?.check_out,
+  );
+  const createdAt =
+    confirmDetails?.created_at ??
+    (snapshot.created_at as string | undefined) ??
+    (snapshot.createdAt as string | undefined) ??
+    (snapshot.bookedOn as string | undefined) ??
+    (snapshot.booked_on as string | undefined) ??
+    (snapshot.paymentDate as string | undefined) ??
+    (snapshot.payment_date as string | undefined);
+  const checkIn =
+    confirmDetails?.check_in ??
+    (snapshot.checkIn as string | undefined) ??
+    (snapshot.check_in as string | undefined);
+  const checkOut =
+    confirmDetails?.check_out ??
+    (snapshot.checkOut as string | undefined) ??
+    (snapshot.check_out as string | undefined);
   return (
     <div className="bg-white">
       <h2 className="text-lg font-semibold mb-2 text-left">
@@ -16,20 +50,10 @@ const ConfirmationDetails = ({ getStatusColor, confirmDetails }: props) => {
           {confirmDetails?.reference ?? confirmDetails?.booking_reference ?? "N/A"}
         </p>
         <p className="flex justify-between">
-          <span className="font-medium">Payment Intent</span>{" "}
-          <span className="font-mono text-xs text-right">
-            {confirmDetails?.payment_intent_id ?? "N/A"}
+          <span className="font-medium">Booking State</span>{" "}
+          <span className="font-semibold uppercase">
+            {getBookingLifecycleLabel(bookingState)}
           </span>
-        </p>
-        <p className="flex justify-between">
-          <span className="font-medium">Provider Reference</span>{" "}
-          <span className="font-mono text-xs text-right">
-            {confirmDetails?.provider_payment_reference ?? confirmDetails?.payment_reference ?? "N/A"}
-          </span>
-        </p>
-        <p className="flex justify-between">
-          <span className="font-medium">Hotel Code</span>
-          {confirmDetails?.hotel_code || "N/A"}
         </p>
         <p className="flex justify-between">
           <span className="font-medium">Payment State</span>{" "}
@@ -49,21 +73,15 @@ const ConfirmationDetails = ({ getStatusColor, confirmDetails }: props) => {
         </p>
         <p className="flex justify-between">
           <span className="font-medium">Booked on</span>{" "}
-          {confirmDetails?.created_at
-            ? new Date(confirmDetails?.created_at).toDateString()
-            : "N/A"}
+          {formatDate(createdAt)}
         </p>
         <p className="flex justify-between">
           <span className="font-medium">Check-In Date</span>{" "}
-          {confirmDetails?.check_in
-            ? new Date(confirmDetails?.check_in).toDateString()
-            : "N/A"}
+          {formatDate(checkIn)}
         </p>
         <p className="flex justify-between">
           <span className="font-medium">Check-Out Date</span>
-          {confirmDetails?.check_out
-            ? new Date(confirmDetails.check_out).toDateString()
-            : "N/A"}
+          {formatDate(checkOut)}
         </p>
       </div>
     </div>

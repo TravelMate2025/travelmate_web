@@ -16,7 +16,7 @@ export function ReviewsSettingsPage() {
   const breadcrumbs = [
     { name: "Home", link: "/" },
     { name: "Account", link: "/account" },
-    { name: "Payment Method" },
+    { name: "Reviews" },
   ];
 
   const options = [
@@ -76,7 +76,7 @@ export function ReviewsSettingsPage() {
           >
             <FaAngleLeft size={28} />
           </div>
-          <span className="text-2xl font-semibold">Payment Method</span>
+          <span className="text-2xl font-semibold">Reviews</span>
         </Link>
 
         <div className="hidden md:block">

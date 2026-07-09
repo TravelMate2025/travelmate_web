@@ -5,6 +5,7 @@ import { NormalizedBooking } from "../../pages/Bookings";
 import EmptyState from "./EmptyState";
 import { useNavigate } from "react-router-dom";
 import {
+  formatBookingAmount,
   getBookingAmount,
   getBookingCurrency,
   getBookingDateText,
@@ -29,20 +30,21 @@ const Failed = ({ bookings }: BookingsProps) => {
     const dateStr = getBookingDateText(item);
     const amount = getBookingAmount(item);
     const currency = getBookingCurrency(item, "NGN");
+    const formattedAmount = formatBookingAmount(item, "NGN");
 
-    return { image, name, dateStr, amount, currency };
+    return { image, name, dateStr, amount, currency, formattedAmount };
   };
 
   return (
     <div>
       {bookings?.length === 0 ? (
         <EmptyState
-          title="No Failed Bookings"
-          content="You haven't made any failed bookings yet. When you do, they will appear here."
+          title="No payment failed bookings yet"
+          content="You haven't made any payment failed bookings yet. When you do, they will appear here."
         />
       ) : (
         bookings.map((item) => {
-          const { image, name, dateStr, amount, currency } = getDetails(item);
+          const { image, name, dateStr, formattedAmount } = getDetails(item);
 
           return (
             <div
@@ -50,9 +52,13 @@ const Failed = ({ bookings }: BookingsProps) => {
               className="flex justify-between lg:max-w-3xl w-full items-start gap-2 border-[1px] border-neutral-300 p-4 rounded-xl mb-4 hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => {
                 if (item.type === "stay") {
-                  navigate(`/bookings/stays-details/?session_id=${item.session_id}`);
+                  navigate(
+                    `/bookings/stays-details/?booking_reference=${encodeURIComponent(item.reference)}&session_id=${encodeURIComponent(item.session_id)}`,
+                  );
                 } else if (item.type === "transfer") {
-                  navigate(`/bookings/transfers-details/?session_id=${item.session_id}`);
+                  navigate(
+                    `/bookings/transfers-details/?session_id=${encodeURIComponent(item.session_id)}&booking_reference=${encodeURIComponent(item.reference)}`,
+                  );
                 } else {
                   navigate(`/bookings/flight-details/?session_id=${item.session_id}`);
                 }
@@ -71,10 +77,7 @@ const Failed = ({ bookings }: BookingsProps) => {
                   <h3 className="text-lg font-bold text-gray-800">{name}</h3>
                   <p className="text-[#4E4F52] text-sm">{dateStr}</p>
                   <p className="text-[#4E4F52] text-sm font-medium">
-                    {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: currency,
-                    }).format(amount)}
+                    {formattedAmount}
                   </p>
                 </div>
               </div>

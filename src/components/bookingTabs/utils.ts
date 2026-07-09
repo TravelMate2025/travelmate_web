@@ -1,5 +1,14 @@
 import type { NormalizedBooking } from "../../pages/Bookings";
 
+const INVALID_CURRENCY_CODES = new Set([
+  "",
+  "N/A",
+  "NA",
+  "NULL",
+  "NONE",
+  "UNKNOWN",
+]);
+
 const toText = (value: unknown, fallback = ""): string => {
   if (typeof value === "string") {
     return value;
@@ -10,6 +19,15 @@ const toText = (value: unknown, fallback = ""): string => {
   }
 
   return fallback;
+};
+
+const normalizeCurrencyCode = (value: unknown, fallback = ""): string => {
+  const code = toText(value).trim().toUpperCase();
+  if (!code || INVALID_CURRENCY_CODES.has(code)) {
+    return fallback;
+  }
+
+  return /^[A-Z]{3}$/.test(code) ? code : fallback;
 };
 
 const toNumber = (value: unknown, fallback = 0): number => {
@@ -59,5 +77,34 @@ export const getBookingAmount = (booking: NormalizedBooking) => {
 };
 
 export const getBookingCurrency = (booking: NormalizedBooking, fallback: string) => {
-  return booking.currency || toText(booking.originalData?.currency) || fallback;
+  return (
+    normalizeCurrencyCode(booking.currency, "") ||
+    normalizeCurrencyCode(booking.originalData?.currency, "") ||
+    normalizeCurrencyCode(fallback, "")
+  );
+};
+
+export const formatBookingAmount = (
+  booking: NormalizedBooking,
+  fallbackCurrency: string,
+) => {
+  const amount = getBookingAmount(booking);
+  const currency = getBookingCurrency(booking, fallbackCurrency);
+
+  if (!Number.isFinite(amount)) {
+    return "--";
+  }
+
+  if (!currency) {
+    return amount.toLocaleString();
+  }
+
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+    }).format(amount);
+  } catch {
+    return amount.toLocaleString();
+  }
 };

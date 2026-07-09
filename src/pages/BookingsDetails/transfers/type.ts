@@ -20,6 +20,8 @@ export interface Transfers {
     sourceMarketEmergencyNumber: string;
 }
 export interface TransfersDetailsResponse {
+    booking_reference?: string;
+    booking_status?: string;
     holder: Holder;
     remark: string;
     status: "CONFIRMED" | "CANCELLED" | string;
@@ -28,6 +30,7 @@ export interface TransfersDetailsResponse {
     reference: string;
     transfers: Transfers[];
     totalAmount: number;
+    totalNetAmount?: number;
     creationDate: string;
     bookingFileId: string | null;
     pendingAmount: number;

@@ -364,10 +364,51 @@ export const verifyHotelBooking = async (
 };
 
 /**
+ * Fetch a saved stay booking by its partner booking reference.
+ */
+export const searchHotelBookingByReference = async (
+  bookingReference: string | null,
+): Promise<BookingStaysVerifyDetails> => {
+  console.debug("[Stays][searchByReference] request", { bookingReference });
+  try {
+    const response = await api.get(
+      `/bookings/my/search/${encodeURIComponent(bookingReference ?? "")}/`,
+    );
+    const payload = response.data as {
+      booking?: unknown;
+      result?: unknown;
+      data?: unknown;
+      [key: string]: unknown;
+    };
+    const booking =
+      (payload?.booking as BookingDetailsVerifyData | undefined) ??
+      (payload?.result as BookingDetailsVerifyData | undefined) ??
+      (payload?.data as BookingDetailsVerifyData | undefined) ??
+      (response.data as BookingDetailsVerifyData);
+    console.debug("[Stays][searchByReference] response", response.data);
+    return { success: true, data: booking };
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || "Something went wrong!";
+    console.debug("[Stays][searchByReference] failed", error);
+    toast.error(errorMessage);
+    return {
+      data: {} as BookingDetailsVerifyData,
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to get booking details",
+    };
+  }
+};
+
+/**
  * Verify transfers booking
  */
+type BookingFetchOptions = {
+  suppressToast?: boolean;
+};
+
 export const verifyTransfersBooking = async (
   sessionId: string | null,
+  options: BookingFetchOptions = {},
 ): Promise<BookingStaysVerifyDetails> => {
   try {
     const response = await api.get(
@@ -376,7 +417,31 @@ export const verifyTransfersBooking = async (
     return { success: true, data: response.data };
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error) || "Something went wrong!";
-    toast.error(errorMessage);
+    if (!options.suppressToast) {
+      toast.error(errorMessage);
+    }
+    return {
+      data: {} as BookingDetailsVerifyData,
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to get booking details",
+    };
+  }
+};
+
+export const searchTransferBookingByReference = async (
+  bookingReference: string | null,
+  options: BookingFetchOptions = {},
+): Promise<BookingStaysVerifyDetails> => {
+  try {
+    const response = await api.get(
+      `/transfers/bookings/${encodeURIComponent(bookingReference ?? "")}/`,
+    );
+    return { success: true, data: response.data };
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || "Something went wrong!";
+    if (!options.suppressToast) {
+      toast.error(errorMessage);
+    }
     return {
       data: {} as BookingDetailsVerifyData,
       success: false,
@@ -436,6 +501,10 @@ export const submitReview = async (
       title,
       comment,
       id,
+    }, {
+      headers: {
+        "Idempotency-Key": `hotel-review-${String(hotelId ?? "")}-${String(id ?? "")}`,
+      },
     });
     console.log(response);
     return response.data;
@@ -443,6 +512,36 @@ export const submitReview = async (
     const errorMessage = getErrorMessage(error);
     console.error("Failed to submit review:", errorMessage);
     throw new Error(errorMessage || "Failed to submit review");
+  }
+};
+
+export const submitBookingReview = async (
+  bookingReference: string | undefined,
+  payload: {
+    overallRating: number;
+    subcategoryRatings?: Record<string, number>;
+    comment?: string;
+  },
+) => {
+  if (!bookingReference) {
+    throw new Error("Booking reference is missing.");
+  }
+
+  try {
+    const response = await api.post(
+      `/v1/public/bookings/${encodeURIComponent(bookingReference)}/review`,
+      payload,
+      {
+        headers: {
+          "Idempotency-Key": `booking-review-${String(bookingReference)}`,
+        },
+      },
+    );
+    return response.data;
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    console.error("Failed to submit booking review:", errorMessage);
+    throw new Error(errorMessage || "Failed to submit booking review");
   }
 };
 
