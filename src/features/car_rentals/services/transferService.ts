@@ -62,6 +62,18 @@ interface TransferHoldParams {
     travelers: TransferHoldTraveler[];
     customerReference?: string;
     cancellationOptionId?: string;
+    // Client-metadata-only fields — not forwarded to the partner, used by the
+    // backend to populate the local TransferBooking record (the partner's
+    // hold response doesn't echo listing details back). See
+    // docs/BOOKING_API_CONTRACT.md §2.
+    pickupLocationLabel?: string;
+    destinationCity?: string;
+    pickupAt?: string;
+    rideType?: string;
+    vehicleClass?: string;
+    passengerCapacity?: number;
+    luggageCapacity?: number;
+    providerName?: string;
 }
 
 interface TransferPaymentIntentParams {

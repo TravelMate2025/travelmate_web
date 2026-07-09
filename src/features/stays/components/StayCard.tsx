@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaStar,
   FaMapMarkerAlt,
@@ -47,6 +47,10 @@ const StayCard: React.FC<StayCardProps> = ({
   const reviewsCount = hotel.reviewsCount || 0;
   const currencyCode = hotel.currency ?? "NGN";
 
+  useEffect(() => {
+    setFavorite(isFavorited || Boolean(hotel.is_favorite));
+  }, [hotel.is_favorite, isFavorited]);
+
   // Calculate number of nights
   const nights =
     checkIn && checkOut
@@ -87,17 +91,17 @@ const StayCard: React.FC<StayCardProps> = ({
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    setFavorite(!favorite);
+    if (!hotelId) {
+      toast.error("This stay cannot be favorited right now");
+      return;
+    }
+    const nextFavorite = !favorite;
+    setFavorite(nextFavorite);
     try {
-      const response = await addOrRemoveFavorite(
-        hotelId,
-        setFavorite,
-        favorite
-      );
-      const newFavorite = !favorite;
-      setFavorite(newFavorite);
+      const response = await addOrRemoveFavorite(hotelId);
       toast.success(response);
     } catch (_error) {
+      setFavorite(!nextFavorite);
       toast.error("Something went wrong");
     }
   };
@@ -166,7 +170,7 @@ const StayCard: React.FC<StayCardProps> = ({
           className="absolute top-3 right-3 bg-white rounded-md p-2 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
           aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
         >
-          {hotel.is_favorite ? (
+          {favorite ? (
             <FaHeart
               fill="oklch(57.7% 0.245 27.325)"
               className="text-red-600 text-2xl"
