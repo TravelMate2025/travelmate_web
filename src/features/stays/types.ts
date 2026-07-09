@@ -232,6 +232,12 @@ export interface BookingDetailsVerifyData {
   hotelLocation?: HotelLocationDetails;
   bookingSnapshot?: Record<string, unknown>;
   booking_snapshot?: Record<string, unknown>;
+  last_synced_at?: string;
+  lastSyncedAt?: string;
+  sync_status?: string;
+  syncStatus?: string;
+  sync_error?: string | null;
+  syncError?: string | null;
   [key: string]: unknown;
 }
 export interface BookingStaysVerifyDetails {

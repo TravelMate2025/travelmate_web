@@ -5,6 +5,7 @@ interface GuestDetailsProps {
 }
 
 const GuestDetails = ({ guest }: GuestDetailsProps) => {
+  const fullName = [guest?.name, guest?.surname].filter((part) => part && part.trim()).join(" ");
   return (
     <div className="bg-white">
       <h2 className="text-lg font-semibold mb-4">Guest Details</h2>
@@ -14,7 +15,7 @@ const GuestDetails = ({ guest }: GuestDetailsProps) => {
           <div className="flex justify-between items-center w-full">
             <p className="font-medium">Name</p>
             <p>
-              {guest?.name|| "N/A"} {guest?.surname}
+              {fullName || "N/A"}
             </p>
           </div>
           <div className="flex justify-between items-center w-full">

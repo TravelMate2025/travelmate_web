@@ -8,6 +8,7 @@ import { DateTime } from "luxon";
 import Footer from "../../../components/2Footer";
 import TravelmateApp from "../../../pages/homePage/TravelmateApp";
 import Skeleton from "@mui/material/Skeleton";
+import { toast } from "react-hot-toast";
 
 interface Review {
   id: number;
@@ -165,6 +166,7 @@ export function ReviewDetails() {
         throw new Error("Please provide hotel id");
       }
       await deleteUserReview(hotel_id);
+      toast.success("Review deleted successfully.");
       setDeleteSuccess(true);
       setTimeout(() => {
         window.location.assign("/profile-info?tab=Reviews");

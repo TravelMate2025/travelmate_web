@@ -13,11 +13,21 @@ import CarFailedPayment from "../../car_rentals/carPaidFor/CarFailedPayment";
 import { verifyHotelBooking } from "../api";
 import { BookingDetailsVerifyData } from "../types";
 import { bookingConfirmationLabel } from "../../shared/booking/bookingFlowLabels";
+import {
+  getBookingLifecycleLabel,
+  getBookingLifecycleStatus,
+} from "../../shared/bookingStatus";
 
 const formatDate = (value?: string) => {
   if (!value) return "N/A";
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? value : parsed.toDateString();
+};
+
+const formatSyncTimestamp = (value?: string | null) => {
+  if (!value) return "";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
 };
 
 const BookingConfirmationPage: React.FC = () => {
@@ -119,12 +129,14 @@ const BookingConfirmationPage: React.FC = () => {
 
   const getStatusColor = (status: string | undefined) => {
     switch (status?.toLowerCase()) {
+      case "completed":
       case "succeeded":
       case "confirmed":
         return "text-[#2D9C5E]";
       case "pending":
         return "text-[#F2994A]";
       case "failed":
+      case "payment_failed":
         return "text-[#EB5757]";
       default:
         return "text-[#4E4F52]";
@@ -136,11 +148,6 @@ const BookingConfirmationPage: React.FC = () => {
   const hotelLocation = confirmation.hotelLocation ?? confirmation.hotel_location;
   const guestDetails = confirmation.guestDetails ?? confirmation.guest_details;
   const paymentLabel = confirmation.payment_state ?? confirmation.payment_status ?? "N/A";
-  const providerReference =
-    confirmation.providerPaymentReference ??
-    confirmation.provider_payment_reference ??
-    confirmation.payment_reference ??
-    "N/A";
   const bookingReference = String(
     confirmation.bookingReference ??
       confirmation.booking_reference ??
@@ -152,7 +159,21 @@ const BookingConfirmationPage: React.FC = () => {
   );
   const checkIn = confirmation.checkIn ?? confirmation.check_in ?? (bookingSnapshot.checkIn as string | undefined);
   const checkOut = confirmation.checkOut ?? confirmation.check_out ?? (bookingSnapshot.checkOut as string | undefined);
-  const totalPrice = confirmation.totalPrice ?? confirmation.total_price;
+  const bookingState = getBookingLifecycleStatus(
+    confirmation.status ?? confirmation.booking_status,
+    checkOut,
+  );
+  const bookingStateLabel = getBookingLifecycleLabel(
+    confirmation.status ?? confirmation.booking_status,
+    checkOut,
+  );
+  const totalPrice =
+    confirmation.totalPrice ??
+    confirmation.total_price ??
+    (bookingSnapshot.totalPrice as string | undefined) ??
+    (bookingSnapshot.total_price as string | undefined) ??
+    (bookingSnapshot.totalAmount as string | undefined) ??
+    (bookingSnapshot.total_amount as string | undefined);
   const currency = confirmation.currency ?? (bookingSnapshot.currency as string | undefined) ?? "";
   const shareLink = typeof window !== "undefined" ? window.location.href : "";
   const supportEmail =
@@ -160,6 +181,11 @@ const BookingConfirmationPage: React.FC = () => {
     (confirmation.user?.email as string | undefined) ??
     "your email";
   const primaryGuest = guestDetails?.primary_guest;
+  const syncStatus = (confirmation.sync_status ?? confirmation.syncStatus ?? "").toString().toLowerCase();
+  const syncError = (confirmation.sync_error ?? confirmation.syncError ?? "").toString().trim();
+  const lastSyncedAt = formatSyncTimestamp(
+    (confirmation.last_synced_at ?? confirmation.lastSyncedAt) as string | null | undefined,
+  );
   if (loading) return <SkeletonConfirm />;
 
   if (isPendingPayment) {
@@ -288,10 +314,36 @@ const BookingConfirmationPage: React.FC = () => {
           </div>
         )}
 
+        {(syncStatus || lastSyncedAt || syncError) && (
+          <div className="mb-8 px-6 lg:px-8 m-auto">
+            <div
+              className={`rounded-[8px] border px-4 py-3 ${
+                syncStatus === "stale"
+                  ? "border-amber-300 bg-amber-50"
+                  : "border-emerald-300 bg-emerald-50"
+              }`}
+            >
+              <p className="text-[14px] font-medium text-[#181818]">
+                {syncStatus === "stale" ? "Partner sync stale" : "Partner sync current"}
+              </p>
+              <div className="mt-1 text-[13px] text-[#4E4F52] space-y-1">
+                {lastSyncedAt && <p>Last synced: {lastSyncedAt}</p>}
+                {syncError && <p>Last sync error: {syncError}</p>}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div id="pdf-content" className="lg:grid lg:grid-cols-2 lg:w-full">
           <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-1">
             <p className="text-[16px] font-medium text-[#181818] mb-[15px]">Payment details</p>
             <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3]">
+              <div className="flex justify-between">
+                <p className="text-[#4E4F52] text-[14px] font-normal">Booking State</p>
+                <p className={`text-[14px] font-normal ${getStatusColor(bookingState)}`}>
+                  {bookingStateLabel}
+                </p>
+              </div>
               <div className="flex justify-between">
                 <p className="text-[#4E4F52] text-[14px] font-normal">Payment Status</p>
                 <p className={`text-[14px] font-normal ${getStatusColor(paymentLabel)}`}>{paymentLabel}</p>
@@ -299,10 +351,6 @@ const BookingConfirmationPage: React.FC = () => {
               <div className="flex justify-between">
                 <p className="text-[#4E4F52] text-[14px] font-normal">Booking Reference</p>
                 <p className="text-[14px] font-normal">{bookingReference}</p>
-              </div>
-              <div className="flex justify-between">
-                <p className="text-[#4E4F52] text-[14px] font-normal">Provider Reference</p>
-                <p className="text-[14px] font-normal font-mono">{providerReference}</p>
               </div>
             </div>
           </div>

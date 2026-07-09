@@ -19,7 +19,12 @@ type RoomDetail = {
 };
 
 const RoomDetails = ({ booking }: props) => {
-  const roomEntries = booking?.rooms_details ?? [];
+  const snapshot = booking?.bookingSnapshot ?? booking?.booking_snapshot ?? {};
+  const roomEntries =
+    booking?.rooms_details ??
+    booking?.roomsDetails ??
+    ((snapshot as Record<string, unknown>).roomSelections as unknown[] | undefined) ??
+    [];
 
   if (!roomEntries.length)
     return (
@@ -49,7 +54,7 @@ const RoomDetails = ({ booking }: props) => {
                 roomDetail?.room_name ??
                 `${roomLabel}-${index}`
               }
-            >
+              >
               <div className="flex justify-normal gap-2">
                 <Bed />
                 <p className="capitalize">{roomLabel}</p>
@@ -60,6 +65,12 @@ const RoomDetails = ({ booking }: props) => {
               {(roomDetail?.boardName || roomDetail?.board_name) && (
                 <p className="text-xs text-gray-500">
                   Board: {roomDetail.boardName ?? roomDetail.board_name}
+                </p>
+              )}
+              {!roomDetail?.rate_key && typeof room === "object" && room !== null && (
+                <p className="text-xs text-gray-500">
+                  Room selection:{" "}
+                  {JSON.stringify(room)}
                 </p>
               )}
               {roomDetail?.cancellationPolicy?.terms && (

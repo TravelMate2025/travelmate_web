@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { DateTime } from "luxon";
 import { LoaderCircle, MoreVertical, X } from "lucide-react";
 import { deleteUserReview } from "../api";
+import { toast } from "react-hot-toast";
 
 type ReviewCardProps = {
   review: {
@@ -66,6 +67,7 @@ useEffect(() => {
     setDeleteError(null);
     try {
       await deleteUserReview(review.hotel_code);
+      toast.success("Review deleted successfully.");
       onFinish?.();
     } catch (err) {
       const errMessage =
