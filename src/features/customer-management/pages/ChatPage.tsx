@@ -174,13 +174,38 @@ const ChatPage = () => {
           const msg = raw && typeof raw === 'string' ? JSON.parse(raw as string) : raw;
           const payload = msg as Record<string, unknown>;
 
-          if (payload?.type === 'session_update' && payload?.status === 'CLOSED') {
-            setActiveChat((prev) => {
-              if (prev) {
-                return { ...prev, status: 'CLOSED', systemMessageText: 'Your chat has been closed by an admin.' };
-              }
-              return prev;
-            });
+          if (payload?.type === 'session_update') {
+            if (payload?.status === 'CLOSED') {
+              setActiveChat((prev) => {
+                if (prev) {
+                  return { ...prev, status: 'CLOSED', systemMessageText: 'Your chat has been closed by an admin.' };
+                }
+                return prev;
+              });
+              return;
+            }
+
+            const assignedAdmin = payload.assigned_admin as
+              | { first_name?: string; last_name?: string }
+              | null
+              | undefined;
+            if (assignedAdmin) {
+              setActiveChat((prev) => {
+                // Only a real transition — if the chat was already assigned
+                // when it was opened (assigned_admin_info from the initial
+                // REST fetch), this is just some unrelated session_update,
+                // not a live claim, so don't (re-)show the banner.
+                if (prev && !prev.assigned_admin_info && !prev.liveAdminJoinedName) {
+                  const name = assignedAdmin.first_name?.trim() || 'An admin';
+                  return { ...prev, liveAdminJoinedName: name };
+                }
+                return prev;
+              });
+            }
+
+            // Any other session_update (e.g. an unrelated field touched on
+            // the session) is not a real chat message — never fall through
+            // to normalizeMessage for it.
             return;
           }
 
@@ -196,8 +221,23 @@ const ChatPage = () => {
                 }
                 return prev;
               });
-              return;
             }
+            // No error payload is ever a real chat message.
+            return;
+          }
+
+          if (payload?.type !== 'chat_message') {
+            // session_info (sent on every connect), notification, pong, or
+            // any other non-message event — previously fell through to
+            // normalizeMessage below, which has no required-field
+            // validation and would build and push a phantom message (empty
+            // content, id 0 fallback) into the chat's message list. It
+            // never rendered visibly (a separate empty-content filter in
+            // ChatMessages.tsx hides it), but it could still silently
+            // collide with and drop a real message that happened to share
+            // id 0 via the id-based dedup check below. Only a real
+            // chat_message should ever reach that logic.
+            return;
           }
 
           const normalizedMessage = normalizeMessage(payload, user.id, user.email);

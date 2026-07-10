@@ -219,34 +219,40 @@ const TicketsPage = () => {
                 <div className="p-4 flex justify-between items-start">
                   <div className="text-sm text-gray-600 truncate w-full pr-2">{ticket.description}</div>
 
-                  {/* Vertical dots menu */}
-                  <Menu as="div" className="relative inline-block text-left z-10">
-                    <Menu.Button
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-gray-500 hover:text-gray-700 focus:outline-none"
-                    >
-                      <HiOutlineDotsVertical className="w-5 h-5 ml-10" />
-                    </Menu.Button>
-                    <Menu.Items className="absolute right-0 mt-2 w-28 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none">
-                      <div className="px-1 py-1">
-                        <Menu.Item>
-                          {({ active }) => (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteRequest(ticket.id);
-                              }}
-                              className={`${
-                                active ? 'bg-red-100 text-red-700' : 'text-red-600'
-                              } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </Menu.Item>
-                      </div>
-                    </Menu.Items>
-                  </Menu>
+                  {/* Vertical dots menu — deletion is only offered for
+                      resolved tickets (matches the same rule enforced on
+                      mobile); the menu's only action is Delete, so there's
+                      nothing else to show for a ticket that isn't resolved
+                      yet. */}
+                  {ticket.status === 'resolved' && (
+                    <Menu as="div" className="relative inline-block text-left z-10">
+                      <Menu.Button
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                      >
+                        <HiOutlineDotsVertical className="w-5 h-5 ml-10" />
+                      </Menu.Button>
+                      <Menu.Items className="absolute right-0 mt-2 w-28 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none">
+                        <div className="px-1 py-1">
+                          <Menu.Item>
+                            {({ active }) => (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteRequest(ticket.id);
+                                }}
+                                className={`${
+                                  active ? 'bg-red-100 text-red-700' : 'text-red-600'
+                                } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </Menu.Item>
+                        </div>
+                      </Menu.Items>
+                    </Menu>
+                  )}
                 </div>
               </div>
 
