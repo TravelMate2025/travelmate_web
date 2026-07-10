@@ -92,7 +92,6 @@ interface TicketData {
   title: string;
   category: string;
   description: string;
-  priority?: string;
 }
 
 const axiosErrMsg = (error: unknown) =>
