@@ -51,6 +51,21 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
     });
   }
 
+  // A live "admin joined" notice from an open WebSocket — reuses the same
+  // "claim" styling as historical claim_history entries, since it's the
+  // same concept (an admin claiming this chat), just observed live rather
+  // than fetched after the fact.
+  if (activeChat.liveAdminJoinedName) {
+    combinedItems.push({
+      type: "claim",
+      data: {
+        id: "live-admin-joined",
+        timestamp: new Date().toISOString(),
+        claim_note_text: `${activeChat.liveAdminJoinedName} has joined this chat.`,
+      },
+    });
+  }
+
   // Add the "chat closed" system message if the chat is closed
   if (activeChat.status === "CLOSED") {
     combinedItems.push({

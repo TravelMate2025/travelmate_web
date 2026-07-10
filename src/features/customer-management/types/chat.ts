@@ -48,6 +48,13 @@ export interface Message {
     admin_name?: string;
     last_message?: LastMessage | null;
     claim_history?: ClaimHistoryItem[];
-    systemMessageText?: string; 
+    systemMessageText?: string;
+    // Set locally from a live `session_update` WebSocket event when an
+    // admin claims this chat while it's already open — distinct from
+    // `assigned_admin_info`, which only ever comes from the initial REST
+    // fetch. The live broadcast doesn't carry `email`, so it can't be
+    // merged into `assigned_admin_info`'s shape; this is a separate,
+    // ephemeral, display-only field.
+    liveAdminJoinedName?: string;
   }
   
