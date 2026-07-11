@@ -7,8 +7,6 @@ import { MdLockOutline } from "react-icons/md";
 import { useNavigate, useLocation } from "react-router-dom";
 import { setNewPassword } from "../api/auth";
 import toast from "react-hot-toast";
-import { useDispatch } from "react-redux";
-import { loginSuccess } from "../slices/authSlice";
 
 export default function CreateNewPassword() {
   const [password, setPassword] = useState("");
@@ -19,7 +17,6 @@ export default function CreateNewPassword() {
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email;
-  const dispatch = useDispatch();
 
   const requirements = [
     { label: "At Least 8 Characters", check: password.length >= 8 },
@@ -40,25 +37,10 @@ export default function CreateNewPassword() {
       await setNewPassword(email, password);
       setSuccess(true);
       toast.success("Password reset successfully");
-      
-      // Optional: Automatically log the user in after password reset
-      dispatch(
-        loginSuccess({
-          accessToken: '', // You might want to implement login after reset
-          refreshToken: '',
-          user: {
-            id: 0,
-            email: email,
-            name: "",
-          },
-          registrationComplete: true,
-        })
-      );
-      
       setTimeout(() => setShowSpinner(true), 2000);
       setTimeout(() => {
         setShowSpinner(false);
-        navigate("/login"); // Redirect to login page
+        navigate("/login", { state: { email } });
       }, 4000);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to set new password");

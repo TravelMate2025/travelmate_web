@@ -1,14 +1,15 @@
 import Modal from "../../stays/components/modals/Modal";
 import { FaUser, FaCalendarAlt } from "react-icons/fa";
 import { useState, useEffect } from "react";
-import { createUserProfile } from "../api/profile";
+import { updateUserProfile, UserProfile } from "../api/profile";
 import { useSelector } from "react-redux";
-import { RootState } from "../../../store"; 
-
+import { RootState } from "../../../store";
+import toast from "react-hot-toast";
 
 interface EditBasicInfoModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onUpdate: (updated: UserProfile) => void;
   currentUserInfo: {
     firstName: string;
     lastName: string;
@@ -20,21 +21,19 @@ interface EditBasicInfoModalProps {
 export default function EditBasicInfoModal({
   isOpen,
   onClose,
+  onUpdate,
   currentUserInfo,
 }: EditBasicInfoModalProps) {
   const [firstName, setFirstName] = useState(currentUserInfo.firstName);
   const [lastName, setLastName] = useState(currentUserInfo.lastName);
   const [gender, setGender] = useState(currentUserInfo.gender);
   const [dob, setDob] = useState(currentUserInfo.dob);
-  const [, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const profileId = useSelector((state: RootState) => state.auth.user?.profileId);
 
-    
-
-  
   useEffect(() => {
     setFirstName(currentUserInfo.firstName);
     setLastName(currentUserInfo.lastName);
@@ -43,40 +42,42 @@ export default function EditBasicInfoModal({
   }, [currentUserInfo]);
 
   const handleSave = async () => {
+    if (!accessToken) {
+      setError("Please login again to update your profile.");
+      return;
+    }
+    if (!profileId) {
+      setError("Profile not found. Please contact customer support.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      if (!accessToken) {
-        setError("Please login again to update your profile.");
-        return;
-      }
-
-      if (!profileId) {
-        setError("this user does not exist. Please contact customer support.");
-        return;
-      }
-
-      const userData = { first_name: firstName, last_name: lastName, gender: gender, date_of_birth: dob, };
-      await createUserProfile(userData, accessToken, profileId);
+      const updated = await updateUserProfile(profileId, {
+        first_name: firstName,
+        last_name: lastName,
+        ...(gender ? { gender } : {}),
+        ...(dob ? { date_of_birth: dob } : {}),
+      });
+      onUpdate(updated);
       onClose();
-      window.location.reload();
-    } catch (err: any) {
-      if (err.message === "Unauthorized") {
+      toast.success("Basic information updated successfully.");
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message === "Unauthorized") {
         setError("Session expired. Please login again.");
       } else {
-        setError("Something went wrong. Please try again.");
+        setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);
     }
   };
 
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Edit Basic Information" onSave={handleSave}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Edit Basic Information" onSave={handleSave} loading={loading}>
       <div className="space-y-4">
-        {/* First Name */}
         <div>
           <label className="block font-semibold mb-1">First Name</label>
           <div className="flex items-center border border-gray-300 p-2 rounded-md">
@@ -93,7 +94,6 @@ export default function EditBasicInfoModal({
           </div>
         </div>
 
-        {/* Last Name */}
         <div>
           <label className="block font-semibold mb-1">Last Name</label>
           <div className="flex items-center border border-gray-300 p-2 rounded-md">
@@ -110,8 +110,7 @@ export default function EditBasicInfoModal({
           </div>
         </div>
 
-        {/* Gender */}
-        <div className="">
+        <div>
           <label className="block font-semibold mb-2">Gender</label>
           <div className="space-y-2">
             <label className="flex items-center">
@@ -136,21 +135,9 @@ export default function EditBasicInfoModal({
               />
               Female
             </label>
-            {/* <label className="flex items-center">
-              <input
-                type="radio"
-                name="gender"
-                value="I prefer not to say"
-                checked={gender === "I prefer not to say"}
-                className="mr-2"
-                onChange={() => setGender("I prefer not to say")}
-              />
-              I prefer not to say
-            </label> */}
           </div>
         </div>
 
-        {/* Date of Birth */}
         <div>
           <label className="block font-semibold mb-1">Date of Birth</label>
           <div className="flex items-center border border-gray-300 p-2 rounded-md">
@@ -167,7 +154,6 @@ export default function EditBasicInfoModal({
         </div>
       </div>
 
-      {/* Error Message */}
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </Modal>
   );

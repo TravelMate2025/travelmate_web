@@ -4,6 +4,13 @@ import flightImage from "../../assets/airlogo.svg";
 import { NormalizedBooking } from "../../pages/Bookings";
 import EmptyState from "./EmptyState";
 import { useNavigate } from "react-router-dom";
+import {
+  formatBookingAmount,
+  getBookingAmount,
+  getBookingCurrency,
+  getBookingDateText,
+  getBookingName,
+} from "./utils";
 
 export interface BookingsProps {
   bookings: NormalizedBooking[];
@@ -19,27 +26,13 @@ const Cancelled = ({ bookings }: BookingsProps) => {
         : item.type === "transfer"
           ? carImage
           : flightImage);
-    const name = item.name || "Unknown Booking";
-    let dateStr = "";
+    const name = getBookingName(item, "Unknown Booking");
+    const dateStr = getBookingDateText(item);
+    const amount = getBookingAmount(item);
+    const currency = getBookingCurrency(item, "USD");
+    const formattedAmount = formatBookingAmount(item, "USD");
 
-    if (item.type === "stay" || item.type === "flight") {
-      const start = item.date || item.originalData?.check_in;
-      const end = item.date_to || item.originalData?.check_out;
-
-      if (start && end) {
-        dateStr = `${new Date(start).toDateString()} - ${new Date(
-          end,
-        ).toDateString()}`;
-      } else if (start) {
-        dateStr = new Date(start).toDateString();
-      }
-    } else {
-      dateStr = item.date ? new Date(item.date).toDateString() : "Date N/A";
-    }
-    const amount = item.amount || 0;
-    const currency = item.currency || "USD";
-
-    return { image, name, dateStr, amount, currency };
+    return { image, name, dateStr, amount, currency, formattedAmount };
   };
 
   return (
@@ -51,24 +44,24 @@ const Cancelled = ({ bookings }: BookingsProps) => {
         />
       ) : (
         bookings.map((item) => {
-          const { image, name, dateStr, amount, currency } = getDetails(item);
+          const { image, name, dateStr, formattedAmount } = getDetails(item);
 
           return (
             <div
               key={item.id}
               className="flex justify-between lg:max-w-3xl w-full items-start gap-2 border-[1px] border-neutral-300 p-4 rounded-xl mb-4 hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => {
-                item.type === "stay"
-                  ? navigate(
-                      `/bookings/stays-details/?session_id=${item.session_id}`,
-                    )
-                  : item.type === "transfer"
-                    ? navigate(
-                        `/bookings/transfers-details/?session_id=${item.session_id}`,
-                      )
-                    : navigate(
-                        `bookings/flight-details/?session_id=${item.session_id}`,
-                      );
+                if (item.type === "stay") {
+                  navigate(
+                    `/bookings/stays-details/?booking_reference=${encodeURIComponent(item.reference)}&session_id=${encodeURIComponent(item.session_id)}`,
+                  );
+                } else if (item.type === "transfer") {
+                  navigate(
+                    `/bookings/transfers-details/?session_id=${encodeURIComponent(item.session_id)}&booking_reference=${encodeURIComponent(item.reference)}`,
+                  );
+                } else {
+                  navigate(`/bookings/flight-details/?session_id=${item.session_id}`);
+                }
               }}
             >
               <div className="flex justify-normal items-start gap-3">
@@ -84,10 +77,7 @@ const Cancelled = ({ bookings }: BookingsProps) => {
                   <h3 className="text-lg font-bold text-gray-700">{name}</h3>
                   <p className="text-[#4E4F52] text-sm">{dateStr}</p>
                   <p className="text-[#4E4F52] text-sm font-medium">
-                    {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: currency,
-                    }).format(amount)}
+                    {formattedAmount}
                   </p>
                 </div>
               </div>

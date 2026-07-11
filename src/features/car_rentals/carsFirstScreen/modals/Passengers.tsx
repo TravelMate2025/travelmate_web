@@ -83,12 +83,12 @@ const Passengers = ({
                       ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer"
                   }`}
-                  onClick={() => handleChange(type as any, false)}
+                  onClick={() => handleChange(type as "adults" | "children" | "infant", false)}
                 />
                 <p>{localPassengers[type as keyof typeof localPassengers]}</p>
                 <Plus
                   className="w-4 h-4 cursor-pointer"
-                  onClick={() => handleChange(type as any, true)}
+                  onClick={() => handleChange(type as "adults" | "children" | "infant", true)}
                 />
               </div>
             </div>

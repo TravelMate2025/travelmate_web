@@ -12,6 +12,19 @@ interface DeleteAccountModalProps {
   onClose: () => void;
 }
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error && typeof error === "object" && "response" in error) {
+    const response = (error as { response?: { data?: { Message?: string; message?: string } } }).response;
+    return response?.data?.Message || response?.data?.message || fallback;
+  }
+
+  if (error instanceof Error) {
+    return error.message || fallback;
+  }
+
+  return fallback;
+};
+
 const REASONS = [
   "Found another app",
   "Too many notifications",
@@ -60,9 +73,8 @@ export default function DeleteAccountModal({ isOpen, onClose }: DeleteAccountMod
       localStorage.removeItem("verify_email");
 
       navigate("/create-account");
-    } catch (err: any) {
-      const backendMessage = err?.response?.data?.Message || err?.response?.data?.message;
-      setError(backendMessage || "Failed to delete account. Please try again.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to delete account. Please try again."));
     } finally {
       setLoading(false);
     }

@@ -29,10 +29,10 @@ interface LocationSelectorProps {
   defaultValue?: Airport;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isOpen: boolean;
-  onRemoveLocation: (location: string) => void;
+  onRemoveLocation?: (location: string) => void;
   onSelect?: (location: Airport) => void;
-  anchorEl: HTMLDivElement | null;
-  setAnchorEl: (el: any) => HTMLDivElement | null;
+  anchorEl: HTMLElement | null;
+  setAnchorEl: React.Dispatch<React.SetStateAction<HTMLElement | null>>;
 }
 
 export const LocationSelector = memo<LocationSelectorProps>(
@@ -153,7 +153,7 @@ export const LocationSelector = memo<LocationSelectorProps>(
             <CloseOutlinedIcon
               onClick={(e) => {
                 e.stopPropagation();
-                onRemoveLocation(location.id as string);
+        onRemoveLocation?.(location.id as string);
               }}
               sx={{ cursor: "pointer", color: "black" }}
             />

@@ -8,108 +8,261 @@ import Card from "@mui/material/Card";
 
 import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatReclineNormal";
 import { Stack, Pagination } from "@mui/material";
-import "react-date-range/dist/styles.css";
-import "react-date-range/dist/theme/default.css";
 import LuggageOutlinedIcon from "@mui/icons-material/LuggageOutlined";
 import { useNavigate } from "react-router-dom";
-import { Clock, Edit3Icon } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { Edit3Icon, MapPin } from "lucide-react";
 import { MdOutlineSort } from "react-icons/md";
 import SortOverlay from "./SortOverlay";
 import { IoIosCheckmarkCircleOutline } from "react-icons/io";
-import { BookingFormData } from "../types/booking";
+import { BookingFormData, CarTransferOption } from "../types/booking";
+import { setSelectedTransfer } from "../carPaymentSlice";
+import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 
 export interface CarListProps {
   departureInfo: BookingFormData;
-  searchResults: any;
+  searchResults: CarTransferOption[];
   loading: boolean;
   OpenForm: () => void;
-  rate_key: string;
 }
+
+const ITEMS_PER_PAGE = 8;
+
+const getCurrencySymbol = (currency?: string) => {
+  if (currency === "NGN") return "₦";
+  if (currency === "USD") return "$";
+  if (currency === "GBP") return "£";
+  if (currency === "EUR") return "€";
+  return currency ? `${currency} ` : "₦";
+};
+
+const getPrice = (car: CarTransferOption) =>
+  car.price?.totalAmount ?? car.base_fare ?? 0;
+
+const getImage = (car: CarTransferOption) =>
+  car.content?.images?.[0]?.secureUrl ||
+  car.content?.images?.[0]?.url ||
+  "";
+
+const getFreeCancellationPolicy = (car: CarTransferOption) =>
+  car.cancellationPolicies?.find((p) => p.optionId === "FREE_CANCELLATION");
+
 const CarList: React.FC<CarListProps> = ({
   departureInfo,
   searchResults,
   OpenForm,
-  rate_key,
   loading,
 }) => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const cars = searchResults || [];
+  const cars = useMemo(() => searchResults || [], [searchResults]);
 
   const [page, setPage] = useState<number>(1);
   const [showSortModal, setShowSortModal] = useState(false);
   const [sortOrder, setSortOrder] = useState<
     "Recommended" | "Low to High" | "High to Low"
   >("Recommended");
-  console.log(departureInfo);
 
   const sortedCars = useMemo(() => {
-    if (sortOrder === "Low to High") {
-      return [...cars]?.sort(
-        (a, b) =>
-          (a.cancellationPolicies[0]?.amount ?? 0) -
-          (b.cancellationPolicies[0]?.amount ?? 0)
-      );
-    }
-    if (sortOrder === "High to Low") {
-      return [...cars]?.sort(
-        (a, b) =>
-          (b.cancellationPolicies[0]?.amount ?? 0) -
-          (a.cancellationPolicies[0]?.amount ?? 0)
-      );
-    }
-    return cars; // recommended or default order
+    const items = [...cars];
+    if (sortOrder === "Low to High") return items.sort((a, b) => getPrice(a) - getPrice(b));
+    if (sortOrder === "High to Low") return items.sort((a, b) => getPrice(b) - getPrice(a));
+    return cars;
   }, [cars, sortOrder]);
 
-  const ITEMS_PER_PAGE = 8;
   const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
-  const paginatedItems = useMemo(() => {
-    return sortedCars?.slice(
-      (page - 1) * ITEMS_PER_PAGE,
-      page * ITEMS_PER_PAGE
-    );
-  }, [sortedCars, page]);
 
-  const handleSubmitOffer = (car: any) => {
-    navigate(
-      `/cars-booking?transfers=${car.vehicle.name}&from=${car?.pickupInformation.from.description}&to=${car?.pickupInformation.to.description}&price=${car?.cancellationPolicies[0]?.amount}`,
-      {
-        state: {
-          car,
-          search_id: departureInfo.search_id,
-          rate_key,
-          departureInfo,
-          // confirmationId: departureInfo.confirmationId,
-        },
-      }
+  const paginatedItems = useMemo(
+    () => sortedCars.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE),
+    [sortedCars, page]
+  );
+
+  const handleSubmitOffer = (car: CarTransferOption) => {
+    dispatch(setSelectedTransfer(car));
+    navigate(`${bookingFlowRoutes.transferDetail}/${car.id}`, {
+      state: { car, departureInfo },
+    });
+  };
+
+  const TransferCard = ({ car }: { car: CarTransferOption }) => {
+    const freeCancellation = getFreeCancellationPolicy(car);
+    const currencySymbol = getCurrencySymbol(car.currency || car.price?.currencyId);
+    const price = getPrice(car);
+    const image = getImage(car);
+
+    return (
+      <Card className="w-full cursor-pointer overflow-hidden">
+        {/* Image + title */}
+        <div className="flex items-center gap-3 p-4 border-b border-gray-100">
+          <img
+            src={image || "/assets/carImage.png"}
+            alt={car.name || "Transfer"}
+            className="w-24 h-20 object-cover bg-[#0000001A] rounded-lg flex-shrink-0"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "/assets/carImage.png";
+            }}
+          />
+          <div className="flex flex-col gap-1 min-w-0">
+            <p className="text-[#181818] text-[15px] font-semibold leading-tight">
+              {car.name || car.vehicle.name}
+            </p>
+            <p className="text-xs text-[#67696D] capitalize">
+              {car.vehicle.name || car.vehicle.code?.replace(/_/g, " ")}
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 flex flex-col gap-3">
+          {/* Route */}
+          <div className="flex items-start gap-2 text-sm text-[#181818]">
+            <MapPin size={16} className="text-[#023E8A] mt-0.5 flex-shrink-0" />
+            <span className="leading-tight">
+              <span className="font-medium">{car.pickupInformation?.from?.description || departureInfo.pickupLocaDescription}</span>
+              {" → "}
+              <span className="font-medium">{car.pickupInformation?.to?.description || departureInfo.dropoffLocaDescription || departureInfo.dropoffLocation}</span>
+            </span>
+          </div>
+
+          {/* Capacity row */}
+          <div className="flex items-center gap-4 text-sm text-[#67696D]">
+            <div className="flex items-center gap-1">
+              <AirlineSeatReclineNormalIcon fontSize="small" />
+              <span>{car.passenger_capacity ?? car.maxPaxCapacity ?? "—"} Seats</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <LuggageOutlinedIcon fontSize="small" />
+              <span>{car.luggage_capacity ?? "—"} Luggage</span>
+            </div>
+          </div>
+
+          {/* Features */}
+          {car.features && car.features.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {car.features.slice(0, 4).map((feature, i) => (
+                <span
+                  key={i}
+                  className="text-xs bg-[#F0F4FF] text-[#023E8A] px-2 py-0.5 rounded-full"
+                >
+                  {feature}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Cancellation */}
+          {freeCancellation ? (
+            <div className="flex items-center gap-1">
+              <IoIosCheckmarkCircleOutline fill="#2D9C5E" fontSize={18} />
+              <p className="text-[#2D9C5E] text-xs">
+                {freeCancellation.policyCopy ||
+                  `Free cancellation up to ${freeCancellation.cancelDeadlineHoursBeforeCheckIn ?? 24} hours before pickup`}
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              <IoIosCheckmarkCircleOutline fill="#888" fontSize={18} />
+              <p className="text-xs text-[#67696D]">Non-refundable</p>
+            </div>
+          )}
+
+          {/* Price + CTA */}
+          <div className="flex justify-between items-center mt-1">
+            <div>
+              <p className="text-xs text-[#67696D]">From</p>
+              <p className="text-[16px] font-bold text-[#181818]">
+                {currencySymbol}{price.toLocaleString()}
+              </p>
+            </div>
+            <button
+              onClick={() => handleSubmitOffer(car)}
+              className="bg-[#023E8A] text-white text-sm text-center rounded-md cursor-pointer px-5 py-2.5"
+            >
+              Select
+            </button>
+          </div>
+        </div>
+      </Card>
     );
   };
 
+  const SortControl = ({ mobile }: { mobile: boolean }) =>
+    mobile ? (
+      <div
+        className="flex items-center gap-1 border border-[#023E8A] py-1 px-4 rounded-lg cursor-pointer"
+        onClick={() => setShowSortModal(true)}
+      >
+        <MdOutlineSort />
+        <p>Sort</p>
+      </div>
+    ) : (
+      <div
+        className="relative flex items-center gap-1 border border-gray-300 py-1 px-4 rounded-lg cursor-pointer"
+        onClick={() => setShowSortModal(!showSortModal)}
+      >
+        <MdOutlineSort />
+        <p>
+          Sort by: <span className="font-medium">{sortOrder}</span>
+        </p>
+        {showSortModal && (
+          <div className="absolute px-2 top-10 left-0 bg-white shadow-lg flex flex-col items-start w-48 py-2 z-10">
+            {(["Recommended", "Low to High", "High to Low"] as const).map((opt) => (
+              <p
+                key={opt}
+                className="hover:bg-gray-100 cursor-pointer p-2 w-full rounded-md text-sm"
+                onClick={() => {
+                  setSortOrder(opt);
+                  setShowSortModal(false);
+                }}
+              >
+                {opt === "Recommended" ? "Recommended" : `Price: ${opt}`}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+
+  const EmptyMessage = () => (
+    <div className="col-span-2 flex items-center justify-center h-64">
+      <p className="text-gray-500 font-bold text-lg">No transfers available</p>
+    </div>
+  );
+
+  const PaginationBar = () => (
+    <div className="col-span-2 mt-8 pb-12">
+      <Stack spacing={2}>
+        <Pagination
+          count={Math.ceil(cars.length / ITEMS_PER_PAGE)}
+          shape="rounded"
+          page={page}
+          onChange={handleChange}
+          sx={{ display: "flex", justifyContent: "center" }}
+        />
+      </Stack>
+    </div>
+  );
+
   return (
     <div>
-      {loading && <div>Loaidng</div>}
+      {loading && <div className="text-center py-4 text-gray-500">Loading...</div>}
+
+      {/* Mobile summary bar */}
       <div className="mb-4 px-6 py-4 border-[#023E8A] rounded-md lg:mt-20 border flex justify-between items-start lg:hidden mt-20 mx-4">
         <div>
           <p>
-            {departureInfo.pickupLocaDescription} to{" "}
-            {departureInfo.dropoffLocation}
+            {departureInfo.pickupLocaDescription} → {departureInfo.dropoffLocaDescription || departureInfo.dropoffLocation}
           </p>
-          <div className="flex text-xs text-[#67696D] gap-3 items-center">
-            <p>
-              {departureInfo.pickupDate}, {departureInfo.pickupTime}
-            </p>
-            <p>
-              ₦{departureInfo.priceRange.min} - ₦{departureInfo.priceRange.max}
-            </p>
-            <br />
-            {/* <p>{formatPassengerCount(passengerCounts)}</p> */}
+          <div className="flex text-xs text-[#67696D] gap-3 items-center mt-1">
+            <p>{departureInfo.pickupDate}, {departureInfo.pickupTime}</p>
           </div>
         </div>
-        <Edit3Icon onClick={OpenForm} />
+        <Edit3Icon onClick={OpenForm} className="cursor-pointer" />
       </div>
+
       {isMobile ? (
         <div>
           {showSortModal && (
@@ -120,298 +273,33 @@ const CarList: React.FC<CarListProps> = ({
             />
           )}
           <div className="flex justify-between py-6 px-6">
-            <p>{cars.length} Results</p>
-            <div
-              className="flex items-center gap-1 justify-normal border-1 border-[#023E8A] py-1 px-4 rounded-lg"
-              onClick={() => setShowSortModal(true)}
-            >
-              <MdOutlineSort />
-              <p>Sort</p>
-            </div>
+            <p>{cars.length} Result{cars.length !== 1 ? "s" : ""}</p>
+            <SortControl mobile />
           </div>
-
-          <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 ">
-            {paginatedItems.length > 0 ? (
-              paginatedItems.map((car: any) => (
-                <Card
-                  key={car?.id}
-                  className="p-[20px] w-[100%] cursor-pointer"
-                >
-                  {/* <div className="flex flex-col sm:flex-row gap-[10px]"> */}
-                  <div className="flex justify-normal items-center  gap-3 pb-4">
-                    <img
-                      src={
-                        car?.content?.images[0]?.url || `../assets/carImage.png`
-                      }
-                      alt=""
-                      className="w-28 h-24 object-contain bg-[#0000001A] rounded-lg"
-                    />
-                    <p className="mt-[10px] text-[#181818] text-[16px]">
-                      {car?.vehicle.code} {car?.vehicle.name}
-                    </p>
-                  </div>
-                  {/* {car?.content?.transferDetailInfo.map((item: any) => ( */}
-                  <div className="flex flex-col  gap-[3px] mb-[10px] mt-[10px]">
-                    <div className="text-[14px]">
-                      <AirlineSeatReclineNormalIcon />
-                      <span>
-                        {car?.content?.transferDetailInfo[2]?.value ||
-                          car?.content?.transferDetailInfo[2]?.description.slice(
-                            0,
-                            2
-                          )}
-                        {car?.content?.transferDetailInfo[2]?.description &&
-                          `Seats`}
-                      </span>
-                    </div>
-
-                    <div className="text-[14px]">
-                      <LuggageOutlinedIcon />
-                      <span>
-                        {car?.content?.transferDetailInfo[3]?.value}{" "}
-                        {car?.content?.transferDetailInfo[3]?.description}
-                      </span>
-                    </div>
-                  </div>
-                  {/* ))} */}
-
-                  {/* {car?.content?.transferDetailInfo.map((item:any) => ( */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-2 items-center">
-                      <i className="">
-                        <Clock />
-                      </i>
-                      <p className="text-xs">
-                        {car?.content?.transferDetailInfo[0]?.value}{" "}
-                        {car?.content?.transferDetailInfo[0]?.description}
-                      </p>
-                    </div>
-                    <div className="flex gap-[2px] items-center">
-                      <IoIosCheckmarkCircleOutline
-                        fill="#2D9C5E"
-                        fontSize={25}
-                      />
-                      <p className="text-[#2D9C5E] text-xs">
-                        Cancellation allowed 24 hours before pick up
-                      </p>
-                    </div>
-
-                    <div className="flex gap-[2px] items-center">
-                      <IoIosCheckmarkCircleOutline
-                        fill="#2D9C5E"
-                        fontSize={25}
-                      />
-                      <p className="text-[#2D9C5E] text-xs">
-                        Full refund if cancelled 24 hours before pick up
-                      </p>
-                    </div>
-                  </div>
-                  {/* // ))} */}
-                  <div className="flex justify-between mt-[12px]">
-                    <div>
-                      <p className="text-[13px]">Price</p>
-                      <p className="text-[14px] font-bold">
-                        €{car?.cancellationPolicies[0]?.amount}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => handleSubmitOffer(car)}
-                      className="bg-[#023E8A] text-white text-center rounded-md cursor-pointer px-4 py-3"
-                    >
-                      Select Car
-                    </button>
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-gray-500 font-bold text-lg">Not Available</p>
-              </div>
-            )}
-
-            <Stack spacing={2} className="mt-20 pb-[80px]">
-              <Pagination
-                count={Math.ceil(ITEMS_PER_PAGE)}
-                shape="rounded"
-                page={page}
-                onChange={handleChange}
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textAlign: "center",
-                }}
-              />
-            </Stack>
+          <div className="w-[90%] m-auto grid grid-cols-1 gap-4">
+            {paginatedItems.length > 0
+              ? paginatedItems.map((car) => <TransferCard key={car?.id} car={car} />)
+              : <EmptyMessage />}
+            <PaginationBar />
           </div>
         </div>
       ) : (
-        // web view
-
         <div className="bg-white w-full h-full">
-          <div className="w-[90%] m-auto ">
-            <div className="pt-[18.5px] mb-[18.5px]">
-              <Breadcrumb />
-            </div>
+          <div className="w-[90%] m-auto pt-[18.5px] mb-[18.5px]">
+            <Breadcrumb />
           </div>
           <Divider />
-
-          <div className="w-[90%] m-auto ">
+          <div className="w-[90%] m-auto">
             <div className="flex justify-between mt-[40px] mb-[25px]">
-              <p>{cars.length} Results</p>
-              <div
-                className="relative flex items-center gap-1 justify-normal border-1 border-gray-300 py-1 px-4 rounded-lg cursor-pointer "
-                onClick={() => setShowSortModal(!showSortModal)}
-              >
-                <MdOutlineSort />
-                <p className="cursor-pointer">
-                  Sort by: <span>{sortOrder}</span>
-                </p>
-                {showSortModal && (
-                  <div className="absolute px-2 top-10 left-0 bg-white shadow-lg flex flex-col justify-normal items-start w-full py-2">
-                    <p
-                      className="hover:bg-gray-100 cursor-pointer p-2 w-full rounded-md"
-                      onClick={() => {
-                        setSortOrder("Recommended");
-                        setShowSortModal(false);
-                      }}
-                    >
-                      Recommended
-                    </p>
-                    <p
-                      className="hover:bg-gray-100 cursor-pointer p-2 w-full rounded-md"
-                      onClick={() => {
-                        setSortOrder("Low to High");
-                        setShowSortModal(false);
-                      }}
-                    >
-                      Price: Low to High
-                    </p>
-                    <p
-                      className="hover:bg-gray-100 cursor-pointer p-2 w-full rounded-md"
-                      onClick={() => {
-                        setSortOrder("High to Low");
-                        setShowSortModal(false);
-                      }}
-                    >
-                      Price: High to Low
-                    </p>
-                  </div>
-                )}
-              </div>
+              <p>{cars.length} Result{cars.length !== 1 ? "s" : ""}</p>
+              <SortControl mobile={false} />
             </div>
           </div>
-
-          <div className="w-[90%] m-auto grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4 pb-20">
-            {paginatedItems.length > 0 ? (
-              paginatedItems.map((car: any) => (
-                <Card
-                  key={car?.id}
-                  className="p-[20px] w-[100%] cursor-pointer "
-                >
-                  <div className="flex justify-normal items-center  gap-3 pb-4">
-                    <img
-                      src={
-                        car?.content?.images[0]?.url || `../assets/carImage.png`
-                      }
-                      alt=""
-                      className="w-28 h-24 object-contain bg-[#0000001A] rounded-lg"
-                    />
-                    <p className="mt-[10px] text-[#181818] text-[16px]">
-                      {car?.vehicle.code} {car?.vehicle.name}
-                    </p>
-                  </div>
-                  <div className="flex  gap-[3px] mb-[10px] mt-[10px]">
-                    <div className="text-[14px]">
-                      <AirlineSeatReclineNormalIcon />
-                      <span>
-                        {car?.content?.transferDetailInfo[2]?.value ||
-                          car?.content?.transferDetailInfo[2]?.description.slice(
-                            0,
-                            2
-                          )}
-                        {car?.content?.transferDetailInfo[2]?.description &&
-                          `Seats`}
-                      </span>
-                    </div>
-
-                    <div className="text-[14px]">
-                      <LuggageOutlinedIcon />
-                      <span>
-                        {car?.content?.transferDetailInfo[3]?.value}{" "}
-                        {car?.content?.transferDetailInfo[3]?.description}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-2 items-center">
-                      <i className="">
-                        <Clock />
-                      </i>
-                      <p className="">
-                        {car?.content?.transferDetailInfo[0]?.value}{" "}
-                        {car?.content?.transferDetailInfo[0]?.description}
-                      </p>
-                    </div>
-                    <div className="flex gap-[2px] items-center">
-                      <IoIosCheckmarkCircleOutline
-                        fill="#2D9C5E"
-                        fontSize={25}
-                      />
-                      <p className="text-[#2D9C5E] text-sm">
-                        Cancellation allowed 24 hours before pick up
-                      </p>
-                    </div>
-
-                    <div className="flex gap-[2px] items-center">
-                      <IoIosCheckmarkCircleOutline
-                        fill="#2D9C5E"
-                        fontSize={25}
-                      />
-                      <p className="text-[#2D9C5E] text-sm">
-                        Full refund if cancelled 24 hours before pick up
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex justify-between mt-[12px]">
-                    <div>
-                      <p className="text-[13px]">Price</p>
-                      <p className="text-[14px] font-bold">
-                        €{car?.cancellationPolicies[0]?.amount}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => handleSubmitOffer(car)}
-                      className="bg-[#023E8A] text-white text-center rounded-md cursor-pointer px-4 py-3"
-                    >
-                      Select car
-                    </button>
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-gray-500 font-bold text-lg">Not Available</p>
-              </div>
-            )}
-
-            <Stack spacing={2} className="mt-20 pb-[80px]">
-              <Pagination
-                count={Math.ceil(ITEMS_PER_PAGE)}
-                shape="rounded"
-                page={page}
-                onChange={handleChange}
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textAlign: "center",
-                }}
-              />
-            </Stack>
+          <div className="w-[90%] m-auto grid grid-cols-1 lg:grid-cols-2 gap-4 pb-20">
+            {paginatedItems.length > 0
+              ? paginatedItems.map((car) => <TransferCard key={car?.id} car={car} />)
+              : <EmptyMessage />}
+            <PaginationBar />
           </div>
         </div>
       )}

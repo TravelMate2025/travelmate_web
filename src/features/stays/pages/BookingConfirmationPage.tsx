@@ -1,69 +1,127 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Navbar from "../../../pages/homePage/Navbar";
-import { FaShareAlt, FaDownload } from "react-icons/fa";
-import { GrStatusGood } from "react-icons/gr";
-import ConfirmationDetails from "../components/confirmation/ConfirmationDetails";
-import GuestDetails from "../components/confirmation/GuestDetails";
-import PriceSummary from "../components/confirmation/PriceSummary";
-import HotelDetails from "../components/confirmation/HotelDetails";
-import RoomDetails from "../components/confirmation/RoomDetails";
-import BackHomeButton from "../components/confirmation/BackHomeButton";
-import ContactDetails from "../components/confirmation/ContactDetails";
 import Footer from "../../../components/2Footer";
+import { FaDownload, FaShareAlt } from "react-icons/fa";
+import { GrStatusGood } from "react-icons/gr";
+import { Loader } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 import ShareModal from "../components/modals/ShareModal";
+import BackHomeButton from "../components/confirmation/BackHomeButton";
 import SkeletonConfirm from "../../car_rentals/carPaidFor/Skeleton";
 import CarFailedPayment from "../../car_rentals/carPaidFor/CarFailedPayment";
-import { toast } from "react-toastify";
-import { useLocation } from "react-router-dom";
 import { verifyHotelBooking } from "../api";
 import { BookingDetailsVerifyData } from "../types";
-import { Loader } from "lucide-react";
-// import { BookingStaysVerifyDetails } from "../types";
+import { bookingConfirmationLabel } from "../../shared/booking/bookingFlowLabels";
+import {
+  getBookingLifecycleLabel,
+  getBookingLifecycleStatus,
+} from "../../shared/bookingStatus";
+
+const formatDate = (value?: string) => {
+  if (!value) return "N/A";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toDateString();
+};
+
+const formatSyncTimestamp = (value?: string | null) => {
+  if (!value) return "";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
+};
 
 const BookingConfirmationPage: React.FC = () => {
-  const [showShareModal, setShowShareModal] = useState(false);
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [booking, setBooking] = useState<BookingDetailsVerifyData>();
-  const searchParams = new URLSearchParams(location.search);
-  const sessionId = searchParams?.get("session_id");
+  const [showShareModal, setShowShareModal] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
 
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const normalizePaymentIntentReference = (value: string | null) => {
+    if (!value) return null;
+    if (value.startsWith("tm_pi_")) return value.replace(/^tm_/, "");
+    return value;
+  };
+  const sessionId = useMemo(() => {
+    const stored = sessionStorage.getItem("stay_payment_intent_id");
+    if (stored) {
+      sessionStorage.removeItem("stay_payment_intent_id");
+      return stored;
+    }
+    return (
+      searchParams.get("payment_intent_id") ??
+      searchParams.get("session_id") ??
+      normalizePaymentIntentReference(searchParams.get("tx_ref")) ??
+      normalizePaymentIntentReference(searchParams.get("transaction_id")) ??
+      searchParams.get("booking_reference")
+    );
+  }, [searchParams]);
+
+  const paymentStatus = (searchParams.get("status") ?? "").toLowerCase();
+  const isSuccess =
+    paymentStatus === "successful" ||
+    paymentStatus === "success" ||
+    searchParams.has("success") ||
+    location.pathname.includes("success");
+  const normalizedPaymentStatus = (
+    booking?.payment_state ?? booking?.payment_status ?? paymentStatus ?? ""
+  ).toLowerCase();
+  const isSuccessfulPayment =
+    isSuccess ||
+    normalizedPaymentStatus === "succeeded" ||
+    normalizedPaymentStatus === "confirmed";
+  const isPendingPayment =
+    normalizedPaymentStatus === "pending" ||
+    normalizedPaymentStatus === "processing" ||
+    normalizedPaymentStatus === "requires_action";
+  const isFailedPayment =
+    normalizedPaymentStatus === "failed" ||
+    normalizedPaymentStatus === "expired" ||
+    normalizedPaymentStatus === "canceled" ||
+    normalizedPaymentStatus === "cancelled";
+
   useEffect(() => {
+    let cancelled = false;
+    const delay = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
     const fetchBooking = async () => {
-      const isSuccess =
-        searchParams.has("success") || location.pathname.includes("success");
+      if (!sessionId) return;
+
       try {
         setLoading(true);
-        if (isSuccess) {
+        for (let attempt = 0; attempt < 5 && !cancelled; attempt += 1) {
           const res = await verifyHotelBooking(sessionId);
-          setBooking(res?.data || null);
-        } else {
-          return <CarFailedPayment />;
+          if (!cancelled && res?.success && res.data) {
+            setBooking(res.data);
+            return;
+          }
+          if (attempt < 4 && !cancelled) {
+            await delay(1500);
+          }
         }
       } catch (error) {
         console.error("Error fetching booking:", error);
-        return <CarFailedPayment/>
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    if (sessionId) fetchBooking();
+    void fetchBooking();
+    return () => {
+      cancelled = true;
+    };
   }, [sessionId]);
 
-  if (loading) return <SkeletonConfirm />;
-  if (!booking) return <CarFailedPayment/>;
-
-  const handleDownload = (cars: any) => {
+  const handleDownload = (bookingData: BookingDetailsVerifyData) => {
     try {
       setDownloadLoading(true);
       window.open(
-        `/stays-paid/download?data=${encodeURIComponent(JSON.stringify(cars))}`,
-        "_blank"
+        `/stays-paid/download?data=${encodeURIComponent(JSON.stringify(bookingData))}`,
+        "_blank",
       );
-    } catch (error) {
-      toast.error("Failed to download, try again ");
+    } catch {
+      toast.error("Failed to download, try again");
     } finally {
       setDownloadLoading(false);
     }
@@ -71,92 +129,344 @@ const BookingConfirmationPage: React.FC = () => {
 
   const getStatusColor = (status: string | undefined) => {
     switch (status?.toLowerCase()) {
+      case "completed":
       case "succeeded":
+      case "confirmed":
         return "text-[#2D9C5E]";
       case "pending":
         return "text-[#F2994A]";
       case "failed":
+      case "payment_failed":
         return "text-[#EB5757]";
       default:
         return "text-[#4E4F52]";
     }
   };
 
+  const confirmation = booking ?? ({} as BookingDetailsVerifyData);
+  const bookingSnapshot = (confirmation.bookingSnapshot ?? confirmation.booking_snapshot ?? {}) as Record<string, unknown>;
+  const hotelLocation = confirmation.hotelLocation ?? confirmation.hotel_location;
+  const guestDetails = confirmation.guestDetails ?? confirmation.guest_details;
+  const paymentLabel = confirmation.payment_state ?? confirmation.payment_status ?? "N/A";
+  const bookingReference = String(
+    confirmation.bookingReference ??
+      confirmation.booking_reference ??
+      confirmation.reference ??
+      "N/A",
+  );
+  const hotelName = String(
+    confirmation.hotelName ?? confirmation.hotel_name ?? (bookingSnapshot.hotelName as string | undefined) ?? "N/A",
+  );
+  const checkIn = confirmation.checkIn ?? confirmation.check_in ?? (bookingSnapshot.checkIn as string | undefined);
+  const checkOut = confirmation.checkOut ?? confirmation.check_out ?? (bookingSnapshot.checkOut as string | undefined);
+  const bookingState = getBookingLifecycleStatus(
+    confirmation.status ?? confirmation.booking_status,
+    checkOut,
+  );
+  const bookingStateLabel = getBookingLifecycleLabel(
+    confirmation.status ?? confirmation.booking_status,
+    checkOut,
+  );
+  const totalPrice =
+    confirmation.totalPrice ??
+    confirmation.total_price ??
+    confirmation.total_amount ??
+    (bookingSnapshot.totalPrice as string | undefined) ??
+    (bookingSnapshot.total_price as string | undefined) ??
+    (bookingSnapshot.totalAmount as string | undefined) ??
+    (bookingSnapshot.total_amount as string | undefined);
+  const currency = confirmation.currency ?? (bookingSnapshot.currency as string | undefined) ?? "";
+  const shareLink = typeof window !== "undefined" ? window.location.href : "";
+  const supportEmail =
+    (guestDetails?.primary_guest?.email as string | undefined) ??
+    (confirmation.user?.email as string | undefined) ??
+    "your email";
+  const primaryGuest = guestDetails?.primary_guest;
+  const syncStatus = (confirmation.sync_status ?? confirmation.syncStatus ?? "").toString().toLowerCase();
+  const syncError = (confirmation.sync_error ?? confirmation.syncError ?? "").toString().trim();
+  const lastSyncedAt = formatSyncTimestamp(
+    (confirmation.last_synced_at ?? confirmation.lastSyncedAt) as string | null | undefined,
+  );
+  if (loading) return <SkeletonConfirm />;
+
+  if (isPendingPayment) {
+    return (
+      <div>
+        <Navbar />
+        <div className="lg:pt-24 pt-20">
+          <main className="mx-auto max-w-3xl px-6 py-16 text-center">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF4D6] text-[#F2994A]">
+              <Loader className="h-8 w-8 animate-spin" />
+            </div>
+            <h1 className="text-2xl font-semibold text-[#181818]">Payment pending</h1>
+            <p className="mt-3 text-[#4E4F52]">
+              We’re still waiting for the payment provider to confirm this stay booking.
+            </p>
+            {(sessionId || searchParams.get("transaction_id")) && (
+              <p className="mt-4 text-sm text-[#4E4F52]">
+                Reference: {sessionId || searchParams.get("transaction_id")}
+              </p>
+            )}
+            <div className="mt-8">
+              <a href="/" className="rounded-lg bg-[#023E8A] px-5 py-3 text-white">
+                Back to home
+              </a>
+            </div>
+          </main>
+        </div>
+        <div className="mt-24">
+          <Footer />
+        </div>
+      </div>
+    );
+  }
+
+  if (isFailedPayment && !booking) return <CarFailedPayment />;
+  if (!isSuccessfulPayment && !booking) return <CarFailedPayment />;
+
+  if (!booking) {
+    return (
+      <div>
+        <Navbar />
+        <div className="lg:pt-24 pt-20">
+          <main className="mx-auto max-w-3xl px-6 py-16 text-center">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#D5EBDF] text-[#2D9C5E]">
+              <GrStatusGood size={34} />
+            </div>
+            <h1 className="text-2xl font-semibold text-[#181818]">Payment successful</h1>
+            <p className="mt-3 text-[#4E4F52]">
+              Your stay payment completed successfully. We’re still loading the booking details.
+            </p>
+            {(sessionId || searchParams.get("transaction_id")) && (
+              <p className="mt-4 text-sm text-[#4E4F52]">
+                Reference: {sessionId || searchParams.get("transaction_id")}
+              </p>
+            )}
+            <div className="mt-8">
+              <a href="/" className="rounded-lg bg-[#023E8A] px-5 py-3 text-white">
+                Back to home
+              </a>
+            </div>
+          </main>
+        </div>
+        <div className="mt-24">
+          <Footer />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <Navbar />
-      <div className="w-[93%] mx-auto mt-26 px-4">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-          <h1 className="text-2xl sm:text-3xl font-bold">
-            Booking Confirmation
-          </h1>
-          <div className="flex gap-3 flex-wrap">
-            <button
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg"
+      <div className="lg:pt-32 pt-20">
+        {showShareModal && <ShareModal onClose={() => setShowShareModal(false)} shareLink={shareLink} />}
+
+        <div className="lg:hidden px-6 lg:px-8 py-6 m-auto flex justify-between">
+          <p className="text-[20px] font-semibold font-inter">{bookingConfirmationLabel()}</p>
+          <div className="flex items-center gap-3">
+            <div
+              className="w-[35px] h-[35px] p-[4px] bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px]"
               onClick={() => setShowShareModal(true)}
             >
-              <FaShareAlt size={18} />
-              Share
-            </button>
-            <button
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg"
+              <FaShareAlt className="text-[#023E8A]" />
+            </div>
+            <div
+              className="w-[35px] h-[35px] p-[4px] bg-white border-[0.5px] border-[#EBECED] shadow-md rounded-[4px]"
               onClick={() => handleDownload(booking)}
             >
-              {downloadLoading ? (
-                <Loader className="animate-spiner" />
-              ) : (
-                <FaDownload size={18} />
-              )}
-              Download
-            </button>
+              {downloadLoading ? <Loader className="animate-spin" /> : <FaDownload className="text-[#023E8A]" />}
+            </div>
           </div>
-          {showShareModal && (
-            <ShareModal
-              onClose={() => setShowShareModal(false)}
-              shareLink={""}
-            />
-          )}
         </div>
 
-        {/* Notification */}
-        {booking?.payment_status === "succeeded" && (
-          <div className="bg-green-50 border border-green-600 px-4 py-2 mb-6 rounded-lg flex sm:flex-row items-start sm:items-center gap-3">
-            <div className="pt-1 sm:pt-0 flex justify-center sm:justify-start items-center">
-              <GrStatusGood size={24} className="text-green-600 mt-5 sm:mt-0" />
+        <div className="hidden px-6 lg:px-8 py-6 m-auto lg:flex justify-between">
+          <p className="text-[20px] font-semibold font-inter">{bookingConfirmationLabel()}</p>
+          <div className="flex items-center justify-end gap-4">
+            <div
+              onClick={() => setShowShareModal(true)}
+              className="flex items-center gap-2 rounded-md border-[1px] border-[#ACAEB3] p-2 cursor-pointer"
+            >
+              <FaShareAlt />
+              <span>Share</span>
             </div>
-            <p>
-              <span className="font-semibold">Payment Successful</span> and your
-              stay is confirmed. Booking confirmation will also be sent to{" "}
-              <span className="font-semibold">
-                {booking?.guest_details?.primary_guest?.email}
-              </span>
-              .
-            </p>
+            <div
+              onClick={() => handleDownload(booking)}
+              className="flex items-center gap-2 rounded-md border-[1px] border-[#ACAEB3] p-2 cursor-pointer"
+            >
+              {downloadLoading ? <Loader className="animate-spin" /> : <FaDownload />}
+              <span>Download</span>
+            </div>
+          </div>
+        </div>
+
+        {isSuccessfulPayment && (
+          <div className="mb-8 px-6 lg:px-8 m-auto">
+            <div className="border-1 border-[#2D9C5E] w-full bg-[#D5EBDF4D] pt-[10px] pb-[10px] pr-[10px] pl-[10px] rounded-[8px]">
+              <div className="flex gap-2 items-center">
+                <div className="border-[#2D9C5E] h-[20px] w-[20px] border-2 mt-[6px] rounded-full flex justify-center">
+                  <GrStatusGood size={15} className="relative top-[-3px] text-[#2D9C5E]" />
+                </div>
+                <div className="text-[12px]">
+                  Payment successful. Your stay confirmation details will also be sent to {supportEmail}
+                </div>
+              </div>
+            </div>
           </div>
         )}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-8 sm:space-y-4">
-            <ConfirmationDetails
-              getStatusColor={getStatusColor}
-              confirmDetails={booking}
-            />
-            {booking?.guest_details?.primary_guest && (
-              <GuestDetails guest={booking.guest_details.primary_guest} />
-            )}
+
+        {(syncStatus || lastSyncedAt || syncError) && (
+          <div className="mb-8 px-6 lg:px-8 m-auto">
+            <div
+              className={`rounded-[8px] border px-4 py-3 ${
+                syncStatus === "stale"
+                  ? "border-amber-300 bg-amber-50"
+                  : "border-emerald-300 bg-emerald-50"
+              }`}
+            >
+              <p className="text-[14px] font-medium text-[#181818]">
+                {syncStatus === "stale" ? "Partner sync stale" : "Partner sync current"}
+              </p>
+              <div className="mt-1 text-[13px] text-[#4E4F52] space-y-1">
+                {lastSyncedAt && <p>Last synced: {lastSyncedAt}</p>}
+                {syncError && <p>Last sync error: {syncError}</p>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div id="pdf-content" className="lg:grid lg:grid-cols-2 lg:w-full">
+          <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-1">
+            <p className="text-[16px] font-medium text-[#181818] mb-[15px]">Payment details</p>
+            <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3]">
+              <div className="flex justify-between">
+                <p className="text-[#4E4F52] text-[14px] font-normal">Booking State</p>
+                <p className={`text-[14px] font-normal ${getStatusColor(bookingState)}`}>
+                  {bookingStateLabel}
+                </p>
+              </div>
+              <div className="flex justify-between">
+                <p className="text-[#4E4F52] text-[14px] font-normal">Payment Status</p>
+                <p className={`text-[14px] font-normal ${getStatusColor(paymentLabel)}`}>{paymentLabel}</p>
+              </div>
+              <div className="flex justify-between">
+                <p className="text-[#4E4F52] text-[14px] font-normal">Booking Reference</p>
+                <p className="text-[14px] font-normal">{bookingReference}</p>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <PriceSummary booking={booking} />
-            <RoomDetails booking={booking} />
-            <HotelDetails booking={booking} />
-            <ContactDetails />
+          <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-2">
+            <p className="text-[16px] font-medium text-[#181818] mb-[15px]">Stay summary</p>
+            <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3]">
+              <div className="flex justify-between">
+                <p className="text-[#4E4F52] text-[14px] font-normal">Property</p>
+                <p className="text-[14px] font-normal text-right">{hotelName}</p>
+              </div>
+              <div className="flex justify-between">
+                <p className="text-[#4E4F52] text-[14px] font-normal">Check-in</p>
+                <p className="text-[14px] font-normal">{formatDate(checkIn)}</p>
+              </div>
+              <div className="flex justify-between">
+                <p className="text-[#4E4F52] text-[14px] font-normal">Check-out</p>
+                <p className="text-[14px] font-normal">{formatDate(checkOut)}</p>
+              </div>
+              <div className="flex justify-between">
+                <p className="text-[#4E4F52] text-[14px] font-normal">Total</p>
+                <p className="text-[14px] font-normal">
+                  {currency} {totalPrice ?? "N/A"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-3">
+            <p className="text-[14px] font-medium text-[#181818] py-4">Guest details</p>
+            <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3]">
+              <div className="flex justify-between mb-[6px]">
+                <p className="text-[#4E4F52] text-[14px]">Name</p>
+                <p className="text-[#181818] text-[14px]">
+                  {(primaryGuest?.name as string | undefined) ?? "N/A"} {(primaryGuest?.surname as string | undefined) ?? ""}
+                </p>
+              </div>
+              <div className="flex justify-between mb-[6px]">
+                <p className="text-[#4E4F52] text-[14px]">Email Address</p>
+                <p className="text-[#181818] text-[14px]">
+                  {(primaryGuest?.email as string | undefined) ?? (confirmation.user?.email as string | undefined) ?? "N/A"}
+                </p>
+              </div>
+              <div className="flex justify-between mb-[6px]">
+                <p className="text-[#4E4F52] text-[14px]">Phone Number</p>
+                <p className="text-[#181818] text-[14px]">
+                  {(primaryGuest?.phone as string | undefined) ?? "N/A"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-4">
+            <p className="text-[14px] font-medium text-[#181818] py-4">Booking context</p>
+            <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3]">
+              {(bookingSnapshot.roomName as string | undefined) && (
+                <div className="flex justify-between mb-[6px]">
+                  <p className="text-[#4E4F52] text-[14px]">Room</p>
+                  <p className="text-[#181818] text-[14px] text-right">
+                    {bookingSnapshot.roomName as string}
+                  </p>
+                </div>
+              )}
+              <div className="flex justify-between mb-[6px]">
+                <p className="text-[#4E4F52] text-[14px]">Guests</p>
+                <p className="text-[#181818] text-[14px]">
+                  {(bookingSnapshot.guestCount as number | undefined) ?? "N/A"}
+                </p>
+              </div>
+              <div className="flex justify-between mb-[6px]">
+                <p className="text-[#4E4F52] text-[14px]">Cancellation policy</p>
+                <p className="text-[#181818] text-[14px] text-right">
+                  {(bookingSnapshot.cancellationOptionLabel as string | undefined) ??
+                    (bookingSnapshot.cancellationOptionId as string | undefined) ??
+                    "N/A"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {hotelLocation && (hotelLocation.address || hotelLocation.destination?.city_name || hotelLocation.destination?.country_name) && (
+            <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-5">
+              <p className="text-[14px] font-medium text-[#181818] py-4">Location</p>
+              <div className="lg:rounded-md lg:p-3 lg:border-[1px] lg:border-[#ACAEB3]">
+                {hotelLocation.address && (
+                  <div className="flex justify-between mb-[6px]">
+                    <p className="text-[#4E4F52] text-[14px]">Address</p>
+                    <p className="text-[#181818] text-[14px] text-right">{hotelLocation.address}</p>
+                  </div>
+                )}
+                {hotelLocation.destination?.city_name && (
+                  <div className="flex justify-between mb-[6px]">
+                    <p className="text-[#4E4F52] text-[14px]">City</p>
+                    <p className="text-[#181818] text-[14px]">{hotelLocation.destination.city_name}</p>
+                  </div>
+                )}
+                {hotelLocation.destination?.country_name && (
+                  <div className="flex justify-between mb-[6px]">
+                    <p className="text-[#4E4F52] text-[14px]">Country</p>
+                    <p className="text-[#181818] text-[14px]">{hotelLocation.destination.country_name}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="mx-6 lg:mx-8 lg:order-8">
             <BackHomeButton />
+          </div>
+
+          <div className="mt-24 lg:order-9">
+            <Footer />
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 };

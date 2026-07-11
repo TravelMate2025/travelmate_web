@@ -1,7 +1,12 @@
 import React from "react";
 
+type FaqCategory = {
+  id: number;
+  short_name?: string;
+};
+
 type Props = {
-  categories: any[];
+  categories: FaqCategory[];
   selectedCategoryId: number;
   onSelect: (id: number) => void;
 };

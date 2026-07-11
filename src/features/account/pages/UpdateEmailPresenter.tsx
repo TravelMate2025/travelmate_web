@@ -5,40 +5,30 @@ import Navbar from "../../../pages/homePage/Navbar";
 import TravelmateApp from "../../../pages/homePage/TravelmateApp";
 import EmailOtp from "../components/EmailOtp";
 import EnterNewEmail from "../components/EnterNewEmail";
-import NewEmailOtp from "../components/NewEmailOtp";
 import { FaAngleLeft } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 type UpdateEmailPresenterProps = {
   hasReceivedOtp: boolean;
-  hasReceiveNewOtp:boolean;
-  setHasReceivedOtp: React.Dispatch<React.SetStateAction<boolean>>;
   isOtpValid: boolean;
   loading: boolean;
   error?: string;
   handleResendOtp: () => Promise<void>;
   validateOtp: (emailToken: string) => Promise<void>;
-  handleResetEmail: (userNewEmail: string) => Promise<void>;
-  handleConfirmEmail: ( userNewEmail: string, userToken:string) => Promise<void>;
+  handleUpdateEmail: (userNewEmail: string, currentPassword: string) => Promise<void>;
 };
 
 function UpdateEmailPresenter({
   hasReceivedOtp,
-  setHasReceivedOtp,
-  hasReceiveNewOtp,
   isOtpValid,
   loading,
   error,
   handleResendOtp,
   validateOtp,
-  handleResetEmail,
-  handleConfirmEmail
+  handleUpdateEmail
 }: UpdateEmailPresenterProps) {
 
   const [newEmail, setNewEmail] = useState("");
-  const [confirmEmail, setConfirmEmail] = useState("");
-
- const [emailUpdatedSuccessfully, setEmailUpdatedSuccessfully] = useState<boolean>(false);
 
   const breadcrumbs = [
     { name: "Home", link: "/" },
@@ -90,31 +80,13 @@ function UpdateEmailPresenter({
       />}
 
       {/* Show EnterNewEmail screen after OTP is validated */}
-      {isOtpValid && !hasReceiveNewOtp &&
+      {isOtpValid &&
       <EnterNewEmail 
-      setHasReceivedOtp={setHasReceivedOtp}
-      handleResetEmail={handleResetEmail}
       newEmail={newEmail}
       setNewEmail={setNewEmail}
-      confirmEmail={confirmEmail}
-      setConfirmEmail={setConfirmEmail}
+      handleUpdateEmail={handleUpdateEmail}
+      error={error}
       />}
-
-      {hasReceiveNewOtp && (
-        <NewEmailOtp
-          handleResendOtp={handleResendOtp}
-          handleConfirmEmail={handleConfirmEmail}
-          loading={loading}
-          NewEmail={newEmail}
-          setEmailUpdatedSuccessfully={setEmailUpdatedSuccessfully}
-          emailUpdatedSuccessfully={emailUpdatedSuccessfully}
-        />
-      )}
-
-      {/* Error message (if API fails) */}
-      {error && (
-        <p className="text-center text-red-600 font-medium mt-4">{error}</p>
-      )}
 
       <div className="hidden md:block">
         <TravelmateApp />

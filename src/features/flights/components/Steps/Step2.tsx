@@ -241,14 +241,13 @@ const Step2: React.FC = () => {
       }).unwrap();
   
       if (res) {
-        // @ts-ignore
-    
         toast.success("success");
 
         // Build booking object
         const bookingData = {
           state:{...location.state},
-          id: res.id,
+          id: String(res.id),
+          checkoutUrl: "",
           booking: res,
           // checkoutUrl: result.data.checkout_url,
           passengers,
@@ -262,7 +261,6 @@ const Step2: React.FC = () => {
         localStorage.setItem("bookingData", JSON.stringify(bookingData));
 
         // continue with updateBooking
-        // @ts-ignore
         updateBooking(bookingData);
 
         nextStep();
@@ -272,11 +270,8 @@ const Step2: React.FC = () => {
       // updateBookingId(res.id)
 
       // nextStep();
-    } catch (err) {
-   
-      
-      // toast.error(err?.response.data.error || "Error booking flight");
-   
+    } catch (err: unknown) {
+      console.debug(err);
     }
   });
 
@@ -301,9 +296,10 @@ const Step2: React.FC = () => {
     } else {
       setValue("email", "")
     }
-  }, [user,useProfile]);
+  }, [user, useProfile, setValue]);
+
   // Render passenger form
-  const renderPassengerForm = (passenger: any, index: number, type: string) => (
+  const renderPassengerForm = (passenger: { id?: string }, index: number, type: string) => (
     <Paper
       key={passenger.id}
       sx={{ p: 2, border: "1px solid #CDCED1", borderRadius: 2, mb: 2 }}

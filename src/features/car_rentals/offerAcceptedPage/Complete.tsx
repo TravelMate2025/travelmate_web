@@ -1,8 +1,9 @@
+import type { CarTransferOption } from "../types/booking";
 import { X } from "lucide-react";
 
 type Props = {
   closeDialog: () => void;
-  car: any;
+  car: CarTransferOption;
 };
 const Complete = ({ closeDialog, car }: Props) => {
   return (
@@ -16,12 +17,12 @@ const Complete = ({ closeDialog, car }: Props) => {
             <X onClick={closeDialog} className="font-bold cursor-pointer" />
           </div>
           <h1 className="font-bold text-xl lg:text-2xl text-[#181818] text-center">
-            Important Information
+            Transfer information
           </h1>
         </div>
         {car?.content?.transferRemarks?.[0]?.description && (
           <p className="mt-4 whitespace-pre-wrap text-sm font-inter">
-            {car.content.transferRemarks[0].description}
+            {car.content?.transferRemarks?.[0]?.description}
           </p>
         )}
       </div>

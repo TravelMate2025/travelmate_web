@@ -2,9 +2,18 @@ import { Rating } from "@mui/material";
 import { FaTimes, FaSearch } from "react-icons/fa";
 import { useState } from "react";
 
+interface ReviewItem {
+  id?: string | number;
+  name?: string;
+  date?: string;
+  rating?: number;
+  title?: string;
+  content?: string;
+}
+
 interface ReviewsModalProps {
   onClose: () => void;
-  reviews: any[];
+  reviews: ReviewItem[];
 }
 
 const ratings = [
@@ -19,9 +28,12 @@ const filterOptions = ["Most Relevant", "Highest Rated", "Lowest Rated"];
 const ReviewsModal: React.FC<ReviewsModalProps> = ({ onClose, reviews }) => {
   const [selectedFilter, setSelectedFilter] = useState("Most Relevant");
 
-  const filteredReviews = reviews?.sort((a, b) => {
-    if (selectedFilter === "Highest Rated") return b?.rating - a?.rating;
-    if (selectedFilter === "Lowest Rated") return a?.rating - b?.rating;
+  const filteredReviews = [...reviews].sort((a, b) => {
+    const aRating = a.rating ?? 0;
+    const bRating = b.rating ?? 0;
+
+    if (selectedFilter === "Highest Rated") return bRating - aRating;
+    if (selectedFilter === "Lowest Rated") return aRating - bRating;
     return 0;
   });
 
@@ -99,9 +111,7 @@ const ReviewsModal: React.FC<ReviewsModalProps> = ({ onClose, reviews }) => {
             <FaSearch className="absolute left-3 top-3 text-gray-400" />
             <input
               type="text"
-              onChange={(e) => {
-                e.target.value.length <= 45;
-              }}
+              onChange={() => {}}
               placeholder="Search Review"
               className="pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg w-full md:w-[40%] focus:outline-none"
             />
@@ -127,7 +137,7 @@ const ReviewsModal: React.FC<ReviewsModalProps> = ({ onClose, reviews }) => {
                   </div>
                   <div className="flex justify-between items-center mt-2">
                     <Rating
-                      value={review?.rating || "4.5"}
+                      value={review?.rating ?? 4.5}
                       readOnly
                       sx={{ color: "orange" }}
                     />

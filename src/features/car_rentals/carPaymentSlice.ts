@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import type { CarTransferOption } from "./types/booking";
 
 export interface CarInfo {
     // Form fields that match the booking form structure
@@ -21,7 +22,7 @@ export interface CarInfo {
     toLat?: number,
     toLon?: number
 
-    searchResults: any[];
+    searchResults: CarTransferOption[];
 }
 
 interface CardInfo {
@@ -44,6 +45,7 @@ interface FormState {
     cardinfo: CardInfo | null;
     personalDetails: PersonalDetails | null;
     carInfo: CarInfo | null;
+    selectedTransfer: CarTransferOption | null;
 }
 const initialCarInfo: CarInfo = {
     pickupLocation: "",
@@ -63,6 +65,7 @@ const initialState: FormState = {
     cardinfo: null,
     personalDetails: null,
     carInfo: initialCarInfo,
+    selectedTransfer: null,
 };
 
 const carPaymentSlice = createSlice({
@@ -78,15 +81,18 @@ const carPaymentSlice = createSlice({
         setCarInfo: (state, action: PayloadAction<CarInfo>) => {
             state.carInfo = action.payload;
         },
-        setSearchResults: (state, action: PayloadAction<any[]>) => {
+        setSearchResults: (state, action: PayloadAction<CarTransferOption[]>) => {
             if (state.carInfo) {
                 state.carInfo.searchResults = action.payload;
             }
         },
-        updateCarInfoField: (state, action: PayloadAction<{ field: keyof CarInfo, value: any }>) => {
+        updateCarInfoField: (state, action: PayloadAction<{ field: keyof CarInfo, value: CarInfo[keyof CarInfo] }>) => {
             if (state.carInfo) {
-                (state.carInfo as any)[action.payload.field] = action.payload.value;
+                state.carInfo[action.payload.field] = action.payload.value as never;
             }
+        },
+        setSelectedTransfer: (state, action: PayloadAction<CarTransferOption | null>) => {
+            state.selectedTransfer = action.payload;
         },
         resetForm: () => initialState,
     },
@@ -98,6 +104,7 @@ export const {
     setCarInfo,
     setSearchResults,
     updateCarInfoField,
+    setSelectedTransfer,
     resetForm
 } = carPaymentSlice.actions;
 

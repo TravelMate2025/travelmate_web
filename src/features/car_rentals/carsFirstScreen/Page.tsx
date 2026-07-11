@@ -22,6 +22,7 @@ import {
   formatPriceRange,
 } from "../utilities/formatting";
 import { BookingFormData } from "../types/booking";
+import type { CarTransferOption } from "../types/booking";
 
 // Components
 import Passengers from "./modals/Passengers";
@@ -31,7 +32,6 @@ import { transferService } from "../services/transferService";
 import SearchPickUpLocation from "./modals/searchPickUp";
 import SearchDropOffLocation from "./modals/searchDropOff";
 import toast from "react-hot-toast";
-import { ToastContainer } from "react-toastify";
 import RideType from "./modals/RideType";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -60,7 +60,7 @@ const CarBookingFirstScreen: React.FC = () => {
   // Initialize form with Redux data or saved data
   // const { loadSavedData } = useFormPersistence({} as BookingFormData);
 
-  const initialData = useMemo(() => {
+  const [initialData] = useState<BookingFormData>(() => {
     const savedData = localStorage.getItem("carBookingForm");
     const persistedData = savedData ? JSON.parse(savedData) : null;
 
@@ -87,7 +87,7 @@ const CarBookingFirstScreen: React.FC = () => {
       selectedRide: baseData.selectedRide || "",
       priceRange: baseData.priceRange || { min: 0, max: 0 },
       passengerCounts: baseData.passengerCounts || {
-        adults: 0,
+        adults: 1,
         children: 0,
         infant: 0,
       },
@@ -95,7 +95,7 @@ const CarBookingFirstScreen: React.FC = () => {
       toLon: baseData.toLon ? Number(baseData.toLon) : undefined,
       searchResults: baseData.searchResults || [],
     } as BookingFormData;
-  }, []);
+  });
 
   const {
     formData,
@@ -164,7 +164,7 @@ const CarBookingFirstScreen: React.FC = () => {
         updateField("dropoffLocation", location);
       }
     },
-    [pickOrDrop, updateField, closeModal]
+    [pickOrDrop, updateField]
   );
 
   const handleTimeChange = useCallback(
@@ -179,7 +179,7 @@ const CarBookingFirstScreen: React.FC = () => {
       updateField("priceRange", { min, max });
       closeModal("priceRange");
     },
-    [updateField, openModal, closeModal]
+    [updateField, closeModal]
   );
 
   const handlePassengerUpdate = useCallback(
@@ -208,13 +208,14 @@ const CarBookingFirstScreen: React.FC = () => {
       passengers: true,
     });
     const errors = [];
-    validateBookingForm(formData);
-    if (!isValid) {
+    const validation = validateBookingForm(formData);
+    if (!validation.isValid) {
       errors.push("Please fill in all required fields correctly");
     }
 
     if (errors.length > 0) {
       setSubmitError(errors.join(", "));
+      return;
     }
 
     setSubmitError(null);
@@ -223,13 +224,13 @@ const CarBookingFirstScreen: React.FC = () => {
       const params = transferService.convertFormToApiParams({
         ...formData,
       });
-      if (!params.fcode || !/^[A-Z]{3}$/.test(params.fcode)) {
-        throw new Error("Invalid pickup location code");
+      if (!params.fcode) {
+        throw new Error("Invalid pickup location");
       }
-      if (!params.tcode || params.tcode === "undefined,undefined") {
+      if (!params.tcode || params.tcode === "undefined,undefined" || params.tcode === "null,null") {
         setFormData((prev) => ({ ...prev, dropoffLocaDescription: "" }));
         throw new Error(
-          "Invalid destination coordinates, enter drop off location again"
+          "Please select a drop off location again"
         );
       }
       const result = await transferService.searchTransfers(params);
@@ -237,7 +238,11 @@ const CarBookingFirstScreen: React.FC = () => {
         throw new Error(result.error || "No transfer results found");
       }
 
-      dispatch(setSearchResults(result?.data?.results?.services || []));
+      dispatch(
+        setSearchResults(
+          (result?.data?.results?.services || []) as CarTransferOption[]
+        )
+      );
       console.log("Search results:", result?.data);
       navigate(
         `/cars-searchResults?ride=${encodeURIComponent(
@@ -258,9 +263,11 @@ const CarBookingFirstScreen: React.FC = () => {
     isValid,
     formData,
     navigate,
+    dispatch,
+    setFormData,
+    setTouched,
     setSubmitError,
     setLoading,
-    transferService,
   ]);
 
   // Memoized display values
@@ -275,7 +282,6 @@ const CarBookingFirstScreen: React.FC = () => {
 
   return (
     <div className="">
-      <ToastContainer />
       {/* Shared Ride Info */}
       {(formData.selectedRide === "Shared Ride" ||
         formData.selectedRide === "Private and Shared Ride") && (
@@ -363,7 +369,7 @@ const CarBookingFirstScreen: React.FC = () => {
                 variant="outlined"
                 size="small"
                 placeholder="Search Destination"
-                value={formData.dropoffLocation}
+                value={formData.dropoffLocaDescription || formData.dropoffLocation}
                 onClick={() => handleDropLocationClick("drop")}
                 onBlur={() => handleBlur("dropoffpLocation")}
                 error={
@@ -524,8 +530,9 @@ const CarBookingFirstScreen: React.FC = () => {
           value={formData.pickupLocaDescription}
           setValue={handleLocationSelect}
           setExtraFields={(fields) => {
-            updateField("toLat", fields.toLat);
-            updateField("toLon", fields.toLon);
+            if (fields.pickupLocaDescription) {
+              updateField("pickupLocaDescription", fields.pickupLocaDescription);
+            }
           }}
           ChangeValue={(query) =>
             setFormData((prev) => ({

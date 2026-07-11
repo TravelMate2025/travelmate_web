@@ -2,7 +2,6 @@
 import {
   BaseQueryFn,
   createApi,
- 
 } from "@reduxjs/toolkit/query/react";
 import {
   Airport,
@@ -14,7 +13,6 @@ import {
 } from "../types";
 import api from "../../../api/services/api";
 import { AxiosError, AxiosRequestConfig } from "axios";
-
 
 import dayjs from "dayjs";
 import { DateSelection, Flight } from "../hooks/useFlightBooking";
@@ -43,6 +41,18 @@ interface GetFlightParams {
   flights?: Flight[]; // used for multi-city
 }
 
+type FlightDateInput = string | Date | null | undefined;
+
+function resolveDateInput(
+  dateInput: DateSelection | undefined,
+): string | Date | undefined {
+  if (!dateInput) return undefined;
+  if (typeof dateInput === "object" && "startDate" in dateInput) {
+    return dateInput.startDate;
+  }
+  return dateInput;
+}
+
 export function buildFlightPayload({
   tripType,
   initialFrom,
@@ -66,7 +76,16 @@ export function buildFlightPayload({
   };
 
   // Utility to format date to YYYY-MM-DD
-  const formatDate = (dateInput: any) => dayjs(dateInput).format("YYYY-MM-DD");
+  const formatDate = (dateInput: FlightDateInput) => {
+    if (!dateInput) return "";
+
+    if (typeof dateInput === "object" && "startDate" in dateInput) {
+      const startDate = (dateInput as { startDate?: string | Date }).startDate;
+      return startDate ? dayjs(startDate).format("YYYY-MM-DD") : "";
+    }
+
+    return dayjs(dateInput).format("YYYY-MM-DD");
+  };
 
   switch (tripType as TripType) {
     case "one-way":
@@ -75,10 +94,10 @@ export function buildFlightPayload({
         tripType: "ONE_WAY",
         origin: initialFrom.id,
         destination: initialTo.id,
-        departure_date: formatDate(date),
+        departure_date: formatDate(resolveDateInput(date)),
       };
 
-    case "round-trip":
+    case "round-trip": {
       const { startDate, endDate } = date as {
         startDate?: string;
         endDate?: string;
@@ -88,17 +107,18 @@ export function buildFlightPayload({
         tripType: "ROUND_TRIP",
         origin: selectedFrom?.id ?? initialFrom.id,
         destination: selectedTo?.id ?? initialTo.id,
-        departure_date: formatDate(startDate),
-        return_date: formatDate(endDate),
+        departure_date: formatDate(startDate ? new Date(startDate) : undefined),
+        return_date: formatDate(endDate ? new Date(endDate) : undefined),
       };
+    }
 
     case "multi-city":
       return {
         ...basePayload,
         tripType: "MULTI_CITY",
-        segments: flights.map((flight: any) => ({
-          origin: flight.from.iataCode,
-          destination: flight.to.iataCode,
+        segments: flights.map((flight: Flight) => ({
+          origin: flight.from?.iataCode ?? "",
+          destination: flight.to?.iataCode ?? "",
           departure_date: formatDate(flight.date),
         })),
       };
@@ -112,10 +132,7 @@ export function buildFlightPayload({
 // Wrap axios with fetchBaseQuery adapter
 export interface APIError {
   status?: number;
-  data?: {
-    message?: string;
-    [key: string]: any;
-  };
+  data?: unknown;
 }
 const axiosBaseQuery =
   (
@@ -132,14 +149,16 @@ const axiosBaseQuery =
   > =>
   async ({ url, method, data, params }) => {
     try {
-      const result = await api({ url: baseUrl + url, method, data, params });
+      const result = (await api({ url: baseUrl + url, method, data, params })) as {
+        data: unknown;
+      };
       return { data: result.data };
     } catch (err) {
       const axiosErr = err as AxiosError;
       return {
         error: {
           status: axiosErr.response?.status,
-          data: axiosErr.response?.data || axiosErr.message,
+          data: axiosErr.response?.data ?? axiosErr.message,
         },
       };
     }
@@ -149,21 +168,21 @@ export const flightsApi = createApi({
   reducerPath: "flightsApi",
   baseQuery: axiosBaseQuery({ baseUrl: "" }),
   tagTypes: ["Airports", "Flights", "FlightDetails", "Bookings", "Upsell"], // ✅ define tags
-  serializeQueryArgs: ({ endpointName, queryArgs }) => {
-    if (endpointName === "fetchFlights") {
-      // Create a stable cache key
-      return JSON.stringify(
-        Object.keys(queryArgs as any)
-          .sort()
-          .reduce((obj, key) => {
-            // @ts-ignore
-            obj[key] = queryArgs[key];
-            return obj;
-          }, {})
-      );
-    }
-    return endpointName;
-  },
+    serializeQueryArgs: ({ endpointName, queryArgs }) => {
+      if (endpointName === "fetchFlights") {
+        // Create a stable cache key
+        const args = queryArgs as unknown as Record<string, unknown>;
+        return JSON.stringify(
+          Object.keys(args)
+            .sort()
+            .reduce<Record<string, unknown>>((obj, key) => {
+              obj[key] = args[key];
+              return obj;
+            }, {}),
+        );
+      }
+      return endpointName;
+    },
 
   endpoints: (builder) => ({
     // ✈️ Fetch Airports
@@ -212,7 +231,7 @@ export const flightsApi = createApi({
     }),
 
     // ✈️ Flight Details
-    fetchFlightDetails: builder.query<any, string>({
+    fetchFlightDetails: builder.query<Record<string, unknown>, string>({
       query: (flightId) => ({
         url: `/flights/search/flight_details/`,
         method: "GET",
@@ -255,7 +274,7 @@ export const flightsApi = createApi({
       keepUnusedDataFor: 300,
     }),
     // Inside flightsApi endpoints
-    createCheckoutSession: builder.mutation<any, { id: string; body?: any }>({
+    createCheckoutSession: builder.mutation<{ checkout_url?: string }, { id: string; body?: unknown }>({
       query: ({ id, body }) => ({
         url: `/flights/bookings/${id}/create_checkout_session/`,
         method: "POST",
@@ -263,7 +282,7 @@ export const flightsApi = createApi({
       }),
       invalidatesTags: ["Bookings"], // invalidate bookings cache when session created
     }),
-    stripeWebhook: builder.mutation<any, any>({
+    stripeWebhook: builder.mutation<unknown, unknown>({
       query: (body) => ({
         url: `/api/flights/stripe/webhook/`,
         method: "POST",

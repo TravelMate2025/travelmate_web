@@ -1,3 +1,4 @@
+import React, { useEffect, useState, memo } from "react";
 import {
   SwipeableDrawer,
   DialogContent,
@@ -31,16 +32,18 @@ import {
   FlightOffer,
   FlightUpsellOfferResponse,
   UpsellFlightOfferResponse,
+  Itinerary,
+  Segment,
+  Amenity,
 } from "../types";
 import { formatDuration, formatStops, getCity } from "../utils/functions";
-
-import { useEffect, useState, memo } from "react";
 
 import dayjs from "dayjs";
 import FlightDetails from "./FlightDetails";
 import { useUpsellFlightOfferMutation } from "../api/flightApi";
 import { SearchData } from "../hooks/useFlightBooking";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function formatDateRange(range: string) {
   console.log(range);
 
@@ -137,11 +140,18 @@ export const FlightDrawer = memo<FlightDrawerProps>(
 
     const extraBagPrice = 10000;
 
-    let firstSegment: any, lastSegment, itinerary, price: any;
+    let firstSegment: Segment | undefined;
+    let lastSegment: Segment | undefined;
+    let firstFareDetail =
+      selectedDeparture?.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
+    let itinerary: Itinerary | undefined;
+    let price: number | undefined;
     if (selectedDeparture) {
       itinerary = selectedDeparture.itineraries?.[returnFlight]; // departure itinerary
       firstSegment = itinerary?.segments?.[0];
       lastSegment = itinerary?.segments?.[itinerary.segments.length - 1];
+      firstFareDetail =
+        selectedDeparture.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
       price = Number(selectedDeparture.price?.grandTotal);
     }
 
@@ -165,7 +175,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
 
         handleUpsell();
       }
-    }, [selectedDeparture]);
+    }, [selectedDeparture, upsellFlightOffer]);
 
     const handleMultiCitySelect = () => {
       // Ensure required data is available
@@ -247,15 +257,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
             <div className="items-center p-2">
               <>
                 <p className=" text-[14px] md:text-[18px] text-[#181818] font-inter font-medium">
-                  {
-                    getCity(firstSegment?.departure.iataCode as string)
-                      ?.municipality
-                  }{" "}
-                  to{" "}
-                  {
-                    getCity(lastSegment?.arrival.iataCode as string)
-                      ?.municipality
-                  }
+                  {getCity(firstSegment?.departure.iataCode ?? "")?.municipality} to {getCity(lastSegment?.arrival.iataCode ?? "")?.municipality}
                 </p>
               </>
 
@@ -496,18 +498,18 @@ export const FlightDrawer = memo<FlightDrawerProps>(
 
               <AccordionDetails>
                 <Divider sx={{ bgcolor: "#CDCED1" }} />
-                {data.data.map((flightData) => {
+                {(data.data as FlightUpsellOfferResponse[]).map((flightData, idx: number) => {
                   return (
-                    <>
+                    <React.Fragment key={flightData?.id ?? idx}>
                       <Accordion
-                        key={flightData.id}
+                        key={flightData?.id ?? idx}
                         disableGutters
                         square
                         sx={{
                           "&:before": { display: "none" },
                           boxShadow: "none",
                           borderRadius: "0 !important",
-                          borderBottom: 1 ? "1px solid #CDCED1" : "none",
+                          borderBottom: "1px solid #CDCED1",
                           "&.MuiPaper-root": {
                             width: "unset !important",
                             height: "unset !important",
@@ -528,24 +530,24 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                           }}
                         >
                           <Box>
-                            <Typography
-                              variant="subtitle1"
-                              fontSize={{ xs: "14px", sm: "18px" }}
-                              p={0}
-                            >
-                              ({flightData.cabin})
-                            </Typography>
+                              <Typography
+                                variant="subtitle1"
+                                fontSize={{ xs: "14px", sm: "18px" }}
+                                p={0}
+                              >
+                                ({flightData.cabin})
+                              </Typography>
                           </Box>
                         </AccordionSummary>
 
                         <AccordionDetails sx={{ pb: 2, px: 2 }}>
                           <div className="flex justify-between items-center mb-4">
                             <Typography variant="body2" color="text.secondary">
-                              Total: {flightData.price.currency}{" "}
-                              {flightData.price.upsellDifference && (
+                              Total: {flightData.price?.currency}{" "}
+                              {flightData.price?.upsellDifference && (
                                 <span>
                                   {" "}
-                                  (Upsell: {flightData.price.upsellDifference})
+                                  (Upsell: {flightData.price?.upsellDifference})
                                 </span>
                               )}
                             </Typography>
@@ -555,7 +557,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                                 sx={{ fontWeight: "medium", mt: 0.5 }}
                               >
                                 Checked Bags:{" "}
-                                {firstSegment.includedCheckedBags?.quantity ??
+                                {firstFareDetail?.includedCheckedBags?.quantity ??
                                   0}
                               </Typography>
                               <Typography
@@ -585,7 +587,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                               }}
                               onClick={() => {
                                 const rawDiff =
-                                  flightData.price.upsellDifference || "";
+                                  flightData.price?.upsellDifference || "";
                                 const pricePart = rawDiff.includes("+")
                                   ? rawDiff.split("+")[1]
                                   : rawDiff;
@@ -603,37 +605,37 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                             </Button>
                           </div>
 
-                          <Stack direction="row" flexWrap="wrap">
-                            {firstSegment.amenities?.map((a: any, i: any) => (
-                              <Box
-                                key={i}
-                                display="flex"
-                                alignItems="center"
-                                mr={2}
-                                mb={1}
-                              >
-                                {a.isChargeable ? (
-                                  <Icon
-                                    icon="ic:baseline-money"
-                                    width="20"
-                                    height="20"
-                                    color="black"
-                                  />
-                                ) : (
-                                  <CheckIcon
-                                    fontSize="small"
-                                    sx={{ mr: 0.5, color: "black" }}
-                                  />
-                                )}
-                                <Typography variant="body2">
-                                  {a.description}
-                                </Typography>
-                              </Box>
-                            ))}
-                          </Stack>
+                            <Stack direction="row" flexWrap="wrap">
+                              {(firstFareDetail?.amenities ?? []).map((a: Amenity, i: number) => (
+                                <Box
+                                  key={i}
+                                  display="flex"
+                                  alignItems="center"
+                                  mr={2}
+                                  mb={1}
+                                >
+                                  {a.isChargeable ? (
+                                    <Icon
+                                      icon="ic:baseline-money"
+                                      width="20"
+                                      height="20"
+                                      color="black"
+                                    />
+                                  ) : (
+                                    <CheckIcon
+                                      fontSize="small"
+                                      sx={{ mr: 0.5, color: "black" }}
+                                    />
+                                  )}
+                                  <Typography variant="body2">
+                                    {a.description}
+                                  </Typography>
+                                </Box>
+                              ))}
+                            </Stack>
                         </AccordionDetails>
                       </Accordion>
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </AccordionDetails>
@@ -724,7 +726,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                     state = {
                       ...searchState,
                       departureFlight: selectedDeparture,
-                      departureTotal: price as any,
+                      departureTotal: price,
                       departureUpsell: upsell,
                       departureCounts: counts,
                       departureFlightOption: selectedOption,

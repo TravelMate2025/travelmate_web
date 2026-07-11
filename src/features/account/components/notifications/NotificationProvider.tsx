@@ -37,7 +37,8 @@ export function NotificationProvider({
   useEffect(() => {
     if (!accessToken) return;
 
-    const WS_URL = `wss://travelmate-backend-knvd.onrender.com/ws/notifications/?authorization=${accessToken}`;
+    const baseWsUrl = import.meta.env.VITE_WS_BASE_URL || "ws://127.0.0.1:8000/ws";
+    const WS_URL = `${baseWsUrl.replace(/\/$/, "")}/notifications/?authorization=${accessToken}`;
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
@@ -109,6 +110,7 @@ export function NotificationProvider({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useNotifications() {
   const context = useContext(NotificationContext);
   if (!context) {

@@ -5,15 +5,20 @@ import {
   RadioGroup,
 } from "@mui/material";
 import { X } from "lucide-react";
+import type { Dispatch, SetStateAction } from "react";
 
 type Props = {
   closeDialog: () => void;
   sortOrder: string;
-  setSortOrder: (order: any) => void;
+  setSortOrder: Dispatch<
+    SetStateAction<"Recommended" | "Low to High" | "High to Low">
+  >;
 };
 const SortOverlay = ({ closeDialog, sortOrder, setSortOrder }: Props) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSortOrder(event.target.value);
+    setSortOrder(
+      event.target.value as "Recommended" | "Low to High" | "High to Low"
+    );
     closeDialog();
   };
   return (

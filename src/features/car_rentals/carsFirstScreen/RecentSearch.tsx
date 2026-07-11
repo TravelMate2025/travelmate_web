@@ -13,9 +13,9 @@ type RecetSearchProps = {
   openFrom: boolean;
   fromClick: HTMLElement | null;
   handleCloseFrom: () => void;
-  locations: any[];
-  handleRemoveOption: (data: any) => void;
-  handleFromOptionClick: (data: any) => void;
+  locations: string[];
+  handleRemoveOption: (data: string) => void;
+  handleFromOptionClick: (data: string) => void;
 };
 const RecentSearch = ({
   openFrom,

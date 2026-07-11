@@ -19,7 +19,10 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
         {/* Modal Header */}
         <div className="flex justify-between items-center border-b pb-4">
           <h2 className="text-xl font-bold mx-auto">Share</h2>
-          <button onClick={onClose} className="text-gray-600 border border-gray-300 rounded-md p-1">
+          <button
+            onClick={onClose}
+            className="text-gray-600 border border-gray-300 rounded-md p-1"
+          >
             <FaTimes size={20} />
           </button>
         </div>

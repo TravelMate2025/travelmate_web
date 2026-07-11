@@ -4,6 +4,14 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { FlightSearchRequest, FlightSearchResponse } from "../types";
 import api from "../../../api/services/api";
 
+type ApiErrorLike = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
+
 
 interface FlightsState {
   loading: boolean;
@@ -43,9 +51,10 @@ export const fetchFlights = createAsyncThunk<
     });
 
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     return rejectWithValue(
-      error.response?.data?.message || "Failed to fetch flights"
+      (error as ApiErrorLike)?.response?.data?.message ||
+        (error instanceof Error ? error.message : "Failed to fetch flights")
     );
   }
 });

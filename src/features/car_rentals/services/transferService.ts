@@ -1,8 +1,14 @@
 import { parse, format, isValid } from 'date-fns';
-import { BookingFormData } from '../types/booking';
+import { BookingFormData, CarTransferOption } from '../types/booking';
 import axios from 'axios';
 import instance from '../../../utils/axiosConfig';
 import toast from 'react-hot-toast';
+
+interface ApiErrorPayload {
+    error?: string;
+    detail?: string[];
+    message?: string;
+}
 
 export interface TransferSearchParams {
     adults: string;
@@ -33,28 +39,63 @@ interface PostTransferSearchParams {
     price_max?: number;
 }
 
-interface BookingConfirmationParams {
-    search_id: string;
-    rate_key: string;
-    first_name: string;
-    last_name: string;
-    dob: string;
-    email: string;
-    country_code: string;
-    phone: string;
-    remark?: string;
+interface TransferQuoteParams {
+    listingType: string;
+    listingId: string;
+    cancellationOptionId?: string;
+    currency?: string;
+    pickupAt?: string;
+}
 
+interface TransferHoldTraveler {
+    firstName: string;
+    lastName: string;
+    type: string;
+    email: string;
+}
+
+interface TransferHoldParams {
+    listingType: string;
+    listingId: string;
+    quoteLockId: string;
+    guestCount: number;
+    travelers: TransferHoldTraveler[];
+    customerReference?: string;
+    cancellationOptionId?: string;
+    // Client-metadata-only fields — not forwarded to the partner, used by the
+    // backend to populate the local TransferBooking record (the partner's
+    // hold response doesn't echo listing details back). See
+    // docs/BOOKING_API_CONTRACT.md §2.
+    pickupLocationLabel?: string;
+    destinationCity?: string;
+    pickupAt?: string;
+    rideType?: string;
+    vehicleClass?: string;
+    passengerCapacity?: number;
+    luggageCapacity?: number;
+    providerName?: string;
+}
+
+interface TransferPaymentIntentParams {
+    quoteLockId: string;
+    bookingReference: string;
+    redirectUrl: string;
+    customer: {
+        name: string;
+        email: string;
+        phone: string;
+    };
 }
 
 interface TransferResult {
     success: boolean;
     data?: {
         results: {
-            services: any[]
-            data: any[]
-
-        }
-        search_id: string
+            services: unknown[];
+            data: unknown[];
+            search?: unknown;
+        };
+        search_id: string;
     };
     fallback_info?: {
         attempts: number;
@@ -66,19 +107,6 @@ interface TransferResult {
 
 }
 
-interface BookingConfirmationResult {
-    success: boolean;
-    data?: {
-        id: string;
-        status: string;
-        total_price: string;
-        booking_id: string;
-        bookings: any[]
-    };
-    status?: number;
-    error?: string;
-}
-
 interface CheckoutSessionResult {
     success: boolean;
     checkout_url?: string;
@@ -87,68 +115,165 @@ interface CheckoutSessionResult {
 
 interface BookingFinalizeResult {
     success: boolean;
-    data?: any;
+    data?: unknown;
+    error?: string;
+}
+
+interface PaymentConfirmResult {
+    success: boolean;
+    data?: unknown;
     error?: string;
 }
 
 interface LookupResult {
     success: boolean;
-    data?: any[];
+    data?: LookupLocation[];
     error?: string;
 }
 
+interface LookupLocation {
+    cityName?: string;
+    countryCode?: string;
+    countryName?: string;
+    displayName: string;
+    geoCode?: { latitude: number; longitude: number };
+    iataCode?: string;
+    id?: string;
+    name?: string;
+    type?: string;
+}
+
+interface TransferSearchPayload {
+    transfers?: unknown[];
+    results?: {
+        services?: unknown[];
+        data?: unknown[];
+        search?: unknown;
+    };
+    search_id?: string;
+    fallback_info?: {
+        attempts?: number;
+        locations_tried?: string[];
+        suggestions?: string[];
+    };
+    search?: unknown;
+}
+
 class TransferService {
-    private baseUrl = import.meta.env.VITE_API_BASE_URL;
-    private terminalCache: Map<string, LookupResult['data']> = new Map();
+    private baseUrl = (instance.defaults.baseURL || "https://travelmate.com").replace(/\/$/, "");
+    private terminalCache: Map<string, LookupLocation[]> = new Map();
+
+    private getErrorMessage(error: unknown): string {
+        if (axios.isAxiosError(error)) {
+            const payload = error.response?.data as ApiErrorPayload | undefined;
+            return payload?.error || (Array.isArray(payload?.detail) ? payload?.detail[0] : undefined) || payload?.message || error.message;
+        }
+        return error instanceof Error ? error.message : String(error);
+    }
 
 
     async searchTransfers(params: TransferSearchParams): Promise<TransferResult> {
         try {
-            const queryString = new URLSearchParams();
-            Object.entries(params).forEach(([key, value]) => {
-                if (value !== undefined && value !== null && value !== '') {
-                    queryString.append(key, value.toString());
-                }
-            });
-
-
-            const response = await axios.get(`${this.baseUrl}/transfers/search-terminal-to-gps/?${queryString.toString()}`);
-            return {
-                success: true,
-                data: response?.data || [],
-                fallback_info: response?.data?.fallback_info,
+            const departingDateTime = new Date(params.departing);
+            const pickupDate = isValid(departingDateTime) ? format(departingDateTime, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+            const pickupTime = isValid(departingDateTime) ? format(departingDateTime, 'HH:mm') : '10:00';
+            const passengers = Number(params.adults || 0) + Number(params.children || 0) + Number(params.infants || 0);
+            const payload = {
+                pickup_location: params.fcode,
+                pickup_location_type: params.ftype,
+                dropoff_location: params.tcode,
+                dropoff_location_type: params.ttype,
+                pickup_date: pickupDate,
+                pickup_time: pickupTime,
+                passengers: passengers > 0 ? passengers : 1,
+                q: [params.fcode, params.tcode].filter(Boolean).join(' '),
+                vehicleClass: params.transfer_type,
+                min_price: params.min_price,
+                max_price: params.max_price,
+                date: pickupDate,
             };
 
-        } catch (error) {
+            const response = await instance.post<TransferSearchPayload>(`${this.baseUrl}/transfers/search/`, payload);
+            const backendTransfers = response.data?.results?.services ?? response.data?.results?.data ?? response.data?.transfers ?? [];
+            return {
+                success: true,
+                data: {
+                    results: {
+                        services: backendTransfers,
+                        data: backendTransfers,
+                        search: response.data?.results?.search,
+                    },
+                    search_id: response.data?.search_id ?? "",
+                },
+                fallback_info: response.data?.fallback_info
+                    ? {
+                        attempts: response.data.fallback_info.attempts ?? 0,
+                        locations_tried: response.data.fallback_info.locations_tried ?? [],
+                        suggestions: response.data.fallback_info.suggestions ?? [],
+                    }
+                    : undefined,
+            };
+
+        } catch (error: unknown) {
             console.error('Transfer search failed:', error);
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Search failed',
+                error: this.getErrorMessage(error) || 'Search failed',
             };
         }
     }
 
 
-    async createBookingConfirmation(accessToken: string, params: BookingConfirmationParams): Promise<BookingConfirmationResult> {
+    async getTransferDetail(transferId: string): Promise<{ success: boolean; data?: CarTransferOption; error?: string }> {
         try {
-            const response = await instance.post(`${this.baseUrl}/transfers/booking/confirmation/`,
-                JSON.stringify(params), {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`
-                }
-            }
-            );
+            const response = await instance.get<CarTransferOption>(`${this.baseUrl}/transfers/${transferId}/`);
+            return { success: true, data: response.data };
+        } catch (error: unknown) {
+            return { success: false, error: this.getErrorMessage(error) };
+        }
+    }
+
+    async createTransferQuote(params: TransferQuoteParams): Promise<BookingFinalizeResult> {
+        try {
+            const response = await instance.post(`${this.baseUrl}/transfers/booking/quote/`, params);
             return {
                 success: true,
                 data: response.data,
-                status: response.status,
             };
-        } catch (error: any) {
-            console.error('Create booking confirmation failed:', error);
-            toast.error(error?.response?.data?.error || error?.response?.data?.detail[0] || 'Network Error')
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to create booking confirmation',
+                error: this.getErrorMessage(error),
+            };
+        }
+    }
+
+    async createTransferHold(params: TransferHoldParams): Promise<BookingFinalizeResult> {
+        try {
+            const response = await instance.post(`${this.baseUrl}/transfers/booking/holds/`, params);
+            return {
+                success: true,
+                data: response.data,
+            };
+        } catch (error: unknown) {
+            return {
+                success: false,
+                error: this.getErrorMessage(error),
+            };
+        }
+    }
+
+    async createTransferPaymentIntent(params: TransferPaymentIntentParams): Promise<BookingFinalizeResult> {
+        try {
+            const response = await instance.post(`${this.baseUrl}/transfers/payments/intents/`, params);
+            return {
+                success: true,
+                data: response.data,
+            };
+        } catch (error: unknown) {
+            return {
+                success: false,
+                error: this.getErrorMessage(error),
             };
         }
     }
@@ -156,36 +281,35 @@ class TransferService {
     async createCheckoutSession(confirmationId: string): Promise<CheckoutSessionResult> {
         try {
 
-            const response = await instance.post(`${this.baseUrl}/transfers/booking/${confirmationId}/create-checkout-session/`);
+            const response = await instance.post<CheckoutSessionResult>(`${this.baseUrl}/transfers/booking/${confirmationId}/create-checkout-session/`);
             return {
                 checkout_url: response?.data?.checkout_url,
                 success: true,
 
             };
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Create checkout session failed:', error);
-            toast.error(error.response.data.detail)
-
+            toast.error(this.getErrorMessage(error) || 'Checkout session failed');
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to create checkout session',
+                error: this.getErrorMessage(error),
             };
         }
     }
 
     async cancelBooking(confirmationId: string): Promise<BookingFinalizeResult> {
         try {
-            const response = await axios.post(`${this.baseUrl}/transfers/booking/${confirmationId}/cancel/`);
+            const response = await instance.post(`${this.baseUrl}/transfers/booking/${confirmationId}/cancel/`);
             return {
                 success: true,
                 data: response.data,
             };
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Cancel booking failed:', error);
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to cancel booking',
+                error: this.getErrorMessage(error),
             };
         }
     }
@@ -198,28 +322,48 @@ class TransferService {
 
 
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Cancel booking failed:', error);
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to cancel booking',
+                error: this.getErrorMessage(error),
             };
         }
     }
 
-    async getBookingBySession(sessionId: string | null): Promise<BookingConfirmationResult> {
+    async getBookingBySession(sessionId: string | null): Promise<BookingFinalizeResult> {
         try {
-            const response = await instance.get(`${this.baseUrl}/transfers/booking/confirmation/by-session/?session_id=${sessionId}`);
+            const response = await instance.get(`${this.baseUrl}/transfers/booking/confirmation/by-session/?payment_intent_id=${sessionId}`);
             return {
                 success: true,
                 data: response.data,
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Get booking by session failed:', error);
-            toast.error(error?.response?.data?.error)
+            toast.error(this.getErrorMessage(error) || 'Failed to fetch booking');
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to instance.get booking details',
+                error: this.getErrorMessage(error),
+            };
+        }
+    }
+
+    async confirmPaymentIntent(paymentIntentId: string): Promise<PaymentConfirmResult> {
+        try {
+            const response = await instance.post(
+                `${this.baseUrl}/v1/public/payments/intents/${paymentIntentId}/confirm`,
+                {},
+                { headers: { 'Idempotency-Key': `transfer-confirm-${paymentIntentId}` } },
+            );
+            return {
+                success: true,
+                data: response.data,
+            };
+        } catch (error: unknown) {
+            console.error('Confirm payment intent failed:', error);
+            return {
+                success: false,
+                error: this.getErrorMessage(error),
             };
         }
     }
@@ -235,8 +379,10 @@ class TransferService {
         }
 
         try {
-            const response = await axios.get(`${this.baseUrl}/flights/search/search_airports/?keyword=${encodeURIComponent(name)}`);
-            const results = response.data?.results || response.data?.data || response.data || [];
+            const response = await instance.get<{ results?: LookupLocation[]; data?: LookupLocation[] }>(
+                `${this.baseUrl}/transfers/lookup/terminal/?name=${encodeURIComponent(name)}`
+            );
+            const results = (response.data?.results || response.data?.data || response.data || []) as LookupLocation[];
             this.terminalCache.set(cacheKey, results);
 
             return {
@@ -244,11 +390,11 @@ class TransferService {
                 data: results,
             };
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Terminal lookup failed:', error);
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Failed to lookup terminal',
+                error: this.getErrorMessage(error),
             };
         }
     }
@@ -265,8 +411,8 @@ class TransferService {
         if (!formData.pickupTime) {
             throw new Error('Pickup time is required');
         }
-        if (!formData.pickupLocation || !/^[A-Z]{3}$/.test(formData.pickupLocation)) {
-            throw new Error('Invalid pickup location: Must be a 3-letter IATA code');
+        if (!formData.pickupLocation) {
+            throw new Error('Invalid pickup location');
         }
         if (!formData.dropoffLocation) {
             throw new Error('Invalid dropoff location');
@@ -283,20 +429,26 @@ class TransferService {
         }
         const { departing } = this.formatDateTime(formData.pickupDate, formData.pickupTime);
 
+        const hasGps = formData.toLat != null && formData.toLon != null
+            && formData.toLat !== 0 && formData.toLon !== 0;
+
+        // Partner catalog pickups use area/city codes, not IATA. Use IATA only when
+        // the code looks like a real IATA code (2-3 uppercase letters).
+        const isIata = /^[A-Z]{2,3}$/.test(formData.pickupLocation);
+
         return {
             adults: formData.passengerCounts.adults.toString(),
             children: formData.passengerCounts.children.toString(),
             infants: formData.passengerCounts.infant.toString(),
             departing,
             fcode: formData.pickupLocation,
-            ftype: 'IATA',
-            tcode: `${formData.toLat},${formData.toLon}`,
-            ttype: 'GPS',
+            ftype: isIata ? 'IATA' : 'CITY',
+            tcode: hasGps ? `${formData.toLat},${formData.toLon}` : (formData.dropoffLocation || formData.dropoffLocaDescription),
+            ttype: hasGps ? 'GPS' : 'CITY',
             language: 'en',
             transfer_type,
             min_price: formData.priceRange.min,
             max_price: formData.priceRange.max,
-
         };
     }
 

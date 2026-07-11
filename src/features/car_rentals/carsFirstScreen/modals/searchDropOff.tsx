@@ -6,11 +6,12 @@ import {
   TextField,
 } from "@mui/material";
 import { Loader, SearchIcon, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
-  MapLocation,
-  searchDetailedLocation,
-} from "../../services/locationService";
+  fetchPartnerTransferLocations,
+  filterDestinations,
+  type PartnerTransferDestination,
+} from "../../../shared/partnerLocationsService";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 
 export interface SearchLocationProps {
@@ -30,76 +31,35 @@ export interface SearchLocationProps {
 const SearchDropOffLocation = ({
   closeDialog,
   value,
-  setValue,
-  ChangeValue,
-  setExtraFields,
   collectTo,
 }: SearchLocationProps) => {
   const [query, setQuery] = useState(value);
-  const [dropSuggestions, setDropSuggestions] = useState<MapLocation[]>([]);
+  const [allDestinations, setAllDestinations] = useState<PartnerTransferDestination[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (query.length < 3) {
-      setDropSuggestions([]);
-      setError(null);
-      setLoading(false);
-      return;
-    }
+    fetchPartnerTransferLocations()
+      .then((data) => setAllDestinations(data.destinations))
+      .catch(() => setError("Failed to load destinations"))
+      .finally(() => setLoading(false));
+  }, []);
 
-    const fetchDropoffLocations = async () => {
-      try {
-        if (query.length > 2) {
-          setLoading(true);
-          const destinationResult = await searchDetailedLocation(
-            setLoading,
-            query
-          );
+  const suggestions = useMemo(
+    () => filterDestinations(allDestinations, query),
+    [allDestinations, query],
+  );
 
-          setDropSuggestions(destinationResult);
-        } else {
-          setError("Please enter at least 3 characters");
-          setDropSuggestions([]);
-        }
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch destinations");
-        setDropSuggestions([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDropoffLocations();
-  }, [query]);
-
-  const handleSelect = (location: MapLocation) => {
-    if (!location.name || location.name.length < 2) {
-      setError("Please select a valid location");
-      return;
-    }
-
-    setValue(location.name);
-    ChangeValue(location.country, location.latitude, location.longitude);
-    collectTo(
-      location.country,
-      location.name,
-      location.latitude,
-      location.longitude
-    );
-
-    if (setExtraFields) {
-      setExtraFields({
-        toLat: location.latitude,
-        toLon: location.longitude,
-      });
-    }
+  const handleSelect = (location: PartnerTransferDestination) => {
+    // area = partner API code (e.g. "Victoria Island")
+    // displayName = human label (e.g. "Victoria Island, Ikeja, Nigeria")
+    collectTo(location.displayName, location.area, 0, 0);
+    setQuery(location.displayName);
     closeDialog();
   };
 
   return (
     <div className="inset-0 fixed z-50">
-      {/* Backdrop */}
       <div className="fixed inset-0 " onClick={closeDialog} />
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full lg:h-[450px] lg:w-[400px] lg:min-w-lg lg:max-w-lg bg-white lg:rounded-lg shadow-2xl z-[99] flex flex-col mt-6 lg:mt-0">
         <div className="p-6 pb-0">
@@ -162,25 +122,25 @@ const SearchDropOffLocation = ({
           >
             {loading ? (
               <div className="text-center py-4">Loading...</div>
-            ) : dropSuggestions.length === 0 && !loading && query.length > 3 ? (
+            ) : suggestions.length === 0 && !loading && query.length > 0 ? (
               <div className="text-center py-4">
-                {error || "No items match your search"}
+                {error || "No destinations match your search"}
               </div>
             ) : (
-              dropSuggestions.map((location, index) => (
+              suggestions.map((location, index) => (
                 <div
-                  key={index}
+                  key={location.id ?? index}
                   className="flex justify-between w-full items-center cursor-pointer hover:bg-gray-100 rounded mt-3 pl-3"
                 >
                   <RoomOutlinedIcon
                     className="text-[#FF6F1E]"
                     sx={{ fontSize: "20px" }}
                   />
-                  <ListItem
-                    key={location.placeId}
-                    onClick={() => handleSelect(location)}
-                  >
-                    <ListItemText primary={location.name} />
+                  <ListItem onClick={() => handleSelect(location)}>
+                    <ListItemText
+                      primary={location.displayName}
+                      secondary={[location.area, location.city, location.country].filter(Boolean).join(" · ")}
+                    />
                   </ListItem>
                 </div>
               ))

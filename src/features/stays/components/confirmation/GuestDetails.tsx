@@ -5,6 +5,7 @@ interface GuestDetailsProps {
 }
 
 const GuestDetails = ({ guest }: GuestDetailsProps) => {
+  const fullName = [guest?.name, guest?.surname].filter((part) => part && part.trim()).join(" ");
   return (
     <div className="bg-white">
       <h2 className="text-lg font-semibold mb-4">Guest Details</h2>
@@ -14,21 +15,25 @@ const GuestDetails = ({ guest }: GuestDetailsProps) => {
           <div className="flex justify-between items-center w-full">
             <p className="font-medium">Name</p>
             <p>
-              {guest?.name|| "N/A"} {guest?.surname}
+              {fullName || "N/A"}
             </p>
           </div>
           <div className="flex justify-between items-center w-full">
             <p className="font-medium">Email</p>
             <p>{guest?.email|| "N/A"}</p>
           </div>
-          <div className="flex justify-between items-center w-full">
-            <p className="font-medium">Phone</p>
-            <p>{guest?.phone|| "N/A"}</p>
-          </div>
-          <div className="flex justify-between items-center w-full ">
-            <p className="font-medium flex justify-end">Address</p>
-            <p className="flex justify-end">{guest?.address|| "N/A"}</p>
-          </div>
+          {guest?.phone && (
+            <div className="flex justify-between items-center w-full">
+              <p className="font-medium">Phone</p>
+              <p>{guest.phone}</p>
+            </div>
+          )}
+          {guest?.address && (
+            <div className="flex justify-between items-center w-full ">
+              <p className="font-medium flex justify-end">Address</p>
+              <p className="flex justify-end">{guest.address}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

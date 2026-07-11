@@ -16,7 +16,6 @@ const CreateTicketModal: React.FC<Props> = ({ isOpen, onClose, onTicketRaised })
     title: '',
     category: '',
     description: '',
-    priority: 'medium',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +44,7 @@ const CreateTicketModal: React.FC<Props> = ({ isOpen, onClose, onTicketRaised })
       setShowSuccess(true);
       onTicketRaised?.();
       onClose();
-      setFormData({ title: '', category: '', description: '', priority: 'medium' });
+      setFormData({ title: '', category: '', description: '' });
       setTimeout(() => {
         setShowSuccess(false);
       }, 2000);

@@ -30,6 +30,20 @@ export interface LocationState {
   state: FlightReviewState;
 }
 
+export type FlightUpsellSummary =
+  | { id?: string; total: number; upsell: UpsellFlightOffer }
+  | UpsellFlightOffer;
+
+export interface FlightSummaryState {
+  tripType: string;
+  passengers: PassengerCounts;
+  departureFlight: FlightOffer;
+  returnFlight: FlightOffer;
+  departureUpsell: FlightUpsellSummary;
+  returnUpsell: FlightUpsellSummary;
+  multiCitySelections?: { flight: FlightOffer; upsell: UpsellFlightOffer }[];
+}
+
 export interface FlightReviewState {
   from: string;
   to: string;
@@ -154,7 +168,7 @@ loading=false,
     nextStep?: () => void;
     final?: boolean
     loading?:boolean
-  state?:FlightReviewState
+  state?:FlightSummaryState
 }) => {
 
 const [check, setCheck] =  useState(false)
@@ -164,6 +178,9 @@ const [check, setCheck] =  useState(false)
   let airlineFees = 0;
   let serviceFee = 0;
   let currency = "EUR"; // Default fallback currency
+
+  const getUpsellTotal = (upsell: FlightUpsellSummary | undefined) =>
+    upsell && typeof upsell === "object" && "total" in upsell ? upsell.total : 0;
 
   // Determine currency based on trip type
   if (state?.tripType === "multi-city" && state?.multiCitySelections?.length) {
@@ -207,7 +224,7 @@ const [check, setCheck] =  useState(false)
     });
   } else {
     const departure = state?.departureFlight?.price;
-    const departureUpsell = state?.departureUpsell?.total || 0;
+    const departureUpsell = getUpsellTotal(state?.departureUpsell);
     console.log(state);
     
     const returnFlight = state?.returnFlight;

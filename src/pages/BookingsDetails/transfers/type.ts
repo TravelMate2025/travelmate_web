@@ -20,6 +20,14 @@ export interface Transfers {
     sourceMarketEmergencyNumber: string;
 }
 export interface TransfersDetailsResponse {
+    // The TransferBooking row's own pk — required by
+    // `POST /transfers/booking/{id}/cancel/`, distinct from `reference`/
+    // `booking_reference`. Present on both the by-session confirmation and
+    // by-reference detail responses (see docs/BOOKING_API_CONTRACT.md §2).
+    id?: string;
+    booking_reference?: string;
+    booking_status?: string;
+    listing_name?: string;
     holder: Holder;
     remark: string;
     status: "CONFIRMED" | "CANCELLED" | string;
@@ -28,6 +36,7 @@ export interface TransfersDetailsResponse {
     reference: string;
     transfers: Transfers[];
     totalAmount: number;
+    totalNetAmount?: number;
     creationDate: string;
     bookingFileId: string | null;
     pendingAmount: number;

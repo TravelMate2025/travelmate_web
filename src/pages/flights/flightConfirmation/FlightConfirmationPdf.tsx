@@ -12,6 +12,20 @@ import dayjs from "dayjs";
 import { LocalState } from "./FlightConfirmationPage";
 import Logo from "../../../assets/logo.png"
 
+type FlightSegment = {
+  id?: string | number;
+  airline_code?: string;
+  flight_number?: string;
+  departure_airport?: string;
+  arrival_airport?: string;
+  departure_datetime?: string;
+  arrival_datetime?: string;
+  duration?: string;
+  cabin_class?: string;
+  aircraft_code?: string;
+  included_checked_bags?: string | number;
+};
+
 // ========= Styles =========
 const styles = StyleSheet.create({
   page: {
@@ -131,7 +145,7 @@ const FlightItineraryPDF = ({ bookingData }:{bookingData:LocalState}) => {
         {/* Flights */}
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>Flight Itinerary</Text>
-          {bookingData.booking.flights.map((f: any, idx: any) => (
+          {bookingData.booking.flights.map((f: FlightSegment, idx: number) => (
             <View key={f.id} style={{ marginBottom: 6 }}>
               <Text style={[styles.bold, styles.text]}>
                 Segment {idx + 1}: {f.airline_code} {f.flight_number}

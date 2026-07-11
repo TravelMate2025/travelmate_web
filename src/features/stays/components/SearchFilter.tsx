@@ -40,7 +40,7 @@ const SearchFilter: React.FC = () => {
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [guestText, setGuestText] = useState(
-    `${searchParams?.adults || 2} adults, ${searchParams?.rooms || 1} rooms ` || ""
+    `${searchParams?.adults || 2} adults, ${searchParams?.rooms || 1} rooms `
   );
   const [counts, setCounts] = useState({
     rooms: searchParams?.rooms || 1,
@@ -152,7 +152,7 @@ const SearchFilter: React.FC = () => {
     dispatch(setSearchParams(searchParams));
 
     navigate(
-      `/stays-search-result?location=${encodeURIComponent(destinationCode)}&checkin=${formatDate(checkIn)}&checkout=${formatDate(checkOut)}&adults=${counts.adults}&children=${totalChildren}&rooms=${counts.rooms}`
+      `/stay-results?location=${encodeURIComponent(destinationCode)}&checkin=${formatDate(checkIn)}&checkout=${formatDate(checkOut)}&adults=${counts.adults}&children=${totalChildren}&rooms=${counts.rooms}`
     );
   };
 

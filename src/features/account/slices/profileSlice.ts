@@ -9,6 +9,7 @@ export interface UserProfile {
   date_of_birth: string | null;
   address: string | null;
   mobile_number: string | null;
+  profile_pics: string | null;
 }
 
 interface ProfileState {
