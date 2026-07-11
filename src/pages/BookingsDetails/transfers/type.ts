@@ -41,7 +41,6 @@ export interface TransfersDetailsResponse {
     bookingFileId: string | null;
     pendingAmount: number;
     invoiceCompany: InvoiceCompany;
-    totalNetAmount: number;
     clientReference: string;
     paymentDataRequired: boolean;
     modificationsPolicies: ModificationsPolicies;
