@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getFaqCategories } from "../api/faqs";
 import FaqTabs from "../components/faq/FaqTabs";
 import FaqAccordion from "../components/faq/FaqAccordion";
@@ -7,44 +7,59 @@ import Footer from "../../../components/2Footer";
 import { useNavigate } from "react-router-dom";
 import { IoChevronBack } from "react-icons/io5";
 
+type FaqItem = {
+  id: number;
+  question: string;
+  answer: string;
+};
+
+type FaqCategory = {
+  id: number;
+  name_display: string;
+  faqs?: FaqItem[];
+  short_name?: string;
+};
+
+const preferredOrder = ["Stays", "Flights", "Car Rentals", "Account"];
+
 const FaqPage = () => {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<FaqCategory[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
 
-  const preferredOrder = ["Stays", "Flights", "Car Rentals", "Account"];
-
-  const fetchFaqs = async () => {
+  const fetchFaqs = useCallback(async () => {
     setLoading(true);
     setError(null); // clear previous error
     try {
       const data = await getFaqCategories();
-      const transformed = data.map((cat: any) => ({
-        ...cat,
-        short_name: cat.name_display.split(" ")[0],
-      }));
+      const transformed = (data || []).map((cat: unknown) => {
+        const c = cat as Partial<FaqCategory>;
+        return {
+          ...c,
+          short_name: (c.name_display || "").split(" ")[0],
+        } as FaqCategory;
+      });
 
-      const sorted = transformed.sort(
-        (a: any, b: any) =>
-          preferredOrder.indexOf(a.name_display) -
-          preferredOrder.indexOf(b.name_display)
+      const sorted = transformed.sort((a: FaqCategory, b: FaqCategory) =>
+        preferredOrder.indexOf(a.name_display) -
+        preferredOrder.indexOf(b.name_display)
       );
 
       setCategories(sorted);
       if (sorted.length > 0) setSelectedCategoryId(sorted[0].id);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchFaqs();
-  }, []);
+  }, [fetchFaqs]);
 
 
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
@@ -117,7 +132,9 @@ const FaqPage = () => {
               selectedCategoryId={selectedCategoryId!}
               onSelect={setSelectedCategoryId}
             />
-            {selectedCategory && <FaqAccordion faqs={selectedCategory.faqs} />}
+            {selectedCategory && (
+              <FaqAccordion faqs={selectedCategory.faqs ?? []} />
+            )}
           </div>
         )}
       </div>

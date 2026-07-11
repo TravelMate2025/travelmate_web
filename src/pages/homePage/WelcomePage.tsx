@@ -8,15 +8,31 @@ import plane from "../../assets/plane.svg";
 import car from "../../assets/car.svg";
 import stay from "../../assets/stay.svg";
 import RoundTrip from "./Flight";
-import SearchFilter from "../../features/stays/components/SearchFilter";
-import Page from "../../features/car_rentals/carsFirstScreen/Page";
+import Page from "../../features/car_rentals/carsFirstScreen/CarBookingFirstScreen";
+import PartnerStaySearchPage from "../../features/stays/pages/PartnerStaySearchPage";
 import { useMediaQuery } from "react-responsive";
+import { useLocation } from "react-router-dom";
+
+const tabFromSearch = (search: string): string | null => {
+  const params = new URLSearchParams(search);
+  const tab = params.get("tab");
+  if (tab === "transfers") return "3";
+  if (tab === "flights") return "2";
+  if (tab === "stays") return "1";
+  return null;
+};
 
 const WelcomePage = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
+  const location = useLocation();
   const [value, setValue] = React.useState<string>(() => {
-    return localStorage.getItem("selectedTab") || "1";
+    return tabFromSearch(location.search) ?? localStorage.getItem("selectedTab") ?? "1";
   });
+
+  React.useEffect(() => {
+    const tab = tabFromSearch(location.search);
+    if (tab) setValue(tab);
+  }, [location.search]);
 
   const handleChange = (_event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -71,7 +87,7 @@ const WelcomePage = () => {
                           alt="stay"
                           style={{ width: 20, height: 20 }}
                         />
-                      }   
+                      }
                       iconPosition="start"
                       label="Stays"
                       value="1"
@@ -97,13 +113,13 @@ const WelcomePage = () => {
                         />
                       }
                       iconPosition="start"
-                      label="Airport Taxi"
+                      label="Transfers"
                       value="3"
                     />
                   </TabList>
                 </Box>
                 <TabPanel value="1">
-                  <SearchFilter />
+                  <PartnerStaySearchPage />
                 </TabPanel>
                 <TabPanel value="2">
                   <RoundTrip />
@@ -146,7 +162,7 @@ const WelcomePage = () => {
                       icon={
                         <img
                           src={stay}
-                          alt="plane"
+                          alt="stay"
                           style={{ width: 20, height: 20 }}
                         />
                       }
@@ -158,7 +174,7 @@ const WelcomePage = () => {
                       icon={
                         <img
                           src={plane}
-                          alt="stay"
+                          alt="flights"
                           style={{ width: 20, height: 20 }}
                         />
                       }
@@ -175,13 +191,13 @@ const WelcomePage = () => {
                         />
                       }
                       iconPosition="start"
-                      label="Airport Taxi"
+                      label="Transfers"
                       value="3"
                     />
                   </TabList>
                 </Box>
                 <TabPanel value="1">
-                  <SearchFilter />
+                  <PartnerStaySearchPage />
                 </TabPanel>
                 <TabPanel value="2">
                   <RoundTrip />

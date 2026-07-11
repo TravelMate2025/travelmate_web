@@ -19,6 +19,9 @@ const ConfirmCancel = ({
   loadCancel,
 }: props) => {
   const [reason, setReason] = useState("");
+  const snapshot = bookings?.bookingSnapshot ?? bookings?.booking_snapshot ?? {};
+  const currency = bookings?.currency ?? (snapshot as Record<string, unknown>).currency?.toString() ?? "";
+  const priceLabel = currency ? `${currency} ` : "";
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
       <div className="bg-white w-full max-w-lg rounded-xl shadow-lg p-6 space-y-6">
@@ -51,7 +54,7 @@ const ConfirmCancel = ({
                 new Date(bookings?.check_out).toDateString()}
             </p>
             <p className="text-gray-800 font-medium text-sm">
-              €{bookings?.total_price || "-----"}
+              {priceLabel}{bookings?.total_price || bookings?.totalPrice || "-----"}
             </p>
           </div>
         </div>

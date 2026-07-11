@@ -2,14 +2,35 @@ import { Divider } from "@mui/material";
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
 import { useEffect, useState } from "react";
 import TravelMateLogo from "../../../assets/Logo.svg";
+import type { CarTransferOption } from "../types/booking";
+
+type BookingData = {
+  transfers?: CarTransferOption[];
+  reference?: string;
+  id?: string | number;
+  totalNetAmount?: string | number;
+  passenger_capacity?: number | string;
+  luggage_capacity?: number | string;
+  supplier?: {
+    name?: string;
+  };
+  holder?: {
+    name?: string;
+    surname?: string;
+    email?: string;
+    phone?: string;
+  };
+};
 
 const DownloadPage = () => {
   const search = new URLSearchParams(window.location.search);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  let bookingData: any = {};
+  let bookingData: BookingData = {};
   try {
-    bookingData = JSON.parse(search.get("data") || "{}");
-  } catch {}
+    bookingData = JSON.parse(search.get("data") || "{}") as BookingData;
+  } catch {
+    /* ignore JSON parse errors */
+  }
 
   useEffect(() => {
     if (isImageLoaded) {
@@ -21,14 +42,25 @@ const DownloadPage = () => {
 
   if (!bookingData) return <div>No booking data found.</div>;
 
-  const transfer = bookingData.transfers?.[0] || {};
-  const pickupInfo = transfer.pickupInformation || {};
-  const content = transfer.content || {};
+  const transfer = bookingData.transfers?.[0];
+  const pickupInfo = transfer?.pickupInformation || {};
+  const content = transfer?.content || {};
   const transferDetailInfo = content.transferDetailInfo || [];
-  const infoRemarks = content.transferRemarks[0].description;
-  const category = transfer.category || {};
+  const infoRemarks = content.transferRemarks?.[0]?.description;
+  const category = transfer?.category || {};
   const supplier = bookingData.supplier || {};
   const holder = bookingData.holder || {};
+  const paymentStatus = transfer?.status || "Not Available";
+  const seatCount =
+    bookingData.passenger_capacity ??
+    transfer?.passenger_capacity ??
+    transferDetailInfo.find((item) => (item.description ?? "").toLowerCase().includes("seat"))?.value ??
+    "Not Available";
+  const luggageCount =
+    bookingData.luggage_capacity ??
+    transfer?.luggage_capacity ??
+    transferDetailInfo.find((item) => (item.description ?? "").toLowerCase().includes("luggage"))?.value ??
+    "Not Available";
 
   return (
     <div>
@@ -48,14 +80,14 @@ const DownloadPage = () => {
       <div className="w-full bg-white">
         <div className="px-6 lg:px-8 m-auto lg:m-0 ">
           <p className="text-[16px] font-bold text-[#181818] mb-[15px]">
-            Taxi Confirmation
+              Transfer Confirmation
           </p>
           <div className="flex justify-normal gap-2">
             <p className="text-[#4E4F52] text-[14px] font-normal">
               Payment Status
             </p>
             <p className="text-[#2D9C5E] text-[14px] font-normal">
-              {transfer.status}
+              {paymentStatus}
             </p>
           </div>
           <div className="flex justify-normal gap-2">
@@ -70,7 +102,7 @@ const DownloadPage = () => {
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
-            Trip Details
+            Transfer details
           </p>
           <div>
             <div className="flex flex-col gap-1">
@@ -123,7 +155,7 @@ const DownloadPage = () => {
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
-            Taxi Details
+            Vehicle details
           </p>
           <div>
             <div className="flex flex-col gap-1">
@@ -132,15 +164,15 @@ const DownloadPage = () => {
                   Type:
                 </p>
                 <p className="text-[#181818] text-[14px] font-inter">
-                  {category.name} Car
+                  {category.name || "Not Available"} Car
                 </p>
               </div>
               <div className="flex justify-normal gap-2">
                 <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
                   Seats:
                 </p>
-                <p className="text-[14px] font-inter font-normal text-[#4E4F52]">
-                  {transferDetailInfo[2]?.value} Seats
+                <p className="text-[#181818] text-[14px] font-inter">
+                  {seatCount} Seats
                 </p>
               </div>
               <div className="flex justify-normal gap-2">
@@ -148,8 +180,7 @@ const DownloadPage = () => {
                   Luggages:
                 </p>
                 <p className="text-[#181818] text-[14px] font-inter">
-                  {transferDetailInfo[3]?.value}{" "}
-                  {transferDetailInfo[3]?.description ||"Not Available"}
+                  {luggageCount}
                 </p>
               </div>
               <div className="flex justify-normal gap-2">
@@ -168,7 +199,7 @@ const DownloadPage = () => {
 
         <div className="px-6 lg:px-8 m-auto lg:m-0 ">
           <p className="text-[14px] font-bold text-[#181818] py-2">
-            Passenger Details
+            Guest details
           </p>
           <div>
             <div className="flex justify-normal gap-2 mb-[6px]">
@@ -192,7 +223,7 @@ const DownloadPage = () => {
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
-            Price Summary
+            Estimated price summary
           </p>
           <div>
             <div className="flex justify-normal gap-2">
@@ -210,7 +241,7 @@ const DownloadPage = () => {
 
         <div className="px-6 lg:px-8 m-auto lg:m-0">
           <p className="text-[14px] font-inter py-2 font-bold text-[#181818]">
-            Important Information
+            Transfer information
           </p>
           <div>
             {infoRemarks ? (

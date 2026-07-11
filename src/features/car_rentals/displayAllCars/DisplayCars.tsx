@@ -24,6 +24,7 @@ import CarList from "./CarList";
 import Navbar from "../../../pages/homePage/Navbar";
 import EmptyState from "./EmptyState";
 import { BookingFormData, PassengerCounts } from "../types/booking";
+import type { CarTransferOption } from "../types/booking";
 import { transferService } from "../services/transferService";
 import SearchDropOffLocation from "../carsFirstScreen/modals/searchDropOff";
 import SearchPickUpLocation from "../carsFirstScreen/modals/searchPickUp";
@@ -31,8 +32,9 @@ import SearchPickUpLocation from "../carsFirstScreen/modals/searchPickUp";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../store";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "../../../store";
+import { setSearchResults } from "../carPaymentSlice";
 
 const DisplayCars: React.FC = () => {
   const { state } = useLocation();
@@ -43,6 +45,7 @@ const DisplayCars: React.FC = () => {
   const [form, setForm] = useState<boolean>(!isMobile);
   const [pickOrDrop, setPickOrDrop] = useState<"pick" | "drop">("pick");
   const carInfo = useSelector((state: RootState) => state.cars.carInfo);
+  const dispatch = useDispatch<AppDispatch>();
 
   const collectTo = (
     data: string,
@@ -101,7 +104,7 @@ const DisplayCars: React.FC = () => {
       search_id: state.search_id,
       rate_key: "",
     } as BookingFormData;
-  }, [carInfo]);
+  }, [carInfo, state]);
 
   const {
     formData,
@@ -183,7 +186,7 @@ const DisplayCars: React.FC = () => {
       updateField("priceRange", { min, max });
       closeModal("priceRange");
     },
-    [updateField, openModal, closeModal]
+    [updateField, closeModal]
   );
 
   const handlePassengerUpdate = useCallback(
@@ -210,9 +213,6 @@ const DisplayCars: React.FC = () => {
     if (!formData.dropoffLocation) {
       errors.push("Please enter a valid dropoff location");
     }
-    if (!formData.toLat || !formData.toLon) {
-      errors.push("Dropoff location must have valid GPS coordinates");
-    }
     if (!formData.pickupDate) {
       errors.push("Please select a pickup date");
     }
@@ -236,8 +236,11 @@ const DisplayCars: React.FC = () => {
       const params = transferService.convertFormToApiParams({
         ...formData,
       });
-      if (!params.fcode || !/^[A-Z]{3}$/.test(params.fcode)) {
-        throw new Error("Invalid pickup location code");
+      if (!params.fcode) {
+        throw new Error("Invalid pickup location");
+      }
+      if (!params.departing) {
+        throw new Error("Pickup date and time are required");
       }
       if (!params.tcode || params.tcode === "undefined,undefined") {
         setFormData((prev) => ({ ...prev, dropoffLocaDescription: "" }));
@@ -249,7 +252,8 @@ const DisplayCars: React.FC = () => {
       if (!result?.data?.results?.services) {
         throw new Error(result.error || "No transfer results found");
       }
-      updateField("searchResults", result?.data?.results?.services || []);
+      const newResults = (result?.data?.results?.services || []) as CarTransferOption[];
+      dispatch(setSearchResults(newResults));
       if (isMobile) {
         setForm(false);
       }
@@ -264,10 +268,10 @@ const DisplayCars: React.FC = () => {
     isValid,
     formData,
     isMobile,
+    dispatch,
+    setFormData,
     setLoading,
     setSubmitError,
-    updateField,
-    transferService,
   ]);
   // Memoized display values
   const displayValues = useMemo(
@@ -556,8 +560,9 @@ const DisplayCars: React.FC = () => {
             }))
           }
           setExtraFields={(fields) => {
-            updateField("toLat", fields.toLat);
-            updateField("toLon", fields.toLon);
+            if (fields.pickupLocaDescription) {
+              updateField("pickupLocaDescription", fields.pickupLocaDescription);
+            }
           }}
         />
       )}
@@ -645,7 +650,6 @@ const DisplayCars: React.FC = () => {
           searchResults={carInfo?.searchResults || stateData.searchResults}
           OpenForm={() => setForm(true)}
           loading={loading}
-          rate_key={formData.rate_key ?? ""}
         />
       ) : (
         <EmptyState

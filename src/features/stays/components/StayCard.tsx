@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaStar,
   FaMapMarkerAlt,
@@ -12,6 +12,7 @@ import { Hotel } from "../types";
 import { addOrRemoveFavorite } from "../api";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
+import { propertyTypeDisplayLabel, stayTypeDisplayLabel } from "../../shared/booking/bookingFlowLabels";
 
 interface StayCardProps {
   hotel: Hotel;
@@ -35,12 +36,20 @@ const StayCard: React.FC<StayCardProps> = ({
   // Extract all relevant data
   const firstRoom = hotel.rooms?.[0];
   const firstRate = firstRoom?.rates?.[0];
-  const mainImage = hotel.images?.[0]?.url || "";
+  const firstImg = hotel.images?.[0];
+  const mainImage = firstImg?.secureUrl ?? firstImg?.url ?? "";
+  const hotelId = hotel.id ?? hotel.code ?? "";
+  const displayPrice = hotel.priceFrom ?? firstRoom?.baseRate ?? (firstRate?.net ? parseFloat(firstRate.net) : undefined);
   const ratingMatch = hotel.category?.match(/\d+/);
   const rating = ratingMatch ? parseInt(ratingMatch[0]) : 0;
   const address =
     hotel.address || hotel.destination?.name || "Unknown location";
   const reviewsCount = hotel.reviewsCount || 0;
+  const currencyCode = hotel.currency ?? "NGN";
+
+  useEffect(() => {
+    setFavorite(isFavorited || Boolean(hotel.is_favorite));
+  }, [hotel.is_favorite, isFavorited]);
 
   // Calculate number of nights
   const nights =
@@ -76,23 +85,23 @@ const StayCard: React.FC<StayCardProps> = ({
   const formatPrice = (amount?: string | number) => {
     if (amount === undefined) return "N/A";
     const num = typeof amount === "string" ? parseFloat(amount) : amount;
-    return `€${num.toLocaleString()}`;
+    return `${currencyCode} ${num.toLocaleString("en-NG")}`;
   };
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    setFavorite(!favorite);
+    if (!hotelId) {
+      toast.error("This stay cannot be favorited right now");
+      return;
+    }
+    const nextFavorite = !favorite;
+    setFavorite(nextFavorite);
     try {
-      const response = await addOrRemoveFavorite(
-        hotel.code,
-        setFavorite,
-        favorite
-      );
-      const newFavorite = !favorite;
-      setFavorite(newFavorite);
+      const response = await addOrRemoveFavorite(hotelId);
       toast.success(response);
-    } catch (error) {
+    } catch (_error) {
+      setFavorite(!nextFavorite);
       toast.error("Something went wrong");
     }
   };
@@ -104,7 +113,7 @@ const StayCard: React.FC<StayCardProps> = ({
         const target = e.target as HTMLElement;
         if (!target.closest("button")) {
           navigate(
-            `/stays-detail/${hotel.code}?location=${
+            `/stay-details/${hotelId}?location=${
               searchParams?.destination
             }&stay=${encodeURIComponent(hotel.name)}&available=${
               hotel.available
@@ -161,7 +170,7 @@ const StayCard: React.FC<StayCardProps> = ({
           className="absolute top-3 right-3 bg-white rounded-md p-2 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
           aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
         >
-          {hotel.is_favorite ? (
+          {favorite ? (
             <FaHeart
               fill="oklch(57.7% 0.245 27.325)"
               className="text-red-600 text-2xl"
@@ -191,12 +200,18 @@ const StayCard: React.FC<StayCardProps> = ({
           <span className="text-sm line-clamp-1">{address}</span>
         </div>
 
-        {/* Show category if available */}
-        {hotel.category && (
-          <div className="text-sm text-gray-500 mt-1">
-            {hotel.accommodation_type}
-          </div>
-        )}
+        <div className="flex gap-2 mt-2 flex-wrap">
+          {propertyTypeDisplayLabel(hotel.propertyType ?? hotel.category) && (
+            <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
+              {propertyTypeDisplayLabel(hotel.propertyType ?? hotel.category)}
+            </span>
+          )}
+          {(hotel.saleMode ?? hotel.accommodation_type) && (
+            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
+              {stayTypeDisplayLabel(hotel.saleMode ?? hotel.accommodation_type)}
+            </span>
+          )}
+        </div>
 
         <div className="flex items-center text-green-600 mt-1">
           <FaCheckCircle className="mr-2" />
@@ -206,15 +221,13 @@ const StayCard: React.FC<StayCardProps> = ({
         <div className="flex w-full justify-between items-end mt-4">
           <div>
             <span className="text-xl font-bold">
-              {formatPrice(firstRate?.net)}
+              {formatPrice(displayPrice)}
             </span>
             <p className="text-gray-500 text-sm">Per Night</p>
           </div>
           <div className="ml-auto text-right">
             <span className="text-lg font-bold">
-              {formatPrice(
-                firstRate?.net ? parseFloat(firstRate.net) * nights : undefined
-              )}
+              {formatPrice(displayPrice !== undefined ? displayPrice * nights : undefined)}
             </span>
             <p className="text-gray-500 text-sm">
               {nights > 1

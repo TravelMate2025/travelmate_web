@@ -11,6 +11,7 @@ export interface UserProfile {
   email: string;
   mobile_number: string | null;
   address: string | null;
+  profile_pics: string | null;
 }
 
 
@@ -30,8 +31,11 @@ export const createUserProfile = async (
   accessToken: string,
   profileId: number,
 ) => {
+  const isAxiosError = (e: unknown): e is { response?: { status?: number }; message?: string } =>
+    typeof e === 'object' && e !== null && 'response' in e;
+
   try {
-    const response = await api.put(
+    const response = await api.patch(
       `${API_BASE_URL}/profile/${profileId}/`,
       profileData,
       {
@@ -41,13 +45,13 @@ export const createUserProfile = async (
       }
     );
     return response.data;
-  } catch (error: any) {
-    if (error.response?.status === 401) {
+  } catch (error: unknown) {
+    if (isAxiosError(error) && error.response?.status === 401) {
       console.error("Unauthorized. Please login again.");
       throw new Error("Unauthorized");
     }
     console.error("Error creating user profile:", error);
-    throw error;
+    throw error instanceof Error ? error : new Error(String(error));
   }
 };
 
@@ -56,6 +60,9 @@ export const createUserProfile = async (
 
 
 export const fetchUserProfile = async (token: string): Promise<UserProfile> => {
+  const isAxiosError = (e: unknown): e is { isAxiosError?: boolean; response?: { status?: number; data?: unknown }; message?: string } =>
+    typeof e === 'object' && e !== null && 'isAxiosError' in e;
+
   try {
     const response = await api.get(`${API_BASE_URL}/profile/`, {
       headers: {
@@ -70,25 +77,25 @@ export const fetchUserProfile = async (token: string): Promise<UserProfile> => {
     }
 
     return userProfile;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("❌ Error fetching profile:", error);
 
-    if (error.message === "No profile found for the current user.") {
+    if (error instanceof Error && error.message === "No profile found for the current user.") {
       throw new Error("No profile found. Please complete your profile setup.");
     }
 
-    if (error.isAxiosError) {
+    if (isAxiosError(error) && error.isAxiosError) {
       const status = error.response?.status;
 
       if (status === 404) {
         throw new Error("User profile not found.");
       }
 
-      if (error.message === "Network Error") {
+      if ((error as { message?: string }).message === "Network Error") {
         throw new Error("Network error. Please check your internet connection.");
       }
 
-      console.error("🧾 Axios error details:", error.response?.data || error.message);
+      console.error("🧾 Axios error details:", error.response?.data || (error as { message?: string }).message);
     }
 
     throw new Error("An unexpected error occurred while fetching your profile.");
@@ -96,16 +103,21 @@ export const fetchUserProfile = async (token: string): Promise<UserProfile> => {
 };
 
 
-export const updateUserProfile = async (userId: number, updatedData: any): Promise<UserProfile> => {
+export const updateUserProfile = async (
+  userId: number,
+  updatedData: Partial<ProfileData> | Record<string, unknown>
+): Promise<UserProfile> => {
   try {
     const response = await api.patch(`${API_BASE_URL}/profile/${userId}/`, updatedData);
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating profile:', error);
-    if (error.isAxiosError) {
-      console.error('Axios Error Details:', error.response ? error.response.data : error.message);
+    if (typeof error === 'object' && error !== null && 'response' in error) {
+      const resp = (error as { response?: { data?: unknown } }).response;
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Axios Error Details:', resp ? resp.data : message);
     }
-    throw error;
+    throw error instanceof Error ? error : new Error(String(error));
   }
 };
 
@@ -133,8 +145,11 @@ export const deleteUserAccount = async (
       data: payload,
     });
 
-  } catch (error: any) {
-    console.error("Error deleting account:", error?.response?.data || error.message);
-    throw error?.response?.data || new Error("Account deletion failed.");
+  } catch (error: unknown) {
+    const respData = (typeof error === 'object' && error !== null && 'response' in error)
+      ? (error as { response?: { data?: unknown } }).response?.data
+      : undefined;
+    console.error("Error deleting account:", respData || (error instanceof Error ? error.message : String(error)));
+    throw respData || new Error("Account deletion failed.");
   }
 };

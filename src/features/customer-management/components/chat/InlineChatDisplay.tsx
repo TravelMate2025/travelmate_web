@@ -48,6 +48,19 @@ const InlineChatDisplay: React.FC<InlineChatDisplayProps> = ({ activeChat }) => 
     });
   }
 
+  // A live "admin joined" notice from an open WebSocket — same concept as
+  // a historical claim_history entry, just observed live.
+  if (activeChat.liveAdminJoinedName) {
+    combinedItems.push({
+      type: "claim",
+      data: {
+        id: "live-admin-joined",
+        timestamp: new Date().toISOString(),
+        claim_note_text: `${activeChat.liveAdminJoinedName} has joined this chat.`,
+      },
+    });
+  }
+
   // Add the "chat closed" system message if the chat is closed
   if (
     activeChat.status === "CLOSED" &&

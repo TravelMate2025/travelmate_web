@@ -2,38 +2,40 @@ import { InputAdornment, TextField } from "@mui/material";
 import axios from "axios";
 import { Loader, SearchIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { GuestInfoProps } from "../../slice";
 
 interface countryModalProps {
   closeDialog: () => void;
-  formData?: GuestInfoProps;
-  setFormData: (data: GuestInfoProps) => void;
 }
+
+type RawCountry = {
+  idd?: { root?: string; suffixes?: string[] };
+  name?: { common?: string };
+  cca2?: string;
+};
+
+type CountryCode = { cca2: string; name: { common: string }; dialCode: string };
 const CountryCodeModal = ({
   closeDialog,
-  setFormData,
-  formData,
 }: countryModalProps) => {
   const [query, setQuery] = useState("");
-  const [countryCodes, setCountryCodes] = useState<any[]>([]);
+  const [countryCodes, setCountryCodes] = useState<CountryCode[]>([]);
   useEffect(() => {
     const fetchCodes = async () => {
       try {
         const response = await axios.get(
           "https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags"
         );
-        const filtered = response.data.filter(
-          (c: any) =>
-            c.idd && c.idd.root && c.idd.suffixes && c.idd.suffixes.length > 0
+        const data = (response.data as unknown) as RawCountry[];
+        const filtered = data.filter(
+          (c) => c.idd && c.idd.root && c.idd.suffixes && c.idd.suffixes.length > 0
         );
-        const mapped = filtered.map((c: any) => ({
-          ...c,
-          dialCode: `${c.idd.root}${c.idd.suffixes[0]}`,
-        }));
+        const mapped = filtered.map((c) => ({
+          cca2: c.cca2 || "",
+          name: { common: c.name?.common || "" },
+          dialCode: `${c.idd?.root || ""}${(c.idd?.suffixes || [""])[0]}`,
+        } as CountryCode));
         // ✅ Sort alphabetically by country name
-        const sorted = mapped.sort((a: any, b: any) =>
-          a.name.common.localeCompare(b.name.common)
-        );
+        const sorted = mapped.sort((a, b) => a.name.common.localeCompare(b.name.common));
 
         setCountryCodes(sorted);
       } catch (error) {
@@ -113,10 +115,6 @@ const CountryCodeModal = ({
                   <p
                     key={country.cca2}
                     onClick={() => {
-                      setFormData({
-                        ...formData!,
-                        countryCode: `${country.dialCode}`,
-                      });
                       closeDialog();
                     }}
                     className="p-2 pl-7 border-b-[1px] border-b-neutral-300 hover:bg-gray-200 cursor-pointer"

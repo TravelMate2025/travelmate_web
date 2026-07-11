@@ -13,6 +13,9 @@ import EmptyState from "../components/bookingTabs/EmptyState";
 import TravelmateApp from "./homePage/TravelmateApp";
 import Footer from "../components/2Footer";
 import BookingsSkeleton from "../components/bookingTabs/SkeletonLoader";
+import {
+  getBookingLifecycleStatus,
+} from "../features/shared/bookingStatus";
 
 // API & Utils
 import {
@@ -21,6 +24,43 @@ import {
   fetchAllBookings,
 } from "../features/stays/api";
 import { getAccessToken } from "../api/services/authUtils";
+
+type BookingsResponse = {
+  data?: {
+    stays?: unknown[];
+    transfers?: unknown[];
+    flights?: unknown[];
+  };
+};
+
+export const getTransferBookingName = (tRec: Record<string, unknown>): string => {
+  return String(
+    tRec['listing_name'] || tRec['dropoff_location_label'] || tRec['pickup_location_label'] || "",
+  );
+};
+
+const getImageUrlFromRecord = (record: Record<string, unknown>): string => {
+  const hotelImageUrl = record["hotel_image_url"];
+  if (typeof hotelImageUrl === "string" && hotelImageUrl.trim()) {
+    return hotelImageUrl;
+  }
+
+  const images = record["images"];
+  if (Array.isArray(images)) {
+    for (const image of images) {
+      if (!image || typeof image !== "object") continue;
+      const img = image as Record<string, unknown>;
+      const url =
+        (typeof img["secureUrl"] === "string" && img["secureUrl"]) ||
+        (typeof img["secure_url"] === "string" && img["secure_url"]) ||
+        (typeof img["url"] === "string" && img["url"]) ||
+        (typeof img["imageUrl"] === "string" && img["imageUrl"]);
+      if (url) return url;
+    }
+  }
+
+  return "";
+};
 
 export interface NormalizedBooking {
   id: string;
@@ -39,7 +79,7 @@ export interface NormalizedBooking {
   amount: number;
   currency: string;
   imageUrl?: string;
-  originalData: any;
+  originalData: Record<string, unknown>;
   session_id: string;
 }
 
@@ -57,57 +97,90 @@ const Bookings = () => {
   const currentTab = searchParams.get("tab") || "pending";
   const breadcrumbs = [{ name: "Home", link: "/" }, { name: "Bookings" }];
   const bookingTabs = [
-    { name: "Ongoing", value: "pending" },
+    { name: "Confirmed", value: "pending" },
     { name: "Completed", value: "completed" },
     { name: "Cancelled", value: "cancelled" },
-    { name: "Failed", value: "failed" },
+    { name: "Payment failed", value: "failed" },
   ];
 
-  const mergeBookings = (data: any): NormalizedBooking[] => {
-    const stays = (data.stays || []).map((s: any) => ({
-      id: s.id,
-      type: "stay",
-      reference: s.reference,
-      status: s.booking_status?.toLowerCase(),
-      name: s.hotel_name,
-      date: s.check_in,
-      date_to: s.check_out,
-      amount: Number(s.total_amount),
-      currency: s.currency,
-      imageUrl: s.imageUrl,
-      originalData: s,
-      session_id: s.session_id,
-    }));
+  const mergeBookings = (data: unknown): NormalizedBooking[] => {
+    const obj = (data as Record<string, unknown> | null) || {};
 
-    const transfers = (data.transfers || []).map((t: any) => ({
-      id: t.booking_reference,
-      type: "transfer",
-      reference: t.booking_reference,
-      status: t.booking_status?.toLowerCase(),
-      name: t.dropoff_location_label,
-      date: t.pickup_date,
-      date_to: t.pickup_date,
-      amount: Number(t.total_amount),
-      currency: t.currency,
-      imageUrl: "",
-      originalData: t,
-      session_id: t.payment_session_id,
-    }));
+    const staysArr = Array.isArray(obj.stays as unknown)
+      ? (obj.stays as unknown[])
+      : [];
+    const stays = staysArr.map((s) => {
+      const sRec = s as Record<string, unknown>;
+      return {
+        id: String(sRec['id']),
+        type: "stay",
+        reference: String(sRec['reference']),
+        status: String((sRec['booking_status'] as string) || "").toLowerCase(),
+        name: String(sRec['hotel_name'] || ""),
+        date: String(sRec['check_in'] || ""),
+        date_to: String(sRec['check_out'] || ""),
+        amount: Number(sRec['total_amount'] as number || 0),
+        currency: String(sRec['currency'] || ""),
+        imageUrl: getImageUrlFromRecord(sRec),
+        originalData: sRec as Record<string, unknown>,
+        session_id: String(sRec['session_id'] || ""),
+      } as NormalizedBooking;
+    });
 
-    const flights = (data.flights || []).map((f: any) => ({
-      id: f.booking_reference,
-      type: "flight",
-      reference: f.booking_reference,
-      status: f.booking_status?.toLowerCase(),
-      name: f.flight_booking_type,
-      date: f.flight_itinerary[0].summary.departure_datetime,
-      date_to: f.flight_itinerary[0].summary.arrival_datetime,
-      amount: Number(f.total_amount),
-      currency: f.currency,
-      imageUrl: "",
-      originalData: f,
-      session_id: f.payment_session_id,
-    }));
+    const transfersArr = Array.isArray(obj.transfers as unknown)
+      ? (obj.transfers as unknown[])
+      : [];
+    const transfers = transfersArr.map((t) => {
+      const tRec = t as Record<string, unknown>;
+      return {
+        // Transfer cancellation (`POST /transfers/booking/{id}/cancel/`)
+        // requires the TransferBooking row's own pk, not the shared
+        // booking_reference — keep them distinct here.
+        id: String(tRec['id'] ?? tRec['booking_reference'] ?? ""),
+        type: "transfer",
+        reference: String(tRec['booking_reference']),
+        status: String((tRec['booking_status'] as string) || "").toLowerCase(),
+        name: getTransferBookingName(tRec),
+        date: String(tRec['pickup_date'] || ""),
+        date_to: String(tRec['pickup_date'] || ""),
+        amount: Number(tRec['total_amount'] as number || 0),
+        currency: String(tRec['currency'] || ""),
+        imageUrl: getImageUrlFromRecord(tRec),
+        originalData: tRec as Record<string, unknown>,
+        session_id: String(tRec['payment_session_id'] || ""),
+      } as NormalizedBooking;
+    });
+
+    const flightsArr = Array.isArray(obj.flights as unknown)
+      ? (obj.flights as unknown[])
+      : [];
+    const flights = flightsArr.map((f) => {
+      const fRec = f as Record<string, unknown>;
+      let dep = "";
+      let arr = "";
+      const itinerary = fRec['flight_itinerary'] as unknown;
+      if (Array.isArray(itinerary) && itinerary.length > 0) {
+        const first = itinerary[0] as Record<string, unknown>;
+        const summary = first['summary'] as Record<string, unknown> | undefined;
+        dep = String(summary?.['departure_datetime'] ?? "");
+        arr = String(summary?.['arrival_datetime'] ?? "");
+      }
+      return {
+        id: String(fRec['booking_reference']),
+        type: "flight",
+        reference: String(fRec['booking_reference']),
+        status: String((fRec['booking_status'] as string) || "").toLowerCase(),
+        name: String(fRec['flight_booking_type'] || ""),
+        date: dep,
+        date_to: arr,
+        amount: Number(fRec['total_amount'] as number || 0),
+        currency: String(fRec['currency'] || ""),
+        imageUrl: getImageUrlFromRecord(fRec),
+        originalData: fRec as Record<string, unknown>,
+        session_id: String(fRec['payment_session_id'] || ""),
+      } as NormalizedBooking;
+    });
+
     return [...stays, ...transfers, ...flights].sort((a, b) => {
       const da = a.date ? new Date(a.date).getTime() : 0;
       const db = b.date ? new Date(b.date).getTime() : 0;
@@ -124,7 +197,7 @@ const Bookings = () => {
       try {
         setLoading(true);
 
-        const res = await fetchAllBookings();
+        const res = (await fetchAllBookings()) as BookingsResponse;
         if (res?.data) {
           setBookings(mergeBookings(res.data));
         }
@@ -151,9 +224,11 @@ const Bookings = () => {
         throw new Error("Booking not found");
       }
       if (bookingToCancel.type === "stay") {
-        await CancelStaysBookings(bookingId);
+        await CancelStaysBookings(bookingToCancel.reference);
       } else {
-        await CancelTransferBookings(bookingId);
+        // Transfer cancellation needs the TransferBooking row's own id,
+        // not the shared booking_reference passed in as `bookingId`.
+        await CancelTransferBookings(bookingToCancel.id);
       }
 
       toast.success("Booking cancelled successfully");
@@ -162,9 +237,10 @@ const Bookings = () => {
           book.reference === bookingId ? { ...book, status: "cancelled" } : book
         )
       );
-    } catch (error: any) {
-      console.error("Error cancelling booking:", error);
-      toast.error(error.message || "Failed to cancel booking");
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error("Error cancelling booking:", msg);
+      toast.error(msg || "Failed to cancel booking");
     } finally {
       setCancelingBookingId(null);
     }
@@ -172,26 +248,21 @@ const Bookings = () => {
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((item) => {
-      const status = item.status.toLowerCase();
-      const date = new Date(item.date_to);
+      const lifecycleStatus = getBookingLifecycleStatus(item.status, item.date_to || item.date);
 
       // Map URL tabs to specific data statuses
       switch (currentTab) {
-        case "pending": // "Ongoing" tab
-          return status === "ongoing" ||
-            (status === "confirmed" && date > new Date());
+        case "pending":
+          return lifecycleStatus === "confirmed";
 
         case "completed":
-          return (
-            status === "completed" ||
-            (status === "confirmed" && date < new Date())
-          );
+          return lifecycleStatus === "completed";
 
         case "cancelled":
-          return status === "cancelled";
+          return lifecycleStatus === "cancelled";
 
         case "failed":
-          return status === "pending" || status === "failed";
+          return lifecycleStatus === "payment_failed";
 
         default:
           return false;
