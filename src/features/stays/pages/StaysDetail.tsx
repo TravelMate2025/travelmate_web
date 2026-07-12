@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../store";
-import { clearSelectedHotel, fetchStayDetailsAsync, fetchStayPricingAsync, clearStayPricing } from "../slice";
+import { clearSelectedHotel, fetchStayDetailsAsync, fetchStayPricingAsync, clearStayPricing, fetchStayRoomsAsync } from "../slice";
 import UpdateSearchFilter from "../components/UpdateSearchFilter";
 import Breadcrumbs from "../../../components/Breadcrumbs";
 import {
@@ -228,6 +228,15 @@ const StaysDetail: React.FC = () => {
 
   const isRoomLevel =
     (selectedHotel?.saleMode ?? selectedHotel?.accommodation_type) === "room_level";
+
+  // Live per-room remainingInventory/isExhausted -- only available from the
+  // dedicated rooms endpoint, and only meaningful once we know this is a
+  // room_level stay (unit-level properties have no rooms[] to enrich).
+  useEffect(() => {
+    if (hotelId && isRoomLevel) {
+      dispatch(fetchStayRoomsAsync(hotelId));
+    }
+  }, [dispatch, hotelId, isRoomLevel]);
 
   const roomSummary = (selectedHotel?.roomSummary ?? {}) as Record<string, unknown>;
   const mediaSummary = (selectedHotel?.mediaSummary ?? {}) as Record<string, unknown>;
@@ -747,6 +756,22 @@ const StaysDetail: React.FC = () => {
                           Max {room.occupancy ?? room.max_occupancy} guests
                         </span>
                       )}
+                      {/* Only present once fetchStayRoomsAsync resolves (live
+                          inventory, distinct from the static totalInventory
+                          already on this room from the detail response). */}
+                      {room.remainingInventory != null && (
+                        <span
+                          className={`absolute top-2 left-2 px-2 py-1 rounded text-sm font-medium ${
+                            room.isExhausted
+                              ? "bg-red-100 text-red-800"
+                              : "bg-amber-100 text-amber-800"
+                          }`}
+                        >
+                          {room.isExhausted
+                            ? "Sold out"
+                            : `${room.remainingInventory} left`}
+                        </span>
+                      )}
                     </div>
 
                     {/* Room Details */}
@@ -815,7 +840,8 @@ const StaysDetail: React.FC = () => {
                           <div className="mt-auto pt-4">
                         {expandedRoomId !== roomId ? (
                           <button
-                            className="w-full bg-[#023E8A] text-white py-2 rounded-lg hover:bg-[#023E9E] transition-colors cursor-pointer"
+                            disabled={room.isExhausted}
+                            className="w-full bg-[#023E8A] text-white py-2 rounded-lg hover:bg-[#023E9E] transition-colors cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
                             onClick={() => {
                               setExpandedRoomId(roomId);
                               setSelectedOptionId(
@@ -823,7 +849,7 @@ const StaysDetail: React.FC = () => {
                               );
                             }}
                           >
-                            Select
+                            {room.isExhausted ? "Sold out" : "Select"}
                           </button>
                         ) : (
                           <div className="border border-blue-100 rounded-lg overflow-hidden">
