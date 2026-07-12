@@ -45,9 +45,30 @@ export interface CarTransferOption {
   status?: string;
   transferType?: string;
   transfer_type?: string;
+  // rideType is the partner's current field ("private_hire" | "shared");
+  // transferType/transfer_type above predate the partner's rename and are
+  // kept only for older cached data.
+  rideType?: string;
+  ride_type?: string;
   maxPaxCapacity?: string | number;
   passenger_capacity?: number;
   luggage_capacity?: number;
+  vehicleCount?: number;
+  vehicle_count?: number;
+  estimatedDurationMinutes?: number;
+  estimated_duration_minutes?: number;
+  // Only present for shared rides, and only when the search included a
+  // pickup date+time (the backend derives pickupAt server-side from the
+  // pickup_date/pickup_time already sent — see PartnerTransferService).
+  availableSeats?: number | null;
+  available_seats?: number | null;
+  provider?: {
+    name?: string;
+    displayName?: string;
+    contactPhone?: string;
+    websiteUrl?: string;
+    arrivalInstructions?: string;
+  } | null;
   features?: string[];
   currency?: string;
   base_fare?: number;
