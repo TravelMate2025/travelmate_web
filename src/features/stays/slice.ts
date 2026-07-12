@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { searchStays, createCheckoutSession, fetchStayPricing, createQuote, createHold, getHotelDetails } from '../stays/api';
-import { BookingHoldReq, BookingHoldResp, BookingQuoteReq, BookingQuoteResp, BookStaysRequest, BookStaysResponse, Hotel, HotelSearchResponse, StayPricing } from './types';
+import { searchStays, createCheckoutSession, fetchStayPricing, createQuote, createHold, getHotelDetails, getHotelRooms } from '../stays/api';
+import { BookingHoldReq, BookingHoldResp, BookingQuoteReq, BookingQuoteResp, BookStaysRequest, BookStaysResponse, Hotel, HotelSearchResponse, StayPricing, StayRoomsResponse } from './types';
 
 interface locationDetails {
   name: string
@@ -44,6 +44,9 @@ interface StaysState {
   stayPricing: StayPricing | null;
   pricingLoading: boolean;
   pricingError: string | null;
+  stayRooms: StayRoomsResponse | null;
+  roomsLoading: boolean;
+  roomsError: string | null;
   quoteResp: BookingQuoteResp | null;
   quoteLoading: boolean;
   quoteError: string | null;
@@ -70,6 +73,9 @@ const initialState: StaysState = {
   stayPricing: null,
   pricingLoading: false,
   pricingError: null,
+  stayRooms: null,
+  roomsLoading: false,
+  roomsError: null,
   quoteResp: null,
   quoteLoading: false,
   quoteError: null,
@@ -111,6 +117,18 @@ export const fetchStayPricingAsync = createAsyncThunk(
   async (stayId: string, { rejectWithValue }) => {
     try {
       return await fetchStayPricing(stayId);
+    } catch (error: unknown) {
+      if (error instanceof Error) return rejectWithValue(error.message);
+      return rejectWithValue(String(error));
+    }
+  }
+);
+
+export const fetchStayRoomsAsync = createAsyncThunk(
+  'stays/fetchStayRooms',
+  async (stayId: string, { rejectWithValue }) => {
+    try {
+      return await getHotelRooms(stayId);
     } catch (error: unknown) {
       if (error instanceof Error) return rejectWithValue(error.message);
       return rejectWithValue(String(error));
@@ -269,6 +287,32 @@ const staysSlice = createSlice({
       .addCase(fetchStayPricingAsync.rejected, (state, action) => {
         state.pricingLoading = false;
         state.pricingError = action.payload as string;
+      })
+      // Stay rooms (live remainingInventory/isExhausted)
+      .addCase(fetchStayRoomsAsync.pending, (state) => {
+        state.roomsLoading = true;
+        state.roomsError = null;
+      })
+      .addCase(fetchStayRoomsAsync.fulfilled, (state, action: PayloadAction<StayRoomsResponse>) => {
+        state.roomsLoading = false;
+        state.stayRooms = action.payload;
+        // Merge remainingInventory/isExhausted onto the rooms already
+        // driving the room-selection UI (selectedHotel.rooms), rather than
+        // replacing that data source -- the detail response's rooms[]
+        // still has name/description/images/rates this endpoint doesn't.
+        if (state.selectedHotel?.rooms?.length) {
+          const byId = new Map(action.payload.rooms.map((r) => [r.id, r]));
+          state.selectedHotel.rooms = state.selectedHotel.rooms.map((room) => {
+            const live = room.id ? byId.get(room.id) : undefined;
+            return live
+              ? { ...room, remainingInventory: live.remainingInventory, isExhausted: live.isExhausted }
+              : room;
+          });
+        }
+      })
+      .addCase(fetchStayRoomsAsync.rejected, (state, action) => {
+        state.roomsLoading = false;
+        state.roomsError = action.payload as string;
       })
       // Stay details
       .addCase(fetchStayDetailsAsync.pending, (state) => {

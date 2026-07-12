@@ -11,6 +11,7 @@ import {
   Hotel,
   HotelSearchResponse,
   StayPricing,
+  StayRoomsResponse,
 } from "./types";
 import api from "../../api/services/api";
 import axios, { AxiosError } from "axios";
@@ -103,6 +104,9 @@ function mapPublicCatalogStayToHotel(item: unknown): Hotel {
     mediaSummary?: unknown;
     checkInTime?: string;
     checkOutTime?: string;
+    // Only present when the search/detail request included checkIn/checkOut
+    // -- see PartnerStayService.search_hotels on the backend.
+    availability?: Hotel["availability"];
   };
 
   return {
@@ -122,6 +126,7 @@ function mapPublicCatalogStayToHotel(item: unknown): Hotel {
     checkInTime: stay.checkInTime,
     checkOutTime: stay.checkOutTime,
     rooms: stay.rooms,
+    availability: stay.availability,
     images: stay.images,
     amenities: stay.amenities,
     amenityDetails: stay.amenityDetails,
@@ -245,6 +250,24 @@ export const fetchStayPricing = async (stayId: string): Promise<StayPricing> => 
     return (response.data?.data ?? response.data) as StayPricing;
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error) || `Failed to load pricing for ${stayId}`;
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+/**
+ * Get live per-room inventory (remainingInventory/isExhausted) -- distinct
+ * from the static totalInventory/isBookable/maxPerBooking already present
+ * on the rooms[] embedded in the stay detail/search response.
+ */
+export const getHotelRooms = async (stayId: string): Promise<StayRoomsResponse> => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/v1/public/catalog/stays/${stayId}/rooms`,
+    );
+    return (response.data?.data ?? response.data) as StayRoomsResponse;
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || `Failed to load rooms for ${stayId}`;
     toast.error(errorMessage);
     throw new Error(errorMessage);
   }

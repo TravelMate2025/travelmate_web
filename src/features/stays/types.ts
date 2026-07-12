@@ -74,6 +74,11 @@ export interface Room {
   isBookable?: boolean;
   totalInventory?: number;
   maxPerBooking?: number;
+  /** Only present from the dedicated GET .../rooms endpoint (getHotelRooms)
+   * -- a live inventory snapshot, distinct from the static totalInventory
+   * above which comes from the stay detail/search response. */
+  remainingInventory?: number;
+  isExhausted?: boolean;
   size_sqm?: number | null;
   amenities?: string[];
   images?: HotelImage[];
@@ -83,6 +88,15 @@ export interface Room {
 export interface AmenityDetail {
   code: string;
   label: string;
+}
+
+/** Only present on search-result/detail responses when the request included
+ * checkIn/checkOut dates. bookingModel is "unit" or "room_level";
+ * availableRooms is only meaningful for room_level stays (null for unit). */
+export interface StayAvailability {
+  bookingModel?: "unit" | "room_level";
+  availableRooms?: number | null;
+  available?: boolean;
 }
 
 export interface Hotel {
@@ -120,6 +134,7 @@ export interface Hotel {
   amenityDetails?: AmenityDetail[];
   images?: HotelImage[];
   available?: boolean;
+  availability?: StayAvailability;
   rooms?: Room[];
   roomSummary?: Record<string, unknown>;
   mediaSummary?: Record<string, unknown>;
@@ -135,6 +150,14 @@ export interface Hotel {
 export interface HotelSearchResponse {
   count: number;
   results: Hotel[];
+}
+
+/** GET .../catalog/stays/{stayId}/rooms -- the dedicated live-inventory
+ * endpoint (see getHotelRooms in api.ts). */
+export interface StayRoomsResponse {
+  stayId?: string;
+  saleMode?: string;
+  rooms: Room[];
 }
 
 

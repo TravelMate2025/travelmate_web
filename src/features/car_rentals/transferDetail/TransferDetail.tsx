@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router";
-import { ChevronLeft, MapPin, Users, Briefcase, CheckCircle, XCircle } from "lucide-react";
+import { ChevronLeft, MapPin, Users, Briefcase, CheckCircle, XCircle, Clock, Phone, Globe } from "lucide-react";
 import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 import type { CarTransferOption } from "../types/booking";
 import type { CarInfo } from "../carPaymentSlice";
@@ -27,6 +27,11 @@ const currencySymbol = (code?: string) => {
   if (code === "EUR") return "€";
   return code + " ";
 };
+
+const getRideType = (car: CarTransferOption) => car.rideType ?? car.ride_type;
+
+const getRideTypeLabel = (rideType?: string) =>
+  rideType === "shared" ? "Shared" : rideType === "private_hire" ? "Private" : null;
 
 const getImages = (car: CarTransferOption): string[] => {
   const imgs: string[] = [];
@@ -97,6 +102,12 @@ export default function TransferDetail() {
     departureInfo.passengerCounts.adults +
     departureInfo.passengerCounts.children +
     departureInfo.passengerCounts.infant;
+  const rideType = getRideType(car);
+  const rideTypeLabel = getRideTypeLabel(rideType);
+  const duration = car.estimatedDurationMinutes ?? car.estimated_duration_minutes;
+  const vehicleCount = car.vehicleCount ?? car.vehicle_count;
+  const availableSeats = car.availableSeats ?? car.available_seats;
+  const provider = car.provider;
 
   const handleBook = () => {
     navigate(bookingFlowRoutes.transferBookingReview, {
@@ -162,6 +173,11 @@ export default function TransferDetail() {
           </h1>
         </div>
         <div className="flex flex-wrap gap-2 mb-3">
+          {rideTypeLabel && (
+            <span className="text-xs bg-[#023E8A] text-white px-2.5 py-1 rounded-full font-medium">
+              {rideTypeLabel}
+            </span>
+          )}
           {car.vehicle?.code && (
             <span className="text-xs bg-[#F0F4FF] text-[#023E8A] px-2.5 py-1 rounded-full capitalize">
               {car.vehicle.code.replace(/_/g, " ")}
@@ -201,7 +217,7 @@ export default function TransferDetail() {
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-4 text-sm text-[#67696D]">
+          <div className="flex items-center gap-4 text-sm text-[#67696D] flex-wrap">
             <span>
               📅{" "}
               <span className="text-[#181818] font-medium">
@@ -214,11 +230,17 @@ export default function TransferDetail() {
                 {departureInfo.pickupTime}
               </span>
             </span>
+            {duration != null && (
+              <span className="flex items-center gap-1">
+                <Clock size={14} />
+                <span className="text-[#181818] font-medium">~{duration} min</span>
+              </span>
+            )}
           </div>
         </div>
 
         {/* Capacity */}
-        <div className="flex items-center gap-5 mb-4 text-sm text-[#67696D]">
+        <div className="flex items-center gap-5 mb-4 text-sm text-[#67696D] flex-wrap">
           <div className="flex items-center gap-1.5">
             <Users size={16} />
             <span>
@@ -229,7 +251,50 @@ export default function TransferDetail() {
             <Briefcase size={16} />
             <span>{car.luggage_capacity ?? "—"} Luggage</span>
           </div>
+          {vehicleCount != null && vehicleCount > 1 && (
+            <div className="flex items-center gap-1.5">
+              <span>{vehicleCount} vehicles</span>
+            </div>
+          )}
+          {rideType === "shared" && availableSeats != null && (
+            <div className="flex items-center gap-1.5 text-[#FF6F1E] font-medium">
+              <span>{availableSeats} seats left</span>
+            </div>
+          )}
         </div>
+
+        {/* Provider */}
+        {provider && (provider.name || provider.displayName) && (
+          <div className="bg-[#F8FAFE] border border-[#E5EDF5] rounded-xl p-4 mb-4 text-sm">
+            <p className="text-[#181818] font-semibold mb-2">
+              Operated by {provider.name ?? provider.displayName}
+            </p>
+            <div className="flex flex-col gap-1.5 text-[#67696D]">
+              {provider.contactPhone && (
+                <div className="flex items-center gap-1.5">
+                  <Phone size={14} />
+                  <span>{provider.contactPhone}</span>
+                </div>
+              )}
+              {provider.websiteUrl && (
+                <div className="flex items-center gap-1.5">
+                  <Globe size={14} />
+                  <a
+                    href={provider.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#023E8A] underline"
+                  >
+                    {provider.websiteUrl}
+                  </a>
+                </div>
+              )}
+              {provider.arrivalInstructions && (
+                <p className="mt-1">{provider.arrivalInstructions}</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Features */}
         {car.features && car.features.length > 0 && (
