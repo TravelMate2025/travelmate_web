@@ -151,17 +151,36 @@ const StayCard: React.FC<StayCardProps> = ({
         </div>
 
         {/* Show available status if provided */}
-        {hotel.available !== undefined && (
-          <span
-            className={`absolute top-3 left-3 px-2 py-1 rounded-md text-xs font-medium ${
-              hotel.available
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800"
-            }`}
-          >
-            {hotel.available ? "Available" : "Unavailable"}
-          </span>
-        )}
+        <div className="absolute top-3 left-3 flex flex-col items-start gap-1">
+          {hotel.available !== undefined && (
+            <span
+              className={`px-2 py-1 rounded-md text-xs font-medium ${
+                hotel.available
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              {hotel.available ? "Available" : "Unavailable"}
+            </span>
+          )}
+          {/* Only present when the search included checkIn/checkOut and this
+              is a room-level property (unit-level stays don't have a room
+              count) -- see PartnerStayService.search_hotels. */}
+          {hotel.availability?.bookingModel === "room_level" &&
+            hotel.availability.availableRooms != null && (
+              <span
+                className={`px-2 py-1 rounded-md text-xs font-medium ${
+                  hotel.availability.availableRooms > 0
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
+                {hotel.availability.availableRooms > 0
+                  ? `${hotel.availability.availableRooms} rooms left`
+                  : "Sold out"}
+              </span>
+            )}
+        </div>
 
         <button
           onClick={handleFavoriteClick}

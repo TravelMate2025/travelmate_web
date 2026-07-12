@@ -11,7 +11,7 @@ import { Stack, Pagination } from "@mui/material";
 import LuggageOutlinedIcon from "@mui/icons-material/LuggageOutlined";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { Edit3Icon, MapPin } from "lucide-react";
+import { Edit3Icon, MapPin, Clock } from "lucide-react";
 import { MdOutlineSort } from "react-icons/md";
 import SortOverlay from "./SortOverlay";
 import { IoIosCheckmarkCircleOutline } from "react-icons/io";
@@ -38,6 +38,20 @@ const getCurrencySymbol = (currency?: string) => {
 
 const getPrice = (car: CarTransferOption) =>
   car.price?.totalAmount ?? car.base_fare ?? 0;
+
+const getRideType = (car: CarTransferOption) => car.rideType ?? car.ride_type;
+
+const getRideTypeLabel = (rideType?: string) =>
+  rideType === "shared" ? "Shared" : rideType === "private_hire" ? "Private" : null;
+
+const getEstimatedDuration = (car: CarTransferOption) =>
+  car.estimatedDurationMinutes ?? car.estimated_duration_minutes;
+
+const getAvailableSeats = (car: CarTransferOption) =>
+  car.availableSeats ?? car.available_seats;
+
+const getProviderName = (car: CarTransferOption) =>
+  car.provider?.name ?? car.provider?.displayName;
 
 const getImage = (car: CarTransferOption) =>
   car.content?.images?.[0]?.secureUrl ||
@@ -93,6 +107,11 @@ const CarList: React.FC<CarListProps> = ({
     const currencySymbol = getCurrencySymbol(car.currency || car.price?.currencyId);
     const price = getPrice(car);
     const image = getImage(car);
+    const rideType = getRideType(car);
+    const rideTypeLabel = getRideTypeLabel(rideType);
+    const duration = getEstimatedDuration(car);
+    const availableSeats = getAvailableSeats(car);
+    const providerName = getProviderName(car);
 
     return (
       <Card className="w-full cursor-pointer overflow-hidden">
@@ -107,12 +126,22 @@ const CarList: React.FC<CarListProps> = ({
             }}
           />
           <div className="flex flex-col gap-1 min-w-0">
-            <p className="text-[#181818] text-[15px] font-semibold leading-tight">
-              {car.name || car.vehicle.name}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-[#181818] text-[15px] font-semibold leading-tight">
+                {car.name || car.vehicle.name}
+              </p>
+              {rideTypeLabel && (
+                <span className="text-[10px] font-medium bg-[#F0F4FF] text-[#023E8A] px-2 py-0.5 rounded-full flex-shrink-0">
+                  {rideTypeLabel}
+                </span>
+              )}
+            </div>
             <p className="text-xs text-[#67696D] capitalize">
               {car.vehicle.name || car.vehicle.code?.replace(/_/g, " ")}
             </p>
+            {providerName && (
+              <p className="text-xs text-[#67696D]">Operated by {providerName}</p>
+            )}
           </div>
         </div>
 
@@ -128,7 +157,7 @@ const CarList: React.FC<CarListProps> = ({
           </div>
 
           {/* Capacity row */}
-          <div className="flex items-center gap-4 text-sm text-[#67696D]">
+          <div className="flex items-center gap-4 text-sm text-[#67696D] flex-wrap">
             <div className="flex items-center gap-1">
               <AirlineSeatReclineNormalIcon fontSize="small" />
               <span>{car.passenger_capacity ?? car.maxPaxCapacity ?? "—"} Seats</span>
@@ -137,6 +166,17 @@ const CarList: React.FC<CarListProps> = ({
               <LuggageOutlinedIcon fontSize="small" />
               <span>{car.luggage_capacity ?? "—"} Luggage</span>
             </div>
+            {duration != null && (
+              <div className="flex items-center gap-1">
+                <Clock size={16} />
+                <span>~{duration} min</span>
+              </div>
+            )}
+            {rideType === "shared" && availableSeats != null && (
+              <div className="flex items-center gap-1 text-[#FF6F1E] font-medium">
+                <span>{availableSeats} seats left</span>
+              </div>
+            )}
           </div>
 
           {/* Features */}
