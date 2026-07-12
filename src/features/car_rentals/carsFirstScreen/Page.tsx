@@ -307,6 +307,11 @@ const CarBookingFirstScreen: React.FC = () => {
                 size="small"
                 value={displayValues.rideType}
                 onClick={() => handleRideClick()}
+                onBlur={() => handleBlur("selectedRide")}
+                error={
+                  Boolean(touched.selectedRide) && Boolean(errors.selectedRide)
+                }
+                helperText={touched.selectedRide && errors.selectedRide}
                 className="cursor-pointer"
                 InputProps={{
                   readOnly: true,
@@ -371,7 +376,7 @@ const CarBookingFirstScreen: React.FC = () => {
                 placeholder="Search Destination"
                 value={formData.dropoffLocaDescription || formData.dropoffLocation}
                 onClick={() => handleDropLocationClick("drop")}
-                onBlur={() => handleBlur("dropoffpLocation")}
+                onBlur={() => handleBlur("dropoffLocation")}
                 error={
                   Boolean(touched.dropoffLocation) &&
                   Boolean(errors.dropoffLocation)
@@ -443,8 +448,9 @@ const CarBookingFirstScreen: React.FC = () => {
                 size="small"
                 value={formData.pickupTime}
                 onChange={handleTimeChange}
-                // error={!!errors.pickupTime}
-                // helperText={errors.pickupTime}
+                onBlur={() => handleBlur("pickupTime")}
+                error={Boolean(touched.pickupTime) && Boolean(errors.pickupTime)}
+                helperText={touched.pickupTime && errors.pickupTime}
                 sx={{
                   "& .MuiInputBase-root": {
                     height: "44px",
