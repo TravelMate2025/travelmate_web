@@ -53,7 +53,8 @@ const SearchDropOffLocation = ({
   const handleSelect = (location: PartnerTransferDestination) => {
     // area = partner API code (e.g. "Victoria Island")
     // displayName = human label (e.g. "Victoria Island, Ikeja, Nigeria")
-    collectTo(location.displayName, location.area, 0, 0);
+    const code = location.area || location.city || location.displayName;
+    collectTo(location.displayName, code, 0, 0);
     setQuery(location.displayName);
     closeDialog();
   };
