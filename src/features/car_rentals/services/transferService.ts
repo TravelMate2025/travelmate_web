@@ -1,5 +1,5 @@
 import { parse, format, isValid } from 'date-fns';
-import { BookingFormData, CarTransferOption } from '../types/booking';
+import { BookingFormData, CarTransferOption, CatalogReviewsResponse } from '../types/booking';
 import axios from 'axios';
 import instance from '../../../utils/axiosConfig';
 import toast from 'react-hot-toast';
@@ -228,6 +228,19 @@ class TransferService {
         try {
             const response = await instance.get<CarTransferOption>(`${this.baseUrl}/transfers/${transferId}/`);
             return { success: true, data: response.data };
+        } catch (error: unknown) {
+            return { success: false, error: this.getErrorMessage(error) };
+        }
+    }
+
+    async getTransferReviews(transferId: string): Promise<{ success: boolean; data?: CatalogReviewsResponse; error?: string }> {
+        try {
+            const response = await instance.get(
+                `${this.baseUrl}/v1/public/catalog/transfers/${transferId}/reviews`,
+                { params: { page: 1, pageSize: 20 } },
+            );
+            const data = (response.data?.data ?? response.data) as CatalogReviewsResponse;
+            return { success: true, data };
         } catch (error: unknown) {
             return { success: false, error: this.getErrorMessage(error) };
         }

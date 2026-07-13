@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
-import { ChevronLeft, MapPin, Users, Briefcase, CheckCircle, XCircle, Clock, Phone, Globe } from "lucide-react";
+import { ChevronLeft, MapPin, Users, Briefcase, CheckCircle, XCircle, Clock, Phone, Globe, Star } from "lucide-react";
 import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
-import type { CarTransferOption } from "../types/booking";
+import type { CarTransferOption, CatalogReview } from "../types/booking";
 import type { CarInfo } from "../carPaymentSlice";
+import { transferService } from "../services/transferService";
 
 interface LocationState {
   car: CarTransferOption;
@@ -58,6 +59,13 @@ const formatDate = (dateStr: string) => {
   }
 };
 
+const formatReviewDate = (submittedAt?: string): string => {
+  if (!submittedAt) return "";
+  const date = new Date(submittedAt);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+};
+
 export default function TransferDetail() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -77,6 +85,22 @@ export default function TransferDetail() {
     defaultOption?.optionId ?? ""
   );
   const [imageIndex, setImageIndex] = useState(0);
+  const [reviews, setReviews] = useState<CatalogReview[]>([]);
+
+  const transferId = car?.id;
+
+  useEffect(() => {
+    if (!transferId) return;
+    let cancelled = false;
+    transferService.getTransferReviews(String(transferId)).then((result) => {
+      if (!cancelled && result.success) {
+        setReviews(result.data?.results ?? []);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [transferId]);
 
   if (!car || !departureInfo) {
     return (
@@ -379,6 +403,46 @@ export default function TransferDetail() {
                   </button>
                 );
               })}
+            </div>
+          </>
+        )}
+
+        {/* Reviews */}
+        {reviews.length > 0 && (
+          <>
+            <hr className="border-gray-100 mb-4 mt-4" />
+            <p className="text-sm font-semibold text-[#181818] mb-3">
+              Reviews ({reviews.length})
+            </p>
+            <div className="flex flex-col gap-3">
+              {reviews.map((review, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl border border-gray-200 p-4 text-sm"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-0.5">
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <Star
+                          key={idx}
+                          size={14}
+                          className={
+                            idx < (review.rating ?? 0)
+                              ? "fill-[#FF6F1E] text-[#FF6F1E]"
+                              : "text-gray-300"
+                          }
+                        />
+                      ))}
+                    </div>
+                    <span className="text-xs text-[#67696D]">
+                      {formatReviewDate(review.submittedAt)}
+                    </span>
+                  </div>
+                  {review.comment && (
+                    <p className="text-[#67696D]">{review.comment}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </>
         )}

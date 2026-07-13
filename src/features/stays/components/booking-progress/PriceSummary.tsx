@@ -39,7 +39,7 @@ const PriceSummary: React.FC<PriceSummaryProps> = ({
 
           <p className="flex justify-between text-sm text-gray-500">
             <span>Taxes & Fees</span>
-            <span>{formatAmount((pricing?.tax ?? 0) + (pricing?.fees ?? 0))}</span>
+            <span>{formatAmount(pricing ? pricing.tax + pricing.fees : undefined)}</span>
           </p>
 
           <p className="flex justify-between text-lg font-semibold">

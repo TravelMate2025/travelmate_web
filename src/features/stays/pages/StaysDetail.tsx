@@ -31,11 +31,9 @@ import Reviews from "../components/Reviews";
 import ReviewsModal from "../components/modals/ReviewModal";
 import AllPhotosModal from "../components/modals/AllPhotosModal";
 import ShareModal from "../components/modals/ShareModal";
-import Policies from "../components/booking-progress/Policies";
 import RefundCancellation from "../components/booking-progress/RefundCancellation";
 
 import { useMediaQuery } from "react-responsive";
-import PartialPolicies from "../components/booking-progress/PartialPolicies";
 import StaysDetailSkeleton from "./StaysDetailsSkeleton";
 import { getReviews } from "../api";
 import {
@@ -46,15 +44,7 @@ import {
   propertyTypeDisplayLabel,
 } from "../../shared/booking/bookingFlowLabels";
 import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
-
-type Review = {
-  id: number;
-  rating: number;
-  date: string;
-  title: string;
-  content: string;
-  name: string;
-};
+import { CatalogReview } from "../types";
 
 const StaysDetail: React.FC = () => {
   const { hotelId } = useParams<{ hotelId: string }>();
@@ -88,7 +78,7 @@ const StaysDetail: React.FC = () => {
   const visibleCount = 8;
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<CatalogReview[]>([]);
 
   useEffect(() => {
     if (hotelId) {
@@ -189,7 +179,7 @@ const StaysDetail: React.FC = () => {
     const fetchReviews = async () => {
       try {
         const response = await getReviews(hotelId || "");
-        setReviews((response ?? []) as Review[]);
+        setReviews(response ?? []);
       } catch (error) {
         console.error("Error fetching reviews:", error);
       }
@@ -935,11 +925,6 @@ const StaysDetail: React.FC = () => {
             formattedDate={formattedDate}
             refundableUntil={formattedTime}
           />
-        </section>
-        <section id="Policies" className="mt-10 mb-10">
-          <hr className="text-gray-300 mb-8" />
-
-          {!isMobile ? <Policies /> : <PartialPolicies />}
         </section>
       </div>
 

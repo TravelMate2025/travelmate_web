@@ -4,7 +4,6 @@ import HotelCard from "../components/BookingProgressHotelCard";
 import GuestInformation from "../components/booking-progress/GuestInformation";
 import PriceSummary from "../components/booking-progress/PriceSummary";
 import BookingDetails from "../components/booking-progress/BookingDetails";
-import Policies from "../components/booking-progress/Policies";
 import RefundCancellation from "../components/booking-progress/RefundCancellation";
 import Footer from "../../../components/2Footer";
 import { useState } from "react";
@@ -468,9 +467,6 @@ const BookingProgress: React.FC = () => {
                     formattedDate={formattedDate}
                     refundableUntil={formattedTime}
                   />
-                </div>
-                <div className="lg:order-4">
-                  <Policies />
                 </div>
               </div>
 

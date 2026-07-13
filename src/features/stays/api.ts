@@ -7,6 +7,8 @@ import {
   BookingStaysVerifyDetails,
   BookStaysRequest,
   BookStaysResponse,
+  CatalogReview,
+  CatalogReviewsResponse,
   Destination,
   Hotel,
   HotelSearchResponse,
@@ -473,13 +475,19 @@ export const searchTransferBookingByReference = async (
   }
 };
 
-// Fetch all reviews
-
-export const getReviews = async (hotelId: string | number | undefined) => {
+// Fetch published guest reviews for a stay -- GET
+// /api/v1/public/catalog/stays/{stayId}/reviews. No reviewer identity is
+// exposed by this endpoint (see docs/BACKEND_PUBLIC_API_IMPLEMENTATION_GUIDE.md).
+export const getReviews = async (
+  hotelId: string | number | undefined,
+): Promise<CatalogReview[]> => {
   try {
-    const response = await axios.get(`/hotels/${hotelId}/reviews/`);
-    console.log(response);
-    return response.data.user_reviews;
+    const response = await axios.get(
+      `${BASE_URL}/v1/public/catalog/stays/${hotelId}/reviews`,
+      { params: { page: 1, pageSize: 20 } },
+    );
+    const data = (response.data?.data ?? response.data) as CatalogReviewsResponse;
+    return data.results ?? [];
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error);
     console.error("Failed to fetch reviews:", errorMessage);
