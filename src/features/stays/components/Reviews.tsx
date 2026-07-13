@@ -1,30 +1,27 @@
 import { Rating } from "@mui/material";
 import { useMediaQuery } from "react-responsive";
+import { CatalogReview } from "../types";
 
-interface Review {
-  id: number;
-  rating: number;
-  date: string;
-  title: string;
-  content: string;
-  name: string;
-}
 interface Props {
-  reviews: Review[];
+  reviews: CatalogReview[];
   closeModal: () => void;
   openModal: () => void;
 }
 
-const ratings = [
-  { category: "Cleanliness", score: 3.2 },
-  { category: "Service", score: 3.7 },
-  { category: "Comfort", score: 4.1 },
-  { category: "Location", score: 2.9 },
-  { category: "Facilities", score: 4.6 },
-];
+const formatReviewDate = (submittedAt?: string): string => {
+  if (!submittedAt) return "";
+  const date = new Date(submittedAt);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+};
 
 const Reviews = ({ reviews, closeModal, openModal }: Props) => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
+
+  const averageRating =
+    reviews && reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + (review.rating ?? 0), 0) / reviews.length
+      : 0;
 
   return (
     <div className="my-10">
@@ -43,37 +40,14 @@ const Reviews = ({ reviews, closeModal, openModal }: Props) => {
         <div className="mt-2">
           <Rating
             name="read-only"
-            value={4.8}
+            value={averageRating}
             precision={0.1}
             readOnly
             sx={{ color: "orange" }}
           />
-          <p className="text-xl font-bold">4.8</p>
+          <p className="text-xl font-bold">{averageRating.toFixed(1)}</p>
           <p className="text-gray-600">Based on {reviews?.length} reviews</p>
         </div>
-      )}
-
-      {/* Category Ratings */}
-      {!isMobile && reviews?.length > 0 && (
-        <>
-          <p className="mt-4 font-medium">Category Rating</p>
-          <div className="grid grid-cols-3 gap-8 mt-2 border border-gray-300 p-6 rounded-xl">
-            {ratings.map((rating, index) => (
-              <div key={index}>
-                <div className="flex justify-between mb-2">
-                  <p className="text-lg font-medium">{rating.category}</p>
-                  <p className="text-lg text-right">{rating.score}</p>
-                </div>
-                <div className="w-full h-3 bg-gray-300 rounded-full relative">
-                  <div
-                    className="absolute top-0 left-0 h-full bg-[#023E8A] rounded-full"
-                    style={{ width: `${(rating.score / 5) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
       )}
 
       {/* Customer Reviews */}
@@ -84,9 +58,9 @@ const Reviews = ({ reviews, closeModal, openModal }: Props) => {
             : "grid grid-cols-3 gap-6"
         }`}
       >
-        {reviews?.slice(0, 6).map((review) => (
+        {reviews?.slice(0, 6).map((review, index) => (
           <div
-            key={review?.id}
+            key={index}
             className={`p-4 border border-gray-300 rounded-lg shadow bg-white ${
               isMobile ? "inline-block w-[85%] mr-4 max-w-full" : ""
             }`}
@@ -97,13 +71,13 @@ const Reviews = ({ reviews, closeModal, openModal }: Props) => {
                 readOnly
                 sx={{ color: "orange" }}
               />
-              <span className="text-gray-500 text-sm">{review?.date}</span>
+              <span className="text-gray-500 text-sm">
+                {formatReviewDate(review?.submittedAt)}
+              </span>
             </div>
-            <h3 className="text-lg font-bold my-2">{review?.title}</h3>
-            <p className="text-gray-600 text-wrap line-clamp-2">
-              {review?.content}
+            <p className="text-gray-600 text-wrap line-clamp-2 mt-2">
+              {review?.comment}
             </p>
-            <p className="text-sm font-medium mt-2">{review?.name}</p>
           </div>
         ))}
       </div>

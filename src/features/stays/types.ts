@@ -160,6 +160,23 @@ export interface StayRoomsResponse {
   rooms: Room[];
 }
 
+/** A single published review from GET .../catalog/{stays|transfers}/{id}/reviews.
+ * No reviewer identity is exposed by this endpoint (see
+ * docs/BACKEND_PUBLIC_API_IMPLEMENTATION_GUIDE.md, "Guest Review System"). */
+export interface CatalogReview {
+  rating: number;
+  subcategoryRatings?: Record<string, number>;
+  comment?: string;
+  submittedAt?: string;
+}
+
+export interface CatalogReviewsResponse {
+  page?: number;
+  pageSize?: number;
+  total?: number;
+  results: CatalogReview[];
+}
+
 
 
 export interface BookStaysRequest {
