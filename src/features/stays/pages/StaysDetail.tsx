@@ -767,7 +767,7 @@ const StaysDetail: React.FC = () => {
                     {/* Room Details */}
                     <div className="mt-4 flex flex-col flex-1">
                       <h3 className="text-lg font-bold">
-                        {room.description || "Standard Room"}
+                        {room.description || room.name || "Room"}
                       </h3>
 
                       {/* Amenities List */}
