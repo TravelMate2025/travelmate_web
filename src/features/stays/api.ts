@@ -189,16 +189,41 @@ export const fetchDestinations = async (
 };
 
 /**
- * Fetch recommended hotels
+ * IP-geolocated recommended hotels -- open endpoint, not personalized to
+ * the account (same "hotels near this IP" for any two users on the same
+ * connection). Was previously typed as Destination[], but the backend
+ * (HotelApiViewSet.recommend) actually returns full hotel-shaped objects
+ * (images, price, destination, etc.) -- same as Hotel elsewhere in this
+ * file. The old typing meant any caller trying to render an image/price
+ * from this would have been fighting the type system to do so.
  */
-export const fetchRecommendedHotels = async (): Promise<Destination[]> => {
+export const fetchRecommendedHotels = async (): Promise<Hotel[]> => {
   try {
     const response = await axios.get(`${BASE_URL}/hotels/recommend/`);
-    return response.data.results;
+    return response.data.results ?? [];
   } catch (error: unknown) {
-    const errorMessage = getErrorMessage(error);
-    console.error("Error fetching recommended hotels:", errorMessage);
-    throw new Error(errorMessage);
+    console.error("Error fetching recommended hotels:", getErrorMessage(error));
+    return [];
+  }
+};
+
+/**
+ * Resolves device coordinates to a city/country via the backend's
+ * reverse-geocode proxy (Nominatim) -- the partner catalog search only
+ * accepts city/country strings, no lat/lng/radius param exists.
+ */
+export const reverseGeocode = async (
+  lat: number,
+  lng: number,
+): Promise<{ city: string | null; country: string | null }> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/v1/public/reverse-geocode`, {
+      params: { lat, lng },
+    });
+    return { city: response.data.city ?? null, country: response.data.country ?? null };
+  } catch (error: unknown) {
+    console.error("Error reverse geocoding:", getErrorMessage(error));
+    return { city: null, country: null };
   }
 };
 
