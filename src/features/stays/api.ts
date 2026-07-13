@@ -219,6 +219,21 @@ export const fetchPopularDestinations = async (): Promise<PopularDestination[]> 
 };
 
 /**
+ * Homepage "Top Rated Stays" -- real averages from actual partner reviews,
+ * pre-computed/cached server-side (backend excludes stays with zero
+ * reviews). See backend's refresh_top_rated_stays_task.
+ */
+export const fetchTopRatedStays = async (): Promise<Hotel[]> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/v1/public/catalog/stays/top-rated`);
+    return response.data.results ?? [];
+  } catch (error: unknown) {
+    console.error("Error fetching top-rated stays:", getErrorMessage(error));
+    return [];
+  }
+};
+
+/**
  * Search partner stays
  */
 export const searchStays = async (
