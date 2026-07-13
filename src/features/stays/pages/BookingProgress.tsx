@@ -27,6 +27,24 @@ import { createStayPaymentIntent } from "../api";
 
 type BookingGuestInfo = GuestInfoProps;
 
+/** How many units of `room` to book, honoring the room count the guest
+ * picked on the stay search screen (`requestedRooms`) while never exceeding
+ * what's actually bookable -- the partner's per-booking cap (maxPerBooking)
+ * and, when known, live remaining inventory. */
+function resolveRoomQuantity(
+  room: { maxPerBooking?: number; remainingInventory?: number; totalInventory?: number } | null | undefined,
+  requestedRooms: number,
+): number {
+  const requested = Math.max(1, requestedRooms || 1);
+  if (!room) return requested;
+  const caps = [room.maxPerBooking, room.remainingInventory ?? room.totalInventory].filter(
+    (v): v is number => v != null,
+  );
+  if (!caps.length) return requested;
+  const cap = Math.min(...caps);
+  return cap < 1 ? requested : Math.min(requested, cap);
+}
+
 const steps = [
   { title: bookingReviewLabel() },
   { title: guestDetailsLabel() },
@@ -84,6 +102,7 @@ const BookingProgress: React.FC = () => {
     location.state || {};
 
   const isUnitLevel = selectedRoom == null;
+  const roomQuantity = isUnitLevel ? 1 : resolveRoomQuantity(selectedRoom, searchParams?.rooms ?? 1);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [guestInfo, setGuestInfo] = useState<BookingGuestInfo>({
@@ -167,11 +186,14 @@ const BookingProgress: React.FC = () => {
             (wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable"),
         ) ?? stayPricing.ratePlans.find((plan) => plan.roomId === roomId && plan.isActive);
 
-      // selectedOption.amount is the per-night rate for this cancellation option.
-      // Multiply by nights to get the stay total.
+      // selectedOption.amount is the per-night, per-room rate for this
+      // cancellation option. Multiply by nights and the resolved room
+      // quantity to get the stay total -- this is still a pre-quote
+      // estimate; the real quote (preferred above) reflects quantity
+      // server-side regardless.
       const nightlyRate = matchingPlan?.nightlyRate ?? selectedRoom.baseRate ?? selectedOption.amount ?? 0;
-      const base = nightlyRate * nights;
-      const total = selectedOption.amount * nights;
+      const base = nightlyRate * nights * roomQuantity;
+      const total = selectedOption.amount * nights * roomQuantity;
       const taxAndFees = Math.max(0, total - base);
 
       return {
@@ -220,7 +242,7 @@ const BookingProgress: React.FC = () => {
     const roomSelections =
       isUnitLevel || !selectedRoom
         ? undefined
-        : [{ roomId: selectedRoom.id ?? selectedRoom.code ?? "", quantity: 1 }];
+        : [{ roomId: selectedRoom.id ?? selectedRoom.code ?? "", quantity: roomQuantity }];
 
     const ratePlanId = (() => {
       if (!selectedOption || !resolvedStayPricing?.ratePlans?.length) return null;
@@ -447,7 +469,7 @@ const BookingProgress: React.FC = () => {
                   pricing={reviewPricing}
                   nights={nights}
                   roomType={selectedRoom?.description ?? hotel?.name}
-                  numberOfRooms={1}
+                  numberOfRooms={roomQuantity}
                   currency={quoteCurrency}
                   note={quoteNote}
                 />
@@ -536,6 +558,12 @@ const BookingProgress: React.FC = () => {
                       <span className="font-medium text-right">
                         {selectedRoom?.description ?? selectedRoom?.name ?? "—"}
                       </span>
+                    </div>
+                  )}
+                  {!isUnitLevel && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Number of Rooms</span>
+                      <span className="font-medium text-right">{roomQuantity}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
