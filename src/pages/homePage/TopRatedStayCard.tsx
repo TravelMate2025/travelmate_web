@@ -12,7 +12,9 @@ interface TopRatedStayCardProps {
 // regex-matches digits out of `category` (a property type string like
 // "guesthouse", never actually a number) instead of using a real rating,
 // so it shows "N/A" in practice. This card is a small, homepage-carousel-
-// weight card using the real avgRating this endpoint provides.
+// weight card using the real avgRating this endpoint provides -- also
+// reused (name notwithstanding) for the Recommended section, where
+// avgRating is usually absent; the rating row just doesn't render then.
 const TopRatedStayCard: React.FC<TopRatedStayCardProps> = ({ hotel }) => {
   const navigate = useNavigate();
   const hotelId = hotel.id ?? hotel.code ?? "";
@@ -43,10 +45,12 @@ const TopRatedStayCard: React.FC<TopRatedStayCardProps> = ({ hotel }) => {
         <p className="text-[14px] font-semibold font-inter text-[#181818] line-clamp-1">
           {hotel.name}
         </p>
-        <span className="flex items-center gap-1 text-orange-500 text-xs font-medium flex-shrink-0">
-          <FaStar />
-          <span className="text-black">{hotel.avgRating?.toFixed(1)}</span>
-        </span>
+        {hotel.avgRating != null && (
+          <span className="flex items-center gap-1 text-orange-500 text-xs font-medium flex-shrink-0">
+            <FaStar />
+            <span className="text-black">{hotel.avgRating.toFixed(1)}</span>
+          </span>
+        )}
       </div>
       <div className="flex items-center gap-1 text-[#4E4F52] text-xs font-inter">
         <FaMapMarkerAlt />
