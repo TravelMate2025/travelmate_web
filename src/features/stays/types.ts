@@ -133,8 +133,11 @@ export interface Hotel {
   /** Nightly price from (for list display) */
   priceFrom?: number;
   currency?: string;
-  /** Quality / rating score 0–100 */
+  /** Quality / rating score 0–100 (partner's own static score) */
   ratingScore?: number;
+  /** Real average from actual guest reviews (1-5), distinct from
+   * ratingScore -- only populated by the top-rated-stays endpoint. */
+  avgRating?: number;
   checkInTime?: string;
   checkOutTime?: string;
   houseRules?: string;

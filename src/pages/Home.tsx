@@ -5,6 +5,7 @@ import WelcomePage from "./homePage/WelcomePage";
 import Updates from "./homePage/Updates";
 import TravelmateApp from "./homePage/TravelmateApp";
 import Destination from "./homePage/Destination";
+import TopRatedStays from "./homePage/TopRatedStays";
 import Footer from "../components/2Footer";
 
 import FloatingChatButton from '../features/customer-management/components/FloatingChatButton';
@@ -16,6 +17,7 @@ export default function Home() {
       <Navbar />
       <WelcomePage />
       <FloatingChatButton />
+      <TopRatedStays />
       <Destination />
       <TravelmateApp />
       <Updates />
