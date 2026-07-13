@@ -15,6 +15,7 @@ import {
   //  FaWifi, FaSwimmingPool, FaSnowflake, FaCar,
   FaExpandArrowsAlt,
   FaBed,
+  FaTicketAlt,
 } from "react-icons/fa";
 import { FaArrowLeft } from "react-icons/fa";
 import AmenitiesModal from "../components/modals/AmenitiesModal";
@@ -746,22 +747,25 @@ const StaysDetail: React.FC = () => {
                           Max {room.occupancy ?? room.max_occupancy} guests
                         </span>
                       )}
-                      {/* Only present once fetchStayRoomsAsync resolves (live
-                          inventory, distinct from the static totalInventory
-                          already on this room from the detail response). */}
-                      {room.remainingInventory != null && (
-                        <span
-                          className={`absolute top-2 left-2 px-2 py-1 rounded text-sm font-medium ${
-                            room.isExhausted
-                              ? "bg-red-100 text-red-800"
-                              : "bg-amber-100 text-amber-800"
-                          }`}
-                        >
-                          {room.isExhausted
-                            ? "Sold out"
-                            : `${room.remainingInventory} left`}
-                        </span>
-                      )}
+                      {/* Prefer live inventory from fetchStayRoomsAsync; fall
+                          back to the static totalInventory from the detail
+                          response while that call is still loading (or if
+                          it failed) so the badge isn't blank on first paint. */}
+                      {(() => {
+                        const roomInventory = room.remainingInventory ?? room.totalInventory;
+                        if (roomInventory == null) return null;
+                        return (
+                          <span
+                            className={`absolute top-2 left-2 px-2 py-1 rounded text-sm font-medium ${
+                              room.isExhausted
+                                ? "bg-red-100 text-red-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {room.isExhausted ? "Sold out" : `${roomInventory} left`}
+                          </span>
+                        );
+                      })()}
                     </div>
 
                     {/* Room Details */}
@@ -772,10 +776,10 @@ const StaysDetail: React.FC = () => {
 
                       {/* Amenities List */}
                       <div className="mt-3 space-y-2">
-                        {room && (
+                        {room.size_sqm != null && (
                           <div className="flex items-center gap-2 text-gray-600 text-sm">
                             <FaExpandArrowsAlt />
-                            <span>{room.size_sqm || "25"}m²</span>
+                            <span>{room.size_sqm}m²</span>
                           </div>
                         )}
 
@@ -803,19 +807,26 @@ const StaysDetail: React.FC = () => {
                             <span>{room.rates[0].boardName}</span>
                           </div>
                         )}
-                        {room.rates?.[0]?.cancellationPolicies?.[0]?.from && (
+                        {room.maxPerBooking != null && (
                           <div className="flex items-center gap-2 text-gray-600 text-sm">
+                            <FaTicketAlt />
+                            <span>Max {room.maxPerBooking} per booking</span>
+                          </div>
+                        )}
+                        {/* Sourced from the same pricing endpoint as the "from"
+                            price below (roomOptions), not room.rates -- keeps
+                            the price and the policy copy shown together
+                            consistent with each other. */}
+                        {(roomOptions[0]?.policyCopy ?? roomOptions[0]?.label) && (
+                          <div className="flex items-center gap-2 text-green-700 text-sm">
                             <FaCheckCircle />
-                            <span>
-                              Refundable until{" "}
-                              {new Date(room.rates[0].cancellationPolicies[0].from || "").toLocaleDateString()}
-                            </span>
+                            <span>{roomOptions[0]?.policyCopy ?? roomOptions[0]?.label}</span>
                           </div>
                         )}
                       </div>
 
                       {/* Pricing — "from" price using cheapest rate plan */}
-                      <div className="mt-4">
+                      <div className="mt-4 flex items-center justify-between gap-2">
                         {fromPrice != null ? (
                           <p className="text-xl font-bold">
                             from ₦{fromPrice.toLocaleString()}
@@ -823,6 +834,11 @@ const StaysDetail: React.FC = () => {
                           </p>
                         ) : (
                           <p className="text-sm text-gray-400">Price on selection</p>
+                        )}
+                        {roomOptions.length > 0 && (
+                          <span className="text-xs text-gray-500 whitespace-nowrap">
+                            {roomOptions.length} rate option{roomOptions.length === 1 ? "" : "s"}
+                          </span>
                         )}
                       </div>
 
