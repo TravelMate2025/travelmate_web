@@ -10,6 +10,17 @@ export interface Destination {
   token?: string;
 }
 
+/** Curated homepage destination shortcut -- see backend's
+ * `_POPULAR_DESTINATIONS` for why there's no listing count field: no real
+ * aggregation data exists yet to back one. */
+export interface PopularDestination {
+  name: string;
+  city: string;
+  country_name?: string;
+  country_code?: string;
+  image_url?: string;
+}
+
 export interface HotelImage {
   /** Actual partner API field */
   secureUrl?: string;

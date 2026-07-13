@@ -12,6 +12,7 @@ import {
   Destination,
   Hotel,
   HotelSearchResponse,
+  PopularDestination,
   StayPricing,
   StayRoomsResponse,
 } from "./types";
@@ -198,6 +199,22 @@ export const fetchRecommendedHotels = async (): Promise<Destination[]> => {
     const errorMessage = getErrorMessage(error);
     console.error("Error fetching recommended hotels:", errorMessage);
     throw new Error(errorMessage);
+  }
+};
+
+/**
+ * Curated homepage "Popular Destinations" shortcuts -- see backend's
+ * _POPULAR_DESTINATIONS for why there's no listing count in the response.
+ */
+export const fetchPopularDestinations = async (): Promise<PopularDestination[]> => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/v1/public/catalog/stays/popular-destinations`,
+    );
+    return response.data.results ?? [];
+  } catch (error: unknown) {
+    console.error("Error fetching popular destinations:", getErrorMessage(error));
+    return [];
   }
 };
 

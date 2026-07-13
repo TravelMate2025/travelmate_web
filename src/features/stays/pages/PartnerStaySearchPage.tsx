@@ -163,11 +163,18 @@ export default function PartnerStaySearchPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-8">
-      <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+      {/* The dominant, highest-contrast element on the homepage by design --
+          research on major booking sites (Booking.com, Airbnb) consistently
+          finds users look for this first, and sites that under-style it lose
+          them. Stronger shadow/border and a larger primary-colored CTA than
+          before, no functional change. */}
+      <div className="rounded-2xl border-2 border-[#023E8A]/15 bg-white p-6 shadow-[0_8px_30px_-8px_rgba(2,62,138,0.35)] sm:p-8">
         <div className="flex flex-col gap-4">
           <div>
-            <p className="text-sm font-medium text-blue-700">{staySearchLabel()}</p>
-            <h1 className="text-2xl font-semibold text-gray-900">Find a destination</h1>
+            <p className="text-sm font-semibold uppercase tracking-wide text-[#023E8A]">
+              {staySearchLabel()}
+            </p>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Find a destination</h1>
             <p className="mt-1 text-sm text-gray-600">
               Search by destination first, then we resolve the partner location behind the scenes.
             </p>
@@ -281,7 +288,18 @@ export default function PartnerStaySearchPage() {
                 type="submit"
                 variant="contained"
                 disabled={!selectedDestination || !checkIn || !checkOut}
-                sx={{ textTransform: "none" }}
+                sx={{
+                  textTransform: "none",
+                  backgroundColor: "#023E8A",
+                  fontWeight: 600,
+                  fontSize: "1rem",
+                  paddingX: 4,
+                  paddingY: 1.5,
+                  borderRadius: "10px",
+                  width: { xs: "100%", lg: "auto" },
+                  boxShadow: "0 6px 16px -4px rgba(2,62,138,0.5)",
+                  "&:hover": { backgroundColor: "#0450A2" },
+                }}
               >
                 Show {stayResultsLabel()}
               </Button>
