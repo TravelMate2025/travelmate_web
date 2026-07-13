@@ -36,8 +36,12 @@ const StayCard: React.FC<StayCardProps> = ({
   // Extract all relevant data
   const firstRoom = hotel.rooms?.[0];
   const firstRate = firstRoom?.rates?.[0];
-  const firstImg = hotel.images?.[0];
-  const mainImage = firstImg?.secureUrl ?? firstImg?.url ?? "";
+  // Prefer a general/cover-type image when the partner tags one, matching
+  // mobile's search-card behavior; falls back to the first image (most
+  // current sandbox data doesn't populate `type` yet, so this is often a
+  // no-op today but is correctly wired for when it is).
+  const coverImg = hotel.images?.find((img) => img.type === "GEN") ?? hotel.images?.[0];
+  const mainImage = coverImg?.secureUrl ?? coverImg?.url ?? "";
   const hotelId = hotel.id ?? hotel.code ?? "";
   const displayPrice = hotel.priceFrom ?? firstRoom?.baseRate ?? (firstRate?.net ? parseFloat(firstRate.net) : undefined);
   const ratingMatch = hotel.category?.match(/\d+/);
