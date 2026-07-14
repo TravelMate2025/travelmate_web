@@ -7,15 +7,7 @@ import { setSearchParams, setLocationDetails, clearStaysCache } from "../slice";
 import { AppDispatch, RootState } from "../../../store";
 import { fetchDestinations } from "../api";
 import { useNavigate } from "react-router";
-
-interface Destination {
-  code: string;
-  name: string;
-  country_code: string;
-  country_name?: string;
-  city_name?: string;
-  accommodation_type?: string;
-}
+import { Destination } from "../types";
 
 function normalizeLocations(input: unknown): Destination[] {
   if (Array.isArray(input)) return input as Destination[];
