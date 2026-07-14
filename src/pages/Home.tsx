@@ -7,6 +7,7 @@ import TravelmateApp from "./homePage/TravelmateApp";
 import Destination from "./homePage/Destination";
 import TopRatedStays from "./homePage/TopRatedStays";
 import RecommendedStays from "./homePage/RecommendedStays";
+import RecentlyViewed from "./homePage/RecentlyViewed";
 import NearbyStays from "./homePage/NearbyStays";
 import FavoritesChip from "./homePage/FavoritesChip";
 import Footer from "../components/2Footer";
@@ -21,6 +22,7 @@ export default function Home() {
       <WelcomePage />
       <FloatingChatButton />
       <FavoritesChip />
+      <RecentlyViewed />
       <RecommendedStays />
       <NearbyStays />
       <TopRatedStays />

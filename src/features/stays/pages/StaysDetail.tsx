@@ -46,6 +46,7 @@ import {
 } from "../../shared/booking/bookingFlowLabels";
 import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 import { CatalogReview } from "../types";
+import { recordViewed, recentlyViewedFromHotel } from "../../shared/recentlyViewed";
 
 const StaysDetail: React.FC = () => {
   const { hotelId } = useParams<{ hotelId: string }>();
@@ -98,6 +99,14 @@ const StaysDetail: React.FC = () => {
       dispatch(clearStayPricing());
     };
   }, [dispatch, hotelId, searchParams?.checkIn, searchParams?.checkOut, searchParams?.adults, searchParams?.children, searchParams?.rooms]);
+
+  // Record once real data (not just the loading skeleton) is present --
+  // recordViewed dedupes by id, so re-firing on incidental re-renders is harmless.
+  useEffect(() => {
+    if (selectedHotel) {
+      recordViewed(recentlyViewedFromHotel(selectedHotel));
+    }
+  }, [selectedHotel]);
 
   // Sync the carousel with the current index when a navigation dot is clicked
   const handleSelectImage = (index: number) => {

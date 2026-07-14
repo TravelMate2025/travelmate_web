@@ -59,6 +59,7 @@ import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { SearchData } from "../../../features/flights/hooks/useFlightBooking";
 import { Airport, FlightOffer } from "../../../features/flights/types";
+import { recordViewed, recentlyViewedFromFlightOffer } from "../../../features/shared/recentlyViewed";
 
 function toErrorString(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
@@ -245,6 +246,9 @@ const [loading, setLoading] =  useState(false)
   const handleOpen = useCallback((depart: Departure) => {
     setSelectedDepartureId(depart.id);
     setOpenClick(true);
+    // No routed flight detail page exists -- opening the drawer is the
+    // closest equivalent to "viewed" for this vertical.
+    recordViewed(recentlyViewedFromFlightOffer(depart));
   }, []);
 
   const handleCloseClick = useCallback(() => {
