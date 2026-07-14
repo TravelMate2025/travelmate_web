@@ -21,9 +21,9 @@ export default function Home() {
       <WelcomePage />
       <FloatingChatButton />
       <FavoritesChip />
-      <TopRatedStays />
       <RecommendedStays />
       <NearbyStays />
+      <TopRatedStays />
       <Destination />
       <TravelmateApp />
       <Updates />
