@@ -8,6 +8,7 @@ export interface Destination {
   area?: string;
   city_name?: string;
   token?: string;
+  accommodation_type?: string;
 }
 
 /** Curated homepage destination shortcut -- see backend's
