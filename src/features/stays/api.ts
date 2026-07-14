@@ -51,6 +51,7 @@ function mapPartnerStayLocationToDestination(
     name: location.displayName,
     country_code: location.country.slice(0, 2).toUpperCase(),
     country_name: location.country,
+    adminLevel1: location.adminLevel1,
     city_name: location.city,
   };
 }
