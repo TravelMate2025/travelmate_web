@@ -30,32 +30,39 @@ const TopRatedStayCard: React.FC<TopRatedStayCardProps> = ({ hotel }) => {
           `/stay-details/${hotelId}?stay=${encodeURIComponent(hotel.name)}`,
         )
       }
-      className="w-[250px] flex-shrink-0 text-left cursor-pointer group"
+      className="w-[290px] flex-shrink-0 text-left cursor-pointer group"
     >
-      <div className="w-full h-[160px] overflow-hidden rounded-lg bg-gray-100">
+      {/* 3:2 -- deliberately wider than the destination cards below, since
+          stay photography needs to show room/exterior context; kept
+          consistent with StaysWidget's ratio on mobile. */}
+      <div className="relative w-full h-[194px] overflow-hidden rounded-[14px] bg-gray-100 shadow-[0_10px_24px_-12px_rgba(15,23,42,0.35)]">
         {mainImage ? (
           <img
             src={mainImage}
             alt={hotel.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : null}
-      </div>
-      <div className="mt-2 flex items-start justify-between gap-2">
-        <p className="text-[14px] font-semibold font-inter text-[#181818] line-clamp-1">
-          {hotel.name}
-        </p>
         {hotel.avgRating != null && (
-          <span className="flex items-center gap-1 text-orange-500 text-xs font-medium flex-shrink-0">
-            <FaStar />
-            <span className="text-black">{hotel.avgRating.toFixed(1)}</span>
+          <span className="absolute left-2 bottom-2 flex items-center gap-1 bg-[#023E8A] text-white text-[12px] font-bold font-inter px-2 py-[3px] rounded-[8px] shadow-sm">
+            <FaStar size={11} className="text-white" />
+            {hotel.avgRating.toFixed(1)}
           </span>
         )}
       </div>
-      <div className="flex items-center gap-1 text-[#4E4F52] text-xs font-inter">
-        <FaMapMarkerAlt />
+      <div className="mt-[10px] flex items-baseline gap-1.5 min-w-0">
+        <p className="text-[15px] font-semibold font-inter text-[#181818] line-clamp-1 min-w-0">
+          {hotel.name}
+        </p>
+        {hotel.reviewsCount ? (
+          <span className="text-[#8A9096] text-[12px] font-inter flex-shrink-0">
+            ({hotel.reviewsCount})
+          </span>
+        ) : null}
+      </div>
+      <div className="flex items-center gap-1 text-[#4E4F52] text-xs font-inter mt-[2px]">
+        <FaMapMarkerAlt size={11} />
         <span className="line-clamp-1">{address}</span>
-        {hotel.reviewsCount ? <span>&middot; {hotel.reviewsCount} review{hotel.reviewsCount === 1 ? "" : "s"}</span> : null}
       </div>
     </button>
   );
