@@ -5,6 +5,7 @@ import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 import type { CarTransferOption, CatalogReview } from "../types/booking";
 import type { CarInfo } from "../carPaymentSlice";
 import { transferService } from "../services/transferService";
+import { recordViewed, recentlyViewedFromTransfer } from "../../shared/recentlyViewed";
 
 interface LocationState {
   car: CarTransferOption;
@@ -101,6 +102,12 @@ export default function TransferDetail() {
       cancelled = true;
     };
   }, [transferId]);
+
+  useEffect(() => {
+    if (car && departureInfo) {
+      recordViewed(recentlyViewedFromTransfer(car, departureInfo));
+    }
+  }, [car, departureInfo]);
 
   if (!car || !departureInfo) {
     return (
