@@ -145,7 +145,8 @@ export default function StaysSearchResults() {
 
   const handleEditClick = () => setShowUpdateSearch(!showUpdateSearch);
   const hasSearchContext = Boolean(
-    searchParams?.country ||
+    searchParams?.destination ||
+      searchParams?.country ||
       searchParams?.adminLevel1 ||
       searchParams?.city ||
       searchParams?.stayType,

@@ -131,6 +131,15 @@ export default function UpdateSearchFilter() {
       const totalChildren = counts.children + counts.infants;
       const updatedSearchParams = {
         destination: destinationCode,
+        // setSearchParams replaces the whole object rather than merging --
+        // omitting city/country/adminLevel1 here used to wipe them out,
+        // which made StaysSearchResults' hasSearchContext check (it looks
+        // at these fields, not destination) fail and fall back to the
+        // empty "start a search" state even though the new search had
+        // already succeeded.
+        city: selectedDestination?.city_name || destinationCode,
+        country: selectedDestination?.country_name,
+        adminLevel1: selectedDestination?.adminLevel1,
         checkIn: formatDate(checkIn),
         checkOut: formatDate(checkOut),
         adults: counts.adults,

@@ -49,7 +49,6 @@ const RoomDetails = ({ booking }: props) => {
             <div
               className="space-y-1 pb-3 last:pb-0"
               key={
-                roomDetail?.rate_key ??
                 roomDetail?.name ??
                 roomDetail?.room_name ??
                 `${roomLabel}-${index}`
@@ -59,20 +58,6 @@ const RoomDetails = ({ booking }: props) => {
                 <Bed />
                 <p className="capitalize">{roomLabel}</p>
               </div>
-              {roomDetail?.rate_key && (
-                <p className="text-xs text-gray-500">Rate key: {roomDetail.rate_key}</p>
-              )}
-              {(roomDetail?.boardName || roomDetail?.board_name) && (
-                <p className="text-xs text-gray-500">
-                  Board: {roomDetail.boardName ?? roomDetail.board_name}
-                </p>
-              )}
-              {!roomDetail?.rate_key && typeof room === "object" && room !== null && (
-                <p className="text-xs text-gray-500">
-                  Room selection:{" "}
-                  {JSON.stringify(room)}
-                </p>
-              )}
               {roomDetail?.cancellationPolicy?.terms && (
                 <p className="text-xs text-gray-500">
                   Policy: {roomDetail.cancellationPolicy.terms}

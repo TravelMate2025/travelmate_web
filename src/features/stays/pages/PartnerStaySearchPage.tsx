@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Autocomplete, Box, Button, TextField } from "@mui/material";
+import { Autocomplete, Button, TextField } from "@mui/material";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,10 +14,7 @@ import {
   type StaySearchStayType,
 } from "../../shared/booking/staySearchOptions";
 import { fetchPartnerStayLocations } from "../../shared/partnerLocationsService";
-import {
-  staySearchLabel,
-  stayResultsLabel,
-} from "../../shared/booking/bookingFlowLabels";
+import { stayResultsLabel } from "../../shared/booking/bookingFlowLabels";
 import ReusableDateSelector from "../components/ReusableDateSelector";
 
 const recentSearchStorageKey = "travelmate_recent_destination_searches";
@@ -161,21 +158,32 @@ export default function PartnerStaySearchPage() {
     navigate(`${bookingFlowRoutes.stayResults}?flow=partner`);
   };
 
-  return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-8">
-      <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-4">
-          <div>
-            <p className="text-sm font-medium text-blue-700">{staySearchLabel()}</p>
-            <h1 className="text-2xl font-semibold text-gray-900">Find a destination</h1>
-            <p className="mt-1 text-sm text-gray-600">
-              Search by destination first, then we resolve the partner location behind the scenes.
-            </p>
-          </div>
+  // Field density/layout matches the Transfers tab (CarBookingFirstScreen/
+  // Page.tsx) deliberately -- no inner card (WelcomePage's own outer card
+  // already wraps every tab equally), no header block, same 44px compact
+  // field height, same flat-row layout, same modest fixed-width button.
+  // Stays previously nested a second card inside that outer one and added a
+  // full header block Transfers never had, which is what made it read as
+  // much bigger than the other two tabs for the same job.
+  const compactFieldSx = {
+    "& .MuiInputBase-root": { height: "44px", borderRadius: "8px" },
+  };
 
-          <form className="grid gap-4 lg:grid-cols-2" onSubmit={handleSubmit}>
-            <div className="lg:col-span-2">
+  return (
+    <div>
+      <form
+        className="flex lg:flex-row flex-col justify-normal lg:justify-center lg:items-end gap-4 lg:min-w-full lg:max-w-full"
+        onSubmit={handleSubmit}
+      >
+        <div className="flex flex-col gap-4 w-full">
+          <div className="flex lg:flex-row flex-col justify-between lg:items-center gap-4 w-full">
+            <div className="flex flex-col gap-2 w-full">
+              <label htmlFor="stay-destination" className="text-sm text-gray-700">
+                Destination
+              </label>
               <Autocomplete
+                id="stay-destination"
+                size="small"
                 options={autocompleteOptions}
                 value={selectedDestination}
                 onChange={(_, newValue) => setSelectedDestination(newValue)}
@@ -193,12 +201,9 @@ export default function PartnerStaySearchPage() {
                     ? options.filter((option) => optionMatchesQuery(option, inputValue))
                     : options
                 }
+                sx={compactFieldSx}
                 renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Destination"
-                    placeholder="Search city, area, or property"
-                  />
+                  <TextField {...params} placeholder="Search city, area, or property" />
                 )}
                 renderOption={(props, option) => {
                   const { key, ...rest } = props as React.HTMLAttributes<HTMLLIElement> & { key?: React.Key };
@@ -214,12 +219,15 @@ export default function PartnerStaySearchPage() {
               />
             </div>
 
-            <label className="grid gap-2">
-              <span className="text-sm font-medium text-gray-700">Stay type</span>
+            <div className="flex flex-col gap-2 w-full">
+              <label htmlFor="stay-type" className="text-sm text-gray-700">
+                Stay type
+              </label>
               <select
+                id="stay-type"
                 value={stayType}
                 onChange={(event) => setStayType(event.target.value as StaySearchStayType)}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+                className="rounded-lg border border-gray-300 px-3 text-sm h-[44px]"
               >
                 <option value="">Any stay type</option>
                 {staySearchStayTypeOptions.map((option) => (
@@ -228,10 +236,10 @@ export default function PartnerStaySearchPage() {
                   </option>
                 ))}
               </select>
-            </label>
+            </div>
 
-            <div className="grid gap-2">
-              <span className="text-sm font-medium text-gray-700">Dates</span>
+            <div className="flex flex-col gap-2 w-full">
+              <label className="text-sm text-gray-700">Dates</label>
               <ReusableDateSelector
                 onDateChange={(start, end) => {
                   setCheckIn(start);
@@ -240,55 +248,72 @@ export default function PartnerStaySearchPage() {
                 initialValue={checkIn && checkOut ? `${checkIn} - ${checkOut}` : ""}
               />
             </div>
+          </div>
 
-            <label className="grid gap-2">
-              <span className="text-sm font-medium text-gray-700">
-                Guests
-                <span className="ml-1 text-xs font-normal text-gray-400">
-                  (adults / children / rooms)
-                </span>
-              </span>
-              <div className="grid grid-cols-3 gap-2">
-                <input
-                  type="number"
-                  min={1}
-                  value={adults}
-                  onChange={(event) => setAdults(Number(event.target.value))}
-                  className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-                  aria-label="Adults"
-                />
-                <input
-                  type="number"
-                  min={0}
-                  value={children}
-                  onChange={(event) => setChildren(Number(event.target.value))}
-                  className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-                  aria-label="Children"
-                />
-                <input
-                  type="number"
-                  min={1}
-                  value={rooms}
-                  onChange={(event) => setRooms(Number(event.target.value))}
-                  className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-                  aria-label="Rooms"
-                />
-              </div>
-            </label>
-
-            <Box className="lg:col-span-2 flex justify-end">
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={!selectedDestination || !checkIn || !checkOut}
-                sx={{ textTransform: "none" }}
-              >
-                Show {stayResultsLabel()}
-              </Button>
-            </Box>
-          </form>
+          <div className="flex lg:flex-row flex-col justify-between items-center w-full gap-4">
+            <div className="flex flex-col gap-2 w-full">
+              <label htmlFor="stay-adults" className="text-sm text-gray-700">
+                Adults
+              </label>
+              <TextField
+                id="stay-adults"
+                type="number"
+                size="small"
+                inputProps={{ min: 1 }}
+                value={adults}
+                onChange={(event) => setAdults(Number(event.target.value))}
+                sx={compactFieldSx}
+              />
+            </div>
+            <div className="flex flex-col gap-2 w-full">
+              <label htmlFor="stay-children" className="text-sm text-gray-700">
+                Children
+              </label>
+              <TextField
+                id="stay-children"
+                type="number"
+                size="small"
+                inputProps={{ min: 0 }}
+                value={children}
+                onChange={(event) => setChildren(Number(event.target.value))}
+                sx={compactFieldSx}
+              />
+            </div>
+            <div className="flex flex-col gap-2 w-full">
+              <label htmlFor="stay-rooms" className="text-sm text-gray-700">
+                Rooms
+              </label>
+              <TextField
+                id="stay-rooms"
+                type="number"
+                size="small"
+                inputProps={{ min: 1 }}
+                value={rooms}
+                onChange={(event) => setRooms(Number(event.target.value))}
+                sx={compactFieldSx}
+              />
+            </div>
+          </div>
         </div>
-      </div>
+
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={!selectedDestination || !checkIn || !checkOut}
+          sx={{
+            textTransform: "none",
+            backgroundColor: "#023E8A",
+            fontWeight: 500,
+            borderRadius: "8px",
+            paddingY: "12px",
+            width: { xs: "100%", lg: "120px" },
+            flexShrink: 0,
+            "&:hover": { backgroundColor: "#0450A2" },
+          }}
+        >
+          {stayResultsLabel()}
+        </Button>
+      </form>
     </div>
   );
 }
