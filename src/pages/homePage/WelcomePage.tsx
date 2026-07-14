@@ -12,6 +12,7 @@ import Page from "../../features/car_rentals/carsFirstScreen/CarBookingFirstScre
 import PartnerStaySearchPage from "../../features/stays/pages/PartnerStaySearchPage";
 import { useMediaQuery } from "react-responsive";
 import { useLocation } from "react-router-dom";
+import HomeHero from "./HomeHero";
 
 const tabFromSearch = (search: string): string | null => {
   const params = new URLSearchParams(search);
@@ -41,9 +42,10 @@ const WelcomePage = () => {
 
   return (
     <div>
+      <HomeHero />
       {isMobile ? (
-        <div className="w-[100%] m-auto">
-          <div className="mt-[100px] border-none h-[100%] rounded-[4px]">
+        <div className="w-[100%] m-auto px-[16px]">
+          <div className="-mt-[50px] relative bg-white shadow-[0_16px_32px_-16px_rgba(2,62,138,0.4)] h-[100%] rounded-[12px]">
             <Box sx={{ width: "100%", typography: "body1" }}>
               <TabContext value={value}>
                 <Box
@@ -133,8 +135,8 @@ const WelcomePage = () => {
         </div>
       ) : (
         // web view
-        <div className="w-[90%] m-auto">
-          <div className="mt-[100px] border border-[#CDCED1] h-[100%] rounded-[4px]">
+        <div className="w-[90%] max-w-[1280px] m-auto">
+          <div className="-mt-[76px] relative border border-[#E4E7EB] shadow-[0_20px_45px_-18px_rgba(2,62,138,0.35)] bg-white h-[100%] rounded-[10px]">
             <Box sx={{ width: "100%", typography: "body1" }}>
               <TabContext value={value}>
                 <Box

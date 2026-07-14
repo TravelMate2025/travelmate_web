@@ -80,28 +80,41 @@ const Destination = () => {
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       className="flex gap-6 overflow-x-auto scroll-smooth flex-nowrap"
     >
+      {/* 5:4 -- deliberately taller than the stay cards above, so the
+          destination carousel reads as a distinct, more editorial
+          "postcard" rhythm; kept consistent with PopularStaysWidget's
+          ratio on mobile. */}
       {destinations.map((destination) => (
         <button
           key={destination.city}
           type="button"
           onClick={() => handleSelectDestination(destination)}
-          className="w-[250px] flex-shrink-0 text-left cursor-pointer group"
+          className="w-[290px] h-[232px] flex-shrink-0 text-left cursor-pointer group relative overflow-hidden rounded-[14px] bg-gray-100 shadow-[0_10px_24px_-12px_rgba(15,23,42,0.35)]"
         >
-          <div className="w-full h-[160px] overflow-hidden rounded-lg bg-gray-100">
-            {destination.image_url ? (
-              <img
-                src={destination.image_url}
-                alt={destination.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-              />
-            ) : null}
+          {destination.image_url ? (
+            <img
+              src={destination.image_url}
+              alt={destination.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : null}
+          {/* Scrim so white destination text stays legible over any photo,
+              matching mobile's PopularStaysWidget treatment. */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to bottom, rgba(0,0,0,0) 45%, rgba(0,0,0,0.6) 100%)",
+            }}
+          />
+          <div className="absolute left-3 right-3 bottom-3">
+            <p className="text-[17px] font-bold font-inter text-white leading-tight line-clamp-1">
+              {destination.name}
+            </p>
+            <p className="font-normal text-[13px] text-white/85 font-inter line-clamp-1">
+              {destination.country_name}
+            </p>
           </div>
-          <p className="mt-2 text-[14px] font-semibold font-inter text-[#181818]">
-            {destination.name}
-          </p>
-          <p className="font-normal text-[12px] text-[#4E4F52] font-inter">
-            {destination.country_name}
-          </p>
         </button>
       ))}
     </div>
