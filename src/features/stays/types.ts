@@ -10,6 +10,17 @@ export interface Destination {
   token?: string;
 }
 
+/** Curated homepage destination shortcut -- see backend's
+ * `_POPULAR_DESTINATIONS` for why there's no listing count field: no real
+ * aggregation data exists yet to back one. */
+export interface PopularDestination {
+  name: string;
+  city: string;
+  country_name?: string;
+  country_code?: string;
+  image_url?: string;
+}
+
 export interface HotelImage {
   /** Actual partner API field */
   secureUrl?: string;
@@ -122,8 +133,11 @@ export interface Hotel {
   /** Nightly price from (for list display) */
   priceFrom?: number;
   currency?: string;
-  /** Quality / rating score 0–100 */
+  /** Quality / rating score 0–100 (partner's own static score) */
   ratingScore?: number;
+  /** Real average from actual guest reviews (1-5), distinct from
+   * ratingScore -- only populated by the top-rated-stays endpoint. */
+  avgRating?: number;
   checkInTime?: string;
   checkOutTime?: string;
   houseRules?: string;
@@ -160,6 +174,22 @@ export interface StayRoomsResponse {
   rooms: Room[];
 }
 
+/** A single published review from GET .../catalog/{stays|transfers}/{id}/reviews.
+ * No reviewer identity is exposed by this endpoint (see
+ * docs/BACKEND_PUBLIC_API_IMPLEMENTATION_GUIDE.md, "Guest Review System"). */
+export interface CatalogReview {
+  rating: number;
+  subcategoryRatings?: Record<string, number>;
+  comment?: string;
+  submittedAt?: string;
+}
+
+export interface CatalogReviewsResponse {
+  page?: number;
+  pageSize?: number;
+  total?: number;
+  results: CatalogReview[];
+}
 
 
 export interface BookStaysRequest {

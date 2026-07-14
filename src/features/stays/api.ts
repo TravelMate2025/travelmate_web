@@ -7,9 +7,12 @@ import {
   BookingStaysVerifyDetails,
   BookStaysRequest,
   BookStaysResponse,
+  CatalogReview,
+  CatalogReviewsResponse,
   Destination,
   Hotel,
   HotelSearchResponse,
+  PopularDestination,
   StayPricing,
   StayRoomsResponse,
 } from "./types";
@@ -48,6 +51,7 @@ function mapPartnerStayLocationToDestination(
     name: location.displayName,
     country_code: location.country.slice(0, 2).toUpperCase(),
     country_name: location.country,
+    adminLevel1: location.adminLevel1,
     city_name: location.city,
   };
 }
@@ -186,16 +190,72 @@ export const fetchDestinations = async (
 };
 
 /**
- * Fetch recommended hotels
+ * IP-geolocated recommended hotels -- open endpoint, not personalized to
+ * the account (same "hotels near this IP" for any two users on the same
+ * connection). Was previously typed as Destination[], but the backend
+ * (HotelApiViewSet.recommend) actually returns full hotel-shaped objects
+ * (images, price, destination, etc.) -- same as Hotel elsewhere in this
+ * file. The old typing meant any caller trying to render an image/price
+ * from this would have been fighting the type system to do so.
  */
-export const fetchRecommendedHotels = async (): Promise<Destination[]> => {
+export const fetchRecommendedHotels = async (): Promise<Hotel[]> => {
   try {
     const response = await axios.get(`${BASE_URL}/hotels/recommend/`);
-    return response.data.results;
+    return response.data.results ?? [];
   } catch (error: unknown) {
-    const errorMessage = getErrorMessage(error);
-    console.error("Error fetching recommended hotels:", errorMessage);
-    throw new Error(errorMessage);
+    console.error("Error fetching recommended hotels:", getErrorMessage(error));
+    return [];
+  }
+};
+
+/**
+ * Resolves device coordinates to a city/country via the backend's
+ * reverse-geocode proxy (Nominatim) -- the partner catalog search only
+ * accepts city/country strings, no lat/lng/radius param exists.
+ */
+export const reverseGeocode = async (
+  lat: number,
+  lng: number,
+): Promise<{ city: string | null; country: string | null }> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/v1/public/reverse-geocode`, {
+      params: { lat, lng },
+    });
+    return { city: response.data.city ?? null, country: response.data.country ?? null };
+  } catch (error: unknown) {
+    console.error("Error reverse geocoding:", getErrorMessage(error));
+    return { city: null, country: null };
+  }
+};
+
+/**
+ * Curated homepage "Popular Destinations" shortcuts -- see backend's
+ * _POPULAR_DESTINATIONS for why there's no listing count in the response.
+ */
+export const fetchPopularDestinations = async (): Promise<PopularDestination[]> => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/v1/public/catalog/stays/popular-destinations`,
+    );
+    return response.data.results ?? [];
+  } catch (error: unknown) {
+    console.error("Error fetching popular destinations:", getErrorMessage(error));
+    return [];
+  }
+};
+
+/**
+ * Homepage "Top Rated Stays" -- real averages from actual partner reviews,
+ * pre-computed/cached server-side (backend excludes stays with zero
+ * reviews). See backend's refresh_top_rated_stays_task.
+ */
+export const fetchTopRatedStays = async (): Promise<Hotel[]> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/v1/public/catalog/stays/top-rated`);
+    return response.data.results ?? [];
+  } catch (error: unknown) {
+    console.error("Error fetching top-rated stays:", getErrorMessage(error));
+    return [];
   }
 };
 
@@ -473,13 +533,19 @@ export const searchTransferBookingByReference = async (
   }
 };
 
-// Fetch all reviews
-
-export const getReviews = async (hotelId: string | number | undefined) => {
+// Fetch published guest reviews for a stay -- GET
+// /api/v1/public/catalog/stays/{stayId}/reviews. No reviewer identity is
+// exposed by this endpoint (see docs/BACKEND_PUBLIC_API_IMPLEMENTATION_GUIDE.md).
+export const getReviews = async (
+  hotelId: string | number | undefined,
+): Promise<CatalogReview[]> => {
   try {
-    const response = await axios.get(`/hotels/${hotelId}/reviews/`);
-    console.log(response);
-    return response.data.user_reviews;
+    const response = await axios.get(
+      `${BASE_URL}/v1/public/catalog/stays/${hotelId}/reviews`,
+      { params: { page: 1, pageSize: 20 } },
+    );
+    const data = (response.data?.data ?? response.data) as CatalogReviewsResponse;
+    return data.results ?? [];
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error);
     console.error("Failed to fetch reviews:", errorMessage);

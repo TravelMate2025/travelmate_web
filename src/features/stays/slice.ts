@@ -321,7 +321,28 @@ const staysSlice = createSlice({
       })
       .addCase(fetchStayDetailsAsync.fulfilled, (state, action: PayloadAction<Hotel>) => {
         state.detailsLoading = false;
-        state.selectedHotel = action.payload;
+        // Preserve any live remainingInventory/isExhausted already merged in
+        // by fetchStayRoomsAsync -- the detail endpoint's rooms[] never
+        // carries these (always null by backend design), so a wholesale
+        // replace here would silently wipe them back to null if this
+        // action resolves after the rooms-liveness fetch (e.g. re-fetching
+        // detail on a check-in/check-out change while a prior rooms fetch
+        // is still in flight).
+        const priorLiveById = new Map(
+          (state.selectedHotel?.rooms ?? [])
+            .filter((r) => r.id && (r.remainingInventory != null || r.isExhausted != null))
+            .map((r) => [r.id, r]),
+        );
+        const nextHotel = action.payload;
+        if (priorLiveById.size && nextHotel.rooms?.length) {
+          nextHotel.rooms = nextHotel.rooms.map((room) => {
+            const prior = room.id ? priorLiveById.get(room.id) : undefined;
+            return prior
+              ? { ...room, remainingInventory: prior.remainingInventory, isExhausted: prior.isExhausted }
+              : room;
+          });
+        }
+        state.selectedHotel = nextHotel;
       })
       .addCase(fetchStayDetailsAsync.rejected, (state, action) => {
         state.detailsLoading = false;
