@@ -166,6 +166,55 @@ const [loading, setLoading] =  useState(false)
     extraBags: 0,
   });
 
+  // Flight fetching logic
+  // Declared before any effect that references it (below) -- this used to
+  // sit after those effects, which threw "Cannot access 'getFlight' before
+  // initialization" the instant this component mounted, since a dependency
+  // array referencing it is evaluated synchronously during render, before
+  // a later `const` in the same scope has been assigned. Same bug as
+  // DeparturePage.tsx (identical structure), fixed the same way.
+  const getFlight = useCallback(
+    (formData?: SimpleTripFormValues) => {
+
+      try {
+        setLoading(true)
+
+        const t  =     tripType as "round-trip" | "one-way" | "multi-city"
+        const payload = buildFlightPayload({
+          tripType: formData?.tripType || t || "round-trip",
+          initialFrom: { id: selectedFrom?.iataCode || "" },
+          initialTo: { id: selectedTo?.iataCode || "" },
+          selectedFrom: formData?.from || (selectedFrom as unknown),
+          selectedTo: formData?.to || (selectedTo as unknown),
+          date: formData?.date || date,
+          passengerCounts: formData?.passengers || (selectedPassengers as unknown),
+          travelClass: formData?.class || selectedClass,
+          currency: locationData?.currency || "NGN",
+          // @ts-expect-error flights typed upstream, passing through
+          flights,
+        });
+        // @ts-expect-error fetchFlights overload/type mismatch ignored here
+        fetchFlights(payload);
+
+      } catch (err: unknown) {
+        console.error("Failed to fetch flights:", toErrorString(err));
+      } finally {
+        setLoading(false)
+      }
+    },
+    [
+      tripType,
+      selectedFrom,
+      selectedTo,
+      date,
+      selectedPassengers,
+      selectedClass,
+      locationData?.currency,
+      flights,
+      fetchFlights,
+    ]
+  );
+
   // Geolocation effect
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -265,49 +314,6 @@ const [loading, setLoading] =  useState(false)
       );
     }
   }, [currentSegment, flights]);
-
-  // Flight fetching logic
-  const getFlight = useCallback(
-    (formData?: SimpleTripFormValues) => {
-
-      try {
-        setLoading(true)
-
-        const t  =     tripType as "round-trip" | "one-way" | "multi-city"
-        const payload = buildFlightPayload({
-          tripType: formData?.tripType || t || "round-trip",
-          initialFrom: { id: selectedFrom?.iataCode || "" },
-          initialTo: { id: selectedTo?.iataCode || "" },
-          selectedFrom: formData?.from || (selectedFrom as unknown),
-          selectedTo: formData?.to || (selectedTo as unknown),
-          date: formData?.date || date,
-          passengerCounts: formData?.passengers || (selectedPassengers as unknown),
-          travelClass: formData?.class || selectedClass,
-          currency: locationData?.currency || "NGN",
-          // @ts-expect-error flights typed upstream, passing through
-          flights,
-        });
-        // @ts-expect-error fetchFlights overload/type mismatch ignored here
-        fetchFlights(payload);
-        
-      } catch (err: unknown) {
-        console.error("Failed to fetch flights:", toErrorString(err));
-      } finally {
-        setLoading(false)
-      }
-    },
-    [
-      tripType,
-      selectedFrom,
-      selectedTo,
-      date,
-      selectedPassengers,
-      selectedClass,
-      locationData?.currency,
-      flights,
-      fetchFlights,
-    ]
-  );
 
   const onSearch = handleSubmit((formData) => {
     sessionStorage.setItem(
