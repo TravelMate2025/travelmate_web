@@ -101,7 +101,10 @@ const DisplayCars: React.FC = () => {
       toLat: carInfo.toLat,
       toLon: carInfo.toLon,
       searchResults: carInfo.searchResults || [],
-      search_id: state.search_id,
+      // `state` is null on a refresh/direct link even though `carInfo`
+      // (redux-persisted) survives -- that mismatch threw "Cannot read
+      // properties of null (reading 'search_id')" and crashed this page.
+      search_id: state?.search_id,
       rate_key: "",
     } as BookingFormData;
   }, [carInfo, state]);
