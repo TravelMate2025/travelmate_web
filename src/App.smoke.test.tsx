@@ -175,7 +175,7 @@ vi.mock("./features/stays/components/booking-progress/Policies", () => ({
   default: () => <div>policies</div>,
 }));
 
-vi.mock("./pages/flights/FlightSearchComponent", () => ({
+vi.mock("./pages/homePage/Flight", () => ({
   default: () => <div>flight search</div>,
 }));
 
