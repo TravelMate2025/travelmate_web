@@ -89,7 +89,7 @@ const Destination = () => {
           key={destination.city}
           type="button"
           onClick={() => handleSelectDestination(destination)}
-          className="w-[290px] h-[232px] flex-shrink-0 text-left cursor-pointer group relative overflow-hidden rounded-[14px] bg-gray-100 shadow-[0_10px_24px_-12px_rgba(15,23,42,0.35)]"
+          className="w-[290px] h-[232px] flex-shrink-0 text-left cursor-pointer group relative overflow-hidden rounded-[20px] bg-gray-100 shadow-[0_10px_24px_-12px_rgba(15,23,42,0.35)]"
         >
           {destination.image_url ? (
             <img

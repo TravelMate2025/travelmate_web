@@ -35,7 +35,7 @@ const TopRatedStayCard: React.FC<TopRatedStayCardProps> = ({ hotel }) => {
       {/* 3:2 -- deliberately wider than the destination cards below, since
           stay photography needs to show room/exterior context; kept
           consistent with StaysWidget's ratio on mobile. */}
-      <div className="relative w-full h-[194px] overflow-hidden rounded-[14px] bg-gray-100 shadow-[0_10px_24px_-12px_rgba(15,23,42,0.35)]">
+      <div className="relative w-full h-[194px] overflow-hidden rounded-[20px] bg-gray-100 shadow-[0_10px_24px_-12px_rgba(15,23,42,0.35)]">
         {mainImage ? (
           <img
             src={mainImage}

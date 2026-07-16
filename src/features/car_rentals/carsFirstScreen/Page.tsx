@@ -9,7 +9,7 @@ import { setSearchResults } from "../carPaymentSlice";
 
 // Icons
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-import { MdArrowDropDown } from "react-icons/md";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { Info } from "lucide-react";
 
 // Custom hooks and utilities
@@ -300,7 +300,7 @@ const CarBookingFirstScreen: React.FC = () => {
           <div className="flex lg:flex-row flex-col justify-between lg:items-center gap-4 w-full">
             {/* Ride Type */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="ride-type">Ride Type</label>
+              <label htmlFor="ride-type" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Ride Type</label>
               <TextField
                 id="ride-type"
                 variant="outlined"
@@ -317,14 +317,14 @@ const CarBookingFirstScreen: React.FC = () => {
                   readOnly: true,
                   startAdornment: (
                     <InputAdornment position="start">
-                      <MdArrowDropDown />
+                      <KeyboardArrowDownIcon sx={{ color: "#8A9096" }} />
                     </InputAdornment>
                   ),
                 }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
+                    height: "48px",
+                    borderRadius: "12px",
                     cursor: "pointer",
                     width: "100%",
                   },
@@ -334,7 +334,7 @@ const CarBookingFirstScreen: React.FC = () => {
 
             {/* Pick Up Location */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="pickup-location">Pick Up</label>
+              <label htmlFor="pickup-location" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Pick Up</label>
               <TextField
                 id="pickup-location"
                 variant="outlined"
@@ -352,14 +352,14 @@ const CarBookingFirstScreen: React.FC = () => {
                   readOnly: true,
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LocationOnOutlinedIcon />
+                      <LocationOnOutlinedIcon sx={{ color: "#8A9096" }} />
                     </InputAdornment>
                   ),
                 }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
+                    height: "48px",
+                    borderRadius: "12px",
                     width: "100%",
                   },
                 }}
@@ -368,7 +368,7 @@ const CarBookingFirstScreen: React.FC = () => {
 
             {/* Drop Off Location */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="dropoff-location">Drop Off</label>
+              <label htmlFor="dropoff-location" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Drop Off</label>
               <TextField
                 id="dropoff-location"
                 variant="outlined"
@@ -386,14 +386,14 @@ const CarBookingFirstScreen: React.FC = () => {
                   readOnly: true,
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LocationOnOutlinedIcon />
+                      <LocationOnOutlinedIcon sx={{ color: "#8A9096" }} />
                     </InputAdornment>
                   ),
                 }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
+                    height: "48px",
+                    borderRadius: "12px",
                     width: "100%",
                   },
                 }}
@@ -402,7 +402,7 @@ const CarBookingFirstScreen: React.FC = () => {
 
             {/* Pick Up Date */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="pickup-date">Pick Up Date</label>
+              <label htmlFor="pickup-date" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Pick Up Date</label>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   disablePast
@@ -423,8 +423,8 @@ const CarBookingFirstScreen: React.FC = () => {
                       },
                       sx: {
                         "& .MuiInputBase-root": {
-                          height: "44px",
-                          borderRadius: "8px",
+                          height: "48px",
+                          borderRadius: "12px",
                           cursor: "pointer",
                           width: "100%",
                         },
@@ -440,7 +440,7 @@ const CarBookingFirstScreen: React.FC = () => {
           <div className="flex lg:flex-row flex-col justify-between items-center w-full gap-4 mt-5">
             {/* Pick Up Time */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="pickup-time">Pick Up Time</label>
+              <label htmlFor="pickup-time" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Pick Up Time</label>
               <TextField
                 id="pickup-time"
                 type="time"
@@ -453,8 +453,8 @@ const CarBookingFirstScreen: React.FC = () => {
                 helperText={touched.pickupTime && errors.pickupTime}
                 sx={{
                   "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
+                    height: "48px",
+                    borderRadius: "12px",
                     width: "100%",
                   },
                 }}
@@ -463,7 +463,7 @@ const CarBookingFirstScreen: React.FC = () => {
 
             {/* Passengers */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="passengers">Passengers</label>
+              <label htmlFor="passengers" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Passengers</label>
               <TextField
                 id="passengers"
                 variant="outlined"
@@ -479,8 +479,8 @@ const CarBookingFirstScreen: React.FC = () => {
                 InputProps={{ readOnly: true }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
+                    height: "48px",
+                    borderRadius: "12px",
                     cursor: "pointer",
                     width: "100%",
                   },
@@ -490,7 +490,7 @@ const CarBookingFirstScreen: React.FC = () => {
 
             {/* Price Range */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="price-range">Price Range</label>
+              <label htmlFor="price-range" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Price Range</label>
               <TextField
                 id="price-range"
                 variant="outlined"
@@ -503,8 +503,8 @@ const CarBookingFirstScreen: React.FC = () => {
                 InputProps={{ readOnly: true }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
+                    height: "48px",
+                    borderRadius: "12px",
                     cursor: "pointer",
                     width: "100%",
                   },
@@ -517,7 +517,7 @@ const CarBookingFirstScreen: React.FC = () => {
         {/* Search Button */}
         <div className="">
           <button
-            className="bg-[#023E8A] lg:w-[120px] w-full text-center text-white font-inter text-base rounded-md py-3 lg:mt-14 cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+            className="bg-[#023E8A] lg:w-[120px] w-full text-center text-white font-inter font-bold text-base rounded-[12px] py-3 lg:mt-14 cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 hover:bg-blue-800"
             onClick={() => {
               handleSearch();
             }}
