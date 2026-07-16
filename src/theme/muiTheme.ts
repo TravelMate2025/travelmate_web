@@ -75,5 +75,17 @@ export const muiTheme = createTheme({
         },
       },
     },
+    // 12px on inputs (vs. 20px on cards) is a deliberate two-tier system --
+    // smaller interactive controls read as fussy at the same radius large
+    // cards use. Search-form TextFields sitewide were still at MUI's
+    // default 4px, which is where "unpolished form" complaints traced back
+    // to, not just the Transfers-specific one this was first raised on.
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+        },
+      },
+    },
   },
 });

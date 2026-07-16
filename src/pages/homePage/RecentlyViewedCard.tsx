@@ -55,7 +55,7 @@ const RecentlyViewedCard: React.FC<RecentlyViewedCardProps> = ({ item }) => {
       onClick={handleClick}
       className="w-[290px] flex-shrink-0 text-left cursor-pointer group"
     >
-      <div className="relative w-full h-[194px] overflow-hidden rounded-[14px] bg-gray-100 shadow-[0_10px_24px_-12px_rgba(15,23,42,0.35)]">
+      <div className="relative w-full h-[194px] overflow-hidden rounded-[20px] bg-gray-100 shadow-[0_10px_24px_-12px_rgba(15,23,42,0.35)]">
         {item.imageUrl ? (
           <img
             src={item.imageUrl}
