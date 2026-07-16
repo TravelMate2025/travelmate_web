@@ -6,7 +6,9 @@ import WelcomePage from "./homePage/WelcomePage";
 import Updates from "./homePage/Updates";
 import TravelmateApp from "./homePage/TravelmateApp";
 import Destination from "./homePage/Destination";
-import TopRatedStays from "./homePage/TopRatedStays";
+import SegmentedStayCarousels from "./homePage/stays/SegmentedStayCarousels";
+import StaysTrustRow from "./homePage/stays/StaysTrustRow";
+import StaysFAQ from "./homePage/stays/StaysFAQ";
 import RecommendedStays from "./homePage/RecommendedStays";
 import RecentlyViewed from "./homePage/RecentlyViewed";
 import NearbyStays from "./homePage/NearbyStays";
@@ -56,8 +58,10 @@ export default function Home() {
           <RecentlyViewed />
           <RecommendedStays />
           <NearbyStays />
-          <TopRatedStays />
+          <SegmentedStayCarousels />
           <Destination />
+          <StaysTrustRow />
+          <StaysFAQ />
         </>
       )}
       <TravelmateApp />
