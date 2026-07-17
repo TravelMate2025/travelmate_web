@@ -3,16 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TravelMate</title>
+    <title>TravelMate — Book Stays, Flights & Airport Transfers in One Place</title>
+    <meta name="description" content="TravelMate is a travel booking platform for stays, flights, and airport transfers — one account, real prices, secure checkout." />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    
+
+    <!-- OpenGraph -- these are the tags a non-JS crawler (Facebook, Slack,
+         LinkedIn, WhatsApp link previews) will always see, regardless of
+         which route was actually shared, since this is a client-rendered
+         SPA with no SSR/prerendering. Per-route <title>/description are
+         set client-side via usePageMeta for the browser tab and for
+         crawlers that do execute JS (e.g. Googlebot). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TravelMate" />
+    <meta property="og:title" content="TravelMate — Book Stays, Flights & Airport Transfers in One Place" />
+    <meta property="og:description" content="TravelMate is a travel booking platform for stays, flights, and airport transfers — one account, real prices, secure checkout." />
+    <meta property="og:image" content="https://travelmateglo.com/favicon.png" />
+    <meta property="og:url" content="https://travelmateglo.com/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="TravelMate — Book Stays, Flights & Airport Transfers in One Place" />
+    <meta name="twitter:description" content="TravelMate is a travel booking platform for stays, flights, and airport transfers — one account, real prices, secure checkout." />
+    <meta name="twitter:image" content="https://travelmateglo.com/favicon.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <style>
      @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
     </style>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-    
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "TravelMate",
+      "url": "https://travelmateglo.com/",
+      "logo": "https://travelmateglo.com/favicon.png"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "TravelMate",
+      "url": "https://travelmateglo.com/"
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
