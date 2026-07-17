@@ -12,6 +12,7 @@ import Page from "../../features/car_rentals/carsFirstScreen/CarBookingFirstScre
 import PartnerStaySearchPage from "../../features/stays/pages/PartnerStaySearchPage";
 import { useMediaQuery } from "react-responsive";
 import HomeHero from "./HomeHero";
+import HeroTrustStrip from "./HeroTrustStrip";
 
 interface WelcomePageProps {
   // Lifted to Home.tsx so the content sections rendered below this
@@ -118,6 +119,7 @@ const WelcomePage = ({ value, onChange }: WelcomePageProps) => {
               </TabContext>
             </Box>
           </div>
+          <HeroTrustStrip />
         </div>
       ) : (
         // web view
@@ -196,6 +198,7 @@ const WelcomePage = ({ value, onChange }: WelcomePageProps) => {
               </TabContext>
             </Box>
           </div>
+          <HeroTrustStrip />
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState, type SyntheticEvent } from "react";
 import { useLocation } from "react-router-dom";
+import { usePageMeta } from "../hooks/usePageMeta";
 import Navbar from "./homePage/Navbar";
 import WelcomePage from "./homePage/WelcomePage";
 // import Footer from "./homePage/Footer"
@@ -44,6 +45,27 @@ export default function Home() {
   };
 
   const isTransfers = activeVertical === "3";
+  const isFlights = activeVertical === "2";
+
+  usePageMeta(
+    isTransfers
+      ? {
+          title: "Airport Transfers | TravelMate",
+          description:
+            "Book reliable airport transfers with TravelMate — verified drivers, transparent pricing, and free cancellation on most rides.",
+        }
+      : isFlights
+        ? {
+            title: "Flights | TravelMate",
+            description:
+              "Search and book flights with TravelMate — real fares, no hidden fees, all in the same account as your stays and transfers.",
+          }
+        : {
+            title: "TravelMate — Book Stays, Flights & Airport Transfers in One Place",
+            description:
+              "TravelMate is a travel booking platform for stays, flights, and airport transfers — one account, real prices, secure checkout.",
+          }
+  );
 
   return (
     <div>
