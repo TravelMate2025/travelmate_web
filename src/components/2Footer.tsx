@@ -29,7 +29,7 @@ export default function Footer() {
           <h3 className="text-lg font-bold mb-3">Company</h3>
           <ul className="space-y-2">
             <li><a href="/about" className="hover:underline">About</a></li>
-            <li><a href="#" className="hover:underline">Our Partners</a></li>
+            <li><a href="/partners" className="hover:underline">Our Partners</a></li>
           </ul>
         </div>
 
