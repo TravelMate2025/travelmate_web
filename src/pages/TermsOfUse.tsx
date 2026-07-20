@@ -4,9 +4,14 @@ import Footer from "../components/2Footer";
 import { InfoProvider } from "../features/account/api/info";
 import Navbar from "./homePage/Navbar";
 import Skeleton from "@mui/material/Skeleton";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 export function TermsOfUsePage() {
-
+      usePageMeta({
+        title: "Terms of Use | TravelMate",
+        description:
+          "The terms that govern booking stays, flights, and airport transfers through TravelMate.",
+      });
 
       const [loading, setLoading] = useState(false);
       const [content, setContent] = useState<{
