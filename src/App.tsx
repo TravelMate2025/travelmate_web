@@ -63,6 +63,8 @@ const TermsOfUsePage = lazy(() => import("./pages/TermsOfUse").then(m => ({ defa
 const Flight = lazy(() => import("./pages/Flight"));
 const AboutPage = lazy(() => import("./pages/About").then(m => ({ default: m.AboutPage })));
 const PartnersPage = lazy(() => import("./pages/Partners").then(m => ({ default: m.PartnersPage })));
+const RefundPolicyPage = lazy(() => import("./pages/RefundPolicy").then(m => ({ default: m.RefundPolicyPage })));
+const CookiePolicyPage = lazy(() => import("./pages/CookiePolicy").then(m => ({ default: m.CookiePolicyPage })));
 const PaymentMethodSettingsPage = lazy(() => import("./pages/settings/PaymentMethod").then(m => ({ default: m.PaymentMethodSettingsPage })));
 const ReviewsSettingsPage = lazy(() => import("./pages/settings/ReviewsPage").then(m => ({ default: m.ReviewsSettingsPage })));
 const ProfilePage = lazy(() => import("./pages/settings/ProfilePage").then(m => ({ default: m.ProfilePage })));
@@ -80,6 +82,8 @@ function App() {
         <Route path="/terms-of-use" element={<TermsOfUsePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/partners" element={<PartnersPage />} />
+        <Route path="/refund-policy" element={<RefundPolicyPage />} />
+        <Route path="/cookie-policy" element={<CookiePolicyPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/verify-page" element={<VerifyPage />} />
