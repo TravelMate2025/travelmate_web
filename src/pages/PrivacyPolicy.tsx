@@ -4,8 +4,15 @@ import { InfoProvider } from "../features/account/api/info";
 import Navbar from "./homePage/Navbar";
 import Skeleton from "@mui/material/Skeleton";
 import { DateTime } from "luxon";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 export function PrivacyPolicyPage() {
+  usePageMeta({
+    title: "Privacy Policy | TravelMate",
+    description:
+      "How TravelMate collects, uses, and protects your data across stays, flights, and airport transfer bookings.",
+  });
+
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState<{
     content: string;

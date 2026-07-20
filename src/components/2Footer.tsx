@@ -9,8 +9,8 @@ export default function Footer() {
           <h3 className="text-lg font-bold mb-3">Our Product</h3>
           <ul className="space-y-2">
             <li><a href="/?tab=stays" className="hover:underline">Stays</a></li>
-            <li><a href="/departure-flight" className="hover:underline">Flight</a></li>
-            <li><a href="/display-cars" className="hover:underline">Airport Taxi</a></li>
+            <li><a href="/?tab=flights" className="hover:underline">Flight</a></li>
+            <li><a href="/?tab=transfers" className="hover:underline">Airport Taxi</a></li>
           </ul>
         </div>
 
@@ -39,6 +39,8 @@ export default function Footer() {
           <ul className="space-y-2">
             <li><a href="/privacy-policy" className="hover:underline">Privacy</a></li>
             <li><a href="/terms-of-use" className="hover:underline">Terms of Use</a></li>
+            <li><a href="/refund-policy" className="hover:underline">Refund &amp; Cancellation</a></li>
+            <li><a href="/cookie-policy" className="hover:underline">Cookie Policy</a></li>
           </ul>
         </div>
       </div>

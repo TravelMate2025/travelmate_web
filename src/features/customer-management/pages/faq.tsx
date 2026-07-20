@@ -6,6 +6,7 @@ import Navbar from "../../../pages/homePage/Navbar";
 import Footer from "../../../components/2Footer";
 import { useNavigate } from "react-router-dom";
 import { IoChevronBack } from "react-icons/io5";
+import { usePageMeta } from "../../../hooks/usePageMeta";
 
 type FaqItem = {
   id: number;
@@ -23,6 +24,12 @@ type FaqCategory = {
 const preferredOrder = ["Stays", "Flights", "Car Rentals", "Account"];
 
 const FaqPage = () => {
+  usePageMeta({
+    title: "FAQs | TravelMate",
+    description:
+      "Answers to common questions about booking stays, flights, and airport transfers on TravelMate.",
+  });
+
   const [categories, setCategories] = useState<FaqCategory[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
