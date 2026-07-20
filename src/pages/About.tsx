@@ -4,6 +4,8 @@ import Navbar from "./homePage/Navbar";
 import { InfoProvider } from "../features/account/api/info";
 import Skeleton from "@mui/material/Skeleton";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { InfoPageHeader } from "../components/infoPages/InfoPageHeader";
+import { CompanyConnectCard } from "../components/infoPages/CompanyConnectCard";
 
 // Shown when the backend-managed About content is empty or fails to load --
 // previously this page rendered nothing at all in that case (an empty div),
@@ -30,16 +32,6 @@ const FALLBACK_ABOUT_COPY = (
     </p>
   </div>
 );
-
-// Always shown, regardless of whether the CMS About content or the
-// fallback above is what's rendering -- company identity facts an
-// evaluating partner or visitor would look for shouldn't depend on
-// whether an admin has filled in the About CMS entry.
-const COMPANY_IDENTITY = [
-  { label: "Company", value: "TravelMate Company" },
-  { label: "Market", value: "Nigeria" },
-  { label: "Support", value: "support@travelmateglo.com" },
-];
 
 export function AboutPage() {
   usePageMeta({
@@ -75,45 +67,32 @@ export function AboutPage() {
   return (
     <>
       <Navbar />
-      <section className="mt-[50px] min-h-screen lg:mt-[100px] text-sm lg:text-lg text-[#4E4F52] max-w-[1240px] mx-auto px-4 py-10 space-y-6 lg:space-y-8">
-        <div>
-          <p className="text-[#181818] hidden lg:block text-center lg:text-left font-semibold text-2xl lg:text-4xl">
-            About TravelMate
-          </p>
-          <p className="text-[#181818] lg:hidden text-center lg:text-left font-semibold text-2xl lg:text-4xl">
-            About Us
-          </p>
-          <div className="mt-6 text-sm lg:text-lg lg:mt-12">
-            {loading ? (
-              <div className="space-y-3">
-                <Skeleton variant="text" width="92%" height={28} />
-                <Skeleton variant="text" width="100%" height={28} />
-                <Skeleton variant="text" width="96%" height={28} />
-                <Skeleton variant="text" width="90%" height={28} />
-                <Skeleton variant="text" width="84%" height={28} />
-              </div>
-            ) : content?.content ? (
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: content.content,
-                }}
-              />
-            ) : (
-              FALLBACK_ABOUT_COPY
-            )}
-          </div>
-
-          <div className="mt-10 pt-8 border-t border-[#E4E7EB] grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {COMPANY_IDENTITY.map(({ label, value }) => (
-              <div key={label}>
-                <p className="text-[11px] font-bold uppercase tracking-[.5px] text-[#8A9096] mb-1">
-                  {label}
-                </p>
-                <p className="text-[14px] font-medium text-[#181818]">{value}</p>
-              </div>
-            ))}
-          </div>
+      <InfoPageHeader
+        eyebrow="Company"
+        title="About TravelMate"
+        subtitle="Learn about TravelMate, the travel booking platform bringing stays, flights, and airport transfers together in one account."
+      />
+      <section className="min-h-screen text-[#4E4F52] px-4 py-14">
+        <div className="max-w-[680px] mx-auto text-[15.5px] leading-relaxed">
+          {loading ? (
+            <div className="space-y-3">
+              <Skeleton variant="text" width="92%" height={28} />
+              <Skeleton variant="text" width="100%" height={28} />
+              <Skeleton variant="text" width="96%" height={28} />
+              <Skeleton variant="text" width="90%" height={28} />
+              <Skeleton variant="text" width="84%" height={28} />
+            </div>
+          ) : content?.content ? (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: content.content,
+              }}
+            />
+          ) : (
+            FALLBACK_ABOUT_COPY
+          )}
         </div>
+        <CompanyConnectCard currentPage="about" />
       </section>
       <Footer />
     </>

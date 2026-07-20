@@ -1,6 +1,8 @@
 import Footer from "../components/2Footer";
 import Navbar from "./homePage/Navbar";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { InfoPageHeader } from "../components/infoPages/InfoPageHeader";
+import { CompanyConnectCard } from "../components/infoPages/CompanyConnectCard";
 
 // Static, not backend-managed (no CookiePolicy model exists). Written to
 // match what the site actually does, not generic boilerplate: TravelMate's
@@ -18,14 +20,13 @@ export function CookiePolicyPage() {
   return (
     <>
       <Navbar />
-      <section className="mt-[50px] min-h-screen lg:mt-[100px] text-sm lg:text-lg text-[#4E4F52] max-w-[1240px] mx-auto px-4 py-10 space-y-8 lg:space-y-10">
-        <div>
-          <p className="text-[#181818] font-semibold text-2xl text-center lg:text-left lg:text-4xl">
-            Cookie Policy
-          </p>
-        </div>
-
-        <div className="space-y-8 text-sm lg:text-base leading-relaxed">
+      <InfoPageHeader
+        eyebrow="Legal"
+        title="Cookie Policy"
+        subtitle="How TravelMate uses cookies and browser storage on travelmateglo.com."
+      />
+      <section className="text-[#4E4F52] px-4 py-14">
+        <div className="max-w-[680px] mx-auto text-[15.5px] leading-relaxed space-y-8">
           <div>
             <h2 className="text-[#181818] font-semibold text-lg lg:text-xl mb-3">
               What we use, and why
@@ -91,6 +92,7 @@ export function CookiePolicyPage() {
             </p>
           </div>
         </div>
+        <CompanyConnectCard currentPage="cookie" />
       </section>
       <Footer />
     </>
