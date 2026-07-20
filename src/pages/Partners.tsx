@@ -144,11 +144,20 @@ export function PartnersPage() {
             integration.
           </p>
           <a
-            href="mailto:support@travelmateglo.com"
+            href="https://partner.travelmateglo.com/"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-block bg-[#FF6F1E] text-white font-bold text-[14px] px-7 py-3.5 rounded-[9px] hover:brightness-95"
           >
-            Talk to our partnerships team
+            Sign up to partner with us
           </a>
+          <p className="text-[12px] text-[#BFD6F2] mt-4">
+            Looking for us to integrate with your own API instead?{" "}
+            <a href="mailto:support@travelmateglo.com" className="underline hover:text-white">
+              Email our partnerships team
+            </a>
+            .
+          </p>
         </div>
 
         {/* How it works */}
@@ -293,18 +302,28 @@ export function PartnersPage() {
         <section className="max-w-[1180px] mx-auto px-6 pb-16 md:pb-20">
           <div className="bg-[#023E8A] rounded-[24px] px-8 py-12 md:py-14 text-center text-white">
             <h2 className="text-[22px] md:text-[26px] font-bold mb-3">
-              Let's talk about integrating your inventory
+              Ready to list your stays or transfers, or explore ours?
             </h2>
             <p className="text-[13.5px] text-[#CBD8EE] max-w-[480px] mx-auto mb-6 leading-relaxed">
-              Tell us about your stays, flights, or vehicle supply and we'll walk you
-              through what integration looks like.
+              Sign up at our partner portal to list your inventory on TravelMate or
+              to use TravelMate's own listings.
             </p>
             <a
-              href="mailto:support@travelmateglo.com"
+              href="https://partner.travelmateglo.com/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-block bg-[#FF6F1E] text-white font-bold text-[14px] px-7 py-3.5 rounded-[9px] hover:brightness-95"
             >
-              support@travelmateglo.com
+              Get started at partner.travelmateglo.com
             </a>
+            <p className="text-[12.5px] text-[#CBD8EE] mt-5">
+              Have a different kind of integration in mind — where TravelMate connects
+              to and consumes your own API directly?{" "}
+              <a href="mailto:support@travelmateglo.com" className="underline font-semibold hover:text-white">
+                Email support@travelmateglo.com
+              </a>
+              .
+            </p>
           </div>
         </section>
       </div>
