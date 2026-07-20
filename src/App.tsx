@@ -63,6 +63,7 @@ const TermsOfUsePage = lazy(() => import("./pages/TermsOfUse").then(m => ({ defa
 const Flight = lazy(() => import("./pages/Flight"));
 const AboutPage = lazy(() => import("./pages/About").then(m => ({ default: m.AboutPage })));
 const PartnersPage = lazy(() => import("./pages/Partners").then(m => ({ default: m.PartnersPage })));
+const ContactPage = lazy(() => import("./pages/Contact").then(m => ({ default: m.ContactPage })));
 const RefundPolicyPage = lazy(() => import("./pages/RefundPolicy").then(m => ({ default: m.RefundPolicyPage })));
 const CookiePolicyPage = lazy(() => import("./pages/CookiePolicy").then(m => ({ default: m.CookiePolicyPage })));
 const PaymentMethodSettingsPage = lazy(() => import("./pages/settings/PaymentMethod").then(m => ({ default: m.PaymentMethodSettingsPage })));
@@ -82,6 +83,7 @@ function App() {
         <Route path="/terms-of-use" element={<TermsOfUsePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/partners" element={<PartnersPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/refund-policy" element={<RefundPolicyPage />} />
         <Route path="/cookie-policy" element={<CookiePolicyPage />} />
         <Route path="/login" element={<Login />} />
@@ -107,7 +109,14 @@ function App() {
         />
         {/* FAQ & Customer Support */}
         <Route path="/faqs" element={<FaqPage />} />
-        <Route path="/chat-with-us" element={<ChatPage />} />
+        <Route
+          path="/chat-with-us"
+          element={
+            <PrivateRoute>
+              <ChatPage />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/tickets"
           element={
