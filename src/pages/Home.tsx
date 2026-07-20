@@ -15,6 +15,7 @@ import RecentlyViewed from "./homePage/RecentlyViewed";
 import NearbyStays from "./homePage/NearbyStays";
 import FavoritesChip from "./homePage/FavoritesChip";
 import TransfersHomeContent from "./homePage/transfers/TransfersHomeContent";
+import FlightsHomeContent from "./homePage/flights/FlightsHomeContent";
 import Footer from "../components/2Footer";
 
 import FloatingChatButton from '../features/customer-management/components/FloatingChatButton';
@@ -75,6 +76,8 @@ export default function Home() {
       <FavoritesChip />
       {isTransfers ? (
         <TransfersHomeContent />
+      ) : isFlights ? (
+        <FlightsHomeContent />
       ) : (
         <>
           <RecentlyViewed />
