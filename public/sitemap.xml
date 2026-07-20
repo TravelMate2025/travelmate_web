@@ -21,6 +21,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://travelmateglo.com/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://travelmateglo.com/privacy-policy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
