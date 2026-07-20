@@ -1,15 +1,29 @@
-import { FaInstagram, FaXTwitter, FaFacebookF, FaLinkedinIn } from "react-icons/fa6";
+import { FaInstagram, FaXTwitter, FaTiktok, FaSnapchat } from "react-icons/fa6";
 
 export type InfoPageKey = "about" | "contact" | "privacy" | "terms" | "refund" | "cookie";
 
-// Real accounts pending -- swap the `href` values below once they're
-// provided. Left as "#" (not omitted) so the row's layout/design is
-// visible now rather than only after the real links land.
+// Real TravelMate accounts, provided by the user 2026-07-20.
 const SOCIAL_LINKS: { label: string; href: string; icon: typeof FaInstagram }[] = [
-  { label: "Instagram", href: "#", icon: FaInstagram },
-  { label: "X (Twitter)", href: "#", icon: FaXTwitter },
-  { label: "Facebook", href: "#", icon: FaFacebookF },
-  { label: "LinkedIn", href: "#", icon: FaLinkedinIn },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/travelmategloballtd?igsh=MTRzcGtrcDl2dzh2aQ==",
+    icon: FaInstagram,
+  },
+  {
+    label: "TikTok",
+    href: "https://www.tiktok.com/@officialtravelmate?_r=1&_t=ZS-987IbIyLUhQ",
+    icon: FaTiktok,
+  },
+  {
+    label: "X (Twitter)",
+    href: "https://x.com/travelmateglo",
+    icon: FaXTwitter,
+  },
+  {
+    label: "Snapchat",
+    href: "https://www.snapchat.com/add/travelmateglo?share_id=V4RkP3R-Hu8&locale=en-GB",
+    icon: FaSnapchat,
+  },
 ];
 
 const CROSS_LINKS: { key: InfoPageKey; label: string; href: string }[] = [
@@ -51,6 +65,8 @@ export function CompanyConnectCard({ currentPage }: { currentPage: InfoPageKey }
               <a
                 key={label}
                 href={href}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label={label}
                 className="w-9 h-9 rounded-[10px] bg-white border border-[#E4E7EB] flex items-center justify-center text-[#023E8A] hover:bg-[#023E8A] hover:border-[#023E8A] hover:text-white transition-colors"
               >
