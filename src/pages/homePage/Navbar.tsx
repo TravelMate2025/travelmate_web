@@ -40,7 +40,7 @@ import { useNotifications } from "../../features/account/components/notification
 const navItems = [
   { name: "Home", path: "/" },
   { name: "Stays", path: "/?tab=stays" },
-  { name: "Flights", path: "/flight/departure" },
+  { name: "Flights", path: "/?tab=flights" },
   { name: "Transfers", path: "/?tab=transfers" },
 ];
 
