@@ -1,6 +1,8 @@
 import Footer from "../components/2Footer";
 import Navbar from "./homePage/Navbar";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { InfoPageHeader } from "../components/infoPages/InfoPageHeader";
+import { CompanyConnectCard } from "../components/infoPages/CompanyConnectCard";
 
 // Static, not backend-managed -- unlike About/Privacy/Terms, there's no
 // RefundPolicy model in the backend yet. Terms below are written to match,
@@ -17,14 +19,13 @@ export function RefundPolicyPage() {
   return (
     <>
       <Navbar />
-      <section className="mt-[50px] min-h-screen lg:mt-[100px] text-sm lg:text-lg text-[#4E4F52] max-w-[1240px] mx-auto px-4 py-10 space-y-8 lg:space-y-10">
-        <div>
-          <p className="text-[#181818] font-semibold text-2xl text-center lg:text-left lg:text-4xl">
-            Refund &amp; Cancellation Policy
-          </p>
-        </div>
-
-        <div className="space-y-8 text-sm lg:text-base leading-relaxed">
+      <InfoPageHeader
+        eyebrow="Legal"
+        title="Refund & Cancellation Policy"
+        subtitle="How refunds and cancellations work on TravelMate for stays, flights, and airport transfers."
+      />
+      <section className="text-[#4E4F52] px-4 py-14">
+        <div className="max-w-[680px] mx-auto text-[15.5px] leading-relaxed space-y-8">
           <div>
             <h2 className="text-[#181818] font-semibold text-lg lg:text-xl mb-3">Stays</h2>
             <p>
@@ -87,6 +88,7 @@ export function RefundPolicyPage() {
             </p>
           </div>
         </div>
+        <CompanyConnectCard currentPage="refund" />
       </section>
       <Footer />
     </>

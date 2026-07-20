@@ -5,6 +5,8 @@ import Navbar from "./homePage/Navbar";
 import Skeleton from "@mui/material/Skeleton";
 import { DateTime } from "luxon";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { InfoPageHeader } from "../components/infoPages/InfoPageHeader";
+import { CompanyConnectCard } from "../components/infoPages/CompanyConnectCard";
 
 export function PrivacyPolicyPage() {
   usePageMeta({
@@ -45,16 +47,16 @@ export function PrivacyPolicyPage() {
   return (
     <>
       <Navbar />
-      <section className="mt-[50px] min-h-screen lg:mt-[100px] text-sm lg:text-lg text-[#4E4F52] max-w-[1240px] mx-auto px-4 py-10 space-y-8">
-        <div>
-          <p className="text-[#181818] font-semibold text-2xl text-center lg:text-left lg:text-4xl">
-            Privacy Policy
-          </p>
-          <p className="text-sm lg:mt-2  lg:text-lg mt-6">
+      <InfoPageHeader
+        eyebrow="Legal"
+        title="Privacy Policy"
+        subtitle="How TravelMate collects, uses, and protects your data across stays, flights, and airport transfer bookings."
+      />
+      <section className="text-[#4E4F52] px-4 py-14">
+        <div className="max-w-[680px] mx-auto text-[15.5px] leading-relaxed">
+          <p className="text-[13px] text-[#8A9096] mb-8 pb-6 border-b border-[#EEF0F3]">
             Last Updated: {lastUpdatedAt.toFormat("LLL dd, yyyy")}
           </p>
-        </div>
-        <div className="mt-6 text-sm lg:text-lg lg:mt-12">
           {loading ? (
             <div className="space-y-3">
               <Skeleton variant="text" width="92%" height={28} />
@@ -71,6 +73,7 @@ export function PrivacyPolicyPage() {
             />
           )}
         </div>
+        <CompanyConnectCard currentPage="privacy" />
       </section>
       <Footer />
     </>

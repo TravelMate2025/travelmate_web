@@ -189,7 +189,7 @@ const FlightItineraryPDF = ({ bookingData }:{bookingData:LocalState}) => {
         </View>
 
         <View style={{flexDirection:"row", alignItems:"center", justifyContent:"center"}}>
-          <Text>©{new Date().getFullYear()} TravelMate Company. All rights reserved.</Text>
+          <Text>©{new Date().getFullYear()} TravelMate Global Limited. All rights reserved.</Text>
         </View>
       </Page>
     </Document>
