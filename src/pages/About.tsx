@@ -31,6 +31,16 @@ const FALLBACK_ABOUT_COPY = (
   </div>
 );
 
+// Always shown, regardless of whether the CMS About content or the
+// fallback above is what's rendering -- company identity facts an
+// evaluating partner or visitor would look for shouldn't depend on
+// whether an admin has filled in the About CMS entry.
+const COMPANY_IDENTITY = [
+  { label: "Company", value: "TravelMate Company" },
+  { label: "Market", value: "Nigeria" },
+  { label: "Support", value: "support@travelmateglo.com" },
+];
+
 export function AboutPage() {
   usePageMeta({
     title: "About Us | TravelMate",
@@ -91,6 +101,17 @@ export function AboutPage() {
             ) : (
               FALLBACK_ABOUT_COPY
             )}
+          </div>
+
+          <div className="mt-10 pt-8 border-t border-[#E4E7EB] grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {COMPANY_IDENTITY.map(({ label, value }) => (
+              <div key={label}>
+                <p className="text-[11px] font-bold uppercase tracking-[.5px] text-[#8A9096] mb-1">
+                  {label}
+                </p>
+                <p className="text-[14px] font-medium text-[#181818]">{value}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

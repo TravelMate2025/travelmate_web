@@ -34,7 +34,7 @@ const HomeHero = () => {
           Where are you going?
         </h1>
         <p className="mt-2 md:mt-3 text-[14px] md:text-[17px] font-inter text-[#CBD8EE] max-w-[46ch]">
-          Search stays, flights, and rides in one place — real prices, no detours.
+          Stays, flights, and airport transfers — all in one TravelMate account, with real prices and no detours.
         </p>
       </div>
     </div>
