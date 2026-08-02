@@ -37,7 +37,12 @@ const RecommendedStays = () => {
       className="flex gap-6 overflow-x-auto scroll-smooth flex-nowrap"
     >
       {stays.map((hotel) => (
-        <TopRatedStayCard key={hotel.id ?? hotel.code} hotel={hotel} />
+        <TopRatedStayCard
+          key={hotel.id ?? hotel.code}
+          hotel={hotel}
+          badge="For You"
+          badgeTone="orange"
+        />
       ))}
     </div>
   );

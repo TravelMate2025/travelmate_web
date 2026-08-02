@@ -44,33 +44,29 @@ const RecentlyViewed = () => {
     <div className="w-[90%] m-auto">
       {isMobile ? (
         <div className="mt-[6px]">
-          <p className="text-[16px] font-semibold font-inter text-[#181818]">Recently Viewed</p>
-          <p className="font-normal text-[#4E4F52] font-inter text-[14px]">Pick up where you left off</p>
-          <div className="mt-[10px] w-full overflow-x-auto relative">{cards}</div>
+          <p className="text-[13px] font-semibold font-inter uppercase tracking-wide text-[#8A9096]">Recently Viewed</p>
+          <div className="mt-[8px] w-full overflow-x-auto relative">{cards}</div>
         </div>
       ) : (
-        <div className="mt-[60px]">
-          <div className="flex justify-between">
-            <div>
-              <p className="text-[24px] font-semibold font-inter text-[#181818]">Recently Viewed</p>
-              <p className="font-normal text-[#4E4F52] font-inter">Pick up where you left off</p>
-            </div>
-            <div className="flex gap-[34px]">
+        <div className="mt-[40px]">
+          <div className="flex justify-between items-center">
+            <p className="text-[14px] font-semibold font-inter uppercase tracking-wide text-[#8A9096]">Recently Viewed</p>
+            <div className="flex gap-[14px]">
               <div
                 onClick={scrollLeft}
-                className="w-[44px] h-[44px] cursor-pointer bg-white border border-[#EBECED] rounded-[4px] shadow-md shadow-[#00000014] flex items-center justify-center"
+                className="w-[32px] h-[32px] cursor-pointer bg-white border border-[#EBECED] rounded-[4px] flex items-center justify-center"
               >
-                <KeyboardArrowLeftOutlinedIcon className="scale-150" />
+                <KeyboardArrowLeftOutlinedIcon fontSize="small" />
               </div>
               <div
                 onClick={scrollRight}
-                className="w-[44px] h-[44px] bg-white border cursor-pointer border-[#EBECED] rounded-[4px] shadow-md shadow-[#00000014] flex items-center justify-center"
+                className="w-[32px] h-[32px] bg-white border cursor-pointer border-[#EBECED] rounded-[4px] flex items-center justify-center"
               >
-                <KeyboardArrowRightOutlinedIcon className="scale-150" />
+                <KeyboardArrowRightOutlinedIcon fontSize="small" />
               </div>
             </div>
           </div>
-          <div className="mt-[38px] w-full overflow-x-auto relative">{cards}</div>
+          <div className="mt-[16px] w-full overflow-x-auto relative">{cards}</div>
         </div>
       )}
     </div>
