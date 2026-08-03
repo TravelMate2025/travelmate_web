@@ -96,20 +96,8 @@ const NearbyStays = () => {
     </div>
   );
 
-  // A route strip -- three stops joined by a line -- sits above the row as
-  // a small locational cue, distinguishing this section from a plain photo
-  // carousel the way a map glance would.
-  const routeStrip = (
-    <div className="relative flex items-center h-[14px] mb-3 px-1">
-      <div className="absolute left-1 right-1 top-1/2 -translate-y-1/2 h-px bg-[#B9DEE4]" />
-      <span className="relative w-[9px] h-[9px] rounded-full bg-[#023E8A] ring-4 ring-[#EFF7F8]" />
-      <span className="relative ml-[28%] w-[7px] h-[7px] rounded-full bg-[#1B6E83]/50 ring-4 ring-[#EFF7F8]" />
-      <span className="relative ml-[28%] w-[7px] h-[7px] rounded-full bg-[#1B6E83]/50 ring-4 ring-[#EFF7F8]" />
-    </div>
-  );
-
   return (
-    <div className="w-[90%] m-auto">
+    <div className={`w-[90%] m-auto ${isMobile ? "mt-[24px]" : "mt-[60px]"}`}>
       <div className="bg-[#EFF7F8] rounded-[28px] px-4 py-5 md:px-8 md:py-8">
         {isMobile ? (
           <div>
@@ -118,8 +106,7 @@ const NearbyStays = () => {
               Stays in {city}
             </p>
             <p className="font-normal text-[#4E4F52] font-inter text-[14px]">Based on your current location</p>
-            <div className="mt-[14px]">{routeStrip}</div>
-            <div className="w-full overflow-x-auto relative">{cards}</div>
+            <div className="mt-[14px] w-full overflow-x-auto relative">{cards}</div>
           </div>
         ) : (
           <div>
@@ -146,8 +133,7 @@ const NearbyStays = () => {
                 </div>
               </div>
             </div>
-            <div className="mt-[22px] max-w-[420px]">{routeStrip}</div>
-            <div className="mt-[16px] w-full overflow-x-auto relative">{cards}</div>
+            <div className="mt-[22px] w-full overflow-x-auto relative">{cards}</div>
           </div>
         )}
       </div>

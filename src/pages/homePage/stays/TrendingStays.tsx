@@ -27,7 +27,7 @@ const TrendingStays = ({ stays }: TrendingStaysProps) => {
   if (ranked.length === 0) return null;
 
   return (
-    <div className="w-[90%] m-auto">
+    <div className={`w-[90%] m-auto ${isMobile ? "mt-[24px]" : "mt-[60px]"}`}>
       <div className="bg-[#FDEAE6] rounded-[28px] px-4 py-5 md:px-8 md:py-8">
         <p className={`font-semibold font-inter text-[#181818] ${isMobile ? "text-[16px]" : "text-[24px]"}`}>
           Trending Now
