@@ -284,6 +284,9 @@ export interface BookingDetailsVerifyData {
   cancellation_reason?: string | null;
   refund_amount?: string | null;
   refund_status?: string;
+  refund_percent?: number | null;
+  cancellation_preview?: CancellationPreview | null;
+  cancellationPreview?: CancellationPreview | null;
   rooms_details?: unknown[]; // unknown[] until concrete shape is defined
   roomsDetails?: unknown[];
   guest_details?: GuestDetails | undefined;
@@ -346,6 +349,20 @@ export interface StayPricingCancellationOption {
   currency: string;
   cancelDeadlineHoursBeforeCheckIn?: number | null;
   policyCopy: string;
+  refundPercent?: number;
+  penaltyPercent?: number;
+  deadlineType?: string;
+  cancellable?: boolean;
+}
+
+export interface CancellationPreview {
+  cancellable?: boolean;
+  refundPercent?: number;
+  refundAmount?: string | number | null;
+  cancellationFee?: string | number | null;
+  currency?: string | null;
+  deadlineType?: string | null;
+  message?: string | null;
 }
 
 export interface StayPricingRoomCancellationOptions {
@@ -422,6 +439,7 @@ export interface QuoteCancellationOptionSelection {
   currency: string;
   cancelDeadlineHoursBeforeCheckIn?: number | null;
   policyCopy: string;
+  refundPercent?: number;
   selectedAt?: string;
   timezone?: string;
   cancellationCutoffAtLocal?: string;

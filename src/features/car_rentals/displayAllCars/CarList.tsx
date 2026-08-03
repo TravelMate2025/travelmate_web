@@ -205,7 +205,7 @@ const CarList: React.FC<CarListProps> = ({
           ) : (
             <div className="flex items-center gap-1">
               <IoIosCheckmarkCircleOutline fill="#888" fontSize={18} />
-              <p className="text-xs text-[#67696D]">Non-refundable</p>
+              <p className="text-xs text-[#67696D]">Partial cancellation · 60% refund</p>
             </div>
           )}
 

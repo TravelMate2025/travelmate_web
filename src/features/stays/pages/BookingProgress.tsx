@@ -672,6 +672,14 @@ const BookingProgress: React.FC = () => {
                         {quoteResp.cancellationOptionSelection.policyCopy}
                       </p>
                     )}
+                    {quoteResp.cancellationOptionSelection.refundPercent != null && (
+                      <p className="pt-1 text-sm font-semibold text-[#2D9C5E]">
+                        {quoteResp.cancellationOptionSelection.refundPercent}% refund if cancelled on time
+                        {quoteResp.pricing?.total != null && (
+                          <> · {quoteResp.pricing.currency} {(quoteResp.pricing.total * quoteResp.cancellationOptionSelection.refundPercent / 100).toLocaleString()}</>
+                        )}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}

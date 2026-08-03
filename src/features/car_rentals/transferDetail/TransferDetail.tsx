@@ -19,6 +19,9 @@ interface CancellationOption {
   currency?: string;
   cancelDeadlineHoursBeforeCheckIn?: number | null;
   policyCopy?: string;
+  refundPercent?: number;
+  penaltyPercent?: number;
+  deadlineType?: string;
 }
 
 const currencySymbol = (code?: string) => {
@@ -387,11 +390,16 @@ export default function TransferDetail() {
                               isSelected ? "text-[#023E8A]" : "text-[#181818]"
                             }`}
                           >
-                            {opt.label ?? (isFree ? "Free cancellation" : "Non-refundable")}
+                            {opt.label ?? (isFree ? "Free cancellation" : "Partial cancellation")}
                           </p>
                           {opt.policyCopy && (
                             <p className="text-xs text-[#67696D] mt-0.5 leading-relaxed">
                               {opt.policyCopy}
+                            </p>
+                          )}
+                          {opt.refundPercent != null && (
+                            <p className="text-xs text-[#2D9C5E] mt-1 font-medium">
+                              {opt.refundPercent}% refund if cancelled on time
                             </p>
                           )}
                         </div>

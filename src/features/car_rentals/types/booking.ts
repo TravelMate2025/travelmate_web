@@ -105,6 +105,10 @@ export interface CarTransferOption {
     currency?: string;
     cancelDeadlineHoursBeforeCheckIn?: number | null;
     policyCopy?: string;
+    refundPercent?: number;
+    penaltyPercent?: number;
+    deadlineType?: string;
+    cancellable?: boolean;
   }>;
   pickupInformation?: {
     from?: { description?: string };

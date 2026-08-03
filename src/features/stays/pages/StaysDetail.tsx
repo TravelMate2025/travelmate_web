@@ -176,7 +176,7 @@ const StaysDetail: React.FC = () => {
 
   const getCancellationPolicy = () => {
     const policy = availableRooms[0]?.rates?.[0]?.cancellationPolicies?.[0];
-    if (!policy?.from) return "Non-refundable";
+    if (!policy?.from) return "Partial cancellation — 60% refund";
 
     const cancelDate = new Date(policy.from);
     return `Fully refundable until ${cancelDate.toLocaleDateString()} at ${cancelDate.toLocaleTimeString(
@@ -690,7 +690,10 @@ const StaysDetail: React.FC = () => {
                             <span className="text-xs font-normal text-gray-500">/night</span>
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">{option.policyCopy}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {option.policyCopy}
+                          {option.refundPercent != null && ` · ${option.refundPercent}% refund if cancelled on time`}
+                        </p>
                       </div>
                     </label>
                   ))}

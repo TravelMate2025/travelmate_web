@@ -33,6 +33,8 @@ const ConfirmCancel = ({
 }: props) => {
 
   const [reason, setReason] = useState("");
+  const preview = bookings?.cancellation_preview;
+  const refundPercent = preview?.refundPercent ?? bookings?.refund_percent;
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
       <div className="bg-white w-full max-w-lg rounded-xl shadow-lg p-6 space-y-6">
@@ -74,14 +76,13 @@ const ConfirmCancel = ({
           </h3>
           <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
             <li>
-              Fully refundable before{" "}
-              {text(bookings?.transfers?.[0]?.cancellationPolicies?.[0]?.from)}
+              {refundPercent != null ? `${refundPercent}% refund` : "Refund available"} under the selected policy.
             </li>
-            <li>
-              Cancellations after 11:59 on{" "}
-              {text(bookings?.transfers?.[0]?.cancellationPolicies?.[0]?.from)} or no-shows
-              are subject to fee equal to 100% of amount paid.
-            </li>
+            {preview?.refundAmount != null && (
+              <li className="font-medium text-[#2D9C5E]">
+                Estimated refund: {bookings?.currency ? `${bookings.currency} ` : ""}{preview.refundAmount}
+              </li>
+            )}
           </ul>
         </div>
 

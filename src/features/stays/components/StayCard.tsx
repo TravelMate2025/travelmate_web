@@ -71,7 +71,7 @@ const StayCard: React.FC<StayCardProps> = ({
     }
 
     const policy = firstRate.cancellationPolicies[0];
-    if (!policy.from) return "Non-refundable";
+    if (!policy.from) return "Partial cancellation — 60% refund";
 
     const fromDate = new Date(policy.from);
     const now = new Date();

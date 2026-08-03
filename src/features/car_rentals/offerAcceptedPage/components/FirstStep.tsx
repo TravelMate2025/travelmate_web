@@ -239,7 +239,7 @@ const FirstStep = ({ car, departureInfo, setShowAllModal }: props) => {
                 <div>
                   <p className="text-sm font-semibold text-[#023E8A]">
                     {selectedOption.label ??
-                      (isFree ? "Free cancellation" : "Non-refundable")}
+                      (isFree ? "Free cancellation" : "Partial cancellation")}
                   </p>
                   {selectedOption.policyCopy && (
                     <p className="text-xs text-[#67696D] mt-1 leading-relaxed">
