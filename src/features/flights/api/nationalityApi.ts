@@ -1,4 +1,3 @@
-// src/services/nationsApi.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export interface Nation {
@@ -7,25 +6,23 @@ export interface Nation {
 }
 
 interface CountryApiResponse {
-  cca2: string;
-  name: {
-    common: string;
-  };
+  code: string;
+  name: string;
 }
 
 export const nationsApi = createApi({
   reducerPath: "nationsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://restcountries.com/v3.1/", // example public API
+    baseUrl: `${import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api"}/v1/public/`,
   }),
   endpoints: (builder) => ({
     getNations: builder.query<Nation[], void>({
-      query: () => `all?fields=cca2,name`,
-      transformResponse: (response: CountryApiResponse[]): Nation[] => {
-        return response
+      query: () => "countries",
+      transformResponse: (response: { results: CountryApiResponse[] }): Nation[] => {
+        return response.results
           .map((country) => ({
-            code: country.cca2,
-            name: country.name.common,
+            code: country.code,
+            name: country.name,
           }))
           .sort((a, b) => a.name.localeCompare(b.name));
       },

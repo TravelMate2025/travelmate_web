@@ -107,12 +107,6 @@ interface TransferResult {
 
 }
 
-interface CheckoutSessionResult {
-    success: boolean;
-    checkout_url?: string;
-    error?: string;
-}
-
 interface BookingFinalizeResult {
     success: boolean;
     data?: unknown;
@@ -291,26 +285,6 @@ class TransferService {
         }
     }
 
-    async createCheckoutSession(confirmationId: string): Promise<CheckoutSessionResult> {
-        try {
-
-            const response = await instance.post<CheckoutSessionResult>(`${this.baseUrl}/transfers/booking/${confirmationId}/create-checkout-session/`);
-            return {
-                checkout_url: response?.data?.checkout_url,
-                success: true,
-
-            };
-
-        } catch (error: unknown) {
-            console.error('Create checkout session failed:', error);
-            toast.error(this.getErrorMessage(error) || 'Checkout session failed');
-            return {
-                success: false,
-                error: this.getErrorMessage(error),
-            };
-        }
-    }
-
     async cancelBooking(confirmationId: string): Promise<BookingFinalizeResult> {
         try {
             const response = await instance.post(`${this.baseUrl}/transfers/booking/${confirmationId}/cancel/`);
@@ -326,24 +300,6 @@ class TransferService {
             };
         }
     }
-    async finalizeBooking(confirmationId: string): Promise<BookingFinalizeResult> {
-        try {
-            const response = await instance.post(`${this.baseUrl}/transfers/booking/finalize/${confirmationId}/`);
-            return {
-                success: true,
-                data: response.data
-
-
-            }
-        } catch (error: unknown) {
-            console.error('Cancel booking failed:', error);
-            return {
-                success: false,
-                error: this.getErrorMessage(error),
-            };
-        }
-    }
-
     async getBookingBySession(sessionId: string | null): Promise<BookingFinalizeResult> {
         try {
             const response = await instance.get(`${this.baseUrl}/transfers/booking/confirmation/by-session/?payment_intent_id=${sessionId}`);

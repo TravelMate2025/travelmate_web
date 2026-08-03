@@ -1,17 +1,11 @@
 import { InputAdornment, TextField } from "@mui/material";
-import axios from "axios";
 import { Loader, SearchIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { getCountryCodes } from "../../api";
 
 interface countryModalProps {
   closeDialog: () => void;
 }
-
-type RawCountry = {
-  idd?: { root?: string; suffixes?: string[] };
-  name?: { common?: string };
-  cca2?: string;
-};
 
 type CountryCode = { cca2: string; name: { common: string }; dialCode: string };
 const CountryCodeModal = ({
@@ -22,19 +16,12 @@ const CountryCodeModal = ({
   useEffect(() => {
     const fetchCodes = async () => {
       try {
-        const response = await axios.get(
-          "https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags"
-        );
-        const data = (response.data as unknown) as RawCountry[];
-        const filtered = data.filter(
-          (c) => c.idd && c.idd.root && c.idd.suffixes && c.idd.suffixes.length > 0
-        );
-        const mapped = filtered.map((c) => ({
-          cca2: c.cca2 || "",
-          name: { common: c.name?.common || "" },
-          dialCode: `${c.idd?.root || ""}${(c.idd?.suffixes || [""])[0]}`,
-        } as CountryCode));
-        // ✅ Sort alphabetically by country name
+        const data = await getCountryCodes();
+        const mapped = data.map((country) => ({
+          cca2: country.code,
+          name: { common: country.name },
+          dialCode: country.dialCode || "",
+        }));
         const sorted = mapped.sort((a, b) => a.name.common.localeCompare(b.name.common));
 
         setCountryCodes(sorted);
