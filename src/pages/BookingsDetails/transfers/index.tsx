@@ -203,7 +203,11 @@ const BookingTransfersDetails = () => {
 
   const handleCancelBookings = async (bookingId: string | undefined, reason?: string) => {
     try {
-      await CancelTransferBookings(bookingId, setCancelLoad, reason);
+      if (reason?.trim()) {
+        await CancelTransferBookings(bookingId, setCancelLoad, reason);
+      } else {
+        await CancelTransferBookings(bookingId, setCancelLoad);
+      }
       toast.success("Booking cancelled successfully");
 
       setBooking((prev) => {

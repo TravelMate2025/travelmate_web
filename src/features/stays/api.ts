@@ -552,6 +552,15 @@ export const getReviews = async (
     throw new Error(errorMessage || "Failed to fetch reviews");
   }
 };
+
+export const getCountryCodes = async (): Promise<Array<{
+  code: string;
+  name: string;
+  dialCode?: string;
+}>> => {
+  const response = await api.get("/v1/public/countries");
+  return response.data?.results ?? [];
+};
 export const getUserReviews = async () => {
   try {
     const response = await api.get(`/hotels/my-reviews/`);

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import hotelImage from "../../../assets/images/StayImage3.png";
 import { BookingDetailsVerifyData } from "../../../features/stays/types";
-import { getReviews, submitBookingReview } from "../../../features/stays/api";
+import { submitBookingReview } from "../../../features/stays/api";
 import toast from "react-hot-toast";
 
 type props = {
@@ -103,17 +103,6 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
       </div>
     );
   };
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        await getReviews(bookings?.id);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    void fetchReviews();
-  }, [bookings?.id]);
-
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[999999] ">
       <div className="bg-white w-full max-w-lg rounded-xl shadow-lg flex flex-col max-h-[90vh]">
