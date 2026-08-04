@@ -3,8 +3,10 @@ import { Autocomplete, Button, TextField } from "@mui/material";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AppDispatch, RootState } from "../../../store";
+import Footer from "../../../components/2Footer";
+import Navbar from "../../../pages/homePage/Navbar";
 import { clearStaysCache, setLocationDetails, setSearchParams } from "../slice";
 import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 import {
@@ -63,6 +65,8 @@ function writeRecentSearches(destinationLabel: string) {
 export default function PartnerStaySearchPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isStandaloneSearchPage = location.pathname === bookingFlowRoutes.staySearch;
   const storedSearch = useSelector((state: RootState) => state.stays.searchParams);
 
   const [locationOptions, setLocationOptions] = useState<StaySearchLocationOption[]>([]);
@@ -173,12 +177,11 @@ export default function PartnerStaySearchPage() {
     "& .MuiInputBase-root": { height: "48px", borderRadius: "12px" },
   };
 
-  return (
-    <div>
-      <form
-        className="flex lg:flex-row flex-col justify-normal lg:justify-center lg:items-end gap-4 lg:min-w-full lg:max-w-full"
-        onSubmit={handleSubmit}
-      >
+  const searchForm = (
+    <form
+      className="flex lg:flex-row flex-col justify-normal lg:justify-center lg:items-end gap-4 lg:min-w-full lg:max-w-full"
+      onSubmit={handleSubmit}
+    >
         <div className="flex flex-col gap-2 w-full">
           <label htmlFor="stay-destination" className="text-sm text-gray-700">
             Destination
@@ -270,7 +273,33 @@ export default function PartnerStaySearchPage() {
         >
           {stayResultsLabel()}
         </Button>
-      </form>
+    </form>
+  );
+
+  if (!isStandaloneSearchPage) {
+    return <div>{searchForm}</div>;
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f7f9fc]">
+      <Navbar />
+      <main className="mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-8">
+        <div className="mb-6">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#FF6F1E]">
+            Stays
+          </p>
+          <h1 className="mt-1 text-3xl font-bold text-[#023E8A]">
+            Search for a stay
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Update your destination, dates, or guests to search again.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-[#E4E7EB] bg-white p-5 shadow-[0_20px_45px_-18px_rgba(2,62,138,0.2)] sm:p-8">
+          {searchForm}
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }
