@@ -124,11 +124,6 @@ const BookingProgress: React.FC = () => {
     dispatch(fetchStayPricingAsync(hotel.id));
   }, [dispatch, hotel?.id, stayPricing]);
 
-  const cancellationDate = new Date();
-  cancellationDate.setDate(cancellationDate.getDate() + 1);
-  const formattedDate = cancellationDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  const formattedTime = "11:59 PM";
-
   const effectiveCheckIn = checkIn ?? searchParams?.checkIn;
   const effectiveCheckOut = checkOut ?? searchParams?.checkOut;
   const nights =
@@ -401,8 +396,8 @@ const BookingProgress: React.FC = () => {
               <div className="bg-blue-100 border border-[#023E8A] px-4 py-2 rounded-lg flex flex-row justify-normal items-center gap-3">
                 <GrStatusGood className="text-green-600 size-12 lg:size-6" />
                 <p className="lg:text-base text-gray-800 leading-relaxed text-sm">
-                  {selectedOption?.policyCopy ??
-                    `Cancellations made after ${formattedTime} on ${formattedDate} or no-shows are subject to a fee equal to 100% of the amount paid.`}
+                  {selectedOption?.policyCopy ||
+                    "Cancellation terms will be shown after a rate is selected."}
                 </p>
               </div>
 
@@ -432,11 +427,7 @@ const BookingProgress: React.FC = () => {
                   "---"
                 }
                 location={hotel?.address || "---"}
-                refundableUntil={
-                  selectedOption?.cancelDeadlineHoursBeforeCheckIn
-                    ? `${selectedOption.cancelDeadlineHoursBeforeCheckIn}h before check-in`
-                    : formattedTime
-                }
+                policyCopy={selectedOption?.policyCopy}
               />
 
               {selectedOption && (
@@ -485,9 +476,15 @@ const BookingProgress: React.FC = () => {
                 </div>
                 <div className="lg:order-3">
                   <RefundCancellation
-                    formattedTime={formattedTime}
-                    formattedDate={formattedDate}
-                    refundableUntil={formattedTime}
+                    policyCopy={selectedOption?.policyCopy}
+                    refundPercent={selectedOption?.refundPercent}
+                    deadlineLabel={
+                      selectedOption?.cancelDeadlineHoursBeforeCheckIn
+                        ? `${selectedOption.cancelDeadlineHoursBeforeCheckIn} hours before check-in`
+                        : selectedOption?.deadlineType === "service_date"
+                          ? "the service date"
+                          : undefined
+                    }
                   />
                 </div>
               </div>

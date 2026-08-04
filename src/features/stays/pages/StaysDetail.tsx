@@ -65,13 +65,6 @@ const StaysDetail: React.FC = () => {
 
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  const cancellationDate = new Date();
-  cancellationDate.setDate(cancellationDate.getDate() + 1);
-  const formattedDate = cancellationDate.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-  const formattedTime = "11:59 PM";
   const [isOpen, setIsOpen] = useState(false);
   // Room rate plan selection state (inline expansion)
   const [expandedRoomId, setExpandedRoomId] = useState<string | null>(null);
@@ -949,9 +942,15 @@ const StaysDetail: React.FC = () => {
         <section id="Refund and cancellations" className="mt-10">
           <hr className="text-gray-300 mb-8" />
           <RefundCancellation
-            formattedTime={formattedTime}
-            formattedDate={formattedDate}
-            refundableUntil={formattedTime}
+            policyCopy={stayPricing?.cancellationOptions?.[0]?.policyCopy}
+            refundPercent={stayPricing?.cancellationOptions?.[0]?.refundPercent}
+            deadlineLabel={
+              stayPricing?.cancellationOptions?.[0]?.cancelDeadlineHoursBeforeCheckIn
+                ? `${stayPricing.cancellationOptions[0].cancelDeadlineHoursBeforeCheckIn} hours before check-in`
+                : stayPricing?.cancellationOptions?.[0]?.deadlineType === "service_date"
+                  ? "the service date"
+                  : undefined
+            }
           />
         </section>
       </div>

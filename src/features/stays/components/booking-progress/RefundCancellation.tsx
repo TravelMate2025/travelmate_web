@@ -3,14 +3,14 @@ import { useMediaQuery } from "react-responsive";
 import RefundCancellationModal from "../modals/RefundCancellationModal";
 
 interface RefundCancellationProps {
-  formattedTime: string;
-  formattedDate: string;
-  refundableUntil: string;
+  policyCopy?: string;
+  refundPercent?: number;
+  deadlineLabel?: string;
 }
 const RefundCancellation: React.FC<RefundCancellationProps> = ({
-  formattedTime,
-  formattedDate,
-  refundableUntil,
+  policyCopy,
+  refundPercent,
+  deadlineLabel,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isMobile = useMediaQuery({ maxWidth: 767 });
@@ -35,7 +35,10 @@ const RefundCancellation: React.FC<RefundCancellationProps> = ({
         <div>
           <p className="font-medium mb-4 md:mr-60 hidden md:block">Refunds</p>
           <ul className="text-gray-700 ml-4 list-disc">
-            <li>Fully Refundable before {refundableUntil}</li>
+            <li>
+              {refundPercent != null ? `${refundPercent}% refund` : "Refund terms"}
+              {deadlineLabel ? ` before ${deadlineLabel}` : " under the selected policy"}
+            </li>
           </ul>
         </div>
 
@@ -45,9 +48,7 @@ const RefundCancellation: React.FC<RefundCancellationProps> = ({
           <p className="font-medium mb-4 md:mr-50">Cancellations</p>
           <ul className="text-gray-700 ml-4 list-disc">
             <li>
-              Cancellations made after {formattedTime} on {formattedDate} or
-              no-shows are subject to a fee equal to 100% of the amount paid
-              for the reservation.
+              {policyCopy || "Cancellation terms are governed by the selected policy."}
             </li>
           </ul>
         </div>
@@ -57,9 +58,9 @@ const RefundCancellation: React.FC<RefundCancellationProps> = ({
       {isModalOpen && (
         <RefundCancellationModal
           onClose={() => setIsModalOpen(false)}
-          formattedTime={formattedTime}
-          formattedDate={formattedDate}
-          refundableUntil={refundableUntil}
+          policyCopy={policyCopy}
+          refundPercent={refundPercent}
+          deadlineLabel={deadlineLabel}
         />
       )}
     </div>
@@ -67,5 +68,3 @@ const RefundCancellation: React.FC<RefundCancellationProps> = ({
 };
 
 export default RefundCancellation;
-
-
