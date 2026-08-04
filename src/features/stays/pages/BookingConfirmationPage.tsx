@@ -24,12 +24,6 @@ const formatDate = (value?: string) => {
   return Number.isNaN(parsed.getTime()) ? value : parsed.toDateString();
 };
 
-const formatSyncTimestamp = (value?: string | null) => {
-  if (!value) return "";
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
-};
-
 const BookingConfirmationPage: React.FC = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
@@ -182,11 +176,21 @@ const BookingConfirmationPage: React.FC = () => {
     (confirmation.user?.email as string | undefined) ??
     "your email";
   const primaryGuest = guestDetails?.primary_guest;
-  const syncStatus = (confirmation.sync_status ?? confirmation.syncStatus ?? "").toString().toLowerCase();
-  const syncError = (confirmation.sync_error ?? confirmation.syncError ?? "").toString().trim();
-  const lastSyncedAt = formatSyncTimestamp(
-    (confirmation.last_synced_at ?? confirmation.lastSyncedAt) as string | null | undefined,
-  );
+  const cancellationPolicy = confirmation.cancellation_policy ?? confirmation.cancellationPolicy;
+  const cancellationPreview = confirmation.cancellation_preview ?? confirmation.cancellationPreview;
+  const policyLabel =
+    (cancellationPolicy?.label as string | undefined) ??
+    (cancellationPolicy?.policyCopy as string | undefined) ??
+    (cancellationPolicy?.policy_copy as string | undefined) ??
+    cancellationPreview?.message ??
+    (cancellationPolicy?.refundPercent != null
+      ? `${cancellationPolicy.refundPercent}% refund before the cancellation deadline`
+      : undefined);
+  const guestCount =
+    confirmation.guest_count ??
+    confirmation.guestCount ??
+    (bookingSnapshot.guestCount as number | undefined) ??
+    (bookingSnapshot.guest_count as number | undefined);
   if (loading) return <SkeletonConfirm />;
 
   if (isPendingPayment) {
@@ -315,26 +319,6 @@ const BookingConfirmationPage: React.FC = () => {
           </div>
         )}
 
-        {(syncStatus || lastSyncedAt || syncError) && (
-          <div className="mb-8 px-6 lg:px-8 m-auto">
-            <div
-              className={`rounded-[8px] border px-4 py-3 ${
-                syncStatus === "stale"
-                  ? "border-amber-300 bg-amber-50"
-                  : "border-emerald-300 bg-emerald-50"
-              }`}
-            >
-              <p className="text-[14px] font-medium text-[#181818]">
-                {syncStatus === "stale" ? "Partner sync stale" : "Partner sync current"}
-              </p>
-              <div className="mt-1 text-[13px] text-[#4E4F52] space-y-1">
-                {lastSyncedAt && <p>Last synced: {lastSyncedAt}</p>}
-                {syncError && <p>Last sync error: {syncError}</p>}
-              </div>
-            </div>
-          </div>
-        )}
-
         <div id="pdf-content" className="lg:grid lg:grid-cols-2 lg:w-full">
           <div className="px-6 lg:px-8 m-auto lg:m-0 lg:order-1">
             <p className="text-[16px] font-medium text-[#181818] mb-[15px]">Payment details</p>
@@ -418,15 +402,13 @@ const BookingConfirmationPage: React.FC = () => {
               <div className="flex justify-between mb-[6px]">
                 <p className="text-[#4E4F52] text-[14px]">Guests</p>
                 <p className="text-[#181818] text-[14px]">
-                  {(bookingSnapshot.guestCount as number | undefined) ?? "N/A"}
+                  {guestCount ?? "N/A"}
                 </p>
               </div>
               <div className="flex justify-between mb-[6px]">
                 <p className="text-[#4E4F52] text-[14px]">Cancellation policy</p>
                 <p className="text-[#181818] text-[14px] text-right">
-                  {(bookingSnapshot.cancellationOptionLabel as string | undefined) ??
-                    (bookingSnapshot.cancellationOptionId as string | undefined) ??
-                    "N/A"}
+                  {policyLabel ?? "N/A"}
                 </p>
               </div>
             </div>
