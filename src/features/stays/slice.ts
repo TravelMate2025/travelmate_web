@@ -35,6 +35,7 @@ interface StaysState {
   loading: boolean;
   error: string | null;
   searchParams: SearchParams | null;
+  searchRevision: number;
   locationDetails: locationDetails | null;
   selectedHotel: Hotel | null;
   detailsLoading: boolean;
@@ -60,6 +61,7 @@ const initialState: StaysState = {
   loading: false,
   error: null,
   searchParams: null,
+  searchRevision: 0,
   selectedHotel: null,
   detailsLoading: false,
   locationDetails: null,
@@ -253,6 +255,7 @@ const staysSlice = createSlice({
     clearStaysCache: (state) => {
       state.hotels = [];
       state.searchParams = null;
+      state.searchRevision += 1;
       state.error = null;
     },
     clearSearchState: (state) => {
