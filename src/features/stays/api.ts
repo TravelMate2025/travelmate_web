@@ -302,10 +302,18 @@ export const searchHotels = searchStays;
 /**
  * Fetch partner stay pricing — GET /api/v1/public/catalog/stays/{stayId}/pricing
  */
-export const fetchStayPricing = async (stayId: string): Promise<StayPricing> => {
+export const fetchStayPricing = async (
+  stayId: string,
+  checkIn?: string,
+  checkOut?: string,
+  adults: number = 1,
+  children: number = 0,
+  rooms: number = 1,
+): Promise<StayPricing> => {
   try {
     const response = await axios.get(
       `${BASE_URL}/v1/public/catalog/stays/${stayId}/pricing`,
+      { params: { check_in: checkIn, check_out: checkOut, adults, children, rooms } },
     );
     return (response.data?.data ?? response.data) as StayPricing;
   } catch (error: unknown) {

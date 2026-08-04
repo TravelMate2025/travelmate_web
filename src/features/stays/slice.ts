@@ -114,9 +114,23 @@ export const fetchHotelsAsync = createAsyncThunk(
 
 export const fetchStayPricingAsync = createAsyncThunk(
   'stays/fetchStayPricing',
-  async (stayId: string, { rejectWithValue }) => {
+  async (params: {
+    stayId: string;
+    checkIn?: string;
+    checkOut?: string;
+    adults?: number;
+    children?: number;
+    rooms?: number;
+  }, { rejectWithValue }) => {
     try {
-      return await fetchStayPricing(stayId);
+      return await fetchStayPricing(
+        params.stayId,
+        params.checkIn,
+        params.checkOut,
+        params.adults ?? 1,
+        params.children ?? 0,
+        params.rooms ?? 1,
+      );
     } catch (error: unknown) {
       if (error instanceof Error) return rejectWithValue(error.message);
       return rejectWithValue(String(error));

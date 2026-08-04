@@ -121,8 +121,15 @@ const BookingProgress: React.FC = () => {
 
   useEffect(() => {
     if (!hotel?.id || stayPricing) return;
-    dispatch(fetchStayPricingAsync(hotel.id));
-  }, [dispatch, hotel?.id, stayPricing]);
+    dispatch(fetchStayPricingAsync({
+      stayId: hotel.id,
+      checkIn: checkIn ?? searchParams?.checkIn,
+      checkOut: checkOut ?? searchParams?.checkOut,
+      adults: guestsAdults ?? searchParams?.adults,
+      children: guestsChild ?? searchParams?.children,
+      rooms: searchParams?.rooms,
+    }));
+  }, [dispatch, hotel?.id, stayPricing, checkIn, checkOut, guestsAdults, guestsChild, searchParams?.checkIn, searchParams?.checkOut, searchParams?.adults, searchParams?.children, searchParams?.rooms]);
 
   const effectiveCheckIn = checkIn ?? searchParams?.checkIn;
   const effectiveCheckOut = checkOut ?? searchParams?.checkOut;
@@ -181,12 +188,10 @@ const BookingProgress: React.FC = () => {
             (wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable"),
         ) ?? stayPricing.ratePlans.find((plan) => plan.roomId === roomId && plan.isActive);
 
-      // selectedOption.amount is the per-night, per-room rate for this
-      // cancellation option. Multiply by nights and the resolved room
-      // quantity to get the stay total -- this is still a pre-quote
-      // estimate; the real quote (preferred above) reflects quantity
-      // server-side regardless.
-      const nightlyRate = matchingPlan?.nightlyRate ?? selectedRoom.baseRate ?? selectedOption.amount ?? 0;
+      // Only use live pricing values here. Catalog room baseRate is not
+      // date/occupancy-specific and must never become a customer booking
+      // price when live pricing is unavailable.
+      const nightlyRate = matchingPlan?.nightlyRate ?? selectedOption.amount ?? 0;
       const base = nightlyRate * nights * roomQuantity;
       const total = selectedOption.amount * nights * roomQuantity;
       const taxAndFees = Math.max(0, total - base);
@@ -227,7 +232,14 @@ const BookingProgress: React.FC = () => {
     let resolvedStayPricing = stayPricing;
     if (!resolvedStayPricing?.ratePlans?.length) {
       try {
-        resolvedStayPricing = await dispatch(fetchStayPricingAsync(stayId)).unwrap();
+        resolvedStayPricing = await dispatch(fetchStayPricingAsync({
+          stayId,
+          checkIn: effectiveCheckIn,
+          checkOut: effectiveCheckOut,
+          adults: guestsAdults ?? searchParams?.adults,
+          children: guestsChild ?? searchParams?.children,
+          rooms: searchParams?.rooms,
+        })).unwrap();
       } catch {
         toast.error("Unable to load stay pricing. Please try again.");
         return;
