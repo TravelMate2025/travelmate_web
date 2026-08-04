@@ -320,10 +320,18 @@ export const fetchStayPricing = async (stayId: string): Promise<StayPricing> => 
  * from the static totalInventory/isBookable/maxPerBooking already present
  * on the rooms[] embedded in the stay detail/search response.
  */
-export const getHotelRooms = async (stayId: string): Promise<StayRoomsResponse> => {
+export const getHotelRooms = async (
+  stayId: string,
+  checkIn?: string,
+  checkOut?: string,
+  adults: number = 1,
+  children: number = 0,
+  rooms: number = 1,
+): Promise<StayRoomsResponse> => {
   try {
     const response = await axios.get(
       `${BASE_URL}/v1/public/catalog/stays/${stayId}/rooms`,
+      { params: { check_in: checkIn, check_out: checkOut, adults, children, rooms } },
     );
     return (response.data?.data ?? response.data) as StayRoomsResponse;
   } catch (error: unknown) {

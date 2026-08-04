@@ -227,9 +227,16 @@ const StaysDetail: React.FC = () => {
   // room_level stay (unit-level properties have no rooms[] to enrich).
   useEffect(() => {
     if (hotelId && isRoomLevel) {
-      dispatch(fetchStayRoomsAsync(hotelId));
+      dispatch(fetchStayRoomsAsync({
+        stayId: hotelId,
+        checkIn: searchParams?.checkIn,
+        checkOut: searchParams?.checkOut,
+        adults: searchParams?.adults,
+        children: searchParams?.children,
+        rooms: searchParams?.rooms,
+      }));
     }
-  }, [dispatch, hotelId, isRoomLevel]);
+  }, [dispatch, hotelId, isRoomLevel, searchParams?.checkIn, searchParams?.checkOut, searchParams?.adults, searchParams?.children, searchParams?.rooms]);
 
   const roomSummary = (selectedHotel?.roomSummary ?? {}) as Record<string, unknown>;
   const mediaSummary = (selectedHotel?.mediaSummary ?? {}) as Record<string, unknown>;
