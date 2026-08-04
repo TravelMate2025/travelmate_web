@@ -23,6 +23,32 @@ import { fetchPartnerStayLocations } from "../shared/partnerLocationsService";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+const sleep = (milliseconds: number) =>
+  new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+const getWithNetworkRetry = async <T>(url: string, config?: object) => {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await axios.get<T>(url, config);
+    } catch (error: unknown) {
+      const isTransientNetworkFailure =
+        axios.isAxiosError(error) &&
+        !error.response &&
+        (error.code === "ERR_NETWORK" ||
+          error.code === "ERR_CONNECTION_CLOSED" ||
+          error.message === "Network Error");
+
+      if (!isTransientNetworkFailure || attempt === 1) {
+        throw error;
+      }
+
+      await sleep(350);
+    }
+  }
+
+  throw new Error("Request failed");
+};
+
 type StaySearchParams = {
   destination?: string;
   country?: string;
@@ -266,7 +292,7 @@ export const searchStays = async (
   searchParams: StaySearchParams,
 ): Promise<HotelSearchResponse> => {
   try {
-    const response = await axios.get(`${BASE_URL}/v1/public/catalog/stays`, {
+    const response = await getWithNetworkRetry(`${BASE_URL}/v1/public/catalog/stays`, {
       params: {
         destination:
           searchParams.destination ??
