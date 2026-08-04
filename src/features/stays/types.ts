@@ -287,6 +287,10 @@ export interface BookingDetailsVerifyData {
   refund_percent?: number | null;
   cancellation_preview?: CancellationPreview | null;
   cancellationPreview?: CancellationPreview | null;
+  cancellation_policy?: Record<string, unknown> | null;
+  cancellationPolicy?: Record<string, unknown> | null;
+  guest_count?: number | null;
+  guestCount?: number | null;
   rooms_details?: unknown[]; // unknown[] until concrete shape is defined
   roomsDetails?: unknown[];
   guest_details?: GuestDetails | undefined;
