@@ -85,7 +85,14 @@ const StaysDetail: React.FC = () => {
         children: searchParams?.children,
         rooms: searchParams?.rooms,
       }));
-      dispatch(fetchStayPricingAsync(hotelId));
+      dispatch(fetchStayPricingAsync({
+        stayId: hotelId,
+        checkIn: searchParams?.checkIn,
+        checkOut: searchParams?.checkOut,
+        adults: searchParams?.adults,
+        children: searchParams?.children,
+        rooms: searchParams?.rooms,
+      }));
     }
     return () => {
       dispatch(clearSelectedHotel());
@@ -730,9 +737,8 @@ const StaysDetail: React.FC = () => {
                 const roomId = room.id ?? room.code ?? "";
                 // "from" price: cheapest option from pricing endpoint, otherwise baseRate
                 const roomOptions = getRoomOptions(roomId);
-                const fromPrice =
-                  roomOptions[0]?.amount ?? room.baseRate ??
-                  (room.rates?.[0]?.net ? parseFloat(room.rates[0].net) : null);
+                const fromPrice = roomOptions[0]?.amount ?? null;
+                const canSelectRoom = !room.isExhausted && roomOptions.length > 0;
 
                 return (
                   <div
@@ -858,7 +864,7 @@ const StaysDetail: React.FC = () => {
                           <div className="mt-auto pt-4">
                         {expandedRoomId !== roomId ? (
                           <button
-                            disabled={room.isExhausted}
+                            disabled={!canSelectRoom}
                             className="w-full bg-[#023E8A] text-white py-2 rounded-lg hover:bg-[#023E9E] transition-colors cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
                             onClick={() => {
                               setExpandedRoomId(roomId);
@@ -867,7 +873,7 @@ const StaysDetail: React.FC = () => {
                               );
                             }}
                           >
-                            {room.isExhausted ? "Sold out" : "Select"}
+                            {room.isExhausted ? "Sold out" : canSelectRoom ? "Select" : "Pricing unavailable"}
                           </button>
                         ) : (
                           <div className="border border-blue-100 rounded-lg overflow-hidden">
