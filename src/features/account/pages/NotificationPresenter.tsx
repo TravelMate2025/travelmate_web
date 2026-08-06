@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../../pages/homePage/Navbar";
 import Footer from "../../../components/2Footer";
 import Breadcrumbs from "../../../components/Breadcrumbs";
@@ -11,6 +12,7 @@ type NotificationDetails = {
   title: string;
   message: string;
   created_at: string;
+  link?: string | null;
 };
 
 type AccountNotification = {
@@ -80,6 +82,7 @@ function NotificationPresenter({
   onDeleteOne,
   onDeleteAll,
 }: Props) {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
@@ -115,6 +118,13 @@ function NotificationPresenter({
                   className="cursor-pointer"
                   onClick={() => {
                     if (!item.is_read) onMarkAsRead(item.id);
+                    if (item.notification_details.link) {
+                      if (item.notification_details.link.startsWith("http")) {
+                        window.location.assign(item.notification_details.link);
+                      } else {
+                        navigate(item.notification_details.link);
+                      }
+                    }
                   }}
                 >
                   <p
@@ -127,6 +137,11 @@ function NotificationPresenter({
                   <p className="text-xs text-gray-600">
                     {item.notification_details.message}
                   </p>
+                  {item.notification_details.link && (
+                    <p className="mt-1 text-xs font-semibold text-[#023E8A]">
+                      Get support
+                    </p>
+                  )}
                 </div>
 
                 {/* TIME + MENU */}

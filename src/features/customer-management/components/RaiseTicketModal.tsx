@@ -9,14 +9,17 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onTicketRaised?: () => void;
+  initialValues?: Partial<typeof defaultFormData>;
 }
 
-const CreateTicketModal: React.FC<Props> = ({ isOpen, onClose, onTicketRaised }) => {
-  const [formData, setFormData] = useState({
+const defaultFormData = {
     title: '',
     category: '',
     description: '',
-  });
+};
+
+const CreateTicketModal: React.FC<Props> = ({ isOpen, onClose, onTicketRaised, initialValues }) => {
+  const [formData, setFormData] = useState({ ...defaultFormData, ...initialValues });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -44,7 +47,7 @@ const CreateTicketModal: React.FC<Props> = ({ isOpen, onClose, onTicketRaised })
       setShowSuccess(true);
       onTicketRaised?.();
       onClose();
-      setFormData({ title: '', category: '', description: '' });
+      setFormData(defaultFormData);
       setTimeout(() => {
         setShowSuccess(false);
       }, 2000);
