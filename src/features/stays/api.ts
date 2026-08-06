@@ -16,6 +16,7 @@ import {
   StayPricing,
   StayRoomsResponse,
 } from "./types";
+import { RefundTracking } from "../shared/refundTracking";
 import api from "../../api/services/api";
 import axios, { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
@@ -522,6 +523,14 @@ export const searchHotelBookingByReference = async (
       error: error instanceof Error ? error.message : "Failed to get booking details",
     };
   }
+};
+
+export const refreshBookingRefund = async (bookingId: string): Promise<RefundTracking> => {
+  const response = await api.get(`/bookings/my/${encodeURIComponent(bookingId)}/refund/?refresh=true`);
+  const payload = response.data as { refund?: RefundTracking; data?: RefundTracking } | RefundTracking;
+  if (payload && typeof payload === "object" && "refund" in payload) return payload.refund ?? {};
+  if (payload && typeof payload === "object" && "data" in payload) return payload.data ?? {};
+  return payload as RefundTracking;
 };
 
 /**
