@@ -43,41 +43,6 @@ const text = (value: unknown, fallback = "") => {
   return fallback;
 };
 
-const formatSyncTimestamp = (value?: string | null) => {
-  if (!value) return "";
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
-};
-
-const SyncStatusBanner = ({ booking }: { booking?: BookingDetailsVerifyData }) => {
-  const syncStatus = text(booking?.sync_status ?? booking?.syncStatus, "").toLowerCase();
-  const syncError = text(booking?.sync_error ?? booking?.syncError, "");
-  const lastSyncedAt = formatSyncTimestamp(
-    booking?.last_synced_at ?? booking?.lastSyncedAt,
-  );
-
-  if (!syncStatus && !lastSyncedAt && !syncError) {
-    return null;
-  }
-
-  const isStale = syncStatus === "stale";
-  const statusLabel = isStale ? "Partner sync stale" : "Partner sync current";
-
-  return (
-    <div
-      className={`my-4 rounded-lg border p-4 ${
-        isStale ? "border-amber-300 bg-amber-50" : "border-emerald-300 bg-emerald-50"
-      }`}
-    >
-      <p className="font-medium text-[#181818]">{statusLabel}</p>
-      <div className="mt-1 text-sm text-[#4E4F52] space-y-1">
-        {lastSyncedAt && <p>Last synced: {lastSyncedAt}</p>}
-        {syncError && <p>Last sync error: {syncError}</p>}
-      </div>
-    </div>
-  );
-};
-
 const toBookingDate = (value: unknown) => {
   const raw = text(value, "");
   if (!raw) return "";
@@ -479,7 +444,6 @@ const BookingStaysDetailsPage: React.FC = () => {
             </div>
           </div>
         )}
-        <SyncStatusBanner booking={booking} />
         {booking?.status?.toLowerCase() === "cancelled" && (
           <div className="flex justify-normal gap-2 items-center border border-[#D72638] p-3 rounded-lg bg-red-50 my-6">
             <TbInfoTriangle stroke="#D72638" fontSize={20} />
