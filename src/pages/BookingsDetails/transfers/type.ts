@@ -56,6 +56,7 @@ export interface TransfersDetailsResponse {
         deadlineType?: string | null;
         message?: string | null;
     } | null;
+    refund?: import("../../../features/shared/refundTracking").RefundTracking | null;
 }
 export interface Holder {
     name: string;

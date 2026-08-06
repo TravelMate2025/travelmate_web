@@ -19,6 +19,7 @@ import WriteAReview from "./WriteAReview";
 // API
 import {
   CancelTransferBookings,
+  refreshBookingRefund,
   searchTransferBookingByReference,
   verifyTransfersBooking,
 } from "../../../features/stays/api";
@@ -32,6 +33,7 @@ import {
   getBookingLifecycleStatus,
   isBookingCancelable,
 } from "../../../features/shared/bookingStatus";
+import { RefundPanel } from "../../../features/shared/refundTracking";
 
 const text = (value: unknown, fallback = "Not Available") => {
   if (typeof value === "string" && value.trim()) return value.trim();
@@ -286,6 +288,18 @@ const BookingTransfersDetails = () => {
                 </p>
               </div>
             </div>
+          )}
+          {booking?.status?.toLowerCase() === "cancelled" && (
+            <RefundPanel
+              refund={booking.refund}
+              onRefresh={booking.id
+                ? async () => {
+                    const refund = await refreshBookingRefund(String(booking.id));
+                    setBooking((previous) => previous ? { ...previous, refund } : previous);
+                    return refund;
+                  }
+                : undefined}
+            />
           )}
         </div>
 

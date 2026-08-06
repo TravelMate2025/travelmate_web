@@ -305,6 +305,7 @@ export interface BookingDetailsVerifyData {
   syncStatus?: string;
   sync_error?: string | null;
   syncError?: string | null;
+  refund?: import("../shared/refundTracking").RefundTracking | null;
   [key: string]: unknown;
 }
 export interface BookingStaysVerifyDetails {

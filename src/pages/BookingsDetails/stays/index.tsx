@@ -14,12 +14,14 @@ import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   CancelStaysBookings,
+  refreshBookingRefund,
   searchHotelBookingByReference,
   verifyHotelBooking,
 } from "../../../features/stays/api";
 import { BookingDetailsVerifyData } from "../../../features/stays/types";
 import { ChevronLeft, Loader } from "lucide-react";
 import { TbInfoTriangle } from "react-icons/tb";
+import { RefundPanel } from "../../../features/shared/refundTracking";
 import ConfirmCancel from "./ConfirmCancel";
 import WriteAReview from "./WriteAReview";
 import {
@@ -478,6 +480,20 @@ const BookingStaysDetailsPage: React.FC = () => {
                 {new Date(booking?.cancelled_at ?? "").toLocaleTimeString()}
               </p>
             </div>
+          </div>
+        )}
+        {booking?.status?.toLowerCase() === "cancelled" && (
+          <div className="my-6">
+            <RefundPanel
+              refund={booking.refund}
+              onRefresh={booking.id
+                ? async () => {
+                    const refund = await refreshBookingRefund(String(booking.id));
+                    setBooking((previous) => previous ? { ...previous, refund } : previous);
+                    return refund;
+                  }
+                : undefined}
+            />
           </div>
         )}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
