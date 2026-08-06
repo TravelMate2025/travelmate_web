@@ -4,7 +4,7 @@ import { RefundPanel } from "./refundTracking";
 
 describe("RefundPanel customer contract", () => {
   it.each([
-    ["pending", "Refund requested"],
+    ["pending", "Refund under review"],
     ["processing", "Refund processing"],
     ["completed", "Refund completed"],
     ["failed", "Refund needs attention"],
@@ -41,5 +41,25 @@ describe("RefundPanel customer contract", () => {
       "href",
       "/tickets?booking_reference=BK-1&refund_reference=RF-1",
     );
+  });
+
+  it("explains partial refunds against the original payment without exposing provider data", () => {
+    render(
+      <RefundPanel
+        refund={{
+          status: "processing",
+          original_amount: "100000",
+          requested_amount: "60000",
+          refund_percent: 60,
+          retained_amount: "40000",
+          currency: "NGN",
+        }}
+      />,
+    );
+
+    expect(screen.getAllByText("Amount paid").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Expected refund").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Amount retained under policy").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/60%/).length).toBeGreaterThan(0);
   });
 });
