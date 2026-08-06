@@ -83,6 +83,7 @@ const ConfirmCancel = ({
                 Estimated refund: {bookings?.currency ? `${bookings.currency} ` : ""}{preview.refundAmount}
               </li>
             )}
+            <li>Cancellation and refund are separate steps. This is an estimate; cancellation does not return money immediately.</li>
           </ul>
         </div>
 

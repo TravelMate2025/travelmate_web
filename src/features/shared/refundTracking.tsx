@@ -40,7 +40,7 @@ const activeStatuses = new Set(["pending", "processing"]);
 const statusCopy = (status: RefundStatus) => {
   switch (status.toLowerCase()) {
     case "pending":
-      return { label: "Refund requested", tone: "amber" as const };
+      return { label: "Refund under review", tone: "amber" as const };
     case "processing":
       return { label: "Refund processing", tone: "blue" as const };
     case "completed":
@@ -49,6 +49,21 @@ const statusCopy = (status: RefundStatus) => {
       return { label: "Refund needs attention", tone: "red" as const };
     default:
       return { label: "No refund applies", tone: "gray" as const };
+  }
+};
+
+const statusMessage = (status: RefundStatus) => {
+  switch (status.toLowerCase()) {
+    case "pending":
+      return "Your booking cancellation is recorded. The refund is awaiting review; no money has been returned yet.";
+    case "processing":
+      return "Your refund has been sent for processing. It is not complete until the original payment method confirms the credit.";
+    case "completed":
+      return "The payment provider has confirmed this refund. Please check the original payment method for the credit.";
+    case "failed":
+      return "We could not complete this refund automatically. Our support team can help review what happened.";
+    default:
+      return "This cancellation does not have a refund to track.";
   }
 };
 
@@ -167,13 +182,15 @@ export const RefundPanel = ({ refund, onRefresh }: RefundPanelProps) => {
         <>
           <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {currentRefund.original_amount != null && <Metric label="Amount paid" value={formatAmount(currentRefund.original_amount, currentRefund.currency ?? "")} />}
-            <Metric label="Refund amount" value={formatAmount(currentRefund.requested_amount, currentRefund.currency ?? "")} />
-            <Metric label="Settled amount" value={formatAmount(currentRefund.settled_amount, currentRefund.currency ?? "")} />
-            {currentRefund.retained_amount != null && <Metric label="Cancellation fee retained" value={formatAmount(currentRefund.retained_amount, currentRefund.currency ?? "")} />}
+            <Metric label="Expected refund" value={formatAmount(currentRefund.requested_amount, currentRefund.currency ?? "")} />
+            <Metric label="Amount returned" value={formatAmount(currentRefund.settled_amount, currentRefund.currency ?? "")} />
+            {currentRefund.refund_percent != null && <Metric label="Policy refund" value={`${currentRefund.refund_percent}%`} />}
+            {currentRefund.retained_amount != null && <Metric label="Amount retained under policy" value={formatAmount(currentRefund.retained_amount, currentRefund.currency ?? "")} />}
             <Metric label="Last update" value={formatDate(currentRefund.last_synced_at)} />
             {currentRefund.refund_reference && <Metric label="Refund reference" value={currentRefund.refund_reference} />}
           </div>
-          {currentRefund.refund_explanation && <p className="mt-4 rounded-lg bg-[#eef5ff] px-3 py-2 text-sm leading-6 text-[#174a86]">{currentRefund.refund_explanation}</p>}
+          <p className="mt-4 rounded-lg bg-[#eef5ff] px-3 py-2 text-sm leading-6 text-[#174a86]">{currentRefund.refund_explanation || statusMessage((currentRefund.status ?? "not_applicable").toLowerCase())}</p>
+          {currentRefund.refund_explanation && <p className="mt-2 text-sm leading-6 text-[#4E4F52]">{statusMessage((currentRefund.status ?? "not_applicable").toLowerCase())}</p>}
           {active && currentRefund.estimated_settlement_window && (
             <p className="mt-4 rounded-lg bg-[#eef5ff] px-3 py-2 text-sm text-[#174a86]">Settlement guidance: {currentRefund.estimated_settlement_window}.</p>
           )}
