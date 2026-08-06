@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Circle, Clock3, RefreshCw } from "lucide-react";
+import { AlertCircle, CheckCircle2, Circle, Clock3, ExternalLink, RefreshCw } from "lucide-react";
 
 export type RefundStatus =
   | "not_applicable"
@@ -20,12 +20,18 @@ export interface RefundTracking {
   refund_reference?: string | null;
   requested_amount?: number | string | null;
   settled_amount?: number | string | null;
+  original_amount?: number | string | null;
+  refund_percent?: number | string | null;
+  retained_amount?: number | string | null;
+  refund_explanation?: string | null;
   currency?: string | null;
   requested_at?: string | null;
   completed_at?: string | null;
   last_synced_at?: string | null;
   estimated_settlement_window?: string | null;
   failure_message?: string | null;
+  next_action?: string | null;
+  support_link?: string | null;
   timeline?: RefundTimelineEvent[];
 }
 
@@ -139,7 +145,7 @@ export const RefundPanel = ({ refund, onRefresh }: RefundPanelProps) => {
       const next = await onRefresh();
       if (next) setCurrentRefund(next);
     } catch (refreshError) {
-      setError(refreshError instanceof Error ? refreshError.message : "Could not refresh refund status.");
+      setError("We couldn't refresh the refund status right now. Your current refund details are still shown; please try again shortly.");
     } finally {
       setRefreshing(false);
     }
@@ -160,15 +166,24 @@ export const RefundPanel = ({ refund, onRefresh }: RefundPanelProps) => {
       ) : (
         <>
           <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Metric label="Expected refund" value={formatAmount(currentRefund.requested_amount, currentRefund.currency ?? "")} />
+            {currentRefund.original_amount != null && <Metric label="Amount paid" value={formatAmount(currentRefund.original_amount, currentRefund.currency ?? "")} />}
+            <Metric label="Refund amount" value={formatAmount(currentRefund.requested_amount, currentRefund.currency ?? "")} />
             <Metric label="Settled amount" value={formatAmount(currentRefund.settled_amount, currentRefund.currency ?? "")} />
+            {currentRefund.retained_amount != null && <Metric label="Cancellation fee retained" value={formatAmount(currentRefund.retained_amount, currentRefund.currency ?? "")} />}
             <Metric label="Last update" value={formatDate(currentRefund.last_synced_at)} />
             {currentRefund.refund_reference && <Metric label="Refund reference" value={currentRefund.refund_reference} />}
           </div>
+          {currentRefund.refund_explanation && <p className="mt-4 rounded-lg bg-[#eef5ff] px-3 py-2 text-sm leading-6 text-[#174a86]">{currentRefund.refund_explanation}</p>}
           {active && currentRefund.estimated_settlement_window && (
             <p className="mt-4 rounded-lg bg-[#eef5ff] px-3 py-2 text-sm text-[#174a86]">Settlement guidance: {currentRefund.estimated_settlement_window}.</p>
           )}
           {currentRefund.failure_message && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{currentRefund.failure_message}</p>}
+          {currentRefund.next_action && <p className="mt-4 text-sm text-[#4E4F52]">{currentRefund.next_action}</p>}
+          {currentRefund.support_link && (
+            <a href={currentRefund.support_link} className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#023E8A] px-3 py-2 text-sm font-semibold text-[#023E8A] hover:bg-[#eef5ff]">
+              Contact support about this refund <ExternalLink size={15} />
+            </a>
+          )}
           {active && isStale(currentRefund.last_synced_at) && (
             <p className="mt-4 text-sm text-amber-700">The latest partner update may be delayed.</p>
           )}
