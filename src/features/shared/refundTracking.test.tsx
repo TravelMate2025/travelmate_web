@@ -1,13 +1,16 @@
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
 import { RefundPanel } from "./refundTracking";
 
 describe("RefundPanel customer contract", () => {
+  afterEach(cleanup);
+
   it.each([
     ["pending", "Refund under review"],
     ["processing", "Refund processing"],
     ["completed", "Refund completed"],
     ["failed", "Refund needs attention"],
+    ["not_applicable", "No refund applies"],
   ])("renders the %s refund state", (status, label) => {
     render(
       <RefundPanel
@@ -23,7 +26,16 @@ describe("RefundPanel customer contract", () => {
     );
 
     expect(screen.getAllByText(label).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/NGN/).length).toBeGreaterThan(0);
+    if (status !== "not_applicable") {
+      expect(screen.getAllByText(/NGN/).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("does not present a refund workflow for bookings without a refund", () => {
+    render(<RefundPanel refund={{ status: "not_applicable" }} />);
+
+    expect(screen.getAllByText("No refund applies").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Refund under review")).not.toBeInTheDocument();
   });
 
   it("exposes the support handoff for failed refunds", () => {
