@@ -40,52 +40,25 @@ const ConfirmationDetails = ({ getStatusColor, confirmDetails }: props) => {
     (snapshot.checkOut as string | undefined) ??
     (snapshot.check_out as string | undefined);
   return (
-    <div className="bg-white">
-      <h2 className="text-lg font-semibold mb-2 text-left">
-        Confirmation Details
-      </h2>
-      <div className="space-y-3 rounded-lg sm:p-6 sm:border border-gray-300">
-        <p className="flex justify-between">
-          <span className="font-medium">Confirmation Number</span>{" "}
-          {confirmDetails?.reference ?? confirmDetails?.booking_reference ?? "N/A"}
-        </p>
-        <p className="flex justify-between">
-          <span className="font-medium">Booking State</span>{" "}
-          <span className="font-semibold uppercase">
-            {getBookingLifecycleLabel(bookingState)}
-          </span>
-        </p>
-        <p className="flex justify-between">
-          <span className="font-medium">Payment State</span>{" "}
-          <span className="font-semibold uppercase">
-            {confirmDetails?.payment_state ?? "N/A"}
-          </span>
-        </p>
-        <p className="flex justify-between">
-          <span className="font-medium">Payment Status</span>{" "}
-          <span
-            className={`${getStatusColor(
-              confirmDetails?.payment_status?.toUpperCase()
-            )} font-semibold uppercase`}
-          >
-            {confirmDetails?.payment_status || "N/A"}
-          </span>
-        </p>
-        <p className="flex justify-between">
-          <span className="font-medium">Booked on</span>{" "}
-          {formatDate(createdAt)}
-        </p>
-        <p className="flex justify-between">
-          <span className="font-medium">Check-In Date</span>{" "}
-          {formatDate(checkIn)}
-        </p>
-        <p className="flex justify-between">
-          <span className="font-medium">Check-Out Date</span>
-          {formatDate(checkOut)}
-        </p>
+    <section className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-[0_10px_30px_rgba(16,42,67,0.05)] sm:p-6">
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <div><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#023E8A]">Booking overview</p><h2 className="mt-1 text-xl font-semibold text-[#18202b]">Confirmation details</h2></div>
+        <span className="rounded-full bg-[#eef5ff] px-3 py-1 text-xs font-semibold capitalize text-[#023E8A]">{getBookingLifecycleLabel(bookingState)}</span>
       </div>
-    </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Info label="Confirmation number" value={confirmDetails?.reference ?? confirmDetails?.booking_reference ?? "N/A"} />
+        <Info label="Booked on" value={formatDate(createdAt)} />
+        <Info label="Check-in" value={formatDate(checkIn)} />
+        <Info label="Check-out" value={formatDate(checkOut)} />
+        <Info label="Payment state" value={confirmDetails?.payment_state ?? "N/A"} />
+        <Info label="Payment status" value={confirmDetails?.payment_status || "N/A"} tone={getStatusColor(confirmDetails?.payment_status?.toUpperCase())} />
+      </div>
+    </section>
   );
 };
+
+const Info = ({ label, value, tone }: { label: string; value: string; tone?: string }) => (
+  <div className="rounded-xl border border-[#e7edf5] bg-[#fbfcfe] px-4 py-3"><p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#7b8491]">{label}</p><p className={`mt-1 break-words text-sm font-semibold ${tone || "text-[#18202b]"}`}>{value}</p></div>
+);
 
 export default ConfirmationDetails;

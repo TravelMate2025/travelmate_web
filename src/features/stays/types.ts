@@ -256,6 +256,11 @@ export interface BookingDetailsVerifyData {
   booking_reference?: string;
   hotel_code: string | number;
   hotel_name: string;
+  hotel_address?: string;
+  destination_city?: string;
+  destination_country?: string;
+  hotel_image_url?: string | null;
+  images?: Array<Record<string, unknown>>;
   hotelName?: string;
   hotelCode?: string | number;
   check_in: string;
@@ -293,6 +298,7 @@ export interface BookingDetailsVerifyData {
   guestCount?: number | null;
   rooms_details?: unknown[]; // unknown[] until concrete shape is defined
   roomsDetails?: unknown[];
+  rooms?: unknown[];
   guest_details?: GuestDetails | undefined;
   guestDetails?: GuestDetails | undefined;
   hotel_location?: HotelLocationDetails;
