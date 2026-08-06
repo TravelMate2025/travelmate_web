@@ -31,29 +31,19 @@ const HotelDetails = ({ booking }: props) => {
     booking?.hotelLocation?.destination?.country_name ||
     (snapshot as Record<string, unknown>).country?.toString() ||
     "";
+  const image = booking?.hotel_image_url || String(booking?.images?.[0]?.secureUrl || booking?.images?.[0]?.url || "");
 
   return (
-    <div className="bg-white">
-      <h2 className="text-lg font-semibold mb-2 sm:mb-4">Hotel Details</h2>
-      <div className="rounded-lg sm:border border-gray-300 sm:p-6">
-        <div className="flex items-center gap-2">
-          <RiHotelLine />
-          <p>{hotelName}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <RiHotelLine />
-          <p className="text-sm text-gray-500">
-            {booking?.reference ?? booking?.booking_reference ?? "N/A"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <IoLocationOutline />
-          <p>
-            {hotelAddress} {cityName} {countryName}
-          </p>
+    <section className="overflow-hidden rounded-2xl border border-[#dfe7f0] bg-white shadow-[0_10px_30px_rgba(16,42,67,0.05)]">
+      {image && <img src={image} alt="" className="h-32 w-full object-cover" />}
+      <div className="p-5 sm:p-6">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#023E8A]">Property</p><h2 className="mt-1 text-xl font-semibold text-[#18202b]">{hotelName}</h2>
+        <div className="mt-4 space-y-3 text-sm">
+          <div className="flex items-start gap-3"><RiHotelLine className="mt-0.5 text-[#023E8A]" /><div><p className="text-xs text-[#8994a3]">Confirmation</p><p className="font-medium text-[#18202b]">{booking?.reference ?? booking?.booking_reference ?? "N/A"}</p></div></div>
+          <div className="flex items-start gap-3"><IoLocationOutline className="mt-0.5 text-[#023E8A]" /><div><p className="text-xs text-[#8994a3]">Address</p><p className="font-medium leading-5 text-[#354052]">{[hotelAddress, cityName, countryName].filter(Boolean).join(", ") || "N/A"}</p></div></div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

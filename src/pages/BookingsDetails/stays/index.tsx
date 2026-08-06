@@ -7,6 +7,7 @@ import PriceSummary from "../../../features/stays/components/confirmation/PriceS
 import HotelDetails from "../../../features/stays/components/confirmation/HotelDetails";
 import RoomDetails from "../../../features/stays/components/confirmation/RoomDetails";
 import ContactDetails from "../../../features/stays/components/confirmation/ContactDetails";
+import CancellationDetails from "../../../features/stays/components/confirmation/CancellationDetails";
 import Footer from "../../../components/2Footer";
 import ShareModal from "../../../features/stays/components/modals/ShareModal";
 import SkeletonConfirm from "../../../features/car_rentals/carPaidFor/Skeleton";
@@ -110,16 +111,22 @@ const normalizeRoomSelections = (snapshot: SnapshotRecord): unknown[] => {
     .filter(Boolean);
 };
 
+const firstNonEmpty = (...values: unknown[]) => values.find((value) => {
+  if (typeof value === "number") return Number.isFinite(value);
+  return typeof value === "string" && value.trim().length > 0;
+});
+
 const normalizeGuestDetails = (booking: BookingDetailsVerifyData, snapshot: SnapshotRecord) => {
   const snapshotTravelers = Array.isArray(snapshot.travelers) ? snapshot.travelers : [];
   const primaryTraveler = (snapshotTravelers[0] as SnapshotRecord | undefined) ?? {};
   const existingPrimaryGuest = booking.guest_details?.primary_guest ?? booking.guestDetails?.primary_guest;
+  const customerDetails = (booking.customer_details ?? {}) as SnapshotRecord;
   const primaryGuest = {
-    name: existingPrimaryGuest?.name ?? (text(primaryTraveler.firstName) || text(primaryTraveler.first_name)),
+    name: existingPrimaryGuest?.name ?? text(firstNonEmpty(primaryTraveler.firstName, primaryTraveler.first_name, customerDetails.name)),
     surname:
-      existingPrimaryGuest?.surname ?? (text(primaryTraveler.lastName) || text(primaryTraveler.last_name)),
-    email: existingPrimaryGuest?.email ?? (text(primaryTraveler.email) || text(booking.user?.email)),
-    phone: existingPrimaryGuest?.phone ?? text(snapshot.phoneNumber),
+      existingPrimaryGuest?.surname ?? text(firstNonEmpty(primaryTraveler.lastName, primaryTraveler.last_name, customerDetails.surname)),
+    email: existingPrimaryGuest?.email ?? text(firstNonEmpty(primaryTraveler.email, customerDetails.email, booking.user?.email)),
+    phone: existingPrimaryGuest?.phone ?? text(firstNonEmpty(snapshot.phoneNumber, customerDetails.phone)),
     address: existingPrimaryGuest?.address ?? text(snapshot.address),
     city: existingPrimaryGuest?.city ?? text(snapshot.city),
     postal_code:
@@ -140,9 +147,9 @@ const normalizeGuestDetails = (booking: BookingDetailsVerifyData, snapshot: Snap
 
 const normalizeHotelLocation = (booking: BookingDetailsVerifyData, snapshot: SnapshotRecord) => {
   const existing = booking.hotel_location ?? booking.hotelLocation;
-  const address = text(existing?.address ?? snapshot.address);
-  const city = text(snapshot.city);
-  const country = text(snapshot.country);
+  const address = text(existing?.address ?? booking.hotel_address ?? snapshot.address);
+  const city = text(booking.destination_city ?? snapshot.city);
+  const country = text(booking.destination_country ?? snapshot.country);
 
   if (!address && !city && !country && !existing) {
     return undefined;
@@ -220,7 +227,13 @@ const normalizeBooking = (
   // viewed via reference navigation fell through getBookingLifecycleStatus's
   // "unknown -> confirmed" default, regardless of its real status.
   const bookingStatus = text(booking.status ?? booking.booking_status ?? snapshot.status ?? snapshot.booking_status);
-  const roomDetails = normalizeRoomSelections(snapshot);
+  const roomDetails = Array.isArray(booking.rooms_details)
+    ? booking.rooms_details
+    : Array.isArray(booking.roomsDetails)
+      ? booking.roomsDetails
+      : Array.isArray(booking.rooms)
+        ? booking.rooms
+        : normalizeRoomSelections(snapshot);
   const guestDetails = normalizeGuestDetails(booking, snapshot);
   const hotelLocation = normalizeHotelLocation(booking, snapshot);
 
@@ -244,7 +257,7 @@ const normalizeBooking = (
     created_at: createdAt || booking.created_at,
     rooms_details: (roomDetails.length ? roomDetails : booking.rooms_details) ?? [],
     roomsDetails: (roomDetails.length ? roomDetails : booking.roomsDetails) ?? [],
-    guest_details: guestDetails,
+    guest_details: booking.guest_details ?? booking.guestDetails ?? guestDetails,
     guestDetails: guestDetails,
     hotel_location: hotelLocation ?? booking.hotel_location,
     hotelLocation: hotelLocation ?? booking.hotelLocation,
@@ -510,6 +523,7 @@ const BookingStaysDetailsPage: React.FC = () => {
           <div className="space-y-4">
             <PriceSummary booking={booking} />
             <RoomDetails booking={booking} />
+            <CancellationDetails booking={booking} />
             <HotelDetails booking={booking} />
             <ContactDetails />
             <div className="flex flex-col w-full gap-y-5">
