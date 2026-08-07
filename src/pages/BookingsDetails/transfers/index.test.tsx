@@ -214,4 +214,58 @@ describe("BookingTransfersDetails", () => {
       { suppressToast: true },
     );
   });
+
+  it("renders the detailed backend transfer contract instead of showing unavailable values", async () => {
+    mockSearchTransferBookingByReference.mockResolvedValue({
+      data: {
+        booking_type: "transfers",
+        booking: {
+          id: "transfer-row-001",
+          booking_reference: "BK-TRANSFER-DETAIL-001",
+          booking_status: "confirmed",
+          listing_name: "Airport to Victoria Island Executive Transfer",
+          pickup_location: "Murtala Muhammed International Airport",
+          pickup_location_label: "Lagos Airport Terminal 2",
+          dropoff_location: "Victoria Island",
+          dropoff_location_label: "Victoria Island, Lagos",
+          transfer_type: "private",
+          vehicle_class: "Executive Sedan",
+          passenger_capacity: 3,
+          luggage_capacity: 2,
+          provider_name: "TravelMate Transfers",
+          estimated_duration_minutes: 45,
+          pickup_date: "2026-08-12",
+          pickup_time: "10:30",
+          first_name: "Ada",
+          last_name: "Lovelace",
+          email: "ada@example.com",
+          contact_phone: "0800000000",
+          total_amount: "25000.00",
+          currency: "NGN",
+          cancellation_policy: [
+            { from: "2026-08-11T10:30:00Z", amount: "0.00", currency: "NGN" },
+          ],
+        },
+      },
+    });
+
+    window.history.pushState({}, "", "/bookings/transfers-details/?booking_reference=BK-TRANSFER-DETAIL-001");
+
+    render(
+      <MemoryRouter initialEntries={["/bookings/transfers-details/?booking_reference=BK-TRANSFER-DETAIL-001"]}>
+        <Routes>
+          <Route path="/bookings/transfers-details/" element={<BookingTransfersDetails />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("Lagos Airport Terminal 2")).toBeInTheDocument();
+    expect(screen.getByText("Victoria Island, Lagos")).toBeInTheDocument();
+    expect(screen.getByText("Executive Sedan Car")).toBeInTheDocument();
+    expect(screen.getByText("TravelMate Transfers")).toBeInTheDocument();
+    expect(screen.getByText("45 minutes")).toBeInTheDocument();
+    expect(screen.getByText("3 Seats")).toBeInTheDocument();
+    expect(screen.getByText("2 bags")).toBeInTheDocument();
+    expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
+  });
 });
