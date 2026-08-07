@@ -55,6 +55,153 @@ const formatAmount = (value: unknown, currency = "") => {
   return `${currency}${parsed.toLocaleString()}`;
 };
 
+type BackendTransferBooking = TransfersDetailsResponse & {
+  booking_reference?: string;
+  booking_status?: string;
+  listing_name?: string;
+  pickup_location?: string;
+  pickup_location_label?: string;
+  dropoff_location?: string;
+  dropoff_location_label?: string;
+  transfer_type?: string;
+  vehicle_class?: string;
+  passenger_capacity?: number | null;
+  luggage_capacity?: number | null;
+  provider_name?: string;
+  estimated_duration_minutes?: number | null;
+  pickup_date?: string | null;
+  pickup_time?: string | null;
+  total_amount?: number | string | null;
+  cancellation_policy?: Array<Record<string, unknown>>;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  contact_phone?: string;
+  phone?: string;
+  images?: unknown[];
+};
+
+const normalizeBackendTransferShape = (
+  value: TransfersDetailsResponse,
+): TransfersDetailsResponse => {
+  if (Array.isArray(value.transfers) && value.transfers.length > 0) {
+    return value;
+  }
+
+  const backend = value as BackendTransferBooking;
+  const hasStructuredTransferData = Boolean(
+    backend.pickup_location ||
+      backend.pickup_date ||
+      backend.dropoff_location ||
+      backend.vehicle_class ||
+      backend.provider_name,
+  );
+  if (!hasStructuredTransferData) return value;
+
+  const pickupLabel = backend.pickup_location_label || backend.pickup_location || "";
+  const dropoffLabel =
+    backend.dropoff_location_label || backend.dropoff_location || "";
+  const duration = backend.estimated_duration_minutes;
+  const cancellationPolicies = (backend.cancellation_policy ?? []).map((policy) => ({
+    from: String(policy.from ?? ""),
+    amount: Number(policy.amount ?? 0),
+    currencyId: String(policy.currency ?? backend.currency ?? ""),
+    isForceMajeure: Boolean(policy.isForceMajeure ?? policy.is_force_majeure),
+  }));
+
+  return {
+    ...value,
+    holder: value.holder ?? {
+      name: backend.first_name ?? "",
+      surname: backend.last_name ?? "",
+      email: backend.email ?? "",
+      phone: backend.contact_phone ?? backend.phone ?? "",
+    },
+    transfers: [
+      {
+        id: backend.id ?? "",
+        price: {
+          netAmount: Number(backend.total_amount ?? value.totalAmount ?? 0),
+          totalAmount: Number(backend.total_amount ?? value.totalAmount ?? 0),
+          currencyId: backend.currency ?? "",
+        },
+        status: value.status,
+        rateKey: backend.id ?? value.reference ?? "",
+        vehicle: {
+          code: backend.vehicle_class ?? "",
+          name: backend.vehicle_class || backend.transfer_type || "Transfer",
+        },
+        category: {
+          code: backend.transfer_type ?? "",
+          name: backend.transfer_type || "Transfer",
+        },
+        factsheetId: 0,
+        transferType: backend.transfer_type ?? "",
+        arrivalShipName: null,
+        arrivalTrainInfo: null,
+        departureShipName: null,
+        departureTrainInfo: null,
+        arrivalFlightNumber: null,
+        departureFlightNumber: null,
+        sourceMarketEmergencyNumber: "",
+        pickupInformation: {
+          from: { code: "", type: "", typeEnum: "", description: pickupLabel },
+          to: { code: "", type: "", typeEnum: "", description: dropoffLabel },
+          date: backend.pickup_date ?? "",
+          time: backend.pickup_time ?? "",
+          pickup: {
+            zip: null,
+            town: null,
+            image: null,
+            number: null,
+            address: pickupLabel,
+            altitude: null,
+            latitude: 0,
+            longitude: 0,
+            pickupId: null,
+            stopName: null,
+            checkPickup: {
+              url: null,
+              mustCheckPickupTime: false,
+              hoursBeforeConsulting: null,
+            },
+            description: pickupLabel,
+          },
+        },
+        content: {
+          images: Array.isArray(backend.images) ? backend.images : [],
+          vehicle: {
+            code: backend.vehicle_class ?? "",
+            name: backend.vehicle_class || backend.transfer_type || "Transfer",
+          },
+          category: {
+            code: backend.transfer_type ?? "",
+            name: backend.transfer_type || "Transfer",
+          },
+          transferRemarks: [],
+          transferDetailInfo: [
+            ...(duration != null
+              ? [{ id: "duration", name: "Duration", type: "", value: String(duration), description: "minutes" }]
+              : []),
+            { id: "stops", name: "Stops", type: "", value: "", description: "" },
+            ...(backend.passenger_capacity != null
+              ? [{ id: "capacity", name: "Capacity", type: "", value: String(backend.passenger_capacity), description: "Seats" }]
+              : [{ id: "capacity", name: "Capacity", type: "", value: "", description: "Seats" }]),
+            ...(backend.luggage_capacity != null
+              ? [{ id: "luggage", name: "Luggage", type: "", value: String(backend.luggage_capacity), description: "bags" }]
+              : [{ id: "luggage", name: "Luggage", type: "", value: "", description: "bags" }]),
+          ],
+          customerTransferTimeInfo: [],
+          supplierTransferTimeInfo: [],
+        },
+        cancellationPolicies,
+      } as unknown as TransfersDetailsResponse["transfers"][number],
+    ],
+    totalAmount: Number(backend.total_amount ?? value.totalAmount ?? 0),
+    supplier: value.supplier ?? { name: backend.provider_name ?? "", vatNumber: "" },
+  };
+};
+
 const normalizeTransferBooking = (value: unknown): TransfersDetailsResponse | undefined => {
   const payload = value as
     | { bookings?: TransfersDetailsResponse[]; booking?: TransfersDetailsResponse }
@@ -89,13 +236,13 @@ const normalizeTransferBooking = (value: unknown): TransfersDetailsResponse | un
 
   if (!hasUsefulData) return undefined;
 
-  return {
+  return normalizeBackendTransferShape({
     ...normalized,
     reference: normalized.reference || normalized.booking_reference || "",
     status: normalized.status || normalized.booking_status || "CONFIRMED",
     totalAmount: normalized.totalAmount ?? normalized.totalNetAmount ?? 0,
     transfers: Array.isArray(normalized.transfers) ? normalized.transfers : [],
-  };
+  });
 };
 
 const BookingTransfersDetails = () => {
@@ -443,7 +590,7 @@ const BookingTransfersDetails = () => {
                     Type
                   </p>
                   <p className="text-[#181818] text-[14px] font-inter">
-                    {text(transfer?.category?.name)} Car
+                    {text(transfer?.vehicle?.name || transfer?.category?.name)} Car
                   </p>
                 </div>
                 <div className="flex justify-between">
