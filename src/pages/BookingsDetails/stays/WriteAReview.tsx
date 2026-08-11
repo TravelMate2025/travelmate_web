@@ -10,6 +10,7 @@ type props = {
 };
 
 const WriteAReview = ({ closeModal, bookings }: props) => {
+  const [submitting, setSubmitting] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [overallRating, setOverallRating] = useState(0);
   const [ratings, setRatings] = useState({
@@ -41,6 +42,8 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
 
   const submitAReview = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
     try {
       if (!bookings?.reference) {
         throw new Error("Booking reference is missing.");
@@ -58,6 +61,7 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
           ) as Record<string, number>,
           comment: reviewText,
         },
+        "stay",
       );
 
       toast.success("Review Added Successfully");
@@ -65,6 +69,8 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
     } catch (error) {
       console.log(error);
       toast.error(error instanceof Error ? error.message : "Failed to submit review");
+    } finally {
+      setSubmitting(false);
     }
   };
   const StarRating = ({
@@ -235,9 +241,10 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
             </button>
             <button
               type="submit"
-              className="px-6 py-2 rounded-lg bg-[#023E8A] text-white font-medium hover:bg-[#023270] transition-colors"
+              disabled={submitting}
+              className="px-6 py-2 rounded-lg bg-[#023E8A] text-white font-medium hover:bg-[#023270] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Submit
+              {submitting ? "Submitting…" : "Submit"}
             </button>
           </div>
         </form>

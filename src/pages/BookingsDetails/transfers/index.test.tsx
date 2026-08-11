@@ -5,6 +5,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const mockVerifyTransfersBooking = vi.fn();
 const mockSearchTransferBookingByReference = vi.fn();
 const mockCancelTransferBookings = vi.fn();
+const mockGetTransferReviews = vi.fn().mockResolvedValue([
+  { rating: 4, comment: "Good ride", submittedAt: "2026-07-13" },
+]);
 const mockNavigate = vi.fn();
 
 vi.mock("../../../features/stays/api", () => ({
@@ -12,6 +15,7 @@ vi.mock("../../../features/stays/api", () => ({
   searchTransferBookingByReference: (...args: unknown[]) =>
     mockSearchTransferBookingByReference(...args),
   verifyTransfersBooking: (...args: unknown[]) => mockVerifyTransfersBooking(...args),
+  getTransferReviews: (...args: unknown[]) => mockGetTransferReviews(...args),
 }));
 
 vi.mock("../../../components/2Footer", () => ({
@@ -77,6 +81,7 @@ describe("BookingTransfersDetails", () => {
             transfers: [
               {
                 category: { name: "Executive" },
+                id: "transfer-1",
                 vehicle: { name: "Sedan" },
                 pickupInformation: {
                   from: { description: "Lagos Airport" },
@@ -122,6 +127,8 @@ describe("BookingTransfersDetails", () => {
     );
 
     expect(await screen.findByText("Booking Details")).toBeInTheDocument();
+    expect(await screen.findByText("Good ride")).toBeInTheDocument();
+    expect(mockGetTransferReviews).toHaveBeenCalledWith("transfer-1");
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel Booking" }));
 

@@ -74,6 +74,8 @@ const StaysDetail: React.FC = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
   const [reviews, setReviews] = useState<CatalogReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (hotelId) {
@@ -187,15 +189,37 @@ const StaysDetail: React.FC = () => {
 
   useEffect(() => {
     const fetchReviews = async () => {
+      setReviewsLoading(true);
+      setReviewsError(null);
       try {
         const response = await getReviews(hotelId || "");
         setReviews(response ?? []);
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unable to load reviews";
+        setReviewsError(message);
+        setReviews([]);
+      } finally {
+        setReviewsLoading(false);
       }
     };
     fetchReviews();
   }, [hotelId]);
+
+  const publicReviewSummary = selectedHotel?.reviewSummary;
+  const hasPublicReviewSummary = Boolean(
+    publicReviewSummary?.hasPublicScore &&
+      (publicReviewSummary.reviewCount ?? 0) >= 3 &&
+      publicReviewSummary.averageRating != null,
+  );
+  const catalogAverageRating = reviews.length
+    ? reviews.reduce((sum, review) => sum + (review.rating ?? 0), 0) / reviews.length
+    : null;
+  const displayedReviewRating = hasPublicReviewSummary
+    ? publicReviewSummary?.averageRating
+    : catalogAverageRating;
+  const displayedReviewCount = hasPublicReviewSummary
+    ? publicReviewSummary?.reviewCount
+    : reviews.length;
 
   // Use actual images from selectedHotel or placeholders
   const hotelImages = selectedHotel?.images?.map((img) => img.secureUrl ?? img.url ?? "") || [
@@ -594,12 +618,12 @@ const StaysDetail: React.FC = () => {
             <div className="flex items-center gap-2 mt-2">
               <span className="text-yellow-500 flex items-center gap-1">
                 <FaStar />
-                {selectedHotel?.ratingScore ?? "N/A"}
+                {displayedReviewRating != null ? displayedReviewRating.toFixed(1) : "N/A"}
               </span>
               <span className="text-gray-600">
-                ({selectedHotel?.reviewsCount ?? reviews.length ?? "0"})
+                ({displayedReviewCount ?? 0})
               </span>
-              {reviews?.length > 0 && (
+              {!reviewsLoading && !reviewsError && reviews.length > 0 && (
                 <button
                   className="text-blue-600 underline cursor-pointer"
                   onClick={() => setOpenModal(true)}
@@ -614,6 +638,8 @@ const StaysDetail: React.FC = () => {
                 reviews={reviews}
               />
             )}
+            {reviewsLoading && <p className="mt-2 text-sm text-gray-500">Loading reviews…</p>}
+            {reviewsError && <p className="mt-2 text-sm text-red-600">{reviewsError}</p>}
           </div>
         </section>
         <section id="About">

@@ -126,6 +126,12 @@ export interface Hotel {
   /** Legacy / mock field */
   category?: string;
   reviewsCount?: number | null;
+  reviewSummary?: {
+    averageRating?: number | null;
+    reviewCount?: number;
+    hasPublicScore?: boolean;
+    categoryAverages?: Record<string, number>;
+  } | null;
   country?: string;
   adminLevel1?: string;
   city?: string;

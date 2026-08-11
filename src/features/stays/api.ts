@@ -123,6 +123,7 @@ function mapPublicCatalogStayToHotel(item: unknown): Hotel {
     priceFrom?: number;
     ratingScore?: number;
     reviewsCount?: number;
+    reviewSummary?: Hotel["reviewSummary"];
     address?: string;
     description?: string;
     rooms?: Hotel["rooms"];
@@ -154,6 +155,7 @@ function mapPublicCatalogStayToHotel(item: unknown): Hotel {
     priceFrom: stay.priceFrom,
     ratingScore: stay.ratingScore,
     reviewsCount: stay.reviewsCount,
+    reviewSummary: stay.reviewSummary,
     checkInTime: stay.checkInTime,
     checkOutTime: stay.checkOutTime,
     rooms: stay.rooms,
@@ -604,6 +606,26 @@ export const getReviews = async (
   }
 };
 
+// Fetch published guest reviews for a transfer -- GET
+// /api/v1/public/catalog/transfers/{transferId}/reviews.
+export const getTransferReviews = async (
+  transferId: string | number | undefined,
+): Promise<CatalogReview[]> => {
+  if (transferId == null || String(transferId).trim() === "") return [];
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/v1/public/catalog/transfers/${encodeURIComponent(String(transferId))}/reviews`,
+      { params: { page: 1, pageSize: 20 } },
+    );
+    const data = (response.data?.data ?? response.data) as CatalogReviewsResponse;
+    return data.results ?? [];
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    console.error("Failed to fetch transfer reviews:", errorMessage);
+    throw new Error(errorMessage || "Failed to fetch transfer reviews");
+  }
+};
+
 export const getCountryCodes = async (): Promise<Array<{
   code: string;
   name: string;
@@ -671,6 +693,7 @@ export const submitBookingReview = async (
     subcategoryRatings?: Record<string, number>;
     comment?: string;
   },
+  bookingType?: "stay" | "transfer",
 ) => {
   if (!bookingReference) {
     throw new Error("Booking reference is missing.");
@@ -679,7 +702,10 @@ export const submitBookingReview = async (
   try {
     const response = await api.post(
       `/v1/public/bookings/${encodeURIComponent(bookingReference)}/review`,
-      payload,
+      {
+        ...payload,
+        ...(bookingType ? { bookingType } : {}),
+      },
       {
         headers: {
           "Idempotency-Key": `booking-review-${String(bookingReference)}`,

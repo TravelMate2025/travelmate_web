@@ -7,9 +7,11 @@ import { TransfersDetailsResponse } from "./type";
 type props = {
   closeModal: () => void;
   bookings: TransfersDetailsResponse | undefined;
+  onSubmitted?: () => void | Promise<void>;
 };
 
-const WriteAReview = ({ closeModal, bookings }: props) => {
+const WriteAReview = ({ closeModal, bookings, onSubmitted }: props) => {
+  const [submitting, setSubmitting] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [overallRating, setOverallRating] = useState(0);
   const [ratings, setRatings] = useState({
@@ -33,6 +35,8 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
 
   const submitAReview = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
     try {
       const reference = bookings?.reference ?? bookings?.booking_reference;
       if (!reference) {
@@ -48,13 +52,16 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
           Object.entries(ratings).filter(([, value]) => value > 0),
         ) as Record<string, number>,
         comment: reviewText,
-      });
+      }, "transfer");
 
       toast.success("Review Added Successfully");
+      await onSubmitted?.();
       closeModal();
     } catch (error) {
       console.log(error);
       toast.error(error instanceof Error ? error.message : "Failed to submit review");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -204,9 +211,10 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
             </button>
             <button
               type="submit"
-              className="px-6 py-2 rounded-lg bg-[#023E8A] text-white font-medium hover:bg-[#023270] transition-colors"
+              disabled={submitting}
+              className="px-6 py-2 rounded-lg bg-[#023E8A] text-white font-medium hover:bg-[#023270] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Submit
+              {submitting ? "Submitting…" : "Submit"}
             </button>
           </div>
         </form>

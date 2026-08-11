@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Circle, Clock3, ExternalLink, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { ExternalLink, RefreshCw } from "lucide-react";
 
 export type RefundStatus =
   | "not_applicable"
@@ -90,42 +90,6 @@ const isStale = (value?: string | null) => {
   return Number.isNaN(timestamp) || Date.now() - timestamp > 15 * 60 * 1000;
 };
 
-const timelineFor = (refund: RefundTracking): RefundTimelineEvent[] => {
-  if (refund.timeline?.length) return refund.timeline;
-  const status = (refund.status ?? "not_applicable").toLowerCase();
-  const events: RefundTimelineEvent[] = [
-    { status: "cancelled", occurred_at: refund.requested_at },
-  ];
-  if (["pending", "processing", "completed", "failed"].includes(status)) {
-    events.push({ status: "pending", occurred_at: refund.requested_at });
-  }
-  if (["processing", "completed"].includes(status)) {
-    events.push({ status: "processing", occurred_at: refund.last_synced_at });
-  }
-  if (status === "completed") events.push({ status, occurred_at: refund.completed_at });
-  if (status === "failed") events.push({ status, occurred_at: refund.last_synced_at });
-  return events;
-};
-
-const timelineLabel = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "cancelled":
-    case "cancellation_accepted":
-      return "Cancellation accepted";
-    case "pending":
-    case "refund_requested":
-      return "Refund requested";
-    case "processing":
-      return "Provider processing";
-    case "completed":
-      return "Refund completed";
-    case "failed":
-      return "Refund failed";
-    default:
-      return "Refund update";
-  }
-};
-
 export const RefundBadge = ({ refund }: { refund?: RefundTracking | null }) => {
   const status = (refund?.status ?? "not_applicable").toLowerCase();
   const copy = statusCopy(status);
@@ -150,7 +114,6 @@ export const RefundPanel = ({ refund, onRefresh }: RefundPanelProps) => {
   const [error, setError] = useState<string | null>(null);
   const active = activeStatuses.has((currentRefund?.status ?? "").toLowerCase());
   const copy = statusCopy((currentRefund?.status ?? "not_applicable").toLowerCase());
-  const timeline = useMemo(() => timelineFor(currentRefund ?? {}), [currentRefund]);
 
   const refresh = async () => {
     if (!onRefresh) return;
@@ -204,15 +167,6 @@ export const RefundPanel = ({ refund, onRefresh }: RefundPanelProps) => {
           {active && isStale(currentRefund.last_synced_at) && (
             <p className="mt-4 text-sm text-amber-700">The latest partner update may be delayed.</p>
           )}
-          <div className="mt-5 border-t border-[#e7edf5] pt-5">
-            <p className="text-sm font-semibold text-[#181818]">Refund timeline</p>
-            <ol className="mt-4 space-y-3">
-              {timeline.map((event, index) => <li key={`${event.status}-${event.occurred_at}-${index}`} className="flex gap-3 text-sm">
-                <span className="mt-0.5 text-[#023E8A]">{event.status === "completed" ? <CheckCircle2 size={17} /> : event.status === "failed" ? <AlertCircle size={17} /> : index === timeline.length - 1 ? <Clock3 size={17} /> : <Circle size={17} />}</span>
-                <span><span className="font-medium text-[#181818]">{timelineLabel(event.status ?? "")}</span><span className="ml-2 text-[#6b7280]">{formatDate(event.occurred_at)}</span></span>
-              </li>)}
-            </ol>
-          </div>
         </>
       )}
       {onRefresh && active && <button type="button" onClick={refresh} disabled={refreshing} className="mt-5 inline-flex items-center gap-2 rounded-lg border border-[#023E8A] px-3 py-2 text-sm font-medium text-[#023E8A] transition hover:bg-[#eef5ff] disabled:cursor-wait disabled:opacity-60"><RefreshCw size={15} className={refreshing ? "animate-spin" : ""} />{refreshing ? "Refreshing…" : "Refresh status"}</button>}

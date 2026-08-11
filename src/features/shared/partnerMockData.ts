@@ -1,5 +1,7 @@
 import type { CarTransferOption } from "../car_rentals/types/booking";
 
+/** Test/preview fixture only. Production flows use the configured backend. */
+
 const mockTransferImages = [
   { url: "https://images.travelmate.local/transfer-1.jpg" },
   { url: "https://images.travelmate.local/transfer-2.jpg" },

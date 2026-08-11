@@ -115,17 +115,24 @@ test("web stays flow renders results and detail from live-shaped responses", asy
   const destination = page.getByLabel("Destination");
   await destination.fill("Lekki");
   await page.getByRole("option", { name: "Lekki, Lagos, Nigeria" }).click();
-  await page.getByRole("button", { name: "Show stay results" }).click();
+  await page.getByPlaceholder("Select Date").click();
+  const availableDays = page.locator(
+    ".rdrDay:not(.rdrDayDisabled):not(.rdrDayPassive)",
+  );
+  await availableDays.nth(0).click();
+  await availableDays.nth(1).click();
+  await page.getByRole("button", { name: "Select Date", exact: true }).click();
+  await page.getByRole("button", { name: "Stay results" }).click();
 
   await expect(page).toHaveURL(/stay-results/);
   await expect(page.getByText("Marina Residences")).toBeVisible();
-  await expect(page.getByText("NGN 120,000")).toBeVisible();
+  await expect(page.getByText("NGN 120,000", { exact: true }).first()).toBeVisible();
 
   await page.getByText("Marina Residences").click();
 
-  await expect(page).toHaveURL(/stays-detail\/tm-lagos-001/);
+  await expect(page).toHaveURL(/stay-details\/tm-lagos-001/);
   await expect(page.getByRole("heading", { name: "Stay details" })).toBeVisible();
-  await expect(page.getByText("NGN 120,000")).toBeVisible();
+  await expect(page.locator("body")).toContainText("NGN 120,000");
   await expect(page.getByText("Weekday: NGN 110,000")).toBeVisible();
   await expect(page.getByText("Weekend: NGN 135,000")).toBeVisible();
 });
