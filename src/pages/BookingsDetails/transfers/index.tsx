@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 // Icons
 import { Divider } from "@mui/material";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
@@ -22,7 +22,9 @@ import {
   refreshBookingRefund,
   searchTransferBookingByReference,
   verifyTransfersBooking,
+  getTransferReviews,
 } from "../../../features/stays/api";
+import { CatalogReview } from "../../../features/stays/types";
 
 import toast from "react-hot-toast";
 import { TransfersDetailsResponse } from "./type";
@@ -64,6 +66,9 @@ type BackendTransferBooking = TransfersDetailsResponse & {
   dropoff_location?: string;
   dropoff_location_label?: string;
   transfer_type?: string;
+  ride_type?: string;
+  vehicle_count?: number | null;
+  available_seats?: number | null;
   vehicle_class?: string;
   passenger_capacity?: number | null;
   luggage_capacity?: number | null;
@@ -132,11 +137,11 @@ const normalizeBackendTransferShape = (
           name: backend.vehicle_class || backend.transfer_type || "Transfer",
         },
         category: {
-          code: backend.transfer_type ?? "",
-          name: backend.transfer_type || "Transfer",
+          code: backend.ride_type ?? backend.transfer_type ?? "",
+          name: backend.ride_type ?? backend.transfer_type ?? "Transfer",
         },
         factsheetId: 0,
-        transferType: backend.transfer_type ?? "",
+        transferType: backend.ride_type ?? backend.transfer_type ?? "",
         arrivalShipName: null,
         arrivalTrainInfo: null,
         departureShipName: null,
@@ -172,11 +177,11 @@ const normalizeBackendTransferShape = (
           images: Array.isArray(backend.images) ? backend.images : [],
           vehicle: {
             code: backend.vehicle_class ?? "",
-            name: backend.vehicle_class || backend.transfer_type || "Transfer",
+            name: backend.vehicle_class || backend.ride_type || backend.transfer_type || "Transfer",
           },
           category: {
             code: backend.transfer_type ?? "",
-            name: backend.transfer_type || "Transfer",
+            name: backend.ride_type || backend.transfer_type || "Transfer",
           },
           transferRemarks: [],
           transferDetailInfo: [
@@ -259,6 +264,9 @@ const BookingTransfersDetails = () => {
   const [openConfirm, setOpenConfirm] = useState(false);
   const [cancelSubmitted, setCancelSubmitted] = useState(false);
   const [openReviewModal, setOpenReviewModal] = useState(false);
+  const [reviews, setReviews] = useState<CatalogReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
   // Mirrors stays' `booking_status` query-param hint (BookingsDetails/stays/
   // index.tsx) — the list page can pass this explicitly so the review/
   // cancel gating doesn't depend solely on however the detail API happens
@@ -278,6 +286,30 @@ const BookingTransfersDetails = () => {
       ? "Completed"
       : getBookingLifecycleLabel(bookingStatus, pickupDate);
   const isReviewableBooking = bookingState === "completed";
+
+  const fetchTransferReviews = useCallback(async () => {
+    const transferId = transfer?.id;
+    if (transferId == null || String(transferId).trim() === "") {
+      setReviews([]);
+      return;
+    }
+
+    setReviewsLoading(true);
+    setReviewsError(null);
+    try {
+      const result = await getTransferReviews(transferId);
+      setReviews(result);
+    } catch (error: unknown) {
+      setReviews([]);
+      setReviewsError(error instanceof Error ? error.message : "Unable to load reviews");
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [transfer?.id]);
+
+  useEffect(() => {
+    void fetchTransferReviews();
+  }, [fetchTransferReviews]);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -412,6 +444,7 @@ const BookingTransfersDetails = () => {
           <WriteAReview
             bookings={booking}
             closeModal={() => setOpenReviewModal(false)}
+            onSubmitted={fetchTransferReviews}
           />
         )}
 
@@ -711,6 +744,24 @@ const BookingTransfersDetails = () => {
             </div>
 
             {/* Actions / Cancel Button */}
+            <section className="mb-6 rounded-lg border border-gray-200 bg-white p-4">
+              <h2 className="text-lg font-semibold text-[#181818]">Reviews</h2>
+              {reviewsLoading && <p className="mt-2 text-sm text-gray-500">Loading reviews…</p>}
+              {reviewsError && <p className="mt-2 text-sm text-red-600">{reviewsError}</p>}
+              {!reviewsLoading && !reviewsError && reviews.length === 0 && (
+                <p className="mt-2 text-sm text-gray-500">No reviews available.</p>
+              )}
+              {!reviewsLoading && !reviewsError && reviews.length > 0 && (
+                <div className="mt-3 space-y-3">
+                  {reviews.slice(0, 6).map((review, index) => (
+                    <article key={`${review.submittedAt ?? "review"}-${index}`} className="border-b border-gray-100 pb-3 last:border-b-0">
+                      <p className="text-sm font-medium text-gray-800">{review.rating.toFixed(1)} / 5</p>
+                      {review.comment && <p className="mt-1 text-sm text-gray-600">{review.comment}</p>}
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
             <div>
               {/* Mobile Only: Extra Action Links */}
               <div className="lg:hidden mb-4 space-y-2">

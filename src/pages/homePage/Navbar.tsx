@@ -167,13 +167,15 @@ const Navbar: React.FC = () => {
               }}
             >
               <Box sx={{ flexGrow: 1 }}>
-                <Typography sx={{ mr: 2 }}>
-                  <img
-                    src={Travelmate}
-                    alt="Logo"
-                    style={{ maxWidth: "100px" }}
-                  />
-                </Typography>
+                <Link to="/" aria-label="TravelMate home" onClick={toggleDrawer}>
+                  <Typography sx={{ mr: 2 }}>
+                    <img
+                      src={Travelmate}
+                      alt="TravelMate"
+                      style={{ maxWidth: "100px" }}
+                    />
+                  </Typography>
+                </Link>
               </Box>
 
               <div className="flex">
@@ -384,9 +386,11 @@ const Navbar: React.FC = () => {
               alignItems: "center",
             }}
           >
-            <Typography>
-              <img src={Travelmate} alt="Logo" />
-            </Typography>
+            <Link to="/" aria-label="TravelMate home">
+              <Typography>
+                <img src={Travelmate} alt="TravelMate" />
+              </Typography>
+            </Link>
 
             <Box
               sx={{ display: "flex", flexGrow: 1, justifyContent: "center" }}

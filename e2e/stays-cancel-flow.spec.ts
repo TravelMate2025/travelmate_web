@@ -95,7 +95,7 @@ test("stay booking detail shows real price/status and cancels with a reason", as
 
   // Price: total_amount is the only amount field this endpoint returns —
   // must not render as N/A / -- / blank.
-  await expect(page.getByText("NGN", { exact: false }).getByText("150,000")).toBeVisible();
+  await expect(page.getByText("NGN 150,000", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("--")).toHaveCount(0);
 
   await expect(page.getByRole("button", { name: "Cancel Booking" })).toBeVisible();
