@@ -384,11 +384,9 @@ const BookingTransfersDetails = () => {
 
   const handleCancelBookings = async (bookingId: string | undefined, reason?: string) => {
     try {
-      if (reason?.trim()) {
-        await CancelTransferBookings(bookingId, setCancelLoad, reason);
-      } else {
-        await CancelTransferBookings(bookingId, setCancelLoad);
-      }
+      const res = reason?.trim()
+        ? await CancelTransferBookings(bookingId, setCancelLoad, reason)
+        : await CancelTransferBookings(bookingId, setCancelLoad);
       toast.success("Booking cancelled successfully");
 
       setBooking((prev) => {
@@ -396,6 +394,11 @@ const BookingTransfersDetails = () => {
         return {
           ...prev,
           status: "CANCELLED",
+          // Merge the refund state the cancel response already returned
+          // instead of discarding it — otherwise the panel below briefly
+          // shows the pre-cancellation ("no refund applies") state until a
+          // full reload.
+          refund: res?.refund ?? prev.refund,
         };
       });
 

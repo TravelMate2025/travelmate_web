@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ExternalLink, RefreshCw } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, ExternalLink, RefreshCw } from "lucide-react";
 
 export type RefundStatus =
   | "not_applicable"
@@ -47,8 +47,10 @@ const statusCopy = (status: RefundStatus) => {
       return { label: "Refund completed", tone: "green" as const };
     case "failed":
       return { label: "Refund needs attention", tone: "red" as const };
-    default:
+    case "not_applicable":
       return { label: "No refund applies", tone: "gray" as const };
+    default:
+      return { label: "Refund status unknown", tone: "amber" as const };
   }
 };
 
@@ -62,8 +64,10 @@ const statusMessage = (status: RefundStatus) => {
       return "The payment provider has confirmed this refund. Please check the original payment method for the credit.";
     case "failed":
       return "We could not complete this refund automatically. Our support team can help review what happened.";
-    default:
+    case "not_applicable":
       return "This cancellation does not have a refund to track.";
+    default:
+      return "We couldn't recognize this refund's status. The details below are still accurate — contact support if anything looks wrong.";
   }
 };
 
@@ -82,6 +86,21 @@ const formatDate = (value?: string | null) => {
   if (!value) return "Not available";
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+};
+
+const timelineLabel = (status?: string) => {
+  switch ((status || "").toLowerCase()) {
+    case "pending":
+      return "Refund requested";
+    case "processing":
+      return "Provider processing";
+    case "completed":
+      return "Refund completed";
+    case "failed":
+      return "Refund failed";
+    default:
+      return "Refund update";
+  }
 };
 
 const isStale = (value?: string | null) => {
@@ -112,8 +131,9 @@ export const RefundPanel = ({ refund, onRefresh }: RefundPanelProps) => {
   const [currentRefund, setCurrentRefund] = useState(refund ?? null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const active = activeStatuses.has((currentRefund?.status ?? "").toLowerCase());
-  const copy = statusCopy((currentRefund?.status ?? "not_applicable").toLowerCase());
+  const status = (currentRefund?.status ?? "not_applicable").toLowerCase();
+  const active = activeStatuses.has(status);
+  const copy = statusCopy(status);
 
   const refresh = async () => {
     if (!onRefresh) return;
@@ -122,7 +142,7 @@ export const RefundPanel = ({ refund, onRefresh }: RefundPanelProps) => {
     try {
       const next = await onRefresh();
       if (next) setCurrentRefund(next);
-    } catch (refreshError) {
+    } catch (_refreshError) {
       setError("We couldn't refresh the refund status right now. Your current refund details are still shown; please try again shortly.");
     } finally {
       setRefreshing(false);
@@ -139,7 +159,7 @@ export const RefundPanel = ({ refund, onRefresh }: RefundPanelProps) => {
         <RefundBadge refund={currentRefund} />
       </div>
 
-      {!currentRefund || copy.tone === "gray" ? (
+      {!currentRefund || status === "not_applicable" ? (
         <p className="mt-4 text-sm leading-6 text-[#4E4F52]">This cancellation does not have a refund to track.</p>
       ) : (
         <>
@@ -152,8 +172,8 @@ export const RefundPanel = ({ refund, onRefresh }: RefundPanelProps) => {
             <Metric label="Last update" value={formatDate(currentRefund.last_synced_at)} />
             {currentRefund.refund_reference && <Metric label="Refund reference" value={currentRefund.refund_reference} />}
           </div>
-          <p className="mt-4 rounded-lg bg-[#eef5ff] px-3 py-2 text-sm leading-6 text-[#174a86]">{currentRefund.refund_explanation || statusMessage((currentRefund.status ?? "not_applicable").toLowerCase())}</p>
-          {currentRefund.refund_explanation && <p className="mt-2 text-sm leading-6 text-[#4E4F52]">{statusMessage((currentRefund.status ?? "not_applicable").toLowerCase())}</p>}
+          <p className="mt-4 rounded-lg bg-[#eef5ff] px-3 py-2 text-sm leading-6 text-[#174a86]">{currentRefund.refund_explanation || statusMessage(status)}</p>
+          {currentRefund.refund_explanation && <p className="mt-2 text-sm leading-6 text-[#4E4F52]">{statusMessage(status)}</p>}
           {active && currentRefund.estimated_settlement_window && (
             <p className="mt-4 rounded-lg bg-[#eef5ff] px-3 py-2 text-sm text-[#174a86]">Settlement guidance: {currentRefund.estimated_settlement_window}.</p>
           )}
@@ -166,6 +186,30 @@ export const RefundPanel = ({ refund, onRefresh }: RefundPanelProps) => {
           )}
           {active && isStale(currentRefund.last_synced_at) && (
             <p className="mt-4 text-sm text-amber-700">The latest partner update may be delayed.</p>
+          )}
+          {currentRefund.timeline && currentRefund.timeline.length > 0 && (
+            <div className="mt-5 border-t border-[#e7edf5] pt-4">
+              <p className="text-sm font-semibold text-[#181818]">Refund timeline</p>
+              <ol className="mt-3 space-y-3">
+                {currentRefund.timeline.map((event, index) => (
+                  <li key={`${event.status}-${event.occurred_at}-${index}`} className="flex items-start gap-3 text-sm">
+                    <span className="mt-0.5 text-[#023E8A]">
+                      {event.status === "completed" ? (
+                        <CheckCircle2 size={17} />
+                      ) : event.status === "failed" ? (
+                        <AlertTriangle size={17} />
+                      ) : (
+                        <Clock3 size={17} />
+                      )}
+                    </span>
+                    <span>
+                      <span className="font-medium text-[#181818]">{timelineLabel(event.status)}</span>
+                      <span className="ml-2 text-[#6b7280]">{formatDate(event.occurred_at)}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
           )}
         </>
       )}

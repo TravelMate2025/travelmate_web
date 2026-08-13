@@ -337,6 +337,11 @@ const BookingStaysDetailsPage: React.FC = () => {
           ...prev,
           status: "CANCELLED",
           cancelled_at: res.cancelled_at,
+          // Merge the refund state the cancel response already returned
+          // instead of discarding it — otherwise the panel below briefly
+          // shows the pre-cancellation ("no refund applies") state until a
+          // full reload.
+          refund: res.refund ?? prev.refund,
         };
       });
 

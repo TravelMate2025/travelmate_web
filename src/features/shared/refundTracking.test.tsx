@@ -31,6 +31,23 @@ describe("RefundPanel customer contract", () => {
     }
   });
 
+  it("renders an explicit unknown state for an unrecognized status instead of hiding it as not-applicable", () => {
+    render(
+      <RefundPanel
+        refund={{
+          status: "some_new_provider_status",
+          requested_amount: "600.00",
+          currency: "NGN",
+        }}
+      />,
+    );
+
+    expect(screen.getAllByText("Refund status unknown").length).toBeGreaterThan(0);
+    expect(screen.queryByText("No refund applies")).not.toBeInTheDocument();
+    // Still shows the real amount data rather than swallowing it into an empty state.
+    expect(screen.getAllByText(/NGN/).length).toBeGreaterThan(0);
+  });
+
   it("does not present a refund workflow for bookings without a refund", () => {
     render(<RefundPanel refund={{ status: "not_applicable" }} />);
 
@@ -53,6 +70,30 @@ describe("RefundPanel customer contract", () => {
       "href",
       "/tickets?booking_reference=BK-1&refund_reference=RF-1",
     );
+  });
+
+  it("renders the refund timeline in order", () => {
+    render(
+      <RefundPanel
+        refund={{
+          status: "processing",
+          currency: "NGN",
+          timeline: [
+            { status: "pending", occurred_at: "2026-01-01T10:00:00Z" },
+            { status: "processing", occurred_at: "2026-01-02T10:00:00Z" },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Refund requested")).toBeInTheDocument();
+    expect(screen.getByText("Provider processing")).toBeInTheDocument();
+  });
+
+  it("does not render a timeline section when none is returned", () => {
+    render(<RefundPanel refund={{ status: "processing", currency: "NGN" }} />);
+
+    expect(screen.queryByText("Refund timeline")).not.toBeInTheDocument();
   });
 
   it("explains partial refunds against the original payment without exposing provider data", () => {
