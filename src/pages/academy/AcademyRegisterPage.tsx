@@ -1,10 +1,15 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import Navbar from "../homePage/Navbar";
 import Footer from "../../components/2Footer";
 import { InfoPageHeader } from "../../components/infoPages/InfoPageHeader";
 import { usePageMeta } from "../../hooks/usePageMeta";
-import { registerForClass, type RegisterForClassResponse } from "../../features/academy/api";
+import {
+  getClassInfo,
+  registerForClass,
+  type ClassInfo,
+  type RegisterForClassResponse,
+} from "../../features/academy/api";
 
 // Registration only creates the enrollment record ("intends to attend") --
 // it deliberately never marks any session as attended, including Week 1.
@@ -20,6 +25,10 @@ export function AcademyRegisterPage() {
     description: "Register for a TravelMate training class.",
   });
 
+  const [loading, setLoading] = useState(true);
+  const [classInfo, setClassInfo] = useState<ClassInfo | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -27,6 +36,14 @@ export function AcademyRegisterPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<RegisterForClassResponse | null>(null);
+
+  useEffect(() => {
+    if (!classSlug) return;
+    getClassInfo(classSlug)
+      .then(setClassInfo)
+      .catch((err: unknown) => setLoadError(err instanceof Error ? err.message : "Something went wrong"))
+      .finally(() => setLoading(false));
+  }, [classSlug]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -49,18 +66,43 @@ export function AcademyRegisterPage() {
     }
   };
 
-  return (
-    <>
-      <Navbar />
-      <InfoPageHeader
-        eyebrow="Registration"
-        title="Register for the class"
-        subtitle="One-time sign-up ahead of the first session. We'll use this to check you in at each weekend and to track attendance for end-of-class awards."
-      />
+  const renderBody = () => {
+    if (loading) {
+      return <p className="text-center text-[#4E4F52] text-[14px]">Loading…</p>;
+    }
 
-      <section className="px-4 py-14">
-        <div className="max-w-[440px] mx-auto">
-          {confirmation ? (
+    if (loadError || !classInfo) {
+      return (
+        <div className="border border-[#EEF0F3] rounded-2xl p-8 text-center">
+          <div className="w-12 h-12 rounded-full bg-[#D726381A] text-[#D72638] flex items-center justify-center text-xl mx-auto mb-4">
+            !
+          </div>
+          <h2 className="text-[#181818] font-bold text-[18px] mb-2">
+            We couldn't load this class
+          </h2>
+          <p className="text-[#4E4F52] text-[14px] leading-relaxed">
+            This registration link may be invalid. Ask the organizer for the current link.
+          </p>
+        </div>
+      );
+    }
+
+    if (!confirmation && !classInfo.registration_open) {
+      return (
+        <div className="border border-[#EEF0F3] rounded-2xl p-8 text-center">
+          <div className="w-12 h-12 rounded-full bg-[#EFB6081A] text-[#9A7000] flex items-center justify-center text-xl mx-auto mb-4">
+            ⏱
+          </div>
+          <h2 className="text-[#181818] font-bold text-[18px] mb-2">Registration is closed</h2>
+          <p className="text-[#4E4F52] text-[14px] leading-relaxed">
+            Registration for {classInfo.name} is no longer open. See the organizer if you think
+            this is a mistake.
+          </p>
+        </div>
+      );
+    }
+
+    return confirmation ? (
             <div className="border border-[#EEF0F3] rounded-2xl p-8 text-center">
               <div className="w-12 h-12 rounded-full bg-[#2D9C5E1A] text-[#2D9C5E] flex items-center justify-center text-xl mx-auto mb-4">
                 ✓
@@ -162,12 +204,30 @@ export function AcademyRegisterPage() {
                 {submitting ? "Registering…" : "Register for the class"}
               </button>
             </form>
-          )}
+          );
+  };
 
-          <p className="text-center text-[13px] text-gray-500 mt-5">
-            Already registered? No need to sign up again — check in using the
-            QR code posted at each session.
-          </p>
+  const showFooterNote = !loading && !loadError && classInfo && (classInfo.registration_open || confirmation);
+
+  return (
+    <>
+      <Navbar />
+      <InfoPageHeader
+        eyebrow="Registration"
+        title="Register for the class"
+        subtitle="One-time sign-up ahead of the first session. We'll use this to check you in at each weekend and to track attendance for end-of-class awards."
+      />
+
+      <section className="px-4 py-14">
+        <div className="max-w-[440px] mx-auto">
+          {renderBody()}
+
+          {showFooterNote && (
+            <p className="text-center text-[13px] text-gray-500 mt-5">
+              Already registered? No need to sign up again — check in using the
+              QR code posted at each session.
+            </p>
+          )}
         </div>
       </section>
 

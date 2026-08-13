@@ -35,6 +35,24 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Something went wrong";
 }
 
+export interface ClassInfo {
+  name: string;
+  slug: string;
+  registration_open: boolean;
+}
+
+// Loaded before the registration form renders, the same way the check-in
+// page loads the session first — so a closed class shows a clean closed
+// state instead of a form that's certain to fail on submit.
+export const getClassInfo = async (classSlug: string): Promise<ClassInfo> => {
+  try {
+    const response = await api.get<ClassInfo>(`/v1/public/academy/classes/${classSlug}/`);
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error));
+  }
+};
+
 export const registerForClass = async (
   classSlug: string,
   payload: RegisterForClassPayload,

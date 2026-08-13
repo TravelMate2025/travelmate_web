@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Navbar from "../homePage/Navbar";
 import Footer from "../../components/2Footer";
 import { InfoPageHeader } from "../../components/infoPages/InfoPageHeader";
@@ -24,9 +24,9 @@ const formatDateTime = (value: string) => {
 };
 
 // Reached only via a session's QR code -- there is no generic check-in
-// page, and this page never links back to registration except as the
-// specific result of a failed identity lookup (see the not_registered
-// branch below).
+// page, and this page never links to registration, even on a
+// not-registered result. The registration link is organizer-distributed
+// only (copied from the dashboard), never surfaced by the product itself.
 export function AcademyCheckInPage() {
   const { qrToken } = useParams<{ qrToken: string }>();
 
@@ -83,7 +83,7 @@ export function AcademyCheckInPage() {
             We couldn't load this session
           </h2>
           <p className="text-[#4E4F52] text-[14px] leading-relaxed">
-            {loadError || "This QR code may be invalid or expired. Ask the organizer for the current code."}
+            This QR code may be invalid or expired. Ask the organizer for the current code.
           </p>
         </div>
       );
@@ -134,21 +134,16 @@ export function AcademyCheckInPage() {
           </div>
           <h2 className="text-[#181818] font-bold text-[18px] mb-2">We couldn't find you</h2>
           <p className="text-[#4E4F52] text-[14px] leading-relaxed mb-4">
-            {result.message} Double-check what you typed, or register for this class first.
+            {result.message} Double-check what you typed, or see the organizer if you haven't
+            registered yet.
           </p>
           <button
             type="button"
             onClick={() => setResult(null)}
-            className="text-[13px] font-semibold text-[#023E8A] hover:underline mr-4"
+            className="text-[13px] font-semibold text-[#023E8A] hover:underline"
           >
             Try again
           </button>
-          <Link
-            to={`/academy/${result.training_class_slug}/register`}
-            className="text-[13px] font-semibold text-[#023E8A] hover:underline"
-          >
-            Register for this class →
-          </Link>
         </div>
       );
     }
