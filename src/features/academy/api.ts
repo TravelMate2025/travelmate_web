@@ -49,3 +49,79 @@ export const registerForClass = async (
     throw new Error(getErrorMessage(error));
   }
 };
+
+export type WindowStatus = "not_started" | "open" | "closed";
+
+export interface SessionInfo {
+  id: string;
+  label: string;
+  session_date: string;
+  session_start_at: string;
+  checkin_closes_at: string;
+  training_class_name: string;
+  training_class_slug: string;
+  window_status: WindowStatus;
+}
+
+// The QR code is the only way this page is meant to be reached, so a
+// failure here (unknown/expired token, network error) is exceptional --
+// there's no "expected" failure state to branch UI on, unlike check-in.
+export const getSessionByToken = async (qrToken: string): Promise<SessionInfo> => {
+  try {
+    const response = await api.get<SessionInfo>(`/v1/public/academy/sessions/${qrToken}/`);
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error));
+  }
+};
+
+export type CheckInResult =
+  | {
+      status: "success";
+      already_checked_in: boolean;
+      session_label: string;
+      training_class_name: string;
+      checked_in_at: string;
+    }
+  | { status: "window_closed"; window_status: WindowStatus; message: string }
+  | { status: "not_registered"; training_class_slug: string; message: string };
+
+// Window-closed and not-registered are expected, distinct UI states --
+// not_registered from RegisterForClassView. Only network/unknown-token
+// failures throw, since there's no dedicated panel for those.
+export const checkInForSession = async (
+  qrToken: string,
+  identifier: string,
+): Promise<CheckInResult> => {
+  try {
+    const response = await api.post(`/v1/public/academy/sessions/${qrToken}/checkin/`, {
+      identifier,
+    });
+    return {
+      status: "success",
+      already_checked_in: Boolean(response.data.already_checked_in),
+      session_label: response.data.session_label,
+      training_class_name: response.data.training_class_name,
+      checked_in_at: response.data.checked_in_at,
+    };
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const data = error.response?.data as Record<string, unknown> | undefined;
+      if (data?.reason === "window_closed") {
+        return {
+          status: "window_closed",
+          window_status: data.window_status as WindowStatus,
+          message: String(data.error ?? "Check-in is not open for this session."),
+        };
+      }
+      if (data?.reason === "not_registered") {
+        return {
+          status: "not_registered",
+          training_class_slug: String(data.training_class_slug ?? ""),
+          message: String(data.error ?? "We couldn't find you registered for this class."),
+        };
+      }
+    }
+    throw new Error(getErrorMessage(error));
+  }
+};
