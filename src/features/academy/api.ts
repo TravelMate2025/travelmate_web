@@ -53,14 +53,54 @@ export const getClassInfo = async (classSlug: string): Promise<ClassInfo> => {
   }
 };
 
-export const registerForClass = async (
+export interface RequestOTPResponse {
+  email: string;
+  expiry_minutes: number;
+}
+
+// Step 1 of registration: validates the submission and emails a
+// confirmation code. Creates nothing yet -- see confirmRegistrationOTP.
+export const requestRegistrationOTP = async (
   classSlug: string,
   payload: RegisterForClassPayload,
+): Promise<RequestOTPResponse> => {
+  try {
+    const response = await api.post<RequestOTPResponse>(
+      `/v1/public/academy/classes/${classSlug}/register/`,
+      payload,
+    );
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error));
+  }
+};
+
+// Step 2: submits the code from the email. Only on success does the
+// enrollment (and student ID) actually get created.
+export const confirmRegistrationOTP = async (
+  classSlug: string,
+  email: string,
+  code: string,
 ): Promise<RegisterForClassResponse> => {
   try {
     const response = await api.post<RegisterForClassResponse>(
-      `/v1/public/academy/classes/${classSlug}/register/`,
-      payload,
+      `/v1/public/academy/classes/${classSlug}/register/confirm/`,
+      { email, code },
+    );
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error));
+  }
+};
+
+export const resendRegistrationOTP = async (
+  classSlug: string,
+  email: string,
+): Promise<RequestOTPResponse> => {
+  try {
+    const response = await api.post<RequestOTPResponse>(
+      `/v1/public/academy/classes/${classSlug}/register/resend/`,
+      { email },
     );
     return response.data;
   } catch (error: unknown) {
