@@ -12,7 +12,8 @@ import {
 } from "../../features/academy/api";
 
 // Registration only creates the enrollment record ("intends to attend") --
-// it deliberately never marks any session as attended, including Week 1.
+// it deliberately never marks any session as attended, including the
+// first one.
 // Every session, with no exceptions, is checked in via that session's own
 // QR code. This page also never links to the check-in flow: check-in only
 // makes sense in the context of one specific, time-boxed session, which
@@ -112,8 +113,9 @@ export function AcademyRegisterPage() {
               </h2>
               <p className="text-[#4E4F52] text-[14px] leading-relaxed mb-4">
                 Registering doesn't mark you present for any session — you'll
-                still check in at the door each weekend, including Week 1, by
-                scanning the session QR code within its check-in window.
+                still check in at the door each session, including the
+                first one, by scanning the session QR code within its
+                check-in window.
               </p>
               <div className="bg-[#F0F4FA] border border-[#DCE7F7] rounded-lg py-3 px-4">
                 <p className="text-[10px] font-bold uppercase tracking-wide text-[#023E8A] opacity-75 mb-1">
@@ -215,7 +217,7 @@ export function AcademyRegisterPage() {
       <InfoPageHeader
         eyebrow="Registration"
         title="Register for the class"
-        subtitle="One-time sign-up ahead of the first session. We'll use this to check you in at each weekend and to track attendance for end-of-class awards."
+        subtitle="One-time sign-up ahead of the first session. We'll use this to check you in at each session and to track attendance for end-of-class awards."
       />
 
       <section className="px-4 py-14">
