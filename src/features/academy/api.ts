@@ -1,5 +1,20 @@
 import axios from "axios";
-import api from "../../api/services/api";
+
+// Deliberately a standalone axios instance, NOT the shared one from
+// ../../api/services/api. That shared instance auto-attaches a Bearer
+// token from storage to every request and hard-redirects the whole page
+// to /create-account on any 401 response -- reasonable for pages that
+// actually require auth, but these academy endpoints are all public
+// (AllowAny) and don't need a token at all. If a logged-in user's token
+// happens to be expired, DRF's auth layer rejects the request with 401
+// *because* bad credentials were supplied (different from no credentials
+// at all) -- which, through the shared instance, would yank a student
+// completely off the check-in/register page mid-flow. Not attaching a
+// token here means that 401 path is never triggered in the first place.
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: { "Content-Type": "application/json" },
+});
 
 export interface RegisterForClassPayload {
   full_name: string;
