@@ -71,6 +71,7 @@ const ReviewsSettingsPage = lazy(() => import("./pages/settings/ReviewsPage").th
 const ProfilePage = lazy(() => import("./pages/settings/ProfilePage").then(m => ({ default: m.ProfilePage })));
 const AcademyRegisterPage = lazy(() => import("./pages/academy/AcademyRegisterPage").then(m => ({ default: m.AcademyRegisterPage })));
 const AcademyCheckInPage = lazy(() => import("./pages/academy/AcademyCheckInPage").then(m => ({ default: m.AcademyCheckInPage })));
+const AcademyAssignmentSubmitPage = lazy(() => import("./pages/academy/AcademyAssignmentSubmitPage").then(m => ({ default: m.AcademyAssignmentSubmitPage })));
 
 function App() {
   return (
@@ -90,6 +91,7 @@ function App() {
         <Route path="/cookie-policy" element={<CookiePolicyPage />} />
         <Route path="/academy/:classSlug/register" element={<AcademyRegisterPage />} />
         <Route path="/academy/checkin/:qrToken" element={<AcademyCheckInPage />} />
+        <Route path="/academy/questions/:shareToken" element={<AcademyAssignmentSubmitPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/verify-page" element={<VerifyPage />} />
