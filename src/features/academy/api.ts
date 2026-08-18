@@ -198,3 +198,110 @@ export const checkInForSession = async (
     throw new Error(getErrorMessage(error));
   }
 };
+
+export interface QuestionsLinkPreview {
+  training_class_name: string;
+  session_label: string | null;
+  attendance_required: boolean;
+}
+
+// What the page shows before anyone has proven who they are --
+// deliberately never includes questions_url. See verifyQuestionsLinkAccess
+// for the only call that can ever reveal it. Mirrors getSessionByToken:
+// reached only via a share_token in the URL, so a failure here is
+// exceptional (unknown/expired token), not a distinct UI state.
+export const getQuestionsLinkPreview = async (shareToken: string): Promise<QuestionsLinkPreview> => {
+  try {
+    const response = await api.get<QuestionsLinkPreview>(
+      `/v1/public/academy/questions-link-sends/${shareToken}/`,
+    );
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error));
+  }
+};
+
+export type VerifyResult =
+  | { status: "success"; questions_url: string }
+  | { status: "not_registered"; training_class_slug: string; message: string }
+  | { status: "attendance_required"; session_label: string; message: string };
+
+// Identity+eligibility check -- on success, this is the only response
+// that ever carries questions_url. not_registered/attendance_required
+// are expected, distinct UI states, same convention as checkInForSession.
+export const verifyQuestionsLinkAccess = async (
+  shareToken: string,
+  identifier: string,
+): Promise<VerifyResult> => {
+  try {
+    const response = await api.post(`/v1/public/academy/questions-link-sends/${shareToken}/verify/`, {
+      identifier,
+    });
+    return { status: "success", questions_url: response.data.questions_url };
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const data = error.response?.data as Record<string, unknown> | undefined;
+      if (data?.reason === "not_registered") {
+        return {
+          status: "not_registered",
+          training_class_slug: String(data.training_class_slug ?? ""),
+          message: String(data.error ?? "We couldn't find you registered for this class."),
+        };
+      }
+      if (data?.reason === "attendance_required") {
+        return {
+          status: "attendance_required",
+          session_label: String(data.session_label ?? ""),
+          message: String(data.error ?? "You need to have checked in for this session."),
+        };
+      }
+    }
+    throw new Error(getErrorMessage(error));
+  }
+};
+
+export type SubmitResult =
+  | { status: "success"; already_submitted: boolean; assignment_link: string }
+  | { status: "not_registered"; training_class_slug: string; message: string }
+  | { status: "attendance_required"; session_label: string; message: string };
+
+// Re-checks eligibility independently of any prior verify call -- the
+// backend never trusts a cached "already verified" state, and neither
+// does this page (see AcademyAssignmentSubmitPage). Resubmission is
+// expected and safe: it updates the existing submission in place.
+export const submitAssignmentLink = async (
+  shareToken: string,
+  identifier: string,
+  assignmentLink: string,
+): Promise<SubmitResult> => {
+  try {
+    const response = await api.post(`/v1/public/academy/questions-link-sends/${shareToken}/submit/`, {
+      identifier,
+      assignment_link: assignmentLink,
+    });
+    return {
+      status: "success",
+      already_submitted: Boolean(response.data.already_submitted),
+      assignment_link: String(response.data.assignment_link ?? assignmentLink),
+    };
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const data = error.response?.data as Record<string, unknown> | undefined;
+      if (data?.reason === "not_registered") {
+        return {
+          status: "not_registered",
+          training_class_slug: String(data.training_class_slug ?? ""),
+          message: String(data.error ?? "We couldn't find you registered for this class."),
+        };
+      }
+      if (data?.reason === "attendance_required") {
+        return {
+          status: "attendance_required",
+          session_label: String(data.session_label ?? ""),
+          message: String(data.error ?? "You need to have checked in for this session."),
+        };
+      }
+    }
+    throw new Error(getErrorMessage(error));
+  }
+};
