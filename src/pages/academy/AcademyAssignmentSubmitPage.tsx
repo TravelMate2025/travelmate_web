@@ -308,6 +308,10 @@ export function AcademyAssignmentSubmitPage() {
                 placeholder="https://…"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-gray-50"
               />
+              <p className="text-[12px] text-gray-500 mt-1.5">
+                Paste the link to your completed work here (e.g. a Google Doc, Drive folder, or
+                GitHub repo) — not the questions link above.
+              </p>
             </div>
             <button
               type="submit"
