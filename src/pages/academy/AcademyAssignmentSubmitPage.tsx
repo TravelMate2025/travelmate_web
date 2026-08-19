@@ -13,12 +13,19 @@ import {
   type SubmitResult,
 } from "../../features/academy/api";
 
+const scopeLabel = (preview: QuestionsLinkPreview) => {
+  if (preview.scope === "session") return `Attendees: ${preview.session_label}`;
+  if (preview.scope === "attended_any") return "For registrants who attended any session";
+  return "All registrants";
+};
+
 // Reached only via a tutor/admin-distributed share link -- there is no
 // generic "browse questions links" page. Deliberately two-stage: the
 // questions link's actual content is never shown until the visitor
-// proves they're a registrant (and, when the send was scoped to one
-// session, that they attended it) -- so a leaked/forwarded/
-// screenshotted link alone reveals nothing but which class it's for.
+// proves they're a registrant (and, when the send requires attendance,
+// that they attended -- one specific session, or any session, per the
+// send's scope) -- so a leaked/forwarded/screenshotted link alone
+// reveals nothing but which class it's for.
 export function AcademyAssignmentSubmitPage() {
   const { shareToken } = useParams<{ shareToken: string }>();
 
@@ -135,8 +142,15 @@ export function AcademyAssignmentSubmitPage() {
               You need to have checked in
             </h2>
             <p className="text-[#4E4F52] text-[14px] leading-relaxed mb-4">
-              This link is only for registrants who attended{" "}
-              <strong>{verifyOutcome.session_label}</strong>. {verifyOutcome.message}
+              {verifyOutcome.session_label ? (
+                <>
+                  This link is only for registrants who attended{" "}
+                  <strong>{verifyOutcome.session_label}</strong>.{" "}
+                </>
+              ) : (
+                "This link is only for registrants who checked in to at least one session. "
+              )}
+              {verifyOutcome.message}
             </p>
             <button
               type="button"
@@ -156,7 +170,7 @@ export function AcademyAssignmentSubmitPage() {
               {preview.training_class_name}
             </p>
             <p className="text-[#012A5D] font-bold text-[15px]">
-              {preview.session_label ? `Attendees: ${preview.session_label}` : "All registrants"}
+              {scopeLabel(preview)}
             </p>
           </div>
 
@@ -199,7 +213,7 @@ export function AcademyAssignmentSubmitPage() {
               {preview.training_class_name}
             </p>
             <p className="text-[#012A5D] font-bold text-[15px]">
-              {preview.session_label ? `Attendees: ${preview.session_label}` : "All registrants"}
+              {scopeLabel(preview)}
             </p>
           </div>
           <div>
