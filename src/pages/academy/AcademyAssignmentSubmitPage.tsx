@@ -19,6 +19,14 @@ const scopeLabel = (preview: QuestionsLinkPreview) => {
   return "All registrants";
 };
 
+const formatDeadline = (value: string) =>
+  new Date(value).toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
 // Reached only via a tutor/admin-distributed share link -- there is no
 // generic "browse questions links" page. Deliberately two-stage: the
 // questions link's actual content is never shown until the visitor
@@ -172,6 +180,14 @@ export function AcademyAssignmentSubmitPage() {
             <p className="text-[#012A5D] font-bold text-[15px]">
               {scopeLabel(preview)}
             </p>
+            {preview.deadline_at && (
+              <p
+                className={`text-[12px] mt-1 font-semibold ${preview.is_past_deadline ? "text-[#D72638]" : "text-[#023E8A]"}`}
+              >
+                {preview.is_past_deadline ? "Submission deadline passed: " : "Submission deadline: "}
+                {formatDeadline(preview.deadline_at)}
+              </p>
+            )}
           </div>
 
           <div>
@@ -205,6 +221,10 @@ export function AcademyAssignmentSubmitPage() {
     // Stage 2: reveal the questions link + submit an assignment link.
     // Same identifier already entered above stays in local state, so
     // this reads as one continuous form, not two separate logins.
+    // Viewing the link stays allowed past the deadline (see preview.deadline_at
+    // above) -- only submitting/resubmitting is blocked, since the deadline
+    // could have passed between the page loading and this click.
+    const deadlinePassed = preview.is_past_deadline || submitOutcome?.status === "deadline_passed";
     return (
       <div className="space-y-5">
         <div className="border border-[#EEF0F3] rounded-2xl p-8 space-y-4">
@@ -215,6 +235,14 @@ export function AcademyAssignmentSubmitPage() {
             <p className="text-[#012A5D] font-bold text-[15px]">
               {scopeLabel(preview)}
             </p>
+            {preview.deadline_at && (
+              <p
+                className={`text-[12px] mt-1 font-semibold ${preview.is_past_deadline ? "text-[#D72638]" : "text-[#023E8A]"}`}
+              >
+                {preview.is_past_deadline ? "Submission deadline passed: " : "Submission deadline: "}
+                {formatDeadline(preview.deadline_at)}
+              </p>
+            )}
           </div>
           <div>
             <p className="text-[13px] font-semibold text-[#4E4F52] mb-1.5">Questions link</p>
@@ -260,6 +288,13 @@ export function AcademyAssignmentSubmitPage() {
                 {submitOutcome.message}
               </p>
             )}
+            {deadlinePassed && (
+              <p className="text-[13px] text-[#D72638] bg-[#D726381A] border border-[#D72638] rounded-lg px-3 py-2">
+                {preview.deadline_at
+                  ? `The submission deadline (${formatDeadline(preview.deadline_at)}) has passed. You can still view the questions link above, but can no longer submit or resubmit.`
+                  : "The submission deadline for this has passed."}
+              </p>
+            )}
             <div>
               <label className="block text-[13px] font-semibold text-[#4E4F52] mb-1.5">
                 Your assignment link
@@ -267,15 +302,16 @@ export function AcademyAssignmentSubmitPage() {
               <input
                 type="url"
                 required
+                disabled={deadlinePassed}
                 value={assignmentLink}
                 onChange={(e) => setAssignmentLink(e.target.value)}
                 placeholder="https://…"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-gray-50"
               />
             </div>
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || deadlinePassed}
               className="w-full bg-[#023E8A] text-white py-2.5 rounded-lg font-semibold hover:bg-[#012A5D] transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {submitting ? "Submitting…" : "Submit assignment link"}

@@ -206,6 +206,8 @@ export interface QuestionsLinkPreview {
   session_label: string | null;
   scope: QuestionsLinkScope;
   attendance_required: boolean;
+  deadline_at: string | null;
+  is_past_deadline: boolean;
 }
 
 // What the page shows before anyone has proven who they are --
@@ -269,7 +271,8 @@ export const verifyQuestionsLinkAccess = async (
 export type SubmitResult =
   | { status: "success"; already_submitted: boolean; assignment_link: string }
   | { status: "not_registered"; training_class_slug: string; message: string }
-  | { status: "attendance_required"; session_label: string | null; message: string };
+  | { status: "attendance_required"; session_label: string | null; message: string }
+  | { status: "deadline_passed"; deadline_at: string; message: string };
 
 // Re-checks eligibility independently of any prior verify call -- the
 // backend never trusts a cached "already verified" state, and neither
@@ -305,6 +308,13 @@ export const submitAssignmentLink = async (
           status: "attendance_required",
           session_label: data.session_label != null ? String(data.session_label) : null,
           message: String(data.error ?? "You need to have checked in for this session."),
+        };
+      }
+      if (data?.reason === "deadline_passed") {
+        return {
+          status: "deadline_passed",
+          deadline_at: String(data.deadline_at ?? ""),
+          message: String(data.error ?? "The submission deadline for this has passed."),
         };
       }
     }
