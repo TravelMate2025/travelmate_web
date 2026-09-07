@@ -199,11 +199,16 @@ export const checkInForSession = async (
   }
 };
 
-export type QuestionsLinkScope = "all" | "session" | "attended_any";
+export type MatchMode = "all" | "any";
+
+// "attended_any" is legacy-only -- can still appear on a link created
+// before multi-session scoping shipped, no longer creatable going forward.
+export type QuestionsLinkScope = "all" | "session" | "attended_any" | "sessions";
 
 export interface QuestionsLinkPreview {
   training_class_name: string;
-  session_label: string | null;
+  session_labels: string[];
+  match_mode: MatchMode | null;
   scope: QuestionsLinkScope;
   attendance_required: boolean;
   deadline_at: string | null;
@@ -229,10 +234,16 @@ export const getQuestionsLinkPreview = async (shareToken: string): Promise<Quest
 export type VerifyResult =
   | { status: "success"; questions_url: string }
   | { status: "not_registered"; training_class_slug: string; message: string }
-  // session_label is null when the send requires attendance at *any*
-  // session (QuestionsLinkSend.require_attendance) rather than one
-  // specific one -- there's no single session to name in that case.
-  | { status: "attendance_required"; session_label: string | null; message: string };
+  // session_labels is empty when the send requires attendance at *any*
+  // session (the legacy attended-any scope) rather than named ones --
+  // there's no session to name in that case. match_mode is set only
+  // for a real multi-session scope (2+ labels); null otherwise.
+  | {
+      status: "attendance_required";
+      session_labels: string[];
+      match_mode: MatchMode | null;
+      message: string;
+    };
 
 // Identity+eligibility check -- on success, this is the only response
 // that ever carries questions_url. not_registered/attendance_required
@@ -259,7 +270,10 @@ export const verifyQuestionsLinkAccess = async (
       if (data?.reason === "attendance_required") {
         return {
           status: "attendance_required",
-          session_label: data.session_label != null ? String(data.session_label) : null,
+          session_labels: Array.isArray(data.session_labels)
+            ? data.session_labels.map(String)
+            : [],
+          match_mode: data.match_mode === "all" || data.match_mode === "any" ? data.match_mode : null,
           message: String(data.error ?? "You need to have checked in for this session."),
         };
       }
@@ -271,7 +285,12 @@ export const verifyQuestionsLinkAccess = async (
 export type SubmitResult =
   | { status: "success"; already_submitted: boolean; assignment_link: string }
   | { status: "not_registered"; training_class_slug: string; message: string }
-  | { status: "attendance_required"; session_label: string | null; message: string }
+  | {
+      status: "attendance_required";
+      session_labels: string[];
+      match_mode: MatchMode | null;
+      message: string;
+    }
   | { status: "deadline_passed"; deadline_at: string; message: string };
 
 // Re-checks eligibility independently of any prior verify call -- the
@@ -306,7 +325,10 @@ export const submitAssignmentLink = async (
       if (data?.reason === "attendance_required") {
         return {
           status: "attendance_required",
-          session_label: data.session_label != null ? String(data.session_label) : null,
+          session_labels: Array.isArray(data.session_labels)
+            ? data.session_labels.map(String)
+            : [],
+          match_mode: data.match_mode === "all" || data.match_mode === "any" ? data.match_mode : null,
           message: String(data.error ?? "You need to have checked in for this session."),
         };
       }

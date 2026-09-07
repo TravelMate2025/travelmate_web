@@ -14,7 +14,13 @@ import {
 } from "../../features/academy/api";
 
 const scopeLabel = (preview: QuestionsLinkPreview) => {
-  if (preview.scope === "session") return `Attendees: ${preview.session_label}`;
+  if (preview.scope === "sessions") {
+    const mode = preview.match_mode === "any" ? "any" : "all";
+    return `Attendees: ${mode} of ${preview.session_labels.join(", ")}`;
+  }
+  // "session" and "attended_any" are legacy scopes, still rendered
+  // correctly for a link created before multi-session scoping shipped.
+  if (preview.scope === "session") return `Attendees: ${preview.session_labels[0] ?? ""}`;
   if (preview.scope === "attended_any") return "For registrants who attended any session";
   return "All registrants";
 };
@@ -150,13 +156,19 @@ export function AcademyAssignmentSubmitPage() {
               You need to have checked in
             </h2>
             <p className="text-[#4E4F52] text-[14px] leading-relaxed mb-4">
-              {verifyOutcome.session_label ? (
+              {verifyOutcome.session_labels.length === 0 ? (
+                "This link is only for registrants who checked in to at least one session. "
+              ) : verifyOutcome.session_labels.length === 1 ? (
                 <>
                   This link is only for registrants who attended{" "}
-                  <strong>{verifyOutcome.session_label}</strong>.{" "}
+                  <strong>{verifyOutcome.session_labels[0]}</strong>.{" "}
                 </>
               ) : (
-                "This link is only for registrants who checked in to at least one session. "
+                <>
+                  This link is only for registrants who attended{" "}
+                  <strong>{verifyOutcome.match_mode === "any" ? "any" : "all"} of</strong>:{" "}
+                  <strong>{verifyOutcome.session_labels.join(", ")}</strong>.{" "}
+                </>
               )}
               {verifyOutcome.message}
             </p>
