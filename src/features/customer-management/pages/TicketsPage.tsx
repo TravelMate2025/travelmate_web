@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
 import RaiseTicketModal from '../components/RaiseTicketModal';
 import { deleteTicket, getTickets } from '../api/tickets';
@@ -26,6 +26,18 @@ const TicketsPage = () => {
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [searchParams] = useSearchParams();
+  const bookingReference = searchParams.get('booking_reference');
+  const refundReference = searchParams.get('refund_reference');
+  const supportContext = bookingReference || refundReference ? {
+    title: 'Refund status requires attention',
+    category: 'Account',
+    description: `Please help me track my refund. Booking reference: ${bookingReference || 'Not available'}. Refund reference: ${refundReference || 'Not available'}.`,
+  } : undefined;
+
+  useEffect(() => {
+    if (supportContext) setShowModal(true);
+  }, [supportContext?.title, supportContext?.description]);
 
 
   const breadcrumbs = [
@@ -263,6 +275,7 @@ const TicketsPage = () => {
         <RaiseTicketModal
           isOpen={showModal}
           onClose={() => setShowModal(false)}
+          initialValues={supportContext}
           onTicketRaised={() => {
             setActiveTab('all');
             fetchTickets(); // 👈 manually trigger refetch

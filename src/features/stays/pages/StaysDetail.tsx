@@ -46,6 +46,7 @@ import {
 } from "../../shared/booking/bookingFlowLabels";
 import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 import { CatalogReview } from "../types";
+import { recordViewed, recentlyViewedFromHotel } from "../../shared/recentlyViewed";
 
 const StaysDetail: React.FC = () => {
   const { hotelId } = useParams<{ hotelId: string }>();
@@ -64,13 +65,6 @@ const StaysDetail: React.FC = () => {
 
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  const cancellationDate = new Date();
-  cancellationDate.setDate(cancellationDate.getDate() + 1);
-  const formattedDate = cancellationDate.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-  const formattedTime = "11:59 PM";
   const [isOpen, setIsOpen] = useState(false);
   // Room rate plan selection state (inline expansion)
   const [expandedRoomId, setExpandedRoomId] = useState<string | null>(null);
@@ -80,6 +74,8 @@ const StaysDetail: React.FC = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
   const [reviews, setReviews] = useState<CatalogReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (hotelId) {
@@ -91,13 +87,28 @@ const StaysDetail: React.FC = () => {
         children: searchParams?.children,
         rooms: searchParams?.rooms,
       }));
-      dispatch(fetchStayPricingAsync(hotelId));
+      dispatch(fetchStayPricingAsync({
+        stayId: hotelId,
+        checkIn: searchParams?.checkIn,
+        checkOut: searchParams?.checkOut,
+        adults: searchParams?.adults,
+        children: searchParams?.children,
+        rooms: searchParams?.rooms,
+      }));
     }
     return () => {
       dispatch(clearSelectedHotel());
       dispatch(clearStayPricing());
     };
   }, [dispatch, hotelId, searchParams?.checkIn, searchParams?.checkOut, searchParams?.adults, searchParams?.children, searchParams?.rooms]);
+
+  // Record once real data (not just the loading skeleton) is present --
+  // recordViewed dedupes by id, so re-firing on incidental re-renders is harmless.
+  useEffect(() => {
+    if (selectedHotel) {
+      recordViewed(recentlyViewedFromHotel(selectedHotel));
+    }
+  }, [selectedHotel]);
 
   // Sync the carousel with the current index when a navigation dot is clicked
   const handleSelectImage = (index: number) => {
@@ -167,7 +178,7 @@ const StaysDetail: React.FC = () => {
 
   const getCancellationPolicy = () => {
     const policy = availableRooms[0]?.rates?.[0]?.cancellationPolicies?.[0];
-    if (!policy?.from) return "Non-refundable";
+    if (!policy?.from) return "Partial cancellation — 60% refund";
 
     const cancelDate = new Date(policy.from);
     return `Fully refundable until ${cancelDate.toLocaleDateString()} at ${cancelDate.toLocaleTimeString(
@@ -178,15 +189,37 @@ const StaysDetail: React.FC = () => {
 
   useEffect(() => {
     const fetchReviews = async () => {
+      setReviewsLoading(true);
+      setReviewsError(null);
       try {
         const response = await getReviews(hotelId || "");
         setReviews(response ?? []);
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unable to load reviews";
+        setReviewsError(message);
+        setReviews([]);
+      } finally {
+        setReviewsLoading(false);
       }
     };
     fetchReviews();
   }, [hotelId]);
+
+  const publicReviewSummary = selectedHotel?.reviewSummary;
+  const hasPublicReviewSummary = Boolean(
+    publicReviewSummary?.hasPublicScore &&
+      (publicReviewSummary.reviewCount ?? 0) >= 3 &&
+      publicReviewSummary.averageRating != null,
+  );
+  const catalogAverageRating = reviews.length
+    ? reviews.reduce((sum, review) => sum + (review.rating ?? 0), 0) / reviews.length
+    : null;
+  const displayedReviewRating = hasPublicReviewSummary
+    ? publicReviewSummary?.averageRating
+    : catalogAverageRating;
+  const displayedReviewCount = hasPublicReviewSummary
+    ? publicReviewSummary?.reviewCount
+    : reviews.length;
 
   // Use actual images from selectedHotel or placeholders
   const hotelImages = selectedHotel?.images?.map((img) => img.secureUrl ?? img.url ?? "") || [
@@ -225,9 +258,16 @@ const StaysDetail: React.FC = () => {
   // room_level stay (unit-level properties have no rooms[] to enrich).
   useEffect(() => {
     if (hotelId && isRoomLevel) {
-      dispatch(fetchStayRoomsAsync(hotelId));
+      dispatch(fetchStayRoomsAsync({
+        stayId: hotelId,
+        checkIn: searchParams?.checkIn,
+        checkOut: searchParams?.checkOut,
+        adults: searchParams?.adults,
+        children: searchParams?.children,
+        rooms: searchParams?.rooms,
+      }));
     }
-  }, [dispatch, hotelId, isRoomLevel]);
+  }, [dispatch, hotelId, isRoomLevel, searchParams?.checkIn, searchParams?.checkOut, searchParams?.adults, searchParams?.children, searchParams?.rooms]);
 
   const roomSummary = (selectedHotel?.roomSummary ?? {}) as Record<string, unknown>;
   const mediaSummary = (selectedHotel?.mediaSummary ?? {}) as Record<string, unknown>;
@@ -578,12 +618,12 @@ const StaysDetail: React.FC = () => {
             <div className="flex items-center gap-2 mt-2">
               <span className="text-yellow-500 flex items-center gap-1">
                 <FaStar />
-                {selectedHotel?.ratingScore ?? "N/A"}
+                {displayedReviewRating != null ? displayedReviewRating.toFixed(1) : "N/A"}
               </span>
               <span className="text-gray-600">
-                ({selectedHotel?.reviewsCount ?? reviews.length ?? "0"})
+                ({displayedReviewCount ?? 0})
               </span>
-              {reviews?.length > 0 && (
+              {!reviewsLoading && !reviewsError && reviews.length > 0 && (
                 <button
                   className="text-blue-600 underline cursor-pointer"
                   onClick={() => setOpenModal(true)}
@@ -598,6 +638,8 @@ const StaysDetail: React.FC = () => {
                 reviews={reviews}
               />
             )}
+            {reviewsLoading && <p className="mt-2 text-sm text-gray-500">Loading reviews…</p>}
+            {reviewsError && <p className="mt-2 text-sm text-red-600">{reviewsError}</p>}
           </div>
         </section>
         <section id="About">
@@ -681,7 +723,10 @@ const StaysDetail: React.FC = () => {
                             <span className="text-xs font-normal text-gray-500">/night</span>
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">{option.policyCopy}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {option.policyCopy}
+                          {option.refundPercent != null && ` · ${option.refundPercent}% refund if cancelled on time`}
+                        </p>
                       </div>
                     </label>
                   ))}
@@ -718,9 +763,8 @@ const StaysDetail: React.FC = () => {
                 const roomId = room.id ?? room.code ?? "";
                 // "from" price: cheapest option from pricing endpoint, otherwise baseRate
                 const roomOptions = getRoomOptions(roomId);
-                const fromPrice =
-                  roomOptions[0]?.amount ?? room.baseRate ??
-                  (room.rates?.[0]?.net ? parseFloat(room.rates[0].net) : null);
+                const fromPrice = roomOptions[0]?.amount ?? null;
+                const canSelectRoom = !room.isExhausted && roomOptions.length > 0;
 
                 return (
                   <div
@@ -846,7 +890,7 @@ const StaysDetail: React.FC = () => {
                           <div className="mt-auto pt-4">
                         {expandedRoomId !== roomId ? (
                           <button
-                            disabled={room.isExhausted}
+                            disabled={!canSelectRoom}
                             className="w-full bg-[#023E8A] text-white py-2 rounded-lg hover:bg-[#023E9E] transition-colors cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
                             onClick={() => {
                               setExpandedRoomId(roomId);
@@ -855,7 +899,7 @@ const StaysDetail: React.FC = () => {
                               );
                             }}
                           >
-                            {room.isExhausted ? "Sold out" : "Select"}
+                            {room.isExhausted ? "Sold out" : canSelectRoom ? "Select" : "Pricing unavailable"}
                           </button>
                         ) : (
                           <div className="border border-blue-100 rounded-lg overflow-hidden">
@@ -937,9 +981,15 @@ const StaysDetail: React.FC = () => {
         <section id="Refund and cancellations" className="mt-10">
           <hr className="text-gray-300 mb-8" />
           <RefundCancellation
-            formattedTime={formattedTime}
-            formattedDate={formattedDate}
-            refundableUntil={formattedTime}
+            policyCopy={stayPricing?.cancellationOptions?.[0]?.policyCopy}
+            refundPercent={stayPricing?.cancellationOptions?.[0]?.refundPercent}
+            deadlineLabel={
+              stayPricing?.cancellationOptions?.[0]?.cancelDeadlineHoursBeforeCheckIn
+                ? `${stayPricing.cancellationOptions[0].cancelDeadlineHoursBeforeCheckIn} hours before check-in`
+                : stayPricing?.cancellationOptions?.[0]?.deadlineType === "service_date"
+                  ? "the service date"
+                  : undefined
+            }
           />
         </section>
       </div>

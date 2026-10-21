@@ -35,6 +35,7 @@ interface StaysState {
   loading: boolean;
   error: string | null;
   searchParams: SearchParams | null;
+  searchRevision: number;
   locationDetails: locationDetails | null;
   selectedHotel: Hotel | null;
   detailsLoading: boolean;
@@ -60,6 +61,7 @@ const initialState: StaysState = {
   loading: false,
   error: null,
   searchParams: null,
+  searchRevision: 0,
   selectedHotel: null,
   detailsLoading: false,
   locationDetails: null,
@@ -114,9 +116,23 @@ export const fetchHotelsAsync = createAsyncThunk(
 
 export const fetchStayPricingAsync = createAsyncThunk(
   'stays/fetchStayPricing',
-  async (stayId: string, { rejectWithValue }) => {
+  async (params: {
+    stayId: string;
+    checkIn?: string;
+    checkOut?: string;
+    adults?: number;
+    children?: number;
+    rooms?: number;
+  }, { rejectWithValue }) => {
     try {
-      return await fetchStayPricing(stayId);
+      return await fetchStayPricing(
+        params.stayId,
+        params.checkIn,
+        params.checkOut,
+        params.adults ?? 1,
+        params.children ?? 0,
+        params.rooms ?? 1,
+      );
     } catch (error: unknown) {
       if (error instanceof Error) return rejectWithValue(error.message);
       return rejectWithValue(String(error));
@@ -126,9 +142,23 @@ export const fetchStayPricingAsync = createAsyncThunk(
 
 export const fetchStayRoomsAsync = createAsyncThunk(
   'stays/fetchStayRooms',
-  async (stayId: string, { rejectWithValue }) => {
+  async (params: {
+    stayId: string;
+    checkIn?: string;
+    checkOut?: string;
+    adults?: number;
+    children?: number;
+    rooms?: number;
+  }, { rejectWithValue }) => {
     try {
-      return await getHotelRooms(stayId);
+      return await getHotelRooms(
+        params.stayId,
+        params.checkIn,
+        params.checkOut,
+        params.adults ?? 1,
+        params.children ?? 0,
+        params.rooms ?? 1,
+      );
     } catch (error: unknown) {
       if (error instanceof Error) return rejectWithValue(error.message);
       return rejectWithValue(String(error));
@@ -225,6 +255,7 @@ const staysSlice = createSlice({
     clearStaysCache: (state) => {
       state.hotels = [];
       state.searchParams = null;
+      state.searchRevision += 1;
       state.error = null;
     },
     clearSearchState: (state) => {

@@ -7,10 +7,33 @@ import { MdOutlineMessage } from "react-icons/md";
 
 const FloatingChatButton = () => {
   const [open, setOpen] = useState(false);
+  // Fixed-position button always sits at the same spot in the viewport,
+  // so on mobile it parked on top of whichever field ended up at that
+  // corner -- worst on the Transfers tab, whose 7-field form is taller
+  // than Stays/Flights and pushed the Passengers field right under it.
+  // Hidden until the search card (#transfers-search, set in
+  // WelcomePage.tsx) scrolls out of view, for all three tabs, rather than
+  // a Transfers-specific offset that would've just moved the same problem
+  // to whichever field happened to end up there instead.
+  const [showButton, setShowButton] = useState(false);
   const navigate = useNavigate();
   const wasDragged = useRef(false);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const draggableRef = useRef<HTMLDivElement | null>(null); // 👈 Add this line
+
+  useEffect(() => {
+    const target = document.getElementById("transfers-search");
+    if (!target) {
+      setShowButton(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowButton(!entry.isIntersecting),
+      { threshold: 0 },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
 
   const options = [
     {
@@ -87,7 +110,12 @@ const handleStop = (_e: DraggableEvent, data: DraggableData) => {
         onDrag={handleDrag}
         onStop={handleStop}
       >
-        <div ref={draggableRef} className="fixed bottom-10 right-4 z-50">
+        <div
+          ref={draggableRef}
+          className={`fixed bottom-10 right-4 z-50 transition-opacity duration-300 ${
+            showButton ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        >
           <button
             className="w-14 h-14 bg-[#023E8A] text-white rounded-lg flex items-center justify-center shadow-lg cursor-pointer"
           >

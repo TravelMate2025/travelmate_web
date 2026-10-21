@@ -7,10 +7,10 @@ interface HotelCardProps {
   name: string;
   location: string;
   roomDetails: string;
-  refundableUntil: string;
+  policyCopy?: string;
 }
 
-const HotelCard: React.FC<HotelCardProps> = ({ imageUrl, name, location, roomDetails, refundableUntil }) => {
+const HotelCard: React.FC<HotelCardProps> = ({ imageUrl, name, location, roomDetails, policyCopy }) => {
   return (
     <div className="md:border border-gray-300 rounded-lg p-4 flex items-start w-full space-x-4">
       {/* Hotel Image */}
@@ -32,7 +32,7 @@ const HotelCard: React.FC<HotelCardProps> = ({ imageUrl, name, location, roomDet
         {/* Refund Policy */}
         <div className="flex items-center text-green-600">
           <FaCheckCircle className="mr-2" />
-          <span className="text-xs md:text-lg">Fully Refundable before {refundableUntil}</span>
+          <span className="text-xs md:text-lg">{policyCopy || "Cancellation policy available"}</span>
         </div>
 
         <div className="flex items-center text-gray-600">

@@ -3,9 +3,13 @@ import { X } from "lucide-react";
 
 type Props = {
   closeDialog: () => void;
-  car: CarTransferOption;
+  car?: CarTransferOption;
 };
 const Complete = ({ closeDialog, car }: Props) => {
+  const remarks = (car?.content?.transferRemarks ?? [])
+    .map((remark) => remark.description?.trim())
+    .filter((remark): remark is string => Boolean(remark));
+
   return (
     <div className="min-w-screen min-h-screen fixed top-0 left-0 z-[99] flex items-center justify-center bg-black bg-opacity-30">
       <div
@@ -20,11 +24,11 @@ const Complete = ({ closeDialog, car }: Props) => {
             Transfer information
           </h1>
         </div>
-        {car?.content?.transferRemarks?.[0]?.description && (
-          <p className="mt-4 whitespace-pre-wrap text-sm font-inter">
-            {car.content?.transferRemarks?.[0]?.description}
-          </p>
-        )}
+        <ul className="mt-4 list-disc pl-5 space-y-2 text-sm font-inter">
+          <li>Your driver will wait up to 60 minutes after your taxi arrives.</li>
+          <li>You'll get pickup instructions in your confirmation email.</li>
+          {remarks.map((remark, index) => <li key={`${index}-${remark}`}>{remark}</li>)}
+        </ul>
       </div>
     </div>
   );

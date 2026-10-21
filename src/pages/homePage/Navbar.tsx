@@ -40,7 +40,7 @@ import { useNotifications } from "../../features/account/components/notification
 const navItems = [
   { name: "Home", path: "/" },
   { name: "Stays", path: "/?tab=stays" },
-  { name: "Flights", path: "/flight/departure" },
+  { name: "Flights", path: "/?tab=flights" },
   { name: "Transfers", path: "/?tab=transfers" },
 ];
 
@@ -81,8 +81,14 @@ const Navbar: React.FC = () => {
   );
 
   useEffect(() => {
+    // Scoped to the two auth keys this is actually meant to clean up --
+    // a blanket localStorage.clear() here ran on every render for every
+    // logged-out visitor (the majority of homepage traffic) and wiped
+    // unrelated device-local data (Recently Viewed, recent searches) that
+    // has nothing to do with auth state.
     if (!isLoggedIn) {
-      localStorage.clear();
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
     }
   }, [isLoggedIn]);
 
@@ -161,13 +167,15 @@ const Navbar: React.FC = () => {
               }}
             >
               <Box sx={{ flexGrow: 1 }}>
-                <Typography sx={{ mr: 2 }}>
-                  <img
-                    src={Travelmate}
-                    alt="Logo"
-                    style={{ maxWidth: "100px" }}
-                  />
-                </Typography>
+                <Link to="/" aria-label="TravelMate home" onClick={toggleDrawer}>
+                  <Typography sx={{ mr: 2 }}>
+                    <img
+                      src={Travelmate}
+                      alt="TravelMate"
+                      style={{ maxWidth: "100px" }}
+                    />
+                  </Typography>
+                </Link>
               </Box>
 
               <div className="flex">
@@ -378,9 +386,11 @@ const Navbar: React.FC = () => {
               alignItems: "center",
             }}
           >
-            <Typography>
-              <img src={Travelmate} alt="Logo" />
-            </Typography>
+            <Link to="/" aria-label="TravelMate home">
+              <Typography>
+                <img src={Travelmate} alt="TravelMate" />
+              </Typography>
+            </Link>
 
             <Box
               sx={{ display: "flex", flexGrow: 1, justifyContent: "center" }}

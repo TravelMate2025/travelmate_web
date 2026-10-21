@@ -79,19 +79,8 @@ const [flights, setFlights] = useState<Flight[]>(() => {
               const { latitude, longitude } = position.coords;
   
                       try {
-                // Call OpenStreetMap Nominatim API to reverse geocode
-
                 const { data } = await getLocationInfo({ latitude, longitude })
-                console.log(data);
-                
-                // const 
-                // const res = await axios.get(
-                //   `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=3&addressdetails=1`
-                // );
-                // const data = await res.data;
-              
-                
-                // setCountry(data?.address?.country || "Unknown");
+                setCountry(data?.country || "Unknown");
               } catch (err) {
                 console.debug(err);
                 setCountry("Error detecting country");

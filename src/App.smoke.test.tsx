@@ -175,7 +175,7 @@ vi.mock("./features/stays/components/booking-progress/Policies", () => ({
   default: () => <div>policies</div>,
 }));
 
-vi.mock("./pages/flights/FlightSearchComponent", () => ({
+vi.mock("./pages/homePage/Flight", () => ({
   default: () => <div>flight search</div>,
 }));
 
@@ -316,6 +316,12 @@ afterEach(() => {
 });
 
 describe("App route smoke coverage", () => {
+  it("renders the public home route for signed-out visitors", () => {
+    renderRoute("/");
+
+    expect(screen.getByText("home page")).toBeInTheDocument();
+  });
+
   it("renders the login route", () => {
     localStorage.setItem("email", "ada@example.com");
 

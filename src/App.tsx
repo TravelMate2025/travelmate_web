@@ -62,9 +62,16 @@ const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicy").then(m => (
 const TermsOfUsePage = lazy(() => import("./pages/TermsOfUse").then(m => ({ default: m.TermsOfUsePage })));
 const Flight = lazy(() => import("./pages/Flight"));
 const AboutPage = lazy(() => import("./pages/About").then(m => ({ default: m.AboutPage })));
+const PartnersPage = lazy(() => import("./pages/Partners").then(m => ({ default: m.PartnersPage })));
+const ContactPage = lazy(() => import("./pages/Contact").then(m => ({ default: m.ContactPage })));
+const RefundPolicyPage = lazy(() => import("./pages/RefundPolicy").then(m => ({ default: m.RefundPolicyPage })));
+const CookiePolicyPage = lazy(() => import("./pages/CookiePolicy").then(m => ({ default: m.CookiePolicyPage })));
 const PaymentMethodSettingsPage = lazy(() => import("./pages/settings/PaymentMethod").then(m => ({ default: m.PaymentMethodSettingsPage })));
 const ReviewsSettingsPage = lazy(() => import("./pages/settings/ReviewsPage").then(m => ({ default: m.ReviewsSettingsPage })));
 const ProfilePage = lazy(() => import("./pages/settings/ProfilePage").then(m => ({ default: m.ProfilePage })));
+const AcademyRegisterPage = lazy(() => import("./pages/academy/AcademyRegisterPage").then(m => ({ default: m.AcademyRegisterPage })));
+const AcademyCheckInPage = lazy(() => import("./pages/academy/AcademyCheckInPage").then(m => ({ default: m.AcademyCheckInPage })));
+const AcademyAssignmentSubmitPage = lazy(() => import("./pages/academy/AcademyAssignmentSubmitPage").then(m => ({ default: m.AcademyAssignmentSubmitPage })));
 
 function App() {
   return (
@@ -78,6 +85,13 @@ function App() {
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/terms-of-use" element={<TermsOfUsePage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/partners" element={<PartnersPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/refund-policy" element={<RefundPolicyPage />} />
+        <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+        <Route path="/academy/:classSlug/register" element={<AcademyRegisterPage />} />
+        <Route path="/academy/checkin/:qrToken" element={<AcademyCheckInPage />} />
+        <Route path="/academy/questions/:shareToken" element={<AcademyAssignmentSubmitPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/verify-page" element={<VerifyPage />} />
@@ -101,7 +115,14 @@ function App() {
         />
         {/* FAQ & Customer Support */}
         <Route path="/faqs" element={<FaqPage />} />
-        <Route path="/chat-with-us" element={<ChatPage />} />
+        <Route
+          path="/chat-with-us"
+          element={
+            <PrivateRoute>
+              <ChatPage />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/tickets"
           element={

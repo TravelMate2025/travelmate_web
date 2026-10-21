@@ -121,13 +121,15 @@ const BookingProgress: React.FC = () => {
 
   useEffect(() => {
     if (!hotel?.id || stayPricing) return;
-    dispatch(fetchStayPricingAsync(hotel.id));
-  }, [dispatch, hotel?.id, stayPricing]);
-
-  const cancellationDate = new Date();
-  cancellationDate.setDate(cancellationDate.getDate() + 1);
-  const formattedDate = cancellationDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  const formattedTime = "11:59 PM";
+    dispatch(fetchStayPricingAsync({
+      stayId: hotel.id,
+      checkIn: checkIn ?? searchParams?.checkIn,
+      checkOut: checkOut ?? searchParams?.checkOut,
+      adults: guestsAdults ?? searchParams?.adults,
+      children: guestsChild ?? searchParams?.children,
+      rooms: searchParams?.rooms,
+    }));
+  }, [dispatch, hotel?.id, stayPricing, checkIn, checkOut, guestsAdults, guestsChild, searchParams?.checkIn, searchParams?.checkOut, searchParams?.adults, searchParams?.children, searchParams?.rooms]);
 
   const effectiveCheckIn = checkIn ?? searchParams?.checkIn;
   const effectiveCheckOut = checkOut ?? searchParams?.checkOut;
@@ -186,12 +188,10 @@ const BookingProgress: React.FC = () => {
             (wantsRefundable ? plan.planType === "refundable" : plan.planType === "non_refundable"),
         ) ?? stayPricing.ratePlans.find((plan) => plan.roomId === roomId && plan.isActive);
 
-      // selectedOption.amount is the per-night, per-room rate for this
-      // cancellation option. Multiply by nights and the resolved room
-      // quantity to get the stay total -- this is still a pre-quote
-      // estimate; the real quote (preferred above) reflects quantity
-      // server-side regardless.
-      const nightlyRate = matchingPlan?.nightlyRate ?? selectedRoom.baseRate ?? selectedOption.amount ?? 0;
+      // Only use live pricing values here. Catalog room baseRate is not
+      // date/occupancy-specific and must never become a customer booking
+      // price when live pricing is unavailable.
+      const nightlyRate = matchingPlan?.nightlyRate ?? selectedOption.amount ?? 0;
       const base = nightlyRate * nights * roomQuantity;
       const total = selectedOption.amount * nights * roomQuantity;
       const taxAndFees = Math.max(0, total - base);
@@ -232,7 +232,14 @@ const BookingProgress: React.FC = () => {
     let resolvedStayPricing = stayPricing;
     if (!resolvedStayPricing?.ratePlans?.length) {
       try {
-        resolvedStayPricing = await dispatch(fetchStayPricingAsync(stayId)).unwrap();
+        resolvedStayPricing = await dispatch(fetchStayPricingAsync({
+          stayId,
+          checkIn: effectiveCheckIn,
+          checkOut: effectiveCheckOut,
+          adults: guestsAdults ?? searchParams?.adults,
+          children: guestsChild ?? searchParams?.children,
+          rooms: searchParams?.rooms,
+        })).unwrap();
       } catch {
         toast.error("Unable to load stay pricing. Please try again.");
         return;
@@ -401,8 +408,8 @@ const BookingProgress: React.FC = () => {
               <div className="bg-blue-100 border border-[#023E8A] px-4 py-2 rounded-lg flex flex-row justify-normal items-center gap-3">
                 <GrStatusGood className="text-green-600 size-12 lg:size-6" />
                 <p className="lg:text-base text-gray-800 leading-relaxed text-sm">
-                  {selectedOption?.policyCopy ??
-                    `Cancellations made after ${formattedTime} on ${formattedDate} or no-shows are subject to a fee equal to 100% of the amount paid.`}
+                  {selectedOption?.policyCopy ||
+                    "Cancellation terms will be shown after a rate is selected."}
                 </p>
               </div>
 
@@ -432,11 +439,7 @@ const BookingProgress: React.FC = () => {
                   "---"
                 }
                 location={hotel?.address || "---"}
-                refundableUntil={
-                  selectedOption?.cancelDeadlineHoursBeforeCheckIn
-                    ? `${selectedOption.cancelDeadlineHoursBeforeCheckIn}h before check-in`
-                    : formattedTime
-                }
+                policyCopy={selectedOption?.policyCopy}
               />
 
               {selectedOption && (
@@ -485,9 +488,15 @@ const BookingProgress: React.FC = () => {
                 </div>
                 <div className="lg:order-3">
                   <RefundCancellation
-                    formattedTime={formattedTime}
-                    formattedDate={formattedDate}
-                    refundableUntil={formattedTime}
+                    policyCopy={selectedOption?.policyCopy}
+                    refundPercent={selectedOption?.refundPercent}
+                    deadlineLabel={
+                      selectedOption?.cancelDeadlineHoursBeforeCheckIn
+                        ? `${selectedOption.cancelDeadlineHoursBeforeCheckIn} hours before check-in`
+                        : selectedOption?.deadlineType === "service_date"
+                          ? "the service date"
+                          : undefined
+                    }
                   />
                 </div>
               </div>
@@ -670,6 +679,14 @@ const BookingProgress: React.FC = () => {
                     {quoteResp.cancellationOptionSelection.policyCopy && (
                       <p className="pt-1 text-xs text-gray-500 leading-relaxed">
                         {quoteResp.cancellationOptionSelection.policyCopy}
+                      </p>
+                    )}
+                    {quoteResp.cancellationOptionSelection.refundPercent != null && (
+                      <p className="pt-1 text-sm font-semibold text-[#2D9C5E]">
+                        {quoteResp.cancellationOptionSelection.refundPercent}% refund if cancelled on time
+                        {quoteResp.pricing?.total != null && (
+                          <> · {quoteResp.pricing.currency} {(quoteResp.pricing.total * quoteResp.cancellationOptionSelection.refundPercent / 100).toLocaleString()}</>
+                        )}
                       </p>
                     )}
                   </div>

@@ -30,7 +30,7 @@ interface FilterState {
 export default function StaysSearchResults() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { hotels, loading, error, searchParams, locationDetails } = useSelector(
+  const { hotels, loading, error, searchParams, searchRevision, locationDetails } = useSelector(
     (state: RootState) => state.stays,
   );
 
@@ -79,10 +79,16 @@ export default function StaysSearchResults() {
 
   useEffect(() => {
     if (!searchParams) {
+      // clearStaysCache intentionally removes the current search while a new
+      // search is being prepared. Reset the request guard as well, otherwise
+      // submitting the same dates/location can be mistaken for an already
+      // fetched search and leave the empty-state screen visible.
+      lastSearchSignature.current = "";
       return;
     }
 
     const signature = JSON.stringify({
+      searchRevision,
       destination: searchParams.destination ?? "",
       country: searchParams.country ?? "",
       adminLevel1: searchParams.adminLevel1 ?? "",
@@ -102,7 +108,7 @@ export default function StaysSearchResults() {
 
     lastSearchSignature.current = signature;
     dispatch(fetchHotelsAsync({ ...searchParams, ...filters }));
-  }, [searchParams, filters, dispatch, loading]);
+  }, [searchParams, searchRevision, filters, dispatch, loading]);
 
   const handleApplyFilter = (newFilters: FilterState) => {
     setFilters(newFilters);

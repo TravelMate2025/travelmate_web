@@ -7,37 +7,22 @@ interface GuestDetailsProps {
 const GuestDetails = ({ guest }: GuestDetailsProps) => {
   const fullName = [guest?.name, guest?.surname].filter((part) => part && part.trim()).join(" ");
   return (
-    <div className="bg-white">
-      <h2 className="text-lg font-semibold mb-4">Guest Details</h2>
-
-      <div className="space-y-6">
-        <div className="w-full sm:p-6 rounded-lg sm:border border-gray-300 space-y-3">
-          <div className="flex justify-between items-center w-full">
-            <p className="font-medium">Name</p>
-            <p>
-              {fullName || "N/A"}
-            </p>
-          </div>
-          <div className="flex justify-between items-center w-full">
-            <p className="font-medium">Email</p>
-            <p>{guest?.email|| "N/A"}</p>
-          </div>
+    <section className="rounded-2xl border border-[#dfe7f0] bg-white p-5 shadow-[0_10px_30px_rgba(16,42,67,0.05)] sm:p-6">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#023E8A]">Traveller</p><h2 className="mb-5 mt-1 text-xl font-semibold text-[#18202b]">Guest details</h2>
+      <div className="space-y-0">
+          <Info label="Name" value={fullName || "N/A"} />
+          <Info label="Email" value={guest?.email || "N/A"} />
           {guest?.phone && (
-            <div className="flex justify-between items-center w-full">
-              <p className="font-medium">Phone</p>
-              <p>{guest.phone}</p>
-            </div>
+            <Info label="Phone" value={guest.phone} />
           )}
           {guest?.address && (
-            <div className="flex justify-between items-center w-full ">
-              <p className="font-medium flex justify-end">Address</p>
-              <p className="flex justify-end">{guest.address}</p>
-            </div>
+            <Info label="Address" value={guest.address} />
           )}
-        </div>
       </div>
-    </div>
+    </section>
   );
 };
+
+const Info = ({ label, value }: { label: string; value: string }) => <div className="flex items-start justify-between gap-5 border-b border-[#edf1f6] py-3 last:border-b-0"><span className="text-sm text-[#687382]">{label}</span><span className="max-w-[65%] break-words text-right text-sm font-semibold text-[#18202b]">{value}</span></div>;
 
 export default GuestDetails;

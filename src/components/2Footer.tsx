@@ -9,8 +9,8 @@ export default function Footer() {
           <h3 className="text-lg font-bold mb-3">Our Product</h3>
           <ul className="space-y-2">
             <li><a href="/?tab=stays" className="hover:underline">Stays</a></li>
-            <li><a href="/departure-flight" className="hover:underline">Flight</a></li>
-            <li><a href="/display-cars" className="hover:underline">Airport Taxi</a></li>
+            <li><a href="/?tab=flights" className="hover:underline">Flight</a></li>
+            <li><a href="/?tab=transfers" className="hover:underline">Airport Taxi</a></li>
           </ul>
         </div>
 
@@ -19,6 +19,7 @@ export default function Footer() {
           <h3 className="text-lg font-bold mb-3">Support</h3>
           <ul className="space-y-2">
             <li><a href="/faqs" className="hover:underline">FAQ</a></li>
+            <li><a href="/contact" className="hover:underline">Contact Us</a></li>
             <li><a href="/tickets" className="hover:underline">Raise a Ticket</a></li>
             <li><a href="/chat-with-us" className="hover:underline">Chat with Us</a></li>
           </ul>
@@ -29,7 +30,7 @@ export default function Footer() {
           <h3 className="text-lg font-bold mb-3">Company</h3>
           <ul className="space-y-2">
             <li><a href="/about" className="hover:underline">About</a></li>
-            <li><a href="#" className="hover:underline">Our Partners</a></li>
+            <li><a href="/partners" className="hover:underline">Our Partners</a></li>
           </ul>
         </div>
 
@@ -39,6 +40,8 @@ export default function Footer() {
           <ul className="space-y-2">
             <li><a href="/privacy-policy" className="hover:underline">Privacy</a></li>
             <li><a href="/terms-of-use" className="hover:underline">Terms of Use</a></li>
+            <li><a href="/refund-policy" className="hover:underline">Refund &amp; Cancellation</a></li>
+            <li><a href="/cookie-policy" className="hover:underline">Cookie Policy</a></li>
           </ul>
         </div>
       </div>
@@ -48,7 +51,7 @@ export default function Footer() {
 
       {/* Copyright Section */}
       <div className="text-center text-sm">
-        &copy; {new Date().getFullYear()} TravelMate Company. All rights reserved. TravelMate and TravelMate
+        &copy; {new Date().getFullYear()} TravelMate Global Limited. All rights reserved. TravelMate and TravelMate
         Logo are trademarks or registered trademarks of TravelMate.
       </div>
     </footer>

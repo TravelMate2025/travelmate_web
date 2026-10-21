@@ -49,7 +49,10 @@ export default function UpdateSearchFilter() {
   });
 
   const [guestText, setGuestText] = useState(
-    ` ${searchParams?.rooms} rooms, ${
+    // Uses counts.rooms (already falls back to 1), not searchParams?.rooms
+    // directly -- the latter is undefined with no search context (e.g. a
+    // direct link to the results page), producing "undefined rooms, ...".
+    ` ${counts.rooms} rooms, ${
       counts.adults + counts.children + counts.infants
     } guests, `
   );

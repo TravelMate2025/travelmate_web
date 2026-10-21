@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 // Icons
 import { Divider } from "@mui/material";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
@@ -19,9 +19,12 @@ import WriteAReview from "./WriteAReview";
 // API
 import {
   CancelTransferBookings,
+  refreshBookingRefund,
   searchTransferBookingByReference,
   verifyTransfersBooking,
+  getTransferReviews,
 } from "../../../features/stays/api";
+import { CatalogReview } from "../../../features/stays/types";
 
 import toast from "react-hot-toast";
 import { TransfersDetailsResponse } from "./type";
@@ -32,6 +35,7 @@ import {
   getBookingLifecycleStatus,
   isBookingCancelable,
 } from "../../../features/shared/bookingStatus";
+import { RefundPanel } from "../../../features/shared/refundTracking";
 
 const text = (value: unknown, fallback = "Not Available") => {
   if (typeof value === "string" && value.trim()) return value.trim();
@@ -51,6 +55,156 @@ const formatAmount = (value: unknown, currency = "") => {
   const parsed = Number(cleaned);
   if (!Number.isFinite(parsed)) return `${currency}${raw || "Not Available"}`;
   return `${currency}${parsed.toLocaleString()}`;
+};
+
+type BackendTransferBooking = TransfersDetailsResponse & {
+  booking_reference?: string;
+  booking_status?: string;
+  listing_name?: string;
+  pickup_location?: string;
+  pickup_location_label?: string;
+  dropoff_location?: string;
+  dropoff_location_label?: string;
+  transfer_type?: string;
+  ride_type?: string;
+  vehicle_count?: number | null;
+  available_seats?: number | null;
+  vehicle_class?: string;
+  passenger_capacity?: number | null;
+  luggage_capacity?: number | null;
+  provider_name?: string;
+  estimated_duration_minutes?: number | null;
+  pickup_date?: string | null;
+  pickup_time?: string | null;
+  total_amount?: number | string | null;
+  cancellation_policy?: Array<Record<string, unknown>>;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  contact_phone?: string;
+  phone?: string;
+  images?: unknown[];
+};
+
+const normalizeBackendTransferShape = (
+  value: TransfersDetailsResponse,
+): TransfersDetailsResponse => {
+  if (Array.isArray(value.transfers) && value.transfers.length > 0) {
+    return value;
+  }
+
+  const backend = value as BackendTransferBooking;
+  const hasStructuredTransferData = Boolean(
+    backend.pickup_location ||
+      backend.pickup_date ||
+      backend.dropoff_location ||
+      backend.vehicle_class ||
+      backend.provider_name,
+  );
+  if (!hasStructuredTransferData) return value;
+
+  const pickupLabel = backend.pickup_location_label || backend.pickup_location || "";
+  const dropoffLabel =
+    backend.dropoff_location_label || backend.dropoff_location || "";
+  const duration = backend.estimated_duration_minutes;
+  const cancellationPolicies = (backend.cancellation_policy ?? []).map((policy) => ({
+    from: String(policy.from ?? ""),
+    amount: Number(policy.amount ?? 0),
+    currencyId: String(policy.currency ?? backend.currency ?? ""),
+    isForceMajeure: Boolean(policy.isForceMajeure ?? policy.is_force_majeure),
+  }));
+
+  return {
+    ...value,
+    holder: value.holder ?? {
+      name: backend.first_name ?? "",
+      surname: backend.last_name ?? "",
+      email: backend.email ?? "",
+      phone: backend.contact_phone ?? backend.phone ?? "",
+    },
+    transfers: [
+      {
+        id: backend.id ?? "",
+        price: {
+          netAmount: Number(backend.total_amount ?? value.totalAmount ?? 0),
+          totalAmount: Number(backend.total_amount ?? value.totalAmount ?? 0),
+          currencyId: backend.currency ?? "",
+        },
+        status: value.status,
+        rateKey: backend.id ?? value.reference ?? "",
+        vehicle: {
+          code: backend.vehicle_class ?? "",
+          name: backend.vehicle_class || backend.transfer_type || "Transfer",
+        },
+        category: {
+          code: backend.ride_type ?? backend.transfer_type ?? "",
+          name: backend.ride_type ?? backend.transfer_type ?? "Transfer",
+        },
+        factsheetId: 0,
+        transferType: backend.ride_type ?? backend.transfer_type ?? "",
+        arrivalShipName: null,
+        arrivalTrainInfo: null,
+        departureShipName: null,
+        departureTrainInfo: null,
+        arrivalFlightNumber: null,
+        departureFlightNumber: null,
+        sourceMarketEmergencyNumber: "",
+        pickupInformation: {
+          from: { code: "", type: "", typeEnum: "", description: pickupLabel },
+          to: { code: "", type: "", typeEnum: "", description: dropoffLabel },
+          date: backend.pickup_date ?? "",
+          time: backend.pickup_time ?? "",
+          pickup: {
+            zip: null,
+            town: null,
+            image: null,
+            number: null,
+            address: pickupLabel,
+            altitude: null,
+            latitude: 0,
+            longitude: 0,
+            pickupId: null,
+            stopName: null,
+            checkPickup: {
+              url: null,
+              mustCheckPickupTime: false,
+              hoursBeforeConsulting: null,
+            },
+            description: pickupLabel,
+          },
+        },
+        content: {
+          images: Array.isArray(backend.images) ? backend.images : [],
+          vehicle: {
+            code: backend.vehicle_class ?? "",
+            name: backend.vehicle_class || backend.ride_type || backend.transfer_type || "Transfer",
+          },
+          category: {
+            code: backend.transfer_type ?? "",
+            name: backend.ride_type || backend.transfer_type || "Transfer",
+          },
+          transferRemarks: [],
+          transferDetailInfo: [
+            ...(duration != null
+              ? [{ id: "duration", name: "Duration", type: "", value: String(duration), description: "minutes" }]
+              : []),
+            { id: "stops", name: "Stops", type: "", value: "", description: "" },
+            ...(backend.passenger_capacity != null
+              ? [{ id: "capacity", name: "Capacity", type: "", value: String(backend.passenger_capacity), description: "Seats" }]
+              : [{ id: "capacity", name: "Capacity", type: "", value: "", description: "Seats" }]),
+            ...(backend.luggage_capacity != null
+              ? [{ id: "luggage", name: "Luggage", type: "", value: String(backend.luggage_capacity), description: "bags" }]
+              : [{ id: "luggage", name: "Luggage", type: "", value: "", description: "bags" }]),
+          ],
+          customerTransferTimeInfo: [],
+          supplierTransferTimeInfo: [],
+        },
+        cancellationPolicies,
+      } as unknown as TransfersDetailsResponse["transfers"][number],
+    ],
+    totalAmount: Number(backend.total_amount ?? value.totalAmount ?? 0),
+    supplier: value.supplier ?? { name: backend.provider_name ?? "", vatNumber: "" },
+  };
 };
 
 const normalizeTransferBooking = (value: unknown): TransfersDetailsResponse | undefined => {
@@ -87,13 +241,13 @@ const normalizeTransferBooking = (value: unknown): TransfersDetailsResponse | un
 
   if (!hasUsefulData) return undefined;
 
-  return {
+  return normalizeBackendTransferShape({
     ...normalized,
     reference: normalized.reference || normalized.booking_reference || "",
     status: normalized.status || normalized.booking_status || "CONFIRMED",
     totalAmount: normalized.totalAmount ?? normalized.totalNetAmount ?? 0,
     transfers: Array.isArray(normalized.transfers) ? normalized.transfers : [],
-  };
+  });
 };
 
 const BookingTransfersDetails = () => {
@@ -110,6 +264,9 @@ const BookingTransfersDetails = () => {
   const [openConfirm, setOpenConfirm] = useState(false);
   const [cancelSubmitted, setCancelSubmitted] = useState(false);
   const [openReviewModal, setOpenReviewModal] = useState(false);
+  const [reviews, setReviews] = useState<CatalogReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
   // Mirrors stays' `booking_status` query-param hint (BookingsDetails/stays/
   // index.tsx) — the list page can pass this explicitly so the review/
   // cancel gating doesn't depend solely on however the detail API happens
@@ -129,6 +286,30 @@ const BookingTransfersDetails = () => {
       ? "Completed"
       : getBookingLifecycleLabel(bookingStatus, pickupDate);
   const isReviewableBooking = bookingState === "completed";
+
+  const fetchTransferReviews = useCallback(async () => {
+    const transferId = transfer?.id;
+    if (transferId == null || String(transferId).trim() === "") {
+      setReviews([]);
+      return;
+    }
+
+    setReviewsLoading(true);
+    setReviewsError(null);
+    try {
+      const result = await getTransferReviews(transferId);
+      setReviews(result);
+    } catch (error: unknown) {
+      setReviews([]);
+      setReviewsError(error instanceof Error ? error.message : "Unable to load reviews");
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [transfer?.id]);
+
+  useEffect(() => {
+    void fetchTransferReviews();
+  }, [fetchTransferReviews]);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -203,7 +384,9 @@ const BookingTransfersDetails = () => {
 
   const handleCancelBookings = async (bookingId: string | undefined, reason?: string) => {
     try {
-      await CancelTransferBookings(bookingId, setCancelLoad, reason);
+      const res = reason?.trim()
+        ? await CancelTransferBookings(bookingId, setCancelLoad, reason)
+        : await CancelTransferBookings(bookingId, setCancelLoad);
       toast.success("Booking cancelled successfully");
 
       setBooking((prev) => {
@@ -211,6 +394,11 @@ const BookingTransfersDetails = () => {
         return {
           ...prev,
           status: "CANCELLED",
+          // Merge the refund state the cancel response already returned
+          // instead of discarding it — otherwise the panel below briefly
+          // shows the pre-cancellation ("no refund applies") state until a
+          // full reload.
+          refund: res?.refund ?? prev.refund,
         };
       });
 
@@ -259,6 +447,7 @@ const BookingTransfersDetails = () => {
           <WriteAReview
             bookings={booking}
             closeModal={() => setOpenReviewModal(false)}
+            onSubmitted={fetchTransferReviews}
           />
         )}
 
@@ -282,6 +471,18 @@ const BookingTransfersDetails = () => {
                 </p>
               </div>
             </div>
+          )}
+          {booking?.status?.toLowerCase() === "cancelled" && (
+            <RefundPanel
+              refund={booking.refund}
+              onRefresh={booking.id
+                ? async () => {
+                    const refund = await refreshBookingRefund(String(booking.id));
+                    setBooking((previous) => previous ? { ...previous, refund } : previous);
+                    return refund;
+                  }
+                : undefined}
+            />
           )}
         </div>
 
@@ -425,7 +626,7 @@ const BookingTransfersDetails = () => {
                     Type
                   </p>
                   <p className="text-[#181818] text-[14px] font-inter">
-                    {text(transfer?.category?.name)} Car
+                    {text(transfer?.vehicle?.name || transfer?.category?.name)} Car
                   </p>
                 </div>
                 <div className="flex justify-between">
@@ -546,6 +747,24 @@ const BookingTransfersDetails = () => {
             </div>
 
             {/* Actions / Cancel Button */}
+            <section className="mb-6 rounded-lg border border-gray-200 bg-white p-4">
+              <h2 className="text-lg font-semibold text-[#181818]">Reviews</h2>
+              {reviewsLoading && <p className="mt-2 text-sm text-gray-500">Loading reviews…</p>}
+              {reviewsError && <p className="mt-2 text-sm text-red-600">{reviewsError}</p>}
+              {!reviewsLoading && !reviewsError && reviews.length === 0 && (
+                <p className="mt-2 text-sm text-gray-500">No reviews available.</p>
+              )}
+              {!reviewsLoading && !reviewsError && reviews.length > 0 && (
+                <div className="mt-3 space-y-3">
+                  {reviews.slice(0, 6).map((review, index) => (
+                    <article key={`${review.submittedAt ?? "review"}-${index}`} className="border-b border-gray-100 pb-3 last:border-b-0">
+                      <p className="text-sm font-medium text-gray-800">{review.rating.toFixed(1)} / 5</p>
+                      {review.comment && <p className="mt-1 text-sm text-gray-600">{review.comment}</p>}
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
             <div>
               {/* Mobile Only: Extra Action Links */}
               <div className="lg:hidden mb-4 space-y-2">

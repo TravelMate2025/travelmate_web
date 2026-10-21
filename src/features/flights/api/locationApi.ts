@@ -5,17 +5,11 @@ interface LocationInfo {
   currency: string;
 }
 
-interface GeoCodeResponse {
-  countryName?: string;
-}
-
-interface CurrencyLookupResponse {
-  currencies?: Record<string, unknown>;
-}
+const PUBLIC_API_BASE = `${import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api"}/v1/public`;
 
 export const locationApi = createApi({
   reducerPath: "locationApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "/" }),
+  baseQuery: fetchBaseQuery({ baseUrl: PUBLIC_API_BASE }),
   tagTypes: ["Location"],
   endpoints: (builder) => ({
     getLocationInfo: builder.query<
@@ -29,33 +23,24 @@ export const locationApi = createApi({
         fetchWithBQ
       ) {
         try {
-          // ✅ Step 1: Reverse geocode with BigDataCloud
+          // Reverse geocoding and currency resolution are backend-owned.
           const geoRes = await fetchWithBQ({
-            url: `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
-          }) as { data?: GeoCodeResponse; error?: unknown };
+            url: `reverse-geocode?lat=${latitude}&lng=${longitude}`,
+          }) as { data?: { country?: string; currency?: string }; error?: unknown };
 
           if (geoRes.error) throw geoRes.error;
 
-          const countryName = geoRes.data?.countryName || "Unknown";
+          const countryName = geoRes.data?.country || "Unknown";
 
           if (countryName === "Unknown") {
             return { data: { country: "United State", currency: "USD" } };
           }
 
-          // ✅ Step 2: Get currency from RestCountries
-          const currencyRes = await fetchWithBQ(
-            `https://restcountries.com/v3.1/name/${encodeURIComponent(
-              countryName
-            )}?fields=currencies,name`
-          ) as { data?: CurrencyLookupResponse[]; error?: unknown };
-
-          if (currencyRes.error) throw currencyRes.error;
-
-          const currencies = currencyRes.data?.[0]?.currencies ?? {};
-          const firstCurrency = Object.keys(currencies)[0] ?? "NGN";
-
           return {
-            data: { country: countryName, currency: firstCurrency },
+            data: {
+              country: countryName,
+              currency: geoRes.data?.currency || "USD",
+            },
           };
         } catch (error: unknown) {
           return {

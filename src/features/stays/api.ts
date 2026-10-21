@@ -16,12 +16,39 @@ import {
   StayPricing,
   StayRoomsResponse,
 } from "./types";
+import { RefundTracking } from "../shared/refundTracking";
 import api from "../../api/services/api";
 import axios, { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
 import { fetchPartnerStayLocations } from "../shared/partnerLocationsService";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+const sleep = (milliseconds: number) =>
+  new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+const getWithNetworkRetry = async <T>(url: string, config?: object) => {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await axios.get<T>(url, config);
+    } catch (error: unknown) {
+      const isTransientNetworkFailure =
+        axios.isAxiosError(error) &&
+        !error.response &&
+        (error.code === "ERR_NETWORK" ||
+          error.code === "ERR_CONNECTION_CLOSED" ||
+          error.message === "Network Error");
+
+      if (!isTransientNetworkFailure || attempt === 1) {
+        throw error;
+      }
+
+      await sleep(350);
+    }
+  }
+
+  throw new Error("Request failed");
+};
 
 type StaySearchParams = {
   destination?: string;
@@ -96,6 +123,7 @@ function mapPublicCatalogStayToHotel(item: unknown): Hotel {
     priceFrom?: number;
     ratingScore?: number;
     reviewsCount?: number;
+    reviewSummary?: Hotel["reviewSummary"];
     address?: string;
     description?: string;
     rooms?: Hotel["rooms"];
@@ -127,6 +155,7 @@ function mapPublicCatalogStayToHotel(item: unknown): Hotel {
     priceFrom: stay.priceFrom,
     ratingScore: stay.ratingScore,
     reviewsCount: stay.reviewsCount,
+    reviewSummary: stay.reviewSummary,
     checkInTime: stay.checkInTime,
     checkOutTime: stay.checkOutTime,
     rooms: stay.rooms,
@@ -266,7 +295,7 @@ export const searchStays = async (
   searchParams: StaySearchParams,
 ): Promise<HotelSearchResponse> => {
   try {
-    const response = await axios.get(`${BASE_URL}/v1/public/catalog/stays`, {
+    const response = await getWithNetworkRetry(`${BASE_URL}/v1/public/catalog/stays`, {
       params: {
         destination:
           searchParams.destination ??
@@ -302,10 +331,18 @@ export const searchHotels = searchStays;
 /**
  * Fetch partner stay pricing — GET /api/v1/public/catalog/stays/{stayId}/pricing
  */
-export const fetchStayPricing = async (stayId: string): Promise<StayPricing> => {
+export const fetchStayPricing = async (
+  stayId: string,
+  checkIn?: string,
+  checkOut?: string,
+  adults: number = 1,
+  children: number = 0,
+  rooms: number = 1,
+): Promise<StayPricing> => {
   try {
     const response = await axios.get(
       `${BASE_URL}/v1/public/catalog/stays/${stayId}/pricing`,
+      { params: { check_in: checkIn, check_out: checkOut, adults, children, rooms } },
     );
     return (response.data?.data ?? response.data) as StayPricing;
   } catch (error: unknown) {
@@ -320,10 +357,18 @@ export const fetchStayPricing = async (stayId: string): Promise<StayPricing> => 
  * from the static totalInventory/isBookable/maxPerBooking already present
  * on the rooms[] embedded in the stay detail/search response.
  */
-export const getHotelRooms = async (stayId: string): Promise<StayRoomsResponse> => {
+export const getHotelRooms = async (
+  stayId: string,
+  checkIn?: string,
+  checkOut?: string,
+  adults: number = 1,
+  children: number = 0,
+  rooms: number = 1,
+): Promise<StayRoomsResponse> => {
   try {
     const response = await axios.get(
       `${BASE_URL}/v1/public/catalog/stays/${stayId}/rooms`,
+      { params: { check_in: checkIn, check_out: checkOut, adults, children, rooms } },
     );
     return (response.data?.data ?? response.data) as StayRoomsResponse;
   } catch (error: unknown) {
@@ -482,6 +527,14 @@ export const searchHotelBookingByReference = async (
   }
 };
 
+export const refreshBookingRefund = async (bookingId: string): Promise<RefundTracking> => {
+  const response = await api.get(`/bookings/my/${encodeURIComponent(bookingId)}/refund/?refresh=true`);
+  const payload = response.data as { refund?: RefundTracking; data?: RefundTracking } | RefundTracking;
+  if (payload && typeof payload === "object" && "refund" in payload) return payload.refund ?? {};
+  if (payload && typeof payload === "object" && "data" in payload) return payload.data ?? {};
+  return payload as RefundTracking;
+};
+
 /**
  * Verify transfers booking
  */
@@ -552,6 +605,35 @@ export const getReviews = async (
     throw new Error(errorMessage || "Failed to fetch reviews");
   }
 };
+
+// Fetch published guest reviews for a transfer -- GET
+// /api/v1/public/catalog/transfers/{transferId}/reviews.
+export const getTransferReviews = async (
+  transferId: string | number | undefined,
+): Promise<CatalogReview[]> => {
+  if (transferId == null || String(transferId).trim() === "") return [];
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/v1/public/catalog/transfers/${encodeURIComponent(String(transferId))}/reviews`,
+      { params: { page: 1, pageSize: 20 } },
+    );
+    const data = (response.data?.data ?? response.data) as CatalogReviewsResponse;
+    return data.results ?? [];
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    console.error("Failed to fetch transfer reviews:", errorMessage);
+    throw new Error(errorMessage || "Failed to fetch transfer reviews");
+  }
+};
+
+export const getCountryCodes = async (): Promise<Array<{
+  code: string;
+  name: string;
+  dialCode?: string;
+}>> => {
+  const response = await api.get("/v1/public/countries");
+  return response.data?.results ?? [];
+};
 export const getUserReviews = async () => {
   try {
     const response = await api.get(`/hotels/my-reviews/`);
@@ -611,6 +693,7 @@ export const submitBookingReview = async (
     subcategoryRatings?: Record<string, number>;
     comment?: string;
   },
+  bookingType?: "stay" | "transfer",
 ) => {
   if (!bookingReference) {
     throw new Error("Booking reference is missing.");
@@ -619,7 +702,10 @@ export const submitBookingReview = async (
   try {
     const response = await api.post(
       `/v1/public/bookings/${encodeURIComponent(bookingReference)}/review`,
-      payload,
+      {
+        ...payload,
+        ...(bookingType ? { bookingType } : {}),
+      },
       {
         headers: {
           "Idempotency-Key": `booking-review-${String(bookingReference)}`,

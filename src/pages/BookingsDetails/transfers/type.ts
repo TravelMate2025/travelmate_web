@@ -44,6 +44,19 @@ export interface TransfersDetailsResponse {
     clientReference: string;
     paymentDataRequired: boolean;
     modificationsPolicies: ModificationsPolicies;
+    refund_amount?: string | number | null;
+    refund_percent?: number | null;
+    cancellation_fee?: string | number | null;
+    cancellation_preview?: {
+        cancellable?: boolean;
+        refundPercent?: number;
+        refundAmount?: string | number | null;
+        cancellationFee?: string | number | null;
+        currency?: string | null;
+        deadlineType?: string | null;
+        message?: string | null;
+    } | null;
+    refund?: import("../../../features/shared/refundTracking").RefundTracking | null;
 }
 export interface Holder {
     name: string;

@@ -11,6 +11,7 @@ import {
   getBookingDateText,
   getBookingName,
 } from "./utils";
+import { RefundBadge, RefundTracking } from "../../features/shared/refundTracking";
 
 export interface BookingsProps {
   bookings: NormalizedBooking[];
@@ -79,6 +80,9 @@ const Cancelled = ({ bookings }: BookingsProps) => {
                   <p className="text-[#4E4F52] text-sm font-medium">
                     {formattedAmount}
                   </p>
+                  <div className="mt-2">
+                    <RefundBadge refund={item.originalData.refund as RefundTracking | null | undefined} />
+                  </div>
                 </div>
               </div>
             </div>

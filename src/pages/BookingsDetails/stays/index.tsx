@@ -7,6 +7,7 @@ import PriceSummary from "../../../features/stays/components/confirmation/PriceS
 import HotelDetails from "../../../features/stays/components/confirmation/HotelDetails";
 import RoomDetails from "../../../features/stays/components/confirmation/RoomDetails";
 import ContactDetails from "../../../features/stays/components/confirmation/ContactDetails";
+import CancellationDetails from "../../../features/stays/components/confirmation/CancellationDetails";
 import Footer from "../../../components/2Footer";
 import ShareModal from "../../../features/stays/components/modals/ShareModal";
 import SkeletonConfirm from "../../../features/car_rentals/carPaidFor/Skeleton";
@@ -14,12 +15,14 @@ import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   CancelStaysBookings,
+  refreshBookingRefund,
   searchHotelBookingByReference,
   verifyHotelBooking,
 } from "../../../features/stays/api";
 import { BookingDetailsVerifyData } from "../../../features/stays/types";
 import { ChevronLeft, Loader } from "lucide-react";
 import { TbInfoTriangle } from "react-icons/tb";
+import { RefundPanel } from "../../../features/shared/refundTracking";
 import ConfirmCancel from "./ConfirmCancel";
 import WriteAReview from "./WriteAReview";
 import {
@@ -38,41 +41,6 @@ const text = (value: unknown, fallback = "") => {
   if (typeof value === "string" && value.trim()) return value.trim();
   if (typeof value === "number" && Number.isFinite(value)) return String(value);
   return fallback;
-};
-
-const formatSyncTimestamp = (value?: string | null) => {
-  if (!value) return "";
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
-};
-
-const SyncStatusBanner = ({ booking }: { booking?: BookingDetailsVerifyData }) => {
-  const syncStatus = text(booking?.sync_status ?? booking?.syncStatus, "").toLowerCase();
-  const syncError = text(booking?.sync_error ?? booking?.syncError, "");
-  const lastSyncedAt = formatSyncTimestamp(
-    booking?.last_synced_at ?? booking?.lastSyncedAt,
-  );
-
-  if (!syncStatus && !lastSyncedAt && !syncError) {
-    return null;
-  }
-
-  const isStale = syncStatus === "stale";
-  const statusLabel = isStale ? "Partner sync stale" : "Partner sync current";
-
-  return (
-    <div
-      className={`my-4 rounded-lg border p-4 ${
-        isStale ? "border-amber-300 bg-amber-50" : "border-emerald-300 bg-emerald-50"
-      }`}
-    >
-      <p className="font-medium text-[#181818]">{statusLabel}</p>
-      <div className="mt-1 text-sm text-[#4E4F52] space-y-1">
-        {lastSyncedAt && <p>Last synced: {lastSyncedAt}</p>}
-        {syncError && <p>Last sync error: {syncError}</p>}
-      </div>
-    </div>
-  );
 };
 
 const toBookingDate = (value: unknown) => {
@@ -108,16 +76,22 @@ const normalizeRoomSelections = (snapshot: SnapshotRecord): unknown[] => {
     .filter(Boolean);
 };
 
+const firstNonEmpty = (...values: unknown[]) => values.find((value) => {
+  if (typeof value === "number") return Number.isFinite(value);
+  return typeof value === "string" && value.trim().length > 0;
+});
+
 const normalizeGuestDetails = (booking: BookingDetailsVerifyData, snapshot: SnapshotRecord) => {
   const snapshotTravelers = Array.isArray(snapshot.travelers) ? snapshot.travelers : [];
   const primaryTraveler = (snapshotTravelers[0] as SnapshotRecord | undefined) ?? {};
   const existingPrimaryGuest = booking.guest_details?.primary_guest ?? booking.guestDetails?.primary_guest;
+  const customerDetails = (booking.customer_details ?? {}) as SnapshotRecord;
   const primaryGuest = {
-    name: existingPrimaryGuest?.name ?? (text(primaryTraveler.firstName) || text(primaryTraveler.first_name)),
+    name: existingPrimaryGuest?.name ?? text(firstNonEmpty(primaryTraveler.firstName, primaryTraveler.first_name, customerDetails.name)),
     surname:
-      existingPrimaryGuest?.surname ?? (text(primaryTraveler.lastName) || text(primaryTraveler.last_name)),
-    email: existingPrimaryGuest?.email ?? (text(primaryTraveler.email) || text(booking.user?.email)),
-    phone: existingPrimaryGuest?.phone ?? text(snapshot.phoneNumber),
+      existingPrimaryGuest?.surname ?? text(firstNonEmpty(primaryTraveler.lastName, primaryTraveler.last_name, customerDetails.surname)),
+    email: existingPrimaryGuest?.email ?? text(firstNonEmpty(primaryTraveler.email, customerDetails.email, booking.user?.email)),
+    phone: existingPrimaryGuest?.phone ?? text(firstNonEmpty(snapshot.phoneNumber, customerDetails.phone)),
     address: existingPrimaryGuest?.address ?? text(snapshot.address),
     city: existingPrimaryGuest?.city ?? text(snapshot.city),
     postal_code:
@@ -138,9 +112,9 @@ const normalizeGuestDetails = (booking: BookingDetailsVerifyData, snapshot: Snap
 
 const normalizeHotelLocation = (booking: BookingDetailsVerifyData, snapshot: SnapshotRecord) => {
   const existing = booking.hotel_location ?? booking.hotelLocation;
-  const address = text(existing?.address ?? snapshot.address);
-  const city = text(snapshot.city);
-  const country = text(snapshot.country);
+  const address = text(existing?.address ?? booking.hotel_address ?? snapshot.address);
+  const city = text(booking.destination_city ?? snapshot.city);
+  const country = text(booking.destination_country ?? snapshot.country);
 
   if (!address && !city && !country && !existing) {
     return undefined;
@@ -218,7 +192,13 @@ const normalizeBooking = (
   // viewed via reference navigation fell through getBookingLifecycleStatus's
   // "unknown -> confirmed" default, regardless of its real status.
   const bookingStatus = text(booking.status ?? booking.booking_status ?? snapshot.status ?? snapshot.booking_status);
-  const roomDetails = normalizeRoomSelections(snapshot);
+  const roomDetails = Array.isArray(booking.rooms_details)
+    ? booking.rooms_details
+    : Array.isArray(booking.roomsDetails)
+      ? booking.roomsDetails
+      : Array.isArray(booking.rooms)
+        ? booking.rooms
+        : normalizeRoomSelections(snapshot);
   const guestDetails = normalizeGuestDetails(booking, snapshot);
   const hotelLocation = normalizeHotelLocation(booking, snapshot);
 
@@ -242,7 +222,7 @@ const normalizeBooking = (
     created_at: createdAt || booking.created_at,
     rooms_details: (roomDetails.length ? roomDetails : booking.rooms_details) ?? [],
     roomsDetails: (roomDetails.length ? roomDetails : booking.roomsDetails) ?? [],
-    guest_details: guestDetails,
+    guest_details: booking.guest_details ?? booking.guestDetails ?? guestDetails,
     guestDetails: guestDetails,
     hotel_location: hotelLocation ?? booking.hotel_location,
     hotelLocation: hotelLocation ?? booking.hotelLocation,
@@ -357,6 +337,11 @@ const BookingStaysDetailsPage: React.FC = () => {
           ...prev,
           status: "CANCELLED",
           cancelled_at: res.cancelled_at,
+          // Merge the refund state the cancel response already returned
+          // instead of discarding it — otherwise the panel below briefly
+          // shows the pre-cancellation ("no refund applies") state until a
+          // full reload.
+          refund: res.refund ?? prev.refund,
         };
       });
 
@@ -464,7 +449,6 @@ const BookingStaysDetailsPage: React.FC = () => {
             </div>
           </div>
         )}
-        <SyncStatusBanner booking={booking} />
         {booking?.status?.toLowerCase() === "cancelled" && (
           <div className="flex justify-normal gap-2 items-center border border-[#D72638] p-3 rounded-lg bg-red-50 my-6">
             <TbInfoTriangle stroke="#D72638" fontSize={20} />
@@ -478,6 +462,20 @@ const BookingStaysDetailsPage: React.FC = () => {
                 {new Date(booking?.cancelled_at ?? "").toLocaleTimeString()}
               </p>
             </div>
+          </div>
+        )}
+        {booking?.status?.toLowerCase() === "cancelled" && (
+          <div className="my-6">
+            <RefundPanel
+              refund={booking.refund}
+              onRefresh={booking.id
+                ? async () => {
+                    const refund = await refreshBookingRefund(String(booking.id));
+                    setBooking((previous) => previous ? { ...previous, refund } : previous);
+                    return refund;
+                  }
+                : undefined}
+            />
           </div>
         )}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -494,6 +492,7 @@ const BookingStaysDetailsPage: React.FC = () => {
           <div className="space-y-4">
             <PriceSummary booking={booking} />
             <RoomDetails booking={booking} />
+            <CancellationDetails booking={booking} />
             <HotelDetails booking={booking} />
             <ContactDetails />
             <div className="flex flex-col w-full gap-y-5">

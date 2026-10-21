@@ -85,8 +85,7 @@ export const createPassword = async (email: string, password: string) => {
     return response.data;
   } catch (error: unknown) {
     const msg = toErrorMessage(error);
-    console.error("Password creation failed. Request payload:", payload);
-    console.error("Error response:", msg);
+    console.error("Password creation failed:", msg);
     return {
       Status: 400,
       Error: true,
