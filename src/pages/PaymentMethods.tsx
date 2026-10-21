@@ -119,16 +119,28 @@ useEffect(() => {
     }
   }, [cards]);
 
+// Older builds stored full card numbers here; re-mask on load so only the last 4 digits remain.
 useEffect(() => {
   const storedCards = localStorage.getItem("cards");
   if (storedCards) {
-    setCards(JSON.parse(storedCards));
+    try {
+      const masked = (JSON.parse(storedCards) as Card[]).map((card) => ({
+        ...card,
+        cardNumber: maskCardNumber(card.cardNumber),
+      }));
+      localStorage.setItem("cards", JSON.stringify(masked));
+      setCards(masked);
+    } catch {
+      localStorage.removeItem("cards");
+    }
   }
 }, []);
 
 
-   const formatCardNumber = (num: string | number) => {
-    return num.toString().replace(/(\d{4})(?=\d)/g, '$1 ');
+  // Never keep the full PAN: store only the last 4 digits.
+  const maskCardNumber = (num: string | number) => {
+    const lastFour = num.toString().replace(/\D/g, '').slice(-4);
+    return `**** **** **** ${lastFour}`;
   };
 
   const formatCardNumberForDisplay = (cardNumber: string) => {
@@ -141,7 +153,7 @@ useEffect(() => {
 const handleSaveClick = () => {
   const newCard = {
     name: formData.cardHolder,
-    cardNumber: formatCardNumber(formData.cardNumber),
+    cardNumber: maskCardNumber(formData.cardNumber),
     image: master,
   };
 
