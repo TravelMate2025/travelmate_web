@@ -13,6 +13,7 @@ import {
   updateUserName,
 } from "../slices/authSlice";
 import { useLocation } from "react-router-dom";
+import { getReturnPath } from "../../../routes/returnPath";
 import { loginUser } from "../api/auth";
 import { setUserProfile as setProfileInRedux } from "../slices/profileSlice";
 import { toast } from "react-hot-toast";
@@ -97,7 +98,7 @@ export default function Login() {
         toast.success(`Welcome back, ${welcomeName}!`);
       }
 
-      navigate("/", { replace: true });
+      navigate(getReturnPath(location.state) ?? "/", { replace: true });
     } catch (err: unknown) {
       let errorMsg = "Something went wrong. Please try again.";
       const serverMessage = (err as ApiErrorLike)?.response?.data?.Message;
