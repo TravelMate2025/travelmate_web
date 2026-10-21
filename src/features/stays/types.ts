@@ -199,7 +199,6 @@ export interface CatalogReviewsResponse {
 }
 
 
-
 export interface BookStaysRequest {
   rate_key?: string;
   customer?: Customer;
