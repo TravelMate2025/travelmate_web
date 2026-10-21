@@ -1,5 +1,5 @@
-import { configureStore, combineReducers, type Reducer } from "@reduxjs/toolkit";
-import authReducer from "../features/account/slices/authSlice";
+import { configureStore, combineReducers, type Reducer, type UnknownAction } from "@reduxjs/toolkit";
+import authReducer, { logout } from "../features/account/slices/authSlice";
 import profileReducer from "../features/account/slices/profileSlice";
 import staysReducer from "../features/stays/slice";
 import {
@@ -17,7 +17,7 @@ import { locationApi } from "../features/flights/api/locationApi";
 import carsReducer from "../features/car_rentals/carPaymentSlice";
 import type { AuthState } from "../features/account/slices/authSlice";
 // 1. Combine all your reducers
-const rootReducer = combineReducers({
+const appReducer = combineReducers({
   auth: authReducer,
   profile: profileReducer,
   stays: staysReducer,
@@ -26,6 +26,17 @@ const rootReducer = combineReducers({
   [locationApi.reducerPath]: locationApi.reducer,
   cars: carsReducer,
 });
+
+// Logging out (by the user, or by the API client when a session can't be
+// refreshed) returns every user-scoped slice to its initial state, so the next
+// person on this browser never sees the previous user's data. RTK Query caches
+// are reset separately by performLogout.
+export const rootReducer = (state: Parameters<typeof appReducer>[0], action: UnknownAction) => {
+  if (action.type === logout.type && state) {
+    return appReducer({ ...state, auth: undefined, profile: undefined, stays: undefined, cars: undefined }, action);
+  }
+  return appReducer(state, action);
+};
 
 // 2. Persist config
 // Tokens are persisted with the rest of `auth` -- redux-persist is their only home.
