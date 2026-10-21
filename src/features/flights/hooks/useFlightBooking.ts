@@ -78,27 +78,15 @@ const [flights, setFlights] = useState<Flight[]>(() => {
             async (position) => {
               const { latitude, longitude } = position.coords;
   
-              try {
-                // Call OpenStreetMap Nominatim API to reverse geocode
-
+                      try {
                 const { data } = await getLocationInfo({ latitude, longitude })
-                console.log(data);
-                
-                // const 
-                // const res = await axios.get(
-                //   `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=3&addressdetails=1`
-                // );
-                // const data = await res.data;
-              
-                
-                // setCountry(data?.address?.country || "Unknown");
-              } catch (error) {
-                // toast.error("Geolocation lookup failed:");
+                setCountry(data?.country || "Unknown");
+              } catch (err) {
+                console.debug(err);
                 setCountry("Error detecting country");
               }
             },
-            (_error) => {
-    
+            () => {
               setCountry("Permission denied or unavailable");
             },
             {
@@ -108,7 +96,7 @@ const [flights, setFlights] = useState<Flight[]>(() => {
         } else {
         // toast.error("Geolocation is not supported by this browser.");
         }
-      }, []);
+      }, [getLocationInfo]);
 
 
   const updateFlight = useCallback(
@@ -168,17 +156,7 @@ const [flights, setFlights] = useState<Flight[]>(() => {
         }
       }
     },
-    [
-      tripType,
-      selectedFrom,
-      selectedTo,
-  
-
-      selectedClass,
-      passengerCounts,
-      flights,
-      navigate,
-    ]
+    [tripType, navigate, country, location.pathname]
   );
 
   useEffect(() => {

@@ -1,0 +1,305 @@
+import { useEffect, useMemo, useState } from "react";
+import { Autocomplete, Button, TextField } from "@mui/material";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
+import { AppDispatch, RootState } from "../../../store";
+import Footer from "../../../components/2Footer";
+import Navbar from "../../../pages/homePage/Navbar";
+import { clearStaysCache, setLocationDetails, setSearchParams } from "../slice";
+import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
+import {
+  staySearchStayTypeOptions,
+  partnerStayLocationToOption,
+  type StaySearchLocationOption,
+  type StaySearchStayType,
+} from "../../shared/booking/staySearchOptions";
+import { fetchPartnerStayLocations } from "../../shared/partnerLocationsService";
+import { stayResultsLabel } from "../../shared/booking/bookingFlowLabels";
+import ReusableDateSelector from "../components/ReusableDateSelector";
+import { GuestsSelector, type GuestCounts } from "../components/GuestsSelector";
+
+const recentSearchStorageKey = "travelmate_recent_destination_searches";
+const initialStayType = "" as StaySearchStayType;
+
+function normalizeText(value: string) {
+  return value.toLowerCase().trim();
+}
+
+function optionMatchesQuery(option: StaySearchLocationOption, query: string) {
+  const normalizedQuery = normalizeText(query);
+  if (!normalizedQuery) return true;
+  const searchTerms = [
+    option.destinationLabel,
+    option.country,
+    ...option.adminLevels,
+    ...option.cities,
+  ];
+  return searchTerms.some((term) => normalizeText(term).includes(normalizedQuery));
+}
+
+function readRecentSearches(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(recentSearchStorageKey);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as string[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeRecentSearches(destinationLabel: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const existing = readRecentSearches().filter((item) => item !== destinationLabel);
+    const next = [destinationLabel, ...existing].slice(0, 5);
+    window.localStorage.setItem(recentSearchStorageKey, JSON.stringify(next));
+  } catch {
+    // ignore storage failures
+  }
+}
+
+export default function PartnerStaySearchPage() {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isStandaloneSearchPage = location.pathname === bookingFlowRoutes.staySearch;
+  const storedSearch = useSelector((state: RootState) => state.stays.searchParams);
+
+  const [locationOptions, setLocationOptions] = useState<StaySearchLocationOption[]>([]);
+
+  const initialDestination = useMemo(
+    () =>
+      locationOptions.find(
+        (option) =>
+          option.country === storedSearch?.country &&
+          option.adminLevels.includes(storedSearch?.adminLevel1 ?? "") &&
+          option.cities.includes(storedSearch?.city ?? ""),
+      ) ?? null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [locationOptions, storedSearch?.adminLevel1, storedSearch?.city, storedSearch?.country],
+  );
+
+  const [selectedDestination, setSelectedDestination] =
+    useState<StaySearchLocationOption | null>(initialDestination);
+  const [stayType, setStayType] = useState<StaySearchStayType>(
+    (storedSearch?.stayType as StaySearchStayType | undefined) ?? initialStayType,
+  );
+  const [checkIn, setCheckIn] = useState(storedSearch?.checkIn ?? "");
+  const [checkOut, setCheckOut] = useState(storedSearch?.checkOut ?? "");
+  const [guests, setGuests] = useState<GuestCounts>({
+    adults: storedSearch?.adults ?? 2,
+    children: storedSearch?.children ?? 0,
+    rooms: storedSearch?.rooms ?? 1,
+  });
+  const [recentSearches, setRecentSearches] = useState<string[]>(readRecentSearches);
+
+  useEffect(() => {
+    fetchPartnerStayLocations()
+      .then((data) => {
+        const mapped = data.locations.map(partnerStayLocationToOption);
+        if (mapped.length > 0) setLocationOptions(mapped);
+      })
+      .catch((error) => {
+        console.error("[Stays][locations] failed to load partner inventory", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!selectedDestination && initialDestination) {
+      setSelectedDestination(initialDestination);
+    }
+  }, [initialDestination, selectedDestination]);
+
+  // Recents first, then the rest of the canonical list deduplicated
+  const autocompleteOptions = useMemo(() => {
+    const recentOptions = recentSearches
+      .map((label) =>
+        locationOptions.find((option) => option.destinationLabel === label),
+      )
+      .filter((option): option is StaySearchLocationOption => Boolean(option));
+    const recentLabels = new Set(recentOptions.map((option) => option.destinationLabel));
+    return [
+      ...recentOptions,
+      ...locationOptions.filter((option) => !recentLabels.has(option.destinationLabel)),
+    ];
+  }, [recentSearches, locationOptions]);
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedDestination || !checkIn || !checkOut) return;
+
+    writeRecentSearches(selectedDestination.destinationLabel);
+    setRecentSearches(readRecentSearches());
+
+    dispatch(clearStaysCache());
+    dispatch(
+      setLocationDetails({
+        name: selectedDestination.destinationLabel,
+        country_name: selectedDestination.country,
+        country_code: selectedDestination.country.slice(0, 2).toUpperCase(),
+        code: selectedDestination.cities[0].toLowerCase().replace(/\s+/g, "-"),
+        adminLevel1: selectedDestination.adminLevels[0],
+        city: selectedDestination.cities[0],
+        stayType,
+      }),
+    );
+    dispatch(
+      setSearchParams({
+        destination: selectedDestination.cities[0] || selectedDestination.destinationLabel,
+        country: selectedDestination.country,
+        adminLevel1: selectedDestination.adminLevels[0],
+        city: selectedDestination.cities[0],
+        stayType,
+        checkIn,
+        checkOut,
+        adults: guests.adults,
+        children: guests.children,
+        rooms: guests.rooms,
+      }),
+    );
+
+    navigate(`${bookingFlowRoutes.stayResults}?flow=partner`);
+  };
+
+  // Field density/layout matches the Transfers and Flights tabs
+  // deliberately -- one row on desktop, wrapping to a column on mobile,
+  // same 48px field height / 12px radius as the rest of the site's
+  // MuiOutlinedInput theme. Previously Stays was the only tab spread
+  // across two rows, with Adults/Children/Rooms as three separate number
+  // inputs where Flights uses a single Passengers field -- consolidated
+  // into one GuestsSelector so the row count and field count line up with
+  // the other two tabs.
+  const compactFieldSx = {
+    "& .MuiInputBase-root": { height: "48px", borderRadius: "12px" },
+  };
+
+  const searchForm = (
+    <form
+      className="flex lg:flex-row flex-col justify-normal lg:justify-center lg:items-end gap-4 lg:min-w-full lg:max-w-full"
+      onSubmit={handleSubmit}
+    >
+        <div className="flex flex-col gap-2 w-full">
+          <label htmlFor="stay-destination" className="text-sm text-gray-700">
+            Destination
+          </label>
+          <Autocomplete
+            id="stay-destination"
+            size="small"
+            options={autocompleteOptions}
+            value={selectedDestination}
+            onChange={(_, newValue) => setSelectedDestination(newValue)}
+            getOptionLabel={(option) => option.destinationLabel}
+            isOptionEqualToValue={(option, value) =>
+              option.destinationLabel === value.destinationLabel
+            }
+            groupBy={(option) =>
+              recentSearches.includes(option.destinationLabel)
+                ? "Recent searches"
+                : "Destinations"
+            }
+            filterOptions={(options, { inputValue }) =>
+              inputValue
+                ? options.filter((option) => optionMatchesQuery(option, inputValue))
+                : options
+            }
+            sx={compactFieldSx}
+            renderInput={(params) => (
+              <TextField {...params} placeholder="Search city, area, or property" />
+            )}
+            renderOption={(props, option) => {
+              const { key, ...rest } = props as React.HTMLAttributes<HTMLLIElement> & { key?: React.Key };
+              return (
+                <li key={key} {...rest}>
+                  <span className="flex-1">{option.destinationLabel}</span>
+                  <span className="ml-2 text-xs text-gray-400">
+                    {option.cities[0]}, {option.adminLevels[0]}
+                  </span>
+                </li>
+              );
+            }}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2 w-full">
+          <label htmlFor="stay-type" className="text-sm text-gray-700">
+            Stay type
+          </label>
+          <select
+            id="stay-type"
+            value={stayType}
+            onChange={(event) => setStayType(event.target.value as StaySearchStayType)}
+            className="rounded-[12px] border border-[#c4c4c4] px-3 text-sm h-[48px]"
+          >
+            <option value="">Any stay type</option>
+            {staySearchStayTypeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-2 w-full">
+          <label className="text-sm text-gray-700">Dates</label>
+          <ReusableDateSelector
+            onDateChange={(start, end) => {
+              setCheckIn(start);
+              setCheckOut(end);
+            }}
+            initialValue={checkIn && checkOut ? `${checkIn} - ${checkOut}` : ""}
+          />
+        </div>
+
+        <GuestsSelector id="stay-guests" label="Guests & Rooms" counts={guests} onChange={setGuests} />
+
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={!selectedDestination || !checkIn || !checkOut}
+          sx={{
+            textTransform: "none",
+            backgroundColor: "#023E8A",
+            fontWeight: 700,
+            borderRadius: "12px",
+            height: "48px",
+            width: { xs: "100%", lg: "120px" },
+            flexShrink: 0,
+            "&:hover": { backgroundColor: "#0450A2" },
+          }}
+        >
+          {stayResultsLabel()}
+        </Button>
+    </form>
+  );
+
+  if (!isStandaloneSearchPage) {
+    return <div>{searchForm}</div>;
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f7f9fc]">
+      <Navbar />
+      <main className="mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-8">
+        <div className="mb-6">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#FF6F1E]">
+            Stays
+          </p>
+          <h1 className="mt-1 text-3xl font-bold text-[#023E8A]">
+            Search for a stay
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Update your destination, dates, or guests to search again.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-[#E4E7EB] bg-white p-5 shadow-[0_20px_45px_-18px_rgba(2,62,138,0.2)] sm:p-8">
+          {searchForm}
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}

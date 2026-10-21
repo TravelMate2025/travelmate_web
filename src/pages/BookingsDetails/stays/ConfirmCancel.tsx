@@ -19,6 +19,11 @@ const ConfirmCancel = ({
   loadCancel,
 }: props) => {
   const [reason, setReason] = useState("");
+  const snapshot = bookings?.bookingSnapshot ?? bookings?.booking_snapshot ?? {};
+  const currency = bookings?.currency ?? (snapshot as Record<string, unknown>).currency?.toString() ?? "";
+  const priceLabel = currency ? `${currency} ` : "";
+  const preview = bookings?.cancellation_preview ?? bookings?.cancellationPreview;
+  const refundPercent = preview?.refundPercent ?? bookings?.refund_percent;
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
       <div className="bg-white w-full max-w-lg rounded-xl shadow-lg p-6 space-y-6">
@@ -51,7 +56,7 @@ const ConfirmCancel = ({
                 new Date(bookings?.check_out).toDateString()}
             </p>
             <p className="text-gray-800 font-medium text-sm">
-              €{bookings?.total_price || "-----"}
+              {priceLabel}{bookings?.total_price || bookings?.totalPrice || "-----"}
             </p>
           </div>
         </div>
@@ -62,11 +67,15 @@ const ConfirmCancel = ({
             Refunds & Cancellation
           </h3>
           <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-            <li>Fully refundable before {bookings?.check_in}</li>
             <li>
-              Cancellations after 11:59 on {bookings?.check_in} or no-shows are
-              subject to fee equal to 100% of amount paid.
+              {refundPercent != null ? `${refundPercent}% refund` : "Refund available"} under the selected policy.
             </li>
+            {preview?.refundAmount != null && (
+              <li className="font-medium text-[#2D9C5E]">
+                Estimated refund: {priceLabel}{preview.refundAmount}
+              </li>
+            )}
+            <li>Cancellation and refund are separate steps. This is an estimate; cancellation does not return money immediately.</li>
           </ul>
         </div>
 

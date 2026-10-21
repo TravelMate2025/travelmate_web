@@ -7,14 +7,17 @@ import { setSearchParams, setLocationDetails, clearStaysCache } from "../slice";
 import { AppDispatch, RootState } from "../../../store";
 import { fetchDestinations } from "../api";
 import { useNavigate } from "react-router";
+import { Destination } from "../types";
 
-interface Destination {
-  code: string;
-  name: string;
-  country_code: string;
-  country_name?: string;
-  city_name?: string;
-  accommodation_type?: string;
+function normalizeLocations(input: unknown): Destination[] {
+  if (Array.isArray(input)) return input as Destination[];
+  if (input && typeof input === "object") {
+    const maybe = input as { results?: unknown };
+    if (Array.isArray(maybe.results)) {
+      return maybe.results as Destination[];
+    }
+  }
+  return [];
 }
 
 export default function UpdateSearchFilter() {
@@ -46,9 +49,12 @@ export default function UpdateSearchFilter() {
   });
 
   const [guestText, setGuestText] = useState(
-    ` ${searchParams?.rooms} rooms, ${
+    // Uses counts.rooms (already falls back to 1), not searchParams?.rooms
+    // directly -- the latter is undefined with no search context (e.g. a
+    // direct link to the results page), producing "undefined rooms, ...".
+    ` ${counts.rooms} rooms, ${
       counts.adults + counts.children + counts.infants
-    } guests, ` || ""
+    } guests, `
   );
 
   useEffect(() => {
@@ -57,10 +63,10 @@ export default function UpdateSearchFilter() {
         setLoadingLocations(true);
         if (destination.length >= 2) {
           const data = await fetchDestinations(destination);
-          setLocations(data);
+          setLocations(normalizeLocations(data));
         } else if (!destination) {
           const data = await fetchDestinations(undefined);
-          setLocations(data);
+          setLocations(normalizeLocations(data));
         } else {
           setLoadingLocations(false);
         }
@@ -120,6 +126,15 @@ export default function UpdateSearchFilter() {
       const totalChildren = counts.children + counts.infants;
       const updatedSearchParams = {
         destination: destinationCode,
+        // setSearchParams replaces the whole object rather than merging --
+        // omitting city/country/adminLevel1 here used to wipe them out,
+        // which made StaysSearchResults' hasSearchContext check (it looks
+        // at these fields, not destination) fail and fall back to the
+        // empty "start a search" state even though the new search had
+        // already succeeded.
+        city: selectedDestination?.city_name || destinationCode,
+        country: selectedDestination?.country_name,
+        adminLevel1: selectedDestination?.adminLevel1,
         checkIn: formatDate(checkIn),
         checkOut: formatDate(checkOut),
         adults: counts.adults,
@@ -147,7 +162,7 @@ export default function UpdateSearchFilter() {
       await dispatch(setSearchParams(updatedSearchParams));
 
       navigate(
-        `/stays-search-result?location=${encodeURIComponent(
+        `/stay-results?location=${encodeURIComponent(
           destination
         )}&checkin=${formatDate(checkIn)}&checkout=${formatDate(
           checkOut

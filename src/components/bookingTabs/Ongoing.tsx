@@ -5,6 +5,13 @@ import carImage from "../../assets/carImage.svg";
 import flightImage from "../../assets/airlogo.svg";
 import EmptyState from "./EmptyState";
 import { NormalizedBooking } from "../../pages/Bookings";
+import {
+  formatBookingAmount,
+  getBookingAmount,
+  getBookingCurrency,
+  getBookingDateText,
+  getBookingName,
+} from "./utils";
 
 export interface BookingsProps {
   bookings: NormalizedBooking[];
@@ -24,59 +31,45 @@ const Ongoing = ({ bookings, onCancel, cancelingId }: BookingsProps) => {
         : flightImage);
 
     const name =
-      item.name ||
-      item.originalData?.hotel_name ||
-      item.originalData?.dropoff_location_label ||
+      getBookingName(item, "") ||
+      String(item.originalData?.hotel_name || "") ||
+      String(item.originalData?.dropoff_location_label || "") ||
       "Unknown Booking";
+    const dateStr = getBookingDateText(item);
+    const amount = getBookingAmount(item);
+    const currency = getBookingCurrency(item, "NGN");
+    const formattedAmount = formatBookingAmount(item, "NGN");
 
-    let dateStr = "";
-    if (item.type === "stay" || item.type === "flight") {
-      const start = item.date || item.originalData?.check_in;
-      const end = item.date_to || item.originalData?.check_out;
-      if (start && end) {
-        dateStr = `${new Date(start).toDateString()} - ${new Date(
-          end
-        ).toDateString()}`;
-      } else {
-        dateStr = new Date(start).toDateString();
-      }
-    } else {
-      const date = item.date || item.originalData?.pickup_date;
-      dateStr = new Date(date).toDateString();
-    }
-
-    const amount =
-      item.amount ||
-      item.originalData?.total_price ||
-      item.originalData?.total_amount;
-    const currency = item.currency || "NGN";
-
-    return { image, name, dateStr, amount, currency };
+    return { image, name, dateStr, amount, currency, formattedAmount };
   };
 
   return (
     <div>
       {bookings.length === 0 ? (
         <EmptyState
-        title="No Ongoing Bookings yet"
-        content="You haven't made any ongoing bookings yet. When you do, they will appear here."
+        title="No confirmed bookings yet"
+        content="You haven't made any confirmed bookings yet. When you do, they will appear here."
       />
       ) : (
         bookings.map((item) => {
-          const { image, name, dateStr, amount, currency } = getDetails(item);
+          const { image, name, dateStr, formattedAmount } = getDetails(item);
 
           return (
             <div
               key={item.id}
               className="flex justify-between lg:max-w-3xl w-full items-start gap-2 border-[1px] border-neutral-300 p-4 rounded-xl mb-4 hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => {
-                item.type === "stay"
-                  ? navigate(
-                      `/bookings/stays-details/?session_id=${item.session_id}`
-                    )
-                  : item.type === "transfer"
-                  ? navigate(`/bookings/transfers-details/?session_id=${item.session_id}`)
-                  : navigate(`bookings/flight-details/?session_id=${item.session_id}`);
+                if (item.type === "stay") {
+                  navigate(
+                    `/bookings/stays-details/?booking_reference=${encodeURIComponent(item.reference)}&session_id=${encodeURIComponent(item.session_id)}`,
+                  );
+                } else if (item.type === "transfer") {
+                  navigate(
+                    `/bookings/transfers-details/?session_id=${encodeURIComponent(item.session_id)}&booking_reference=${encodeURIComponent(item.reference)}`,
+                  );
+                } else {
+                  navigate(`/bookings/flight-details/?session_id=${item.session_id}`);
+                }
               }}
             >
               <div className="flex justify-normal items-start gap-3">
@@ -91,12 +84,9 @@ const Ongoing = ({ bookings, onCancel, cancelingId }: BookingsProps) => {
                 <div>
                   <h3 className="text-lg font-bold line-clamp-1">{name}</h3>
                   <p className="text-[#4E4F52] text-sm">{dateStr}</p>
-                  <p className="text-[#4E4F52] text-sm font-medium">
-                    {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency,
-                    }).format(Number(amount))}
-                  </p>
+                    <p className="text-[#4E4F52] text-sm font-medium">
+                      {formattedAmount}
+                    </p>
                 </div>
               </div>
 

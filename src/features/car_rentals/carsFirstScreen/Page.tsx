@@ -9,7 +9,7 @@ import { setSearchResults } from "../carPaymentSlice";
 
 // Icons
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-import { MdArrowDropDown } from "react-icons/md";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { Info } from "lucide-react";
 
 // Custom hooks and utilities
@@ -22,6 +22,7 @@ import {
   formatPriceRange,
 } from "../utilities/formatting";
 import { BookingFormData } from "../types/booking";
+import type { CarTransferOption } from "../types/booking";
 
 // Components
 import Passengers from "./modals/Passengers";
@@ -31,7 +32,6 @@ import { transferService } from "../services/transferService";
 import SearchPickUpLocation from "./modals/searchPickUp";
 import SearchDropOffLocation from "./modals/searchDropOff";
 import toast from "react-hot-toast";
-import { ToastContainer } from "react-toastify";
 import RideType from "./modals/RideType";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -60,7 +60,7 @@ const CarBookingFirstScreen: React.FC = () => {
   // Initialize form with Redux data or saved data
   // const { loadSavedData } = useFormPersistence({} as BookingFormData);
 
-  const initialData = useMemo(() => {
+  const [initialData] = useState<BookingFormData>(() => {
     const savedData = localStorage.getItem("carBookingForm");
     const persistedData = savedData ? JSON.parse(savedData) : null;
 
@@ -87,7 +87,7 @@ const CarBookingFirstScreen: React.FC = () => {
       selectedRide: baseData.selectedRide || "",
       priceRange: baseData.priceRange || { min: 0, max: 0 },
       passengerCounts: baseData.passengerCounts || {
-        adults: 0,
+        adults: 1,
         children: 0,
         infant: 0,
       },
@@ -95,7 +95,7 @@ const CarBookingFirstScreen: React.FC = () => {
       toLon: baseData.toLon ? Number(baseData.toLon) : undefined,
       searchResults: baseData.searchResults || [],
     } as BookingFormData;
-  }, []);
+  });
 
   const {
     formData,
@@ -164,7 +164,7 @@ const CarBookingFirstScreen: React.FC = () => {
         updateField("dropoffLocation", location);
       }
     },
-    [pickOrDrop, updateField, closeModal]
+    [pickOrDrop, updateField]
   );
 
   const handleTimeChange = useCallback(
@@ -179,7 +179,7 @@ const CarBookingFirstScreen: React.FC = () => {
       updateField("priceRange", { min, max });
       closeModal("priceRange");
     },
-    [updateField, openModal, closeModal]
+    [updateField, closeModal]
   );
 
   const handlePassengerUpdate = useCallback(
@@ -208,13 +208,14 @@ const CarBookingFirstScreen: React.FC = () => {
       passengers: true,
     });
     const errors = [];
-    validateBookingForm(formData);
-    if (!isValid) {
+    const validation = validateBookingForm(formData);
+    if (!validation.isValid) {
       errors.push("Please fill in all required fields correctly");
     }
 
     if (errors.length > 0) {
       setSubmitError(errors.join(", "));
+      return;
     }
 
     setSubmitError(null);
@@ -223,13 +224,13 @@ const CarBookingFirstScreen: React.FC = () => {
       const params = transferService.convertFormToApiParams({
         ...formData,
       });
-      if (!params.fcode || !/^[A-Z]{3}$/.test(params.fcode)) {
-        throw new Error("Invalid pickup location code");
+      if (!params.fcode) {
+        throw new Error("Invalid pickup location");
       }
-      if (!params.tcode || params.tcode === "undefined,undefined") {
+      if (!params.tcode || params.tcode === "undefined,undefined" || params.tcode === "null,null") {
         setFormData((prev) => ({ ...prev, dropoffLocaDescription: "" }));
         throw new Error(
-          "Invalid destination coordinates, enter drop off location again"
+          "Please select a drop off location again"
         );
       }
       const result = await transferService.searchTransfers(params);
@@ -237,7 +238,11 @@ const CarBookingFirstScreen: React.FC = () => {
         throw new Error(result.error || "No transfer results found");
       }
 
-      dispatch(setSearchResults(result?.data?.results?.services || []));
+      dispatch(
+        setSearchResults(
+          (result?.data?.results?.services || []) as CarTransferOption[]
+        )
+      );
       console.log("Search results:", result?.data);
       navigate(
         `/cars-searchResults?ride=${encodeURIComponent(
@@ -258,9 +263,11 @@ const CarBookingFirstScreen: React.FC = () => {
     isValid,
     formData,
     navigate,
+    dispatch,
+    setFormData,
+    setTouched,
     setSubmitError,
     setLoading,
-    transferService,
   ]);
 
   // Memoized display values
@@ -275,7 +282,6 @@ const CarBookingFirstScreen: React.FC = () => {
 
   return (
     <div className="">
-      <ToastContainer />
       {/* Shared Ride Info */}
       {(formData.selectedRide === "Shared Ride" ||
         formData.selectedRide === "Private and Shared Ride") && (
@@ -294,26 +300,31 @@ const CarBookingFirstScreen: React.FC = () => {
           <div className="flex lg:flex-row flex-col justify-between lg:items-center gap-4 w-full">
             {/* Ride Type */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="ride-type">Ride Type</label>
+              <label htmlFor="ride-type" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Ride Type</label>
               <TextField
                 id="ride-type"
                 variant="outlined"
                 size="small"
                 value={displayValues.rideType}
                 onClick={() => handleRideClick()}
+                onBlur={() => handleBlur("selectedRide")}
+                error={
+                  Boolean(touched.selectedRide) && Boolean(errors.selectedRide)
+                }
+                helperText={touched.selectedRide && errors.selectedRide}
                 className="cursor-pointer"
                 InputProps={{
                   readOnly: true,
                   startAdornment: (
                     <InputAdornment position="start">
-                      <MdArrowDropDown />
+                      <KeyboardArrowDownIcon sx={{ color: "#8A9096" }} />
                     </InputAdornment>
                   ),
                 }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
+                    height: "48px",
+                    borderRadius: "12px",
                     cursor: "pointer",
                     width: "100%",
                   },
@@ -323,7 +334,7 @@ const CarBookingFirstScreen: React.FC = () => {
 
             {/* Pick Up Location */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="pickup-location">Pick Up</label>
+              <label htmlFor="pickup-location" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Pick Up</label>
               <TextField
                 id="pickup-location"
                 variant="outlined"
@@ -341,14 +352,14 @@ const CarBookingFirstScreen: React.FC = () => {
                   readOnly: true,
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LocationOnOutlinedIcon />
+                      <LocationOnOutlinedIcon sx={{ color: "#8A9096" }} />
                     </InputAdornment>
                   ),
                 }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
+                    height: "48px",
+                    borderRadius: "12px",
                     width: "100%",
                   },
                 }}
@@ -357,15 +368,15 @@ const CarBookingFirstScreen: React.FC = () => {
 
             {/* Drop Off Location */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="dropoff-location">Drop Off</label>
+              <label htmlFor="dropoff-location" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Drop Off</label>
               <TextField
                 id="dropoff-location"
                 variant="outlined"
                 size="small"
                 placeholder="Search Destination"
-                value={formData.dropoffLocation}
+                value={formData.dropoffLocaDescription || formData.dropoffLocation}
                 onClick={() => handleDropLocationClick("drop")}
-                onBlur={() => handleBlur("dropoffpLocation")}
+                onBlur={() => handleBlur("dropoffLocation")}
                 error={
                   Boolean(touched.dropoffLocation) &&
                   Boolean(errors.dropoffLocation)
@@ -375,14 +386,14 @@ const CarBookingFirstScreen: React.FC = () => {
                   readOnly: true,
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LocationOnOutlinedIcon />
+                      <LocationOnOutlinedIcon sx={{ color: "#8A9096" }} />
                     </InputAdornment>
                   ),
                 }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
+                    height: "48px",
+                    borderRadius: "12px",
                     width: "100%",
                   },
                 }}
@@ -391,7 +402,7 @@ const CarBookingFirstScreen: React.FC = () => {
 
             {/* Pick Up Date */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="pickup-date">Pick Up Date</label>
+              <label htmlFor="pickup-date" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Pick Up Date</label>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   disablePast
@@ -412,8 +423,8 @@ const CarBookingFirstScreen: React.FC = () => {
                       },
                       sx: {
                         "& .MuiInputBase-root": {
-                          height: "44px",
-                          borderRadius: "8px",
+                          height: "48px",
+                          borderRadius: "12px",
                           cursor: "pointer",
                           width: "100%",
                         },
@@ -429,7 +440,7 @@ const CarBookingFirstScreen: React.FC = () => {
           <div className="flex lg:flex-row flex-col justify-between items-center w-full gap-4 mt-5">
             {/* Pick Up Time */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="pickup-time">Pick Up Time</label>
+              <label htmlFor="pickup-time" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Pick Up Time</label>
               <TextField
                 id="pickup-time"
                 type="time"
@@ -437,12 +448,13 @@ const CarBookingFirstScreen: React.FC = () => {
                 size="small"
                 value={formData.pickupTime}
                 onChange={handleTimeChange}
-                // error={!!errors.pickupTime}
-                // helperText={errors.pickupTime}
+                onBlur={() => handleBlur("pickupTime")}
+                error={Boolean(touched.pickupTime) && Boolean(errors.pickupTime)}
+                helperText={touched.pickupTime && errors.pickupTime}
                 sx={{
                   "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
+                    height: "48px",
+                    borderRadius: "12px",
                     width: "100%",
                   },
                 }}
@@ -451,7 +463,7 @@ const CarBookingFirstScreen: React.FC = () => {
 
             {/* Passengers */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="passengers">Passengers</label>
+              <label htmlFor="passengers" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Passengers</label>
               <TextField
                 id="passengers"
                 variant="outlined"
@@ -467,8 +479,8 @@ const CarBookingFirstScreen: React.FC = () => {
                 InputProps={{ readOnly: true }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
+                    height: "48px",
+                    borderRadius: "12px",
                     cursor: "pointer",
                     width: "100%",
                   },
@@ -478,7 +490,7 @@ const CarBookingFirstScreen: React.FC = () => {
 
             {/* Price Range */}
             <div className="flex flex-col gap-2 w-full">
-              <label htmlFor="price-range">Price Range</label>
+              <label htmlFor="price-range" className="text-[12.5px] font-semibold font-inter text-[#4E4F52]">Price Range</label>
               <TextField
                 id="price-range"
                 variant="outlined"
@@ -491,8 +503,8 @@ const CarBookingFirstScreen: React.FC = () => {
                 InputProps={{ readOnly: true }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    height: "44px",
-                    borderRadius: "8px",
+                    height: "48px",
+                    borderRadius: "12px",
                     cursor: "pointer",
                     width: "100%",
                   },
@@ -505,7 +517,7 @@ const CarBookingFirstScreen: React.FC = () => {
         {/* Search Button */}
         <div className="">
           <button
-            className="bg-[#023E8A] lg:w-[120px] w-full text-center text-white font-inter text-base rounded-md py-3 lg:mt-14 cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+            className="bg-[#023E8A] lg:w-[120px] w-full text-center text-white font-inter font-bold text-base rounded-[12px] py-3 lg:mt-14 cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 hover:bg-blue-800"
             onClick={() => {
               handleSearch();
             }}
@@ -524,8 +536,9 @@ const CarBookingFirstScreen: React.FC = () => {
           value={formData.pickupLocaDescription}
           setValue={handleLocationSelect}
           setExtraFields={(fields) => {
-            updateField("toLat", fields.toLat);
-            updateField("toLon", fields.toLon);
+            if (fields.pickupLocaDescription) {
+              updateField("pickupLocaDescription", fields.pickupLocaDescription);
+            }
           }}
           ChangeValue={(query) =>
             setFormData((prev) => ({

@@ -9,6 +9,7 @@ import Navbar from '../../../pages/homePage/Navbar';
 import { MdOutlineImage } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { IoChevronBack } from 'react-icons/io5';
+import { TicketDetail as ApiTicketDetail } from '../api/tickets';
 
 
 interface Message {
@@ -20,84 +21,9 @@ interface Message {
   timestamp?: string;
 }
 
-interface EscalationRole {
-  id: number;
-  name: string;
-  description: string;
-}
-
-interface ClaimHistoryEntry {
-  id: number;
-  claimed_admin: {
-    id: number;
-    email: string;
-    first_name: string;
-    last_name: string;
-  };
-  timestamp: string;
-  claim_note_text: string;
-}
-
-interface EscalationHistoryEntry {
-  id: number;
-  escalated_by: {
-    id: number;
-    email: string;
-    first_name: string;
-    last_name: string;
-    mobile_number: string;
-  };
-  escalation_note_text: string;
-  escalation_role: {
-    id: number;
-    name: string;
-    description: string;
-  };
-  reason: string;
-  note: string;
-  timestamp: string;
-}
-
-
-
-interface TicketDetail {
-  ticket_id: number;
-  title: string;
-  category: string;
-  description: string;
-  status: 'pending' | 'resolved';
-  created_at: string;
-  updated_at: string;
-  messages: Message[];
-  user: {
-    id: number;
-    email: string;
-    first_name: string | null;
-    last_name: string | null;
-  };
-  // Escalation-related fields
-  escalated: boolean;
-  escalated_at: string | null;
-  escalated_by: string | null;
-  escalation_note: string;
-  escalation_note_text: string;
-  escalation_reason: string;
-  escalation_response_time: string;
-  escalation_role: EscalationRole;
-
-  // ✅ Claim-related fields
-  claimed_admin: string | null;
-  claim_timestamp: string | null;
-  claim_note_text: string | null;
-
-  claim_history: ClaimHistoryEntry[];
-  escalation_history: EscalationHistoryEntry[];
-}
-
-
 const TicketDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [ticket, setTicket] = useState<TicketDetail | null>(null);
+  const [ticket, setTicket] = useState<ApiTicketDetail | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [attachment, setAttachment] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
@@ -131,7 +57,7 @@ const TicketDetailPage = () => {
         }
         return prev;
       });
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to fetch ticket');
     } finally {
       setLoading(false);
@@ -176,6 +102,7 @@ const TicketDetailPage = () => {
         ...response,
         sender: { email: ticket!.user.email },
         created_at: new Date().toISOString(),
+        content: messageToSend,
       };
   
       setTicket((prev) =>

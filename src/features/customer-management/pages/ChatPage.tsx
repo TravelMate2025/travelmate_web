@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { format } from "date-fns";
 // import { Howl } from 'howler';
 
@@ -14,7 +14,7 @@ import ChatMessages from "../components/chat/ChatMessages";
 import { RootState } from "../../../store";
 import { useSelector } from "react-redux";
 import { ChatWebSocket } from "../utils/websocket";
-import { Chat, Message } from "../types/chat";
+import { Chat, Message, SenderInfo } from "../types/chat";
 import { IoChevronBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import Breadcrumbs from '../../../components/Breadcrumbs';
@@ -33,6 +33,10 @@ const breadcrumbs = [
 //   src: ['/sounds/mixkit-bell-notification-933.wav'],
 //   volume: 0.5,
 // });
+
+function toErrorString(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}
 
 const ChatPage = () => {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -90,7 +94,7 @@ const ChatPage = () => {
       const updatedChats = await fetchUserChats();
       setChats(updatedChats);
     }  catch (err) {
-    console.error("Failed to refresh chats", err);
+    console.error("Failed to refresh chats", toErrorString(err));
     }
   };
 
@@ -99,9 +103,10 @@ const ChatPage = () => {
   }, []);
 
 
-    const normalizeMessage = (msg: any, currentUserId: number, currentUserEmail: string | undefined): Message => {
-    const textForFilename = msg.content ?? msg.message ?? "";
-    const rawFileName = textForFilename.replace("Sent an attachment: ", "").trim() || "";
+    const normalizeMessage = (msg: unknown, currentUserId: number, currentUserEmail: string | undefined): Message => {
+    const m = msg as Record<string, unknown>;
+    const textForFilename = (m.content as string) ?? (m.message as string) ?? "";
+    const rawFileName = textForFilename.replace?.("Sent an attachment: ", "")?.trim?.() || "";
     const extension = rawFileName.split(".").pop()?.toLowerCase();
 
     const mimeMap: Record<string, string> = {
@@ -127,21 +132,24 @@ const ChatPage = () => {
 
     // Determine if the sender is the current user using ID preference, then email fallback
     let isCurrentUserMessage = false;
-    if (currentUserId && currentUserId !== 0) { // Prioritize ID if valid
-      isCurrentUserMessage = (msg.sender_id === currentUserId || msg.sender === currentUserId);
-    } else if (currentUserEmail) { // Fallback to email if ID is missing or 0
-      isCurrentUserMessage = (msg.sender_info?.email === currentUserEmail);
+    if (currentUserId && currentUserId !== 0) {
+      isCurrentUserMessage = (m.sender_id === currentUserId || m.sender === currentUserId);
+    } else if (currentUserEmail) {
+      const senderInfo = m.sender_info as SenderInfo | undefined;
+      isCurrentUserMessage = senderInfo?.email === currentUserEmail;
     }
 
+    const senderInfo = m.sender_info as SenderInfo | undefined;
+
     return {
-      id: msg.id,
-      content: msg.content ?? msg.message ?? "",
+      id: (m.id as number) || 0,
+      content: (m.content as string) ?? (m.message as string) ?? "",
       sender: isCurrentUserMessage ? "user" : "admin",
-      timestamp: msg.created_at ?? msg.timestamp ?? new Date().toISOString(),
+      timestamp: (m.created_at as string) ?? (m.timestamp as string) ?? new Date().toISOString(),
       pending: false,
-      sender_info: msg.sender_info || undefined,
-      first_name: msg.sender_info?.first_name || "Admin",
-      file_url: msg.attachment_url || msg.attachment || undefined,
+      sender_info: senderInfo,
+      first_name: senderInfo?.first_name || "Admin",
+      file_url: (m.attachment_url as string) || (m.attachment as string) || undefined,
       file_name: rawFileName || "attachment",
       file_type: fileType,
     };
@@ -149,120 +157,139 @@ const ChatPage = () => {
 
 
 
-  if (!accessToken) return null;
+  // Note: do not early-return here; hooks must be called in the same order.
 
-  const initializeWebSocket = (chatId: number) => {
-    if (!accessToken || !user) return;
+  const initializeWebSocket = useCallback(
+    (chatId: number) => {
+      if (!accessToken || !user) return;
+      // avoid reconnecting to same chat
+      if (wsRef.current?.sessionId === chatId) return;
+      wsRef.current?.close?.();
 
-    if (wsRef.current && wsRef.current.sessionId === chatId) return;
+      const ws = new ChatWebSocket(chatId, accessToken);
+      ws.onOpen(() => setWsConnected(true));
+      ws.onClose(() => setWsConnected(false));
+      ws.onMessage((raw: unknown) => {
+        try {
+          const msg = raw && typeof raw === 'string' ? JSON.parse(raw as string) : raw;
+          const payload = msg as Record<string, unknown>;
 
-    wsRef.current?.close();
-    const ws = new ChatWebSocket(chatId, accessToken);
-
-    ws.onOpen(() => setWsConnected(true));
-    ws.onClose(() => setWsConnected(false));
-    ws.onMessage((msg: any) => {
-        // console.log("WebSocket raw message received:", msg);
-        if (msg?.type === 'session_update' && msg?.status === 'CLOSED') {
-          console.log("Chat closed by admin via WebSocket");
-          setActiveChat((prev) => {
-            if (prev) {
-              return { ...prev, status: 'CLOSED', systemMessageText: "Your chat has been closed by an admin." };
+          if (payload?.type === 'session_update') {
+            if (payload?.status === 'CLOSED') {
+              setActiveChat((prev) => {
+                if (prev) {
+                  return { ...prev, status: 'CLOSED', systemMessageText: 'Your chat has been closed by an admin.' };
+                }
+                return prev;
+              });
+              return;
             }
-            return prev;
-          });
-          // Notification for Chat Closed 
-            // setHasNewNotification(true);
-            // setNotificationMessage("Your chat has been closed by an admin.");
-            // playNotificationSound();
-          
-          return;
-        }
 
-        // Add this new block to handle 'error' messages that should be system notices
-        if (msg?.type === 'error') {
-            const errorMessage = msg.message;
-            if (errorMessage === 'This chat has been automatically closed due to inactivity.' || 
-                errorMessage === 'This chat is closed. No further messages can be sent.') {
-                
-                setActiveChat((prev) => {
-                    if (prev) {
-                        return { ...prev, status: 'CLOSED', systemMessageText: errorMessage };
-                    }
-                    return prev;
-                });
-                // setHasNewNotification(true);
-                // setNotificationMessage(errorMessage);
-                // playNotificationSound();
-                return; // Prevent these error messages from becoming regular chat messages
+            const assignedAdmin = payload.assigned_admin as
+              | { first_name?: string; last_name?: string }
+              | null
+              | undefined;
+            if (assignedAdmin) {
+              setActiveChat((prev) => {
+                // Only a real transition — if the chat was already assigned
+                // when it was opened (assigned_admin_info from the initial
+                // REST fetch), this is just some unrelated session_update,
+                // not a live claim, so don't (re-)show the banner.
+                if (prev && !prev.assigned_admin_info && !prev.liveAdminJoinedName) {
+                  const name = assignedAdmin.first_name?.trim() || 'An admin';
+                  return { ...prev, liveAdminJoinedName: name };
+                }
+                return prev;
+              });
             }
+
+            // Any other session_update (e.g. an unrelated field touched on
+            // the session) is not a real chat message — never fall through
+            // to normalizeMessage for it.
+            return;
           }
 
+          if (payload?.type === 'error') {
+            const errorMessage = payload.message as string | undefined;
+            if (
+              errorMessage === 'This chat has been automatically closed due to inactivity.' ||
+              errorMessage === 'This chat is closed. No further messages can be sent.'
+            ) {
+              setActiveChat((prev) => {
+                if (prev) {
+                  return { ...prev, status: 'CLOSED', systemMessageText: errorMessage };
+                }
+                return prev;
+              });
+            }
+            // No error payload is ever a real chat message.
+            return;
+          }
 
-        const normalizedMessage = normalizeMessage(msg, user.id, user.email);
-        // console.log("Normalized message:", normalizedMessage); 
-        setActiveChat((prev) => {
-          if (!prev) return prev;
-          const newMessages = [...prev.messages];
-          const matchIdx = newMessages.findIndex((m) =>
-            m.pending && 
-            m.sender === "user" && 
-            m.content === normalizedMessage.content  
-          );
-          if (matchIdx !== -1) {
-            newMessages[matchIdx] = { ...normalizedMessage, pending: false };
-          } else {
-            const exists = newMessages.some((m) => m.id === normalizedMessage.id);
-            if (!exists) {
-              newMessages.push(normalizedMessage);
+          if (payload?.type !== 'chat_message') {
+            // session_info (sent on every connect), notification, pong, or
+            // any other non-message event — previously fell through to
+            // normalizeMessage below, which has no required-field
+            // validation and would build and push a phantom message (empty
+            // content, id 0 fallback) into the chat's message list. It
+            // never rendered visibly (a separate empty-content filter in
+            // ChatMessages.tsx hides it), but it could still silently
+            // collide with and drop a real message that happened to share
+            // id 0 via the id-based dedup check below. Only a real
+            // chat_message should ever reach that logic.
+            return;
+          }
 
-              // Notification for Admin Message
-              if (normalizedMessage.sender === "admin") {
-                if (normalizedMessage.content === "") {
-                  } else {
-                      // setHasNewNotification(true);
-                      // setNotificationMessage(`New message from Admin: ${normalizedMessage.content.substring(0, 50)}...`);
-                      // playNotificationSound();
-                  }
+          const normalizedMessage = normalizeMessage(payload, user.id, user.email);
+          setActiveChat((prev) => {
+            if (!prev) return prev;
+            const newMessages = [...prev.messages];
+            const matchIdx = newMessages.findIndex((m) => m.pending && m.sender === 'user' && m.content === normalizedMessage.content);
+            if (matchIdx !== -1) {
+              newMessages[matchIdx] = { ...normalizedMessage, pending: false };
+            } else {
+              const exists = newMessages.some((m) => m.id === normalizedMessage.id);
+              if (!exists) {
+                newMessages.push(normalizedMessage);
               }
             }
-          }
-          return {
-            ...prev,
-            messages: newMessages,
-          };
-        });
-    });
-    ws.connect();
-    wsRef.current = ws;
-  };
+            return { ...prev, messages: newMessages };
+          });
+        } catch (e) {
+          console.warn('Failed to parse ws message', e);
+        }
+      });
+      ws.connect();
+      wsRef.current = ws;
+    },
+    [accessToken, user]
+  );
 
   useEffect(() => {
     const loadChats = async () => {
       try {
         const data = await fetchUserChats();
         setChats(data);
-        setLocalChats(data); 
+        setLocalChats(data);
 
         if (data.length > 0) {
           const chat = await fetchChat(data[0].id);
           const normalizedMessages = user
-            ? chat.messages.map((msg: any) => normalizeMessage(msg, user.id, user.email))
+            ? chat.messages.map((msg: unknown) => normalizeMessage(msg, user.id, user.email))
             : [];
           setActiveChat({ ...chat, messages: normalizedMessages });
           initializeWebSocket(chat.id);
         }
-      } catch (err: any) {
-        setError(err.message || "Error fetching chats");
+      } catch (err: unknown) {
+        setError(toErrorString(err) || 'Error fetching chats');
       } finally {
         setLoading(false);
       }
     };
-    
 
     loadChats();
-    return () => wsRef.current?.close();
-  }, [user]);
+    return () => wsRef.current?.close?.();
+  }, [user, initializeWebSocket]);
 
 
   useEffect(() => {
@@ -278,13 +305,13 @@ const ChatPage = () => {
 
       const chat = await fetchChat(chatId);
       const normalizedMessages = user
-        ? chat.messages.map((msg: any) => normalizeMessage(msg, user.id, user.email))
+        ? chat.messages.map((msg: unknown) => normalizeMessage(msg, user.id, user.email))
         : [];
 
       setActiveChat({ ...chat, messages: normalizedMessages });
       initializeWebSocket(chatId);
     } catch (err) {
-      console.error("Error switching chat:", err);
+      console.error("Error switching chat:", toErrorString(err));
     } finally {
       setLoading(false); 
     }
@@ -353,7 +380,7 @@ const ChatPage = () => {
       initializeWebSocket(chatData.id);
       setActiveTab("active");
     } catch (err) {
-      console.error("Error starting new chat", err);
+      console.error("Error starting new chat", toErrorString(err));
     } finally {
       setLoadingNewChat(false);
     }

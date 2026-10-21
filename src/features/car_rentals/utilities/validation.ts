@@ -23,9 +23,6 @@ export const validateBookingForm = (formData: BookingFormData): FormValidationRe
     if (!formData.selectedRide) {
         errors.selectedRide = "Ride type is required";
     }
-    if (!formData.priceRange.min || !formData.priceRange.max) {
-        errors.priceRange = "Price Range is required";
-    }
     if (formData.pickupDate && formData.pickupTime) {
         const dateTimeString = `${formData.pickupDate}T${formData.pickupTime}`;
         const pickupDateTime = new Date(dateTimeString);
@@ -36,7 +33,7 @@ export const validateBookingForm = (formData: BookingFormData): FormValidationRe
             errors.pickupTime = "Pickup time must be in the future";
         }
     }
-    if (formData.priceRange.min >= formData.priceRange.max && formData.priceRange.max > 0) {
+    if (formData.priceRange.max > 0 && formData.priceRange.min >= formData.priceRange.max) {
         errors.priceRange = "Maximum price should be greater than minimum price";
     }
 

@@ -1,12 +1,12 @@
  
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Checkbox, Divider, FormControlLabel, Modal, Paper, TextField } from "@mui/material";
 import master from "../assets/master.svg";
 import visa from "../assets/visa.svg";
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import CloseIcon from '@mui/icons-material/Close';
-import { ToastContainer, toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import "../style/Paymethod.css"
 import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
 import { useMediaQuery } from "react-responsive";
@@ -119,16 +119,28 @@ useEffect(() => {
     }
   }, [cards]);
 
+// Older builds stored full card numbers here; re-mask on load so only the last 4 digits remain.
 useEffect(() => {
   const storedCards = localStorage.getItem("cards");
   if (storedCards) {
-    setCards(JSON.parse(storedCards));
+    try {
+      const masked = (JSON.parse(storedCards) as Card[]).map((card) => ({
+        ...card,
+        cardNumber: maskCardNumber(card.cardNumber),
+      }));
+      localStorage.setItem("cards", JSON.stringify(masked));
+      setCards(masked);
+    } catch {
+      localStorage.removeItem("cards");
+    }
   }
 }, []);
 
 
-   const formatCardNumber = (num: string | number) => {
-    return num.toString().replace(/(\d{4})(?=\d)/g, '$1 ');
+  // Never keep the full PAN: store only the last 4 digits.
+  const maskCardNumber = (num: string | number) => {
+    const lastFour = num.toString().replace(/\D/g, '').slice(-4);
+    return `**** **** **** ${lastFour}`;
   };
 
   const formatCardNumberForDisplay = (cardNumber: string) => {
@@ -141,7 +153,7 @@ useEffect(() => {
 const handleSaveClick = () => {
   const newCard = {
     name: formData.cardHolder,
-    cardNumber: formatCardNumber(formData.cardNumber),
+    cardNumber: maskCardNumber(formData.cardNumber),
     image: master,
   };
 
@@ -194,19 +206,19 @@ const handleDeleteCard = () => {
 
 const [saveCard, setSaveCard] = useState(false);
 
-const isCardFormValid = () => {
+const isCardFormValid = useCallback(() => {
   return (
     formData.cardNumber?.toString().length === 16 &&
     formData.cardHolder?.trim().length > 0 &&
     formData.expiryDate?.trim().length > 0
   );
-};
+}, [formData.cardNumber, formData.cardHolder, formData.expiryDate]);
 
 useEffect(() => {
   if (!isCardFormValid() && saveCard) {
     setSaveCard(false);
   }
-}, [formData]);
+}, [isCardFormValid, saveCard]);
 
   // const [isAddingCard, setIsAddingCard] = useState(false);
 
@@ -221,8 +233,7 @@ useEffect(() => {
     
 
       <div className="">
-      <ToastContainer />
- 
+
       {cards.length === 0 ? (
 
         <div>
@@ -606,8 +617,7 @@ useEffect(() => {
 
 
     <div className="">
-      <ToastContainer />
- 
+
       {cards.length === 0 ? (
 
         <div>

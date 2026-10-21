@@ -1,112 +1,379 @@
 import {
   BookingDetailsVerifyData,
+  BookingHoldReq,
+  BookingHoldResp,
+  BookingQuoteReq,
+  BookingQuoteResp,
   BookingStaysVerifyDetails,
   BookStaysRequest,
   BookStaysResponse,
+  CatalogReview,
+  CatalogReviewsResponse,
   Destination,
   Hotel,
   HotelSearchResponse,
-} from './types';
-import api from '../../api/services/api';
-import axios from 'axios';
-import { toast } from 'react-hot-toast';
+  PopularDestination,
+  StayPricing,
+  StayRoomsResponse,
+} from "./types";
+import { RefundTracking } from "../shared/refundTracking";
+import api from "../../api/services/api";
+import axios, { AxiosError } from "axios";
+import { toast } from "react-hot-toast";
+import { fetchPartnerStayLocations } from "../shared/partnerLocationsService";
 
-const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  'https://travelmate-backend-0suw.onrender.com/api';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
+const sleep = (milliseconds: number) =>
+  new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+const getWithNetworkRetry = async <T>(url: string, config?: object) => {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await axios.get<T>(url, config);
+    } catch (error: unknown) {
+      const isTransientNetworkFailure =
+        axios.isAxiosError(error) &&
+        !error.response &&
+        (error.code === "ERR_NETWORK" ||
+          error.code === "ERR_CONNECTION_CLOSED" ||
+          error.message === "Network Error");
+
+      if (!isTransientNetworkFailure || attempt === 1) {
+        throw error;
+      }
+
+      await sleep(350);
+    }
+  }
+
+  throw new Error("Request failed");
+};
+
+type StaySearchParams = {
+  destination?: string;
+  country?: string;
+  adminLevel1?: string;
+  city?: string;
+  stayType?: string;
+  checkIn?: string;
+  checkOut?: string;
+  adults?: number;
+  children?: number;
+  rooms?: number;
+};
+
+function mapPartnerStayLocationToDestination(
+  location: {
+    country: string;
+    adminLevel1: string;
+    city: string;
+    listingCount: number;
+    areas: string[];
+    displayName: string;
+  },
+): Destination {
+  return {
+    code: location.city,
+    name: location.displayName,
+    country_code: location.country.slice(0, 2).toUpperCase(),
+    country_name: location.country,
+    adminLevel1: location.adminLevel1,
+    city_name: location.city,
+  };
 }
 
-// Cache for destinations
-const recommendedHotelsCache: { [key: string]: CacheEntry<Destination[]> } = {};
-const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
+function normalizePublicCatalogResults(input: unknown): unknown[] {
+  if (Array.isArray(input)) {
+    return input;
+  }
+  if (input && typeof input === "object") {
+    const maybe = input as {
+      data?: unknown;
+      results?: unknown;
+    };
+    if (Array.isArray(maybe.results)) {
+      return maybe.results;
+    }
+    if (Array.isArray(maybe.data)) {
+      return maybe.data;
+    }
+    if (maybe.data && typeof maybe.data === "object") {
+      const nested = maybe.data as { results?: unknown };
+      if (Array.isArray(nested.results)) {
+        return nested.results;
+      }
+    }
+  }
+  return [];
+}
 
+function mapPublicCatalogStayToHotel(item: unknown): Hotel {
+  const stay = item as {
+    id?: string;
+    code?: string;
+    name?: string;
+    propertyType?: string;
+    saleMode?: string;
+    bookingOptions?: { saleMode?: string };
+    country?: string;
+    adminLevel1?: string;
+    city?: string;
+    area?: string;
+    priceFrom?: number;
+    ratingScore?: number;
+    reviewsCount?: number;
+    reviewSummary?: Hotel["reviewSummary"];
+    address?: string;
+    description?: string;
+    rooms?: Hotel["rooms"];
+    images?: Hotel["images"];
+    amenities?: string[];
+    amenityDetails?: Hotel["amenityDetails"];
+    coordinates?: Hotel["coordinates"];
+    destination?: Hotel["destination"];
+    roomSummary?: unknown;
+    mediaSummary?: unknown;
+    checkInTime?: string;
+    checkOutTime?: string;
+    // Only present when the search/detail request included checkIn/checkOut
+    // -- see PartnerStayService.search_hotels on the backend.
+    availability?: Hotel["availability"];
+  };
+
+  return {
+    id: stay.id ?? stay.code,
+    code: stay.code ?? stay.id,
+    name: stay.name ?? "Stay",
+    saleMode: stay.bookingOptions?.saleMode ?? stay.saleMode,
+    propertyType: stay.propertyType,
+    country: stay.country,
+    adminLevel1: stay.adminLevel1,
+    city: stay.city,
+    address: stay.address ?? "",
+    description: stay.description,
+    priceFrom: stay.priceFrom,
+    ratingScore: stay.ratingScore,
+    reviewsCount: stay.reviewsCount,
+    reviewSummary: stay.reviewSummary,
+    checkInTime: stay.checkInTime,
+    checkOutTime: stay.checkOutTime,
+    rooms: stay.rooms,
+    availability: stay.availability,
+    images: stay.images,
+    amenities: stay.amenities,
+    amenityDetails: stay.amenityDetails,
+    coordinates: stay.coordinates,
+    roomSummary: stay.roomSummary as Record<string, unknown> | undefined,
+    mediaSummary: stay.mediaSummary as Record<string, unknown> | undefined,
+    bookingOptions: stay.bookingOptions as Record<string, unknown> | undefined,
+    destination:
+      stay.destination ??
+      (stay.city
+        ? {
+            code: stay.city.toLowerCase().replace(/\s+/g, "-"),
+            name: stay.city,
+          }
+        : undefined),
+  };
+}
+
+function getErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const resp = error.response?.data as unknown;
+    if (resp && typeof resp === "object") {
+      const maybe = resp as { error?: string; detail?: unknown; message?: string };
+      if (maybe.error) return String(maybe.error);
+      if (Array.isArray(maybe.detail)) return String(maybe.detail[0]);
+      if (maybe.message) return String(maybe.message);
+    }
+    return (error as AxiosError).message || String(error);
+  }
+  return error instanceof Error ? error.message : String(error);
+}
 /**
- * Fetch hotel destinations with optional search and token.
- * Uses caching for repeated requests.
+ * Fetch partner stay destinations with optional search.
  */
 export const fetchDestinations = async (
   search?: string,
-  token?: string | null
+  token?: string | null,
 ): Promise<Destination[]> => {
-  const now = Date.now();
-  const normalizedSearch = search?.toLowerCase().trim() || 'default';
-  const cacheKey = `hotel_destinations_${normalizedSearch}`;
-  const cachedEntry = recommendedHotelsCache[cacheKey];
-
-  if (cachedEntry && now - cachedEntry.timestamp < CACHE_DURATION_MS) {
-    return cachedEntry.data;
-  }
-
+  void token;
   try {
-    const params = search ? { search: normalizedSearch } : {};
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-    const response = await axios.get(`${BASE_URL}/hotels/destinations/`, {
-      params,
-      headers,
-    });
-
-    const results: Destination[] = response.data.results || response.data;
-
-    recommendedHotelsCache[cacheKey] = { data: results, timestamp: now };
-
-    return results;
-  } catch (error: any) {
-    const errorMessage = axios.isAxiosError(error)
-      ? error.response?.data?.error || error.message
-      : error.message || 'Error fetching destinations';
-    console.error('Error fetching destinations:', errorMessage);
+    const response = await fetchPartnerStayLocations();
+    const query = search?.toLowerCase().trim();
+    return response.locations
+      .map(mapPartnerStayLocationToDestination)
+      .filter((item) => {
+        if (!query) return true;
+        return [item.code, item.name, item.city_name, item.country_code]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(query));
+      });
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || "Error fetching destinations";
+    console.error("Error fetching destinations:", errorMessage);
     toast.error(errorMessage);
     return [];
   }
 };
 
 /**
- * Fetch recommended hotels
+ * IP-geolocated recommended hotels -- open endpoint, not personalized to
+ * the account (same "hotels near this IP" for any two users on the same
+ * connection). Was previously typed as Destination[], but the backend
+ * (HotelApiViewSet.recommend) actually returns full hotel-shaped objects
+ * (images, price, destination, etc.) -- same as Hotel elsewhere in this
+ * file. The old typing meant any caller trying to render an image/price
+ * from this would have been fighting the type system to do so.
  */
-export const fetchRecommendedHotels = async (): Promise<Destination[]> => {
+export const fetchRecommendedHotels = async (): Promise<Hotel[]> => {
   try {
     const response = await axios.get(`${BASE_URL}/hotels/recommend/`);
-    return response.data.results;
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message;
-    console.error('Error fetching recommended hotels:', errorMessage);
+    return response.data.results ?? [];
+  } catch (error: unknown) {
+    console.error("Error fetching recommended hotels:", getErrorMessage(error));
+    return [];
+  }
+};
+
+/**
+ * Resolves device coordinates to a city/country via the backend's
+ * reverse-geocode proxy (Nominatim) -- the partner catalog search only
+ * accepts city/country strings, no lat/lng/radius param exists.
+ */
+export const reverseGeocode = async (
+  lat: number,
+  lng: number,
+): Promise<{ city: string | null; country: string | null }> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/v1/public/reverse-geocode`, {
+      params: { lat, lng },
+    });
+    return { city: response.data.city ?? null, country: response.data.country ?? null };
+  } catch (error: unknown) {
+    console.error("Error reverse geocoding:", getErrorMessage(error));
+    return { city: null, country: null };
+  }
+};
+
+/**
+ * Curated homepage "Popular Destinations" shortcuts -- see backend's
+ * _POPULAR_DESTINATIONS for why there's no listing count in the response.
+ */
+export const fetchPopularDestinations = async (): Promise<PopularDestination[]> => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/v1/public/catalog/stays/popular-destinations`,
+    );
+    return response.data.results ?? [];
+  } catch (error: unknown) {
+    console.error("Error fetching popular destinations:", getErrorMessage(error));
+    return [];
+  }
+};
+
+/**
+ * Homepage "Top Rated Stays" -- real averages from actual partner reviews,
+ * pre-computed/cached server-side (backend excludes stays with zero
+ * reviews). See backend's refresh_top_rated_stays_task.
+ */
+export const fetchTopRatedStays = async (): Promise<Hotel[]> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/v1/public/catalog/stays/top-rated`);
+    return response.data.results ?? [];
+  } catch (error: unknown) {
+    console.error("Error fetching top-rated stays:", getErrorMessage(error));
+    return [];
+  }
+};
+
+/**
+ * Search partner stays
+ */
+export const searchStays = async (
+  searchParams: StaySearchParams,
+): Promise<HotelSearchResponse> => {
+  try {
+    const response = await getWithNetworkRetry(`${BASE_URL}/v1/public/catalog/stays`, {
+      params: {
+        destination:
+          searchParams.destination ??
+          searchParams.city ??
+          searchParams.adminLevel1 ??
+          searchParams.country,
+        country: searchParams.country,
+        adminLevel1: searchParams.adminLevel1,
+        city: searchParams.city ?? searchParams.destination,
+        check_in: searchParams.checkIn,
+        check_out: searchParams.checkOut,
+        adults: searchParams.adults,
+        children: searchParams.children,
+        rooms: searchParams.rooms,
+      },
+    });
+    const results = normalizePublicCatalogResults(response.data).map(mapPublicCatalogStayToHotel);
+    const normalized: HotelSearchResponse = {
+      count: results.length,
+      results,
+    };
+    console.debug("[Stays][search] response", normalized);
+    return normalized;
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    toast.error("Search error: " + errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const searchHotels = searchStays;
+
+/**
+ * Fetch partner stay pricing — GET /api/v1/public/catalog/stays/{stayId}/pricing
+ */
+export const fetchStayPricing = async (
+  stayId: string,
+  checkIn?: string,
+  checkOut?: string,
+  adults: number = 1,
+  children: number = 0,
+  rooms: number = 1,
+): Promise<StayPricing> => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/v1/public/catalog/stays/${stayId}/pricing`,
+      { params: { check_in: checkIn, check_out: checkOut, adults, children, rooms } },
+    );
+    return (response.data?.data ?? response.data) as StayPricing;
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || `Failed to load pricing for ${stayId}`;
+    toast.error(errorMessage);
     throw new Error(errorMessage);
   }
 };
 
 /**
- * Search hotels
+ * Get live per-room inventory (remainingInventory/isExhausted) -- distinct
+ * from the static totalInventory/isBookable/maxPerBooking already present
+ * on the rooms[] embedded in the stay detail/search response.
  */
-export const searchHotels = async (
-  destination: string,
-  checkIn: string,
-  checkOut: string,
+export const getHotelRooms = async (
+  stayId: string,
+  checkIn?: string,
+  checkOut?: string,
   adults: number = 1,
   children: number = 0,
-  rooms: number = 1
-): Promise<HotelSearchResponse> => {
+  rooms: number = 1,
+): Promise<StayRoomsResponse> => {
   try {
-    const response = await axios.get(`${BASE_URL}/hotels/search/`, {
-      params: {
-        destination,
-        check_in: checkIn,
-        check_out: checkOut,
-        adults,
-        children,
-        rooms,
-        include_details: true,
-      },
-    });
-    console.log(response.data)
-    return response.data;
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message;
-    toast.error('Search error: ' + errorMessage);
+    const response = await axios.get(
+      `${BASE_URL}/v1/public/catalog/stays/${stayId}/rooms`,
+      { params: { check_in: checkIn, check_out: checkOut, adults, children, rooms } },
+    );
+    return (response.data?.data ?? response.data) as StayRoomsResponse;
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || `Failed to load rooms for ${stayId}`;
+    toast.error(errorMessage);
     throw new Error(errorMessage);
   }
 };
@@ -120,17 +387,30 @@ export const getHotelDetails = async (
   checkOut: string,
   adults: number = 1,
   children: number = 0,
-  rooms: number = 1
+  rooms: number = 1,
 ): Promise<Hotel> => {
   try {
-    const response = await axios.get(`${BASE_URL}/hotels/${hotelId}/details/`, {
-      params: { check_in: checkIn, check_out: checkOut, adults, children, rooms },
+    const response = await axios.get(`${BASE_URL}/v1/public/catalog/stays/${hotelId}`, {
+      params: {
+        check_in: checkIn,
+        check_out: checkOut,
+        adults,
+        children,
+        rooms,
+      },
     });
-    console.log(response.data)
-    return response.data;
-  } catch (error: any) {
-    const errorMessage =
-      error.response?.data?.error || `Failed to get details for hotel ${hotelId}`;
+    console.debug("[Stays][detail] response", response.data);
+    return (response.data?.data ?? response.data) as Hotel;
+  } catch (error: unknown) {
+    let errorMessage = `Failed to get details for hotel ${hotelId}`;
+    if (axios.isAxiosError(error)) {
+      const resp = error.response?.data as unknown;
+      if (resp && typeof resp === "object" && "error" in resp) {
+        errorMessage = String((resp as { error?: string }).error);
+      } else if ((error as AxiosError).message) {
+        errorMessage = (error as AxiosError).message;
+      }
+    }
     toast.error(errorMessage);
     throw new Error(errorMessage);
   }
@@ -141,15 +421,14 @@ export const getHotelDetails = async (
  */
 export const createCheckoutSession = async (
   bookingData: BookStaysRequest,
-  setLoading?: (loading: boolean) => void
+  setLoading?: (loading: boolean) => void,
 ): Promise<BookStaysResponse> => {
   try {
     setLoading?.(true);
-    const response = await api.post('/hotels/checkout/', bookingData);
+    const response = await api.post("/hotels/checkout/", bookingData);
     return response.data;
-  } catch (error: any) {
-    const errorMessage =
-      error.response?.data?.error || error.message || 'Something went wrong!';
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || "Something went wrong!";
     toast.error(errorMessage);
     throw new Error(errorMessage);
   } finally {
@@ -158,77 +437,286 @@ export const createCheckoutSession = async (
 };
 
 /**
+ * Create payment intent for a stay hold — POST /api/v1/public/payments/intents
+ */
+export const createStayPaymentIntent = async (payload: {
+  quoteLockId: string;
+  bookingReference: string;
+  redirectUrl: string;
+  customer: { name: string; email: string; phone: string };
+}): Promise<{ success: boolean; paymentLink?: string; paymentIntentId?: string; error?: string }> => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/v1/public/payments/intents`,
+      payload,
+      { headers: { "Idempotency-Key": `pi-${payload.bookingReference}` } },
+    );
+    const data = response.data?.data ?? response.data;
+    console.debug("[Stays][paymentIntent] response", data);
+    const paymentLink = data?.paymentLink ?? data?.nextAction?.url;
+    return {
+      success: true,
+      paymentLink,
+      paymentIntentId: data?.paymentIntentId,
+    };
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || "Failed to create payment intent";
+    console.error("[Stays][paymentIntent] error", error);
+    return { success: false, error: errorMessage };
+  }
+};
+
+/**
  * Verify hotel booking
  */
 export const verifyHotelBooking = async (
-  sessionId: string | null
+  sessionId: string | null,
 ): Promise<BookingStaysVerifyDetails> => {
+  console.debug("[Stays][verify] request", { sessionId });
   try {
-    const response = await api.get(`/hotels/verify-booking/?session_id=${sessionId}`);
+    const response = await api.get(
+      `/v1/public/bookings/verification?payment_intent_id=${encodeURIComponent(sessionId ?? "")}`,
+    );
+    console.debug("[Stays][verify] response", response.data);
     return { success: true, data: response.data };
-  } catch (error: any) {
-    const errorMessage =
-      error.response?.data?.error || error.message || 'Something went wrong!';
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || "Something went wrong!";
+    console.debug("[Stays][verify] failed", error);
     toast.error(errorMessage);
     return {
       data: {} as BookingDetailsVerifyData,
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to get booking details',
+      error: error instanceof Error ? error.message : "Failed to get booking details",
     };
   }
 };
 
 /**
- * Verify transfers booking
+ * Fetch a saved stay booking by its partner booking reference.
  */
-export const verifyTransfersBooking = async (
-  sessionId: string | null
-): Promise<any> => {
+export const searchHotelBookingByReference = async (
+  bookingReference: string | null,
+): Promise<BookingStaysVerifyDetails> => {
+  console.debug("[Stays][searchByReference] request", { bookingReference });
   try {
     const response = await api.get(
-      `/transfers/booking/confirmation/by-session/?session_id=${sessionId}`
+      `/bookings/my/search/${encodeURIComponent(bookingReference ?? "")}/`,
     );
-    return { success: true, data: response.data };
-  } catch (error: any) {
-    const errorMessage =
-      error.response?.data?.error || error.message || 'Something went wrong!';
+    const payload = response.data as {
+      booking?: unknown;
+      result?: unknown;
+      data?: unknown;
+      [key: string]: unknown;
+    };
+    const booking =
+      (payload?.booking as BookingDetailsVerifyData | undefined) ??
+      (payload?.result as BookingDetailsVerifyData | undefined) ??
+      (payload?.data as BookingDetailsVerifyData | undefined) ??
+      (response.data as BookingDetailsVerifyData);
+    console.debug("[Stays][searchByReference] response", response.data);
+    return { success: true, data: booking };
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || "Something went wrong!";
+    console.debug("[Stays][searchByReference] failed", error);
     toast.error(errorMessage);
     return {
       data: {} as BookingDetailsVerifyData,
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to get booking details',
+      error: error instanceof Error ? error.message : "Failed to get booking details",
     };
   }
 };
 
-// Fetch all reviews
+export const refreshBookingRefund = async (bookingId: string): Promise<RefundTracking> => {
+  const response = await api.get(`/bookings/my/${encodeURIComponent(bookingId)}/refund/?refresh=true`);
+  const payload = response.data as { refund?: RefundTracking; data?: RefundTracking } | RefundTracking;
+  if (payload && typeof payload === "object" && "refund" in payload) return payload.refund ?? {};
+  if (payload && typeof payload === "object" && "data" in payload) return payload.data ?? {};
+  return payload as RefundTracking;
+};
 
-export const getReviews = async (hotelId: string | number | undefined) => {
+/**
+ * Verify transfers booking
+ */
+type BookingFetchOptions = {
+  suppressToast?: boolean;
+};
+
+export const verifyTransfersBooking = async (
+  sessionId: string | null,
+  options: BookingFetchOptions = {},
+): Promise<BookingStaysVerifyDetails> => {
   try {
-    const response = await axios.get(`/hotels/${hotelId}/reviews/`)
-    console.log(response)
-    return response.data.user_reviews
-  } catch (error: any) {
-    console.error('Failed to fetch reviews:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.message || 'Failed to fetch reviews');
+    const response = await api.get(
+      `/transfers/booking/confirmation/by-session/?payment_intent_id=${encodeURIComponent(sessionId ?? "")}`,
+    );
+    return { success: true, data: response.data };
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || "Something went wrong!";
+    if (!options.suppressToast) {
+      toast.error(errorMessage);
+    }
+    return {
+      data: {} as BookingDetailsVerifyData,
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to get booking details",
+    };
   }
 };
 
-export const submitReview = async (hotelId: string | undefined | number, id: string | undefined | number, comment: string, title: number, rating: number) => {
+export const searchTransferBookingByReference = async (
+  bookingReference: string | null,
+  options: BookingFetchOptions = {},
+): Promise<BookingStaysVerifyDetails> => {
+  try {
+    const response = await api.get(
+      `/transfers/bookings/${encodeURIComponent(bookingReference ?? "")}/`,
+    );
+    return { success: true, data: response.data };
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || "Something went wrong!";
+    if (!options.suppressToast) {
+      toast.error(errorMessage);
+    }
+    return {
+      data: {} as BookingDetailsVerifyData,
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to get booking details",
+    };
+  }
+};
+
+// Fetch published guest reviews for a stay -- GET
+// /api/v1/public/catalog/stays/{stayId}/reviews. No reviewer identity is
+// exposed by this endpoint (see docs/BACKEND_PUBLIC_API_IMPLEMENTATION_GUIDE.md).
+export const getReviews = async (
+  hotelId: string | number | undefined,
+): Promise<CatalogReview[]> => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/v1/public/catalog/stays/${hotelId}/reviews`,
+      { params: { page: 1, pageSize: 20 } },
+    );
+    const data = (response.data?.data ?? response.data) as CatalogReviewsResponse;
+    return data.results ?? [];
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    console.error("Failed to fetch reviews:", errorMessage);
+    throw new Error(errorMessage || "Failed to fetch reviews");
+  }
+};
+
+// Fetch published guest reviews for a transfer -- GET
+// /api/v1/public/catalog/transfers/{transferId}/reviews.
+export const getTransferReviews = async (
+  transferId: string | number | undefined,
+): Promise<CatalogReview[]> => {
+  if (transferId == null || String(transferId).trim() === "") return [];
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/v1/public/catalog/transfers/${encodeURIComponent(String(transferId))}/reviews`,
+      { params: { page: 1, pageSize: 20 } },
+    );
+    const data = (response.data?.data ?? response.data) as CatalogReviewsResponse;
+    return data.results ?? [];
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    console.error("Failed to fetch transfer reviews:", errorMessage);
+    throw new Error(errorMessage || "Failed to fetch transfer reviews");
+  }
+};
+
+export const getCountryCodes = async (): Promise<Array<{
+  code: string;
+  name: string;
+  dialCode?: string;
+}>> => {
+  const response = await api.get("/v1/public/countries");
+  return response.data?.results ?? [];
+};
+export const getUserReviews = async () => {
+  try {
+    const response = await api.get(`/hotels/my-reviews/`);
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error) || "Failed to fetch reviews");
+  }
+};
+export const getUserReview = async (hotelId:string) => {
+  try {
+    const response = await api.get(`/hotels/${hotelId}/my-review/`);
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error) || "Failed to fetch reviews");
+  }
+};
+export const deleteUserReview = async (hotelId:string) => {
+  try {
+    const response = await api.delete(`/hotels/${hotelId}/my-review/`);
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error) || "Failed to fetch reviews");
+  }
+};
+
+export const submitReview = async (
+  hotelId: string | undefined | number,
+  id: string | undefined | number,
+  comment: string,
+  title: number,
+  rating: number,
+) => {
   try {
     const response = await api.post(`/hotels/${hotelId}/reviews/`, {
       rating,
       title,
       comment,
-      id
-
-
+      id,
+    }, {
+      headers: {
+        "Idempotency-Key": `hotel-review-${String(hotelId ?? "")}-${String(id ?? "")}`,
+      },
     });
-    console.log(response)
+    console.log(response);
     return response.data;
-  } catch (error: any) {
-    console.error('Failed to submit review:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.message || 'Failed to submit review');
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    console.error("Failed to submit review:", errorMessage);
+    throw new Error(errorMessage || "Failed to submit review");
+  }
+};
+
+export const submitBookingReview = async (
+  bookingReference: string | undefined,
+  payload: {
+    overallRating: number;
+    subcategoryRatings?: Record<string, number>;
+    comment?: string;
+  },
+  bookingType?: "stay" | "transfer",
+) => {
+  if (!bookingReference) {
+    throw new Error("Booking reference is missing.");
+  }
+
+  try {
+    const response = await api.post(
+      `/v1/public/bookings/${encodeURIComponent(bookingReference)}/review`,
+      {
+        ...payload,
+        ...(bookingType ? { bookingType } : {}),
+      },
+      {
+        headers: {
+          "Idempotency-Key": `booking-review-${String(bookingReference)}`,
+        },
+      },
+    );
+    return response.data;
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    console.error("Failed to submit booking review:", errorMessage);
+    throw new Error(errorMessage || "Failed to submit booking review");
   }
 };
 
@@ -236,63 +724,68 @@ export const deleteReview = async (reviewId: number) => {
   try {
     const response = await api.delete(`/reviews/${reviewId}`);
     return response.data;
-  } catch (error: any) {
-    console.error('Failed to delete review:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.message || 'Failed to delete review');
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    console.error("Failed to delete review:", errorMessage);
+    throw new Error(errorMessage || "Failed to delete review");
   }
 };
 
 // Favorites
 export const fetchFavorites = async () => {
   try {
-    const response = await api.get('/hotels/favorites/');
-    console.log(
-      response.data
-    )
-    return response;
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message;
-    console.error('Error fetching favorites:', errorMessage);
+    const response = await api.get("/hotels/favorites/");
+    return response.data;
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    console.error("Error fetching favorites:", errorMessage);
     throw new Error(errorMessage);
   }
 };
 
 export const addOrRemoveFavorite = async (
   hotelId: string | null,
-  setIsFavorite: (data: boolean) => void,
-  favorite: boolean
 ) => {
+  if (!hotelId) {
+    throw new Error("Stay id is missing");
+  }
   try {
-    const response = await api.post('/hotels/favorites/toggle/', { hotel_id: hotelId });
-    setIsFavorite(!favorite);
+    const response = await api.post("/hotels/favorites/toggle/", {
+      hotel_id: hotelId,
+    });
     return response.data.message;
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message;
-    console.error('Error adding favorite:', errorMessage);
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    console.error("Error adding favorite:", errorMessage);
     throw new Error(errorMessage);
   }
 };
 
 // Bookings cache
-let cachedResponse: any = null;
+let cachedResponse: unknown = null;
 let cacheTimestamp: number | null = null;
 const CACHE_DURATION = 60 * 1000;
 
 export const fetchAllBookings = async (forceRefresh = false) => {
   const now = Date.now();
-  if (!forceRefresh && cachedResponse && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION) {
+  if (
+    !forceRefresh &&
+    cachedResponse &&
+    cacheTimestamp &&
+    now - cacheTimestamp < CACHE_DURATION
+  ) {
     return cachedResponse;
   }
 
   try {
-    const response = await api.get(`/bookings/my/`);
+    const response = await api.get<{ stays?: unknown[]; transfers?: unknown[]; flights?: unknown[] }>(`/bookings/my/`);
     cachedResponse = response;
     cacheTimestamp = now;
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     cachedResponse = null;
     cacheTimestamp = null;
-    const errorMessage = error.response?.data?.error || error.message || 'Something went wrong!';
+    const errorMessage = getErrorMessage(error) || "Something went wrong!";
     toast.error(errorMessage);
     throw new Error(errorMessage);
   }
@@ -302,14 +795,21 @@ export const fetchAllBookings = async (forceRefresh = false) => {
 export const CancelStaysBookings = async (
   bookingId: string | undefined,
   setLoading?: (loading: boolean) => void,
-  cancellation_reason?: string
+  cancellation_reason?: string,
 ) => {
   try {
     setLoading?.(true);
-    const response = await api.post(`/hotels/${bookingId}/cancel-booking/`, cancellation_reason);
+    // Backend reads request.data.get('reason', '') — a bare string body
+    // (the previous behavior here) makes request.data a raw string, not a
+    // dict, which throws server-side and 500s instead of just dropping the
+    // reason. Must be wrapped in an object.
+    const response = await api.post(
+      `/hotels/${bookingId}/cancel-booking/`,
+      { reason: cancellation_reason },
+    );
     return response.data;
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message || error;
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || String(error);
     toast.error(errorMessage);
     throw new Error(errorMessage);
   } finally {
@@ -317,17 +817,52 @@ export const CancelStaysBookings = async (
   }
 };
 
+/**
+ * Create a quote lock — POST /api/v1/public/bookings/quote
+ */
+export const createQuote = async (req: BookingQuoteReq): Promise<BookingQuoteResp> => {
+  try {
+    const response = await axios.post(`${BASE_URL}/v1/public/bookings/quote`, req);
+    return (response.data?.data ?? response.data) as BookingQuoteResp;
+  } catch (error: unknown) {
+    const msg = getErrorMessage(error) || "Failed to create quote";
+    toast.error(msg);
+    throw new Error(msg);
+  }
+};
+
+/**
+ * Create a hold from a quote lock — POST /api/v1/public/bookings/holds
+ */
+export const createHold = async (req: BookingHoldReq): Promise<BookingHoldResp> => {
+  try {
+    const response = await api.post("/v1/public/bookings/holds", req);
+    return (response.data?.data ?? response.data) as BookingHoldResp;
+  } catch (error: unknown) {
+    const msg = getErrorMessage(error) || "Failed to create hold";
+    toast.error(msg);
+    throw new Error(msg);
+  }
+};
+
 export const CancelTransferBookings = async (
   bookingId: string | undefined,
   setLoading?: (loading: boolean) => void,
-  reason?: string
+  reason?: string,
 ) => {
   try {
     setLoading?.(true);
-    const response = await api.post(`/transfers/booking/${bookingId}/cancel/`, reason);
+    // Backend reads request.data.get('reason', '') — a bare string body
+    // (the previous behavior here) makes request.data a raw string, not a
+    // dict, which throws server-side and 500s instead of just dropping the
+    // reason. Must be wrapped in an object.
+    const response = await api.post(
+      `/transfers/booking/${bookingId}/cancel/`,
+      { reason },
+    );
     return response.data;
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message || error;
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error) || String(error);
     toast.error(errorMessage);
     throw new Error(errorMessage);
   } finally {

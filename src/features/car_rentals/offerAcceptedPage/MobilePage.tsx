@@ -6,8 +6,6 @@ import { Info, Loader } from "lucide-react";
 import { useState } from "react";
 import Complete from "./Complete";
 import { DeskProps } from "./Page";
-import { ToastContainer } from "react-toastify";
-import CountryCodeModal from "../../stays/components/modals/CountryCodeModal";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import FirstStep from "./components/FirstStep";
@@ -47,29 +45,20 @@ const MobilePage = ({
   submitted,
   handleCheckboxChange,
   handleChangePayment,
-  handleBlur,
   formData,
   isFormValid,
   setIsTheFormValid,
+  quotePricing,
 }: DeskProps) => {
   const [showAllModal, setShowAllModal] = useState(false);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const location = useLocation();
   const { car, departureInfo } = location.state || {};
-  const [countryModal, setCountryModal] = useState(false);
 
   return (
     <div>
-      <ToastContainer />
       {showAllModal && (
         <Complete closeDialog={() => setShowAllModal(false)} car={car} />
-      )}
-      {countryModal && (
-        <CountryCodeModal
-          closeDialog={() => setCountryModal(false)}
-          formData={passFormData}
-          setFormData={setPassFormData}
-        />
       )}
 
       <div className="mt-4">
@@ -90,7 +79,7 @@ const MobilePage = ({
             alternativeLabel
             connector={<CustomConnector />}
           >
-            {steps.map((label: any, index) => (
+            {steps.map((label: string, index: number) => (
               <Step key={index}>
                 <StepLabel
                   StepIconProps={{
@@ -127,7 +116,6 @@ const MobilePage = ({
         {/* SECOND STEP*/}
         {activeStep === 1 && (
           <PersonalInfo
-            setCountryModal={setCountryModal}
             passFormData={passFormData}
             setPassFormData={setPassFormData}
             state={state}
@@ -148,7 +136,6 @@ const MobilePage = ({
             steps={steps}
             activeStep={activeStep}
             formData={formData}
-            handleBlur={handleBlur}
           />
         )}
 
@@ -156,6 +143,7 @@ const MobilePage = ({
         {activeStep === 2 && (
           <PaymentMethod
             car={car}
+            quotePricing={quotePricing}
             passFormData={passFormData}
             setPassFormData={setPassFormData}
             state={state}
@@ -176,7 +164,6 @@ const MobilePage = ({
             steps={steps}
             activeStep={activeStep}
             formData={formData}
-            handleBlur={handleBlur}
           />
         )}
 
@@ -189,7 +176,7 @@ const MobilePage = ({
               disabled={!isFormValids || loadingSubmit}
               onClick={handleSubmit}
             >
-              <span>Pay with Stripe</span>
+              <span>Continue to payment</span>
               {loadingSubmit && (
                 <Loader className="animate-spin " stroke="#ffffff" />
               )}
@@ -205,10 +192,10 @@ const MobilePage = ({
                 (activeStep === 1 && !isTheFormValid)
               }
               onClick={() => {
-                activeStep === 0 ? handleNext() : handleConfirm();
+                if (activeStep === 0) { handleNext(); } else { handleConfirm(); }
               }}
             >
-              <span>Continue</span>
+              <span>{activeStep === 0 ? "Continue to guest details" : "Continue"}</span>
               {loadingSubmit && (
                 <Loader className="animate-spin " stroke="#ffffff" />
               )}

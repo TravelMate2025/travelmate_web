@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import hotelImage from "../../../assets/images/StayImage3.png";
 import { BookingDetailsVerifyData } from "../../../features/stays/types";
-import { getReviews, submitReview } from "../../../features/stays/api";
+import { submitBookingReview } from "../../../features/stays/api";
+import toast from "react-hot-toast";
 
 type props = {
   closeModal: () => void;
@@ -9,34 +10,67 @@ type props = {
 };
 
 const WriteAReview = ({ closeModal, bookings }: props) => {
-  // State for the form inputs
+  const [submitting, setSubmitting] = useState(false);
   const [reviewText, setReviewText] = useState("");
+  const [overallRating, setOverallRating] = useState(0);
   const [ratings, setRatings] = useState({
-    enjoyment: 0,
     cleanliness: 0,
-    value: 0,
+    accuracy: 0,
+    checkin: 0,
+    communication: 0,
     location: 0,
+    value: 0,
   });
+  const snapshot = bookings?.bookingSnapshot ?? bookings?.booking_snapshot ?? {};
+  const snapshotRecord = snapshot as Record<string, unknown>;
+  const currency = bookings?.currency ?? snapshotRecord.currency?.toString() ?? "";
+  const priceLabel = currency ? `${currency} ` : "";
+  const priceText = [
+    bookings?.total_price,
+    bookings?.totalPrice,
+    snapshotRecord.totalPrice,
+    snapshotRecord.total_price,
+    snapshotRecord.totalAmount,
+    snapshotRecord.total_amount,
+  ]
+    .map((value) => (value == null ? "" : String(value).trim()))
+    .find((value) => value.length > 0) ?? "-----";
 
-  // Helper to update specific ratings
   const handleRating = (category: keyof typeof ratings, value: number) => {
     setRatings((prev) => ({ ...prev, [category]: value }));
   };
 
   const submitAReview = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
     try {
-      await submitReview(
-        bookings?.id,
-        bookings?.hotel_code,
-        reviewText,
-        ratings.enjoyment,
-        ratings.value,
+      if (!bookings?.reference) {
+        throw new Error("Booking reference is missing.");
+      }
+      if (overallRating < 1) {
+        throw new Error("Please select an overall rating first.");
+      }
+
+      await submitBookingReview(
+        bookings.reference,
+        {
+          overallRating,
+          subcategoryRatings: Object.fromEntries(
+            Object.entries(ratings).filter(([, value]) => value > 0),
+          ) as Record<string, number>,
+          comment: reviewText,
+        },
+        "stay",
       );
-      console.log({ ratings, reviewText });
+
+      toast.success("Review Added Successfully");
       closeModal();
     } catch (error) {
       console.log(error);
+      toast.error(error instanceof Error ? error.message : "Failed to submit review");
+    } finally {
+      setSubmitting(false);
     }
   };
   const StarRating = ({
@@ -53,6 +87,7 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
+              type="button"
               onClick={() => handleRating(category, star)}
               className="focus:outline-none transition-transform hover:scale-110"
             >
@@ -74,17 +109,6 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
       </div>
     );
   };
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        await getReviews(bookings?.id);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchReviews();
-  },[]);
-
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[999999] ">
       <div className="bg-white w-full max-w-lg rounded-xl shadow-lg flex flex-col max-h-[90vh]">
@@ -99,6 +123,7 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
               Write a Review
             </h2>
             <button
+              type="button"
               className="text-gray-500 hover:text-gray-700 text-xl absolute right-5"
               onClick={closeModal}
             >
@@ -125,7 +150,7 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
                   new Date(bookings?.check_out).toDateString()}
               </p>
               <p className="text-gray-800 font-medium text-sm">
-                €{bookings?.total_price || "-----"}
+                {priceLabel}{priceText}
               </p>
             </div>
           </div>
@@ -135,21 +160,55 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
             <h4 className="text-gray-900 font-medium">
               Tap the stars to rate your overall experience
             </h4>
+            <div className="space-y-1">
+              <p className="text-gray-700 text-sm font-medium">Overall rating</p>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setOverallRating(star)}
+                    className="focus:outline-none transition-transform hover:scale-110"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill={star <= overallRating ? "#023E8A" : "none"}
+                      stroke={star <= overallRating ? "#023E8A" : "#9CA3AF"}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-5 h-5"
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div className="space-y-4">
               <StarRating
-                label="How do you enjoy your stay?"
-                category="enjoyment"
-              />
-              <StarRating
-                label="Was everything clean and tidy?"
+                label="Cleanliness"
                 category="cleanliness"
               />
               <StarRating
-                label="Did you get good value for your money?"
-                category="value"
+                label="Accuracy"
+                category="accuracy"
+              />
+              <StarRating
+                label="Check-in"
+                category="checkin"
+              />
+              <StarRating
+                label="Communication"
+                category="communication"
               />
               <StarRating label="How was the location?" category="location" />
+              <StarRating
+                label="Value for money"
+                category="value"
+              />
             </div>
 
             {/* Review Text Area */}
@@ -182,9 +241,10 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
             </button>
             <button
               type="submit"
-              className="px-6 py-2 rounded-lg bg-[#023E8A] text-white font-medium hover:bg-[#023270] transition-colors"
+              disabled={submitting}
+              className="px-6 py-2 rounded-lg bg-[#023E8A] text-white font-medium hover:bg-[#023270] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Submit
+              {submitting ? "Submitting…" : "Submit"}
             </button>
           </div>
         </form>
