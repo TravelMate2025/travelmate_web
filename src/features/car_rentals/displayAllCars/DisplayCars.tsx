@@ -285,7 +285,6 @@ const DisplayCars: React.FC = () => {
     }),
     [formData]
   );
-  console.log(formData)
 
   return (
     <div className="relative">

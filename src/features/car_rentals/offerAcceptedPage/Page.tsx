@@ -344,16 +344,6 @@ const Page = () => {
         quotePricing,
         storedAt: new Date().toISOString(),
       };
-      console.debug("Transfer payment intent payload", {
-        quoteLockId,
-        bookingReference,
-        redirectUrl: getTransferSuccessRedirectUrl(),
-        customer: {
-          name: `${passFormData.firstName} ${passFormData.lastName}`.trim(),
-          email: passFormData.email,
-          phone: passFormData.phone,
-        },
-      });
       const response = await transferService.createTransferPaymentIntent({
         quoteLockId,
         bookingReference,
@@ -372,10 +362,6 @@ const Page = () => {
           nextAction?: { url?: string };
         };
       } | undefined;
-      console.debug("Transfer payment intent response", {
-        paymentIntentId: payload?.data?.paymentIntentId,
-        paymentLink: payload?.data?.paymentLink ?? payload?.data?.nextAction?.url,
-      });
       const paymentUrl = payload?.data?.paymentLink ?? payload?.data?.nextAction?.url;
       if (response.success && paymentUrl) {
         const cacheWithIntent: TransferSuccessCache = {

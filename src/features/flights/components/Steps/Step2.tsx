@@ -178,7 +178,6 @@ const Step2: React.FC = () => {
     name: "passengers",
   });
 
-  console.log(location.state);
   
 
   const onSubmit = handleSubmit(async (formData) => {
@@ -271,7 +270,7 @@ const Step2: React.FC = () => {
 
       // nextStep();
     } catch (err: unknown) {
-      console.debug(err);
+      console.error(err);
     }
   });
 

@@ -86,13 +86,9 @@ function UpdateEmailContainer() {
         throw new Error("User email is not available.");
       }
 
-      const res = await api.post("/users/resend_reset_token/", {
+      await api.post("/users/resend_reset_token/", {
         email: safeUser.email,
       });
-
-      if (res.status === 200) {
-        console.log("OTP resent successfully!");
-      }
     } catch (error: unknown) {
       console.error("Resend OTP error:", String(error));
     }

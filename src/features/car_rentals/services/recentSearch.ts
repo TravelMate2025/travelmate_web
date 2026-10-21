@@ -13,7 +13,6 @@ export const fetchRecentSearches = async (
         }
         );
         setLocation(response.data)
-        console.log("Recent searches:", response.data);
         return response.data;
     } catch (error: unknown) {
         console.error("Error fetching recent searches:", error);

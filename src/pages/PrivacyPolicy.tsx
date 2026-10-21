@@ -31,7 +31,7 @@ export function PrivacyPolicyPage() {
         setContent(res);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setLoading(false);
     }

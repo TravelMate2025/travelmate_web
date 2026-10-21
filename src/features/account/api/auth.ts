@@ -113,7 +113,6 @@ export const loginUser = async (email: string, password: string) => {
 
 export const logoutUser = async (accessToken: string) => {
   try {
-    console.debug("📤 Initiating logout request...");
     await axios.post(
       `${API_BASE_URL}/users/logout/`,
       {},

@@ -82,7 +82,7 @@ const [flights, setFlights] = useState<Flight[]>(() => {
                 const { data } = await getLocationInfo({ latitude, longitude })
                 setCountry(data?.country || "Unknown");
               } catch (err) {
-                console.debug(err);
+                console.error(err);
                 setCountry("Error detecting country");
               }
             },

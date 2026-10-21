@@ -243,7 +243,6 @@ const CarBookingFirstScreen: React.FC = () => {
           (result?.data?.results?.services || []) as CarTransferOption[]
         )
       );
-      console.log("Search results:", result?.data);
       navigate(
         `/cars-searchResults?ride=${encodeURIComponent(
           formData.selectedRide

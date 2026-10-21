@@ -42,10 +42,6 @@ export function NotificationProvider({
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
-    ws.onopen = () => {
-      console.log("WebSocket connected");
-    };
-
     ws.onmessage = (event) => {
       try {
         const payload: WsNotificationMessage = JSON.parse(event.data);
@@ -80,8 +76,7 @@ export function NotificationProvider({
       console.error("WebSocket error:", err);
     };
 
-    ws.onclose = (e) => {
-      console.log("WebSocket closed", e.code, e.reason);
+    ws.onclose = () => {
       wsRef.current = null;
     };
 

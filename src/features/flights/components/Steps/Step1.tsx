@@ -225,7 +225,6 @@ const [check, setCheck] =  useState(false)
   } else {
     const departure = state?.departureFlight?.price;
     const departureUpsell = getUpsellTotal(state?.departureUpsell);
-    console.log(state);
     
     const returnFlight = state?.returnFlight;
     

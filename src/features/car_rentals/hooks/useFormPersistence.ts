@@ -48,7 +48,6 @@ export const useFormPersistence = (
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        console.log('Loaded from localStorage:', parsed);
         return parsed;
       }
       return null;
@@ -61,7 +60,6 @@ export const useFormPersistence = (
   const clearSavedData = useCallback(() => {
     try {
       localStorage.removeItem(storageKey);
-      console.log('Cleared localStorage');
     } catch (error) {
       console.error('Failed to clear saved form data:', error);
     }

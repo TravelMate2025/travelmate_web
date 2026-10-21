@@ -45,7 +45,6 @@ import { SearchData } from "../hooks/useFlightBooking";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function formatDateRange(range: string) {
-  console.log(range);
 
   const [start, end] = range.split(" to ");
   const startDate = dayjs(start);
@@ -207,7 +206,6 @@ export const FlightDrawer = memo<FlightDrawerProps>(
         returnFlight + 1 < searchState.flights.length &&
         onNext
       ) {
-        console.log("Proceeding to next segment");
         handleCloseClick();
         onNext();
         return;
@@ -220,9 +218,6 @@ export const FlightDrawer = memo<FlightDrawerProps>(
       });
     };
 
-    useEffect(() => {
-      console.log("multiCitySelections updated:", multiCitySelections);
-    }, [multiCitySelections]);
 
     const Content = (
       <DialogContent
@@ -742,7 +737,6 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                       returnCounts: counts,
                       returnFlightOption: selectedOption,
                     };
-                    console.log("return,", state);
                   } else {
                     state = {
                       ...searchState,
@@ -751,7 +745,6 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                       upsell,
                     };
 
-                    console.log("any", state);
                   }
 
                   navigate(checkRoute(), { state });

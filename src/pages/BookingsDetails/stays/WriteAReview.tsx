@@ -67,7 +67,7 @@ const WriteAReview = ({ closeModal, bookings }: props) => {
       toast.success("Review Added Successfully");
       closeModal();
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error(error instanceof Error ? error.message : "Failed to submit review");
     } finally {
       setSubmitting(false);

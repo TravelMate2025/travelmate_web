@@ -102,7 +102,6 @@ const axiosErrMsg = (error: unknown) =>
 export const getTickets = async (): Promise<TicketListResponse> => {
   try {
     const response = await api.get<TicketListResponse>('/tickets/');
-    console.log('[GET TICKETS] Success:', response.data);
     return response.data;
   } catch (error: unknown) {
     console.error('[GET TICKETS] Error:', axiosErrMsg(error));
@@ -113,7 +112,6 @@ export const getTickets = async (): Promise<TicketListResponse> => {
 export const createTicket = async (ticketData: TicketData) => {
   try {
     const response = await api.post<TicketDetail>('/tickets/', ticketData);
-    console.log('[CREATE TICKET] Success:', response.data);
     return response.data;
   } catch (error: unknown) {
     console.error('[CREATE TICKET] Error:', axiosErrMsg(error));
@@ -124,7 +122,6 @@ export const createTicket = async (ticketData: TicketData) => {
 export const getTicketById = async (id: number | string): Promise<TicketDetail> => {
   try {
     const response = await api.get<TicketDetail>(`/tickets/${id}/`);
-    console.log(`[GET TICKET ${id}] Success:`, response.data);
     return response.data;
   } catch (error: unknown) {
     console.error(`[GET TICKET ${id}] Error:`, axiosErrMsg(error));
@@ -149,7 +146,6 @@ export const replyToTicket = async (
       formData,
       { headers: { "Content-Type": "multipart/form-data" } }
     );
-    console.log(`[REPLY TICKET ${ticketId}] Success:`, response.data);
     return response.data;
   } catch (error: unknown) {
     console.error(`[REPLY TICKET ${ticketId}] Error:`, axiosErrMsg(error));

@@ -72,7 +72,7 @@ import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import CheckIcon from "@mui/icons-material/Check";
 import { Divider } from "@mui/material";
-import { Link, useNavigate, useSearchParams  } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { DocumentProps, pdf } from "@react-pdf/renderer";
 
 import line3 from "../../../assets/arrow2.svg";
@@ -334,11 +334,8 @@ const FlightCard = ({
 const FlightConfirmationPage = () => {
   const [open, setOpen] = useState(false)
 const navigate = useNavigate()
- const [searchParams] = useSearchParams();
-  const sessionId = searchParams.get("session_id");
  const { user } = useAppSelector((state) => state.auth);
 
- console.log(sessionId);
  // Get booking from localStorage
  const savedBooking = JSON.parse(localStorage.getItem("bookingData") || "null") as LocalState | null;
  const bookingId = savedBooking?.id ?? 0;

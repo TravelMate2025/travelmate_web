@@ -22,7 +22,6 @@ export class ChatWebSocket {
       this.socket = new WebSocket(wsUrl);
   
       this.socket.onopen = () => {
-        console.log(`WebSocket connected ✅ to chat ${this.sessionId}`);
         if (this.onOpenCallback) this.onOpenCallback();
       };
   
@@ -30,7 +29,6 @@ export class ChatWebSocket {
         try {
           const raw = typeof event.data === 'string' ? event.data : JSON.stringify(event.data);
           const data = JSON.parse(raw);
-          console.log("WebSocket message received:", data);
           if (this.onMessageCallback) this.onMessageCallback(data);
         } catch (e) {
           console.warn("Failed to parse WebSocket message", e);
@@ -61,7 +59,6 @@ export class ChatWebSocket {
 
           reader.onload = () => {
             payload.attachment = reader.result as string | ArrayBuffer | null;
-            console.log("[WebSocket] 🚀 File read complete. Sending:", payload);
             this.socket!.send(JSON.stringify(payload));
             resolve();
           };
@@ -73,7 +70,6 @@ export class ChatWebSocket {
 
           reader.readAsDataURL(file);
         } else {
-          console.log("[WebSocket] 🚀 Sending:", payload);
           this.socket.send(JSON.stringify(payload));
           resolve();
         }

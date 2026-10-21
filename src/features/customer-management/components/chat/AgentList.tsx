@@ -67,7 +67,6 @@ const AgentList: React.FC<AgentListProps> = ({ activeChat }) => {
         }
 
         const data = await response.json();
-        console.log("agents list:", data)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const extractedAgents = data.results.map((agent: any) => ({
           id: agent.id,
