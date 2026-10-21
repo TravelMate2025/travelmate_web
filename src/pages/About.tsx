@@ -6,6 +6,7 @@ import Skeleton from "@mui/material/Skeleton";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { InfoPageHeader } from "../components/infoPages/InfoPageHeader";
 import { CompanyConnectCard } from "../components/infoPages/CompanyConnectCard";
+import { SanitizedHtml } from "../components/infoPages/SanitizedHtml";
 
 // Shown when the backend-managed About content is empty or fails to load --
 // previously this page rendered nothing at all in that case (an empty div),
@@ -83,11 +84,7 @@ export function AboutPage() {
               <Skeleton variant="text" width="84%" height={28} />
             </div>
           ) : content?.content ? (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: content.content,
-              }}
-            />
+            <SanitizedHtml html={content.content} />
           ) : (
             FALLBACK_ABOUT_COPY
           )}
