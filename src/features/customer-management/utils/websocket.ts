@@ -1,3 +1,4 @@
+import { getTicketedWsUrl } from "../../../api/services/wsTicket";
 
 // Type is used for callback signatures; allow unused parameter name in type.
 type MessageCallback = (data: unknown) => void;
@@ -5,20 +6,28 @@ type MessageCallback = (data: unknown) => void;
 export class ChatWebSocket {
     private socket: WebSocket | null = null;
     public sessionId: number;
-    private token: string;
-  
+    private closed = false;
+
     private onMessageCallback: MessageCallback | null = null;
     private onOpenCallback: (() => void) | null = null;
     private onCloseCallback: (() => void) | null = null;
-  
-    constructor(sessionId: number, token: string) {
+
+    constructor(sessionId: number) {
       this.sessionId = sessionId;
-      this.token = token;
     }
-  
-    connect() {
-      const baseWsUrl = import.meta.env.VITE_WS_BASE_URL || "ws://127.0.0.1:8000/ws";
-      const wsUrl = `${baseWsUrl.replace(/\/$/, "")}/chat/${this.sessionId}/?token=${this.token}`;
+
+    async connect() {
+      let wsUrl: string;
+      try {
+        wsUrl = await getTicketedWsUrl(`/chat/${this.sessionId}/`);
+      } catch (error) {
+        console.error(`Couldn't get a WebSocket ticket for chat ${this.sessionId}`, error);
+        if (this.onCloseCallback) this.onCloseCallback();
+        return;
+      }
+      // close() was called (e.g. the user switched chats) while the ticket was in flight
+      if (this.closed) return;
+
       this.socket = new WebSocket(wsUrl);
   
       this.socket.onopen = () => {
@@ -90,6 +99,7 @@ export class ChatWebSocket {
     }
   
     close() {
+      this.closed = true;
       if (this.socket) {
         this.socket.close();
       }

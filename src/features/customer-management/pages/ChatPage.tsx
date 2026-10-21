@@ -166,7 +166,7 @@ const ChatPage = () => {
       if (wsRef.current?.sessionId === chatId) return;
       wsRef.current?.close?.();
 
-      const ws = new ChatWebSocket(chatId, accessToken);
+      const ws = new ChatWebSocket(chatId);
       ws.onOpen(() => setWsConnected(true));
       ws.onClose(() => setWsConnected(false));
       ws.onMessage((raw: unknown) => {
@@ -259,7 +259,7 @@ const ChatPage = () => {
           console.warn('Failed to parse ws message', e);
         }
       });
-      ws.connect();
+      void ws.connect();
       wsRef.current = ws;
     },
     [accessToken, user]

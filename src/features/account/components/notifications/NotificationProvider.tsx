@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../store";
+import { getTicketedWsUrl } from "../../../../api/services/wsTicket";
 
 import { Notification } from "./notifications.types";
 import { WsMessageType } from "./ws.types";
@@ -37,51 +38,67 @@ export function NotificationProvider({
   useEffect(() => {
     if (!accessToken) return;
 
-    const baseWsUrl = import.meta.env.VITE_WS_BASE_URL || "ws://127.0.0.1:8000/ws";
-    const WS_URL = `${baseWsUrl.replace(/\/$/, "")}/notifications/?authorization=${accessToken}`;
-    const ws = new WebSocket(WS_URL);
-    wsRef.current = ws;
+    let ws: WebSocket | null = null;
+    let cancelled = false;
 
-    ws.onmessage = (event) => {
+    const open = async () => {
+      let url: string;
       try {
-        const payload: WsNotificationMessage = JSON.parse(event.data);
-        if (payload.event !== "notification.created") return;
-
-        const { data } = payload;
-        const details = data.notification_details;
-
-        const categoryKey =
-          details.category.toUpperCase() as keyof typeof NotificationCategory;
-
-        const notification: Notification = {
-          id: data.id,
-          title: details.title,
-          message: details.message,
-          type: details.notification_type as WsMessageType,
-          category: NotificationCategory[categoryKey],
-          createdAt: data.created_at,
-          isRead: data.is_read,
-          readAt: data.read_at,
-          link: details.link,
-          sourceApp: details.source_app,
-        };
-
-        setNotifications((prev) => [notification, ...prev]);
+        url = await getTicketedWsUrl("/notifications/");
       } catch (err) {
-        console.error("Error parsing WS message:", err);
+        console.error("Couldn't get a WebSocket ticket for notifications:", err);
+        return;
       }
+      // The user logged out (or the token changed) while the ticket was in flight
+      if (cancelled) return;
+
+      ws = new WebSocket(url);
+      wsRef.current = ws;
+
+      ws.onmessage = (event) => {
+        try {
+          const payload: WsNotificationMessage = JSON.parse(event.data);
+          if (payload.event !== "notification.created") return;
+
+          const { data } = payload;
+          const details = data.notification_details;
+
+          const categoryKey =
+            details.category.toUpperCase() as keyof typeof NotificationCategory;
+
+          const notification: Notification = {
+            id: data.id,
+            title: details.title,
+            message: details.message,
+            type: details.notification_type as WsMessageType,
+            category: NotificationCategory[categoryKey],
+            createdAt: data.created_at,
+            isRead: data.is_read,
+            readAt: data.read_at,
+            link: details.link,
+            sourceApp: details.source_app,
+          };
+
+          setNotifications((prev) => [notification, ...prev]);
+        } catch (err) {
+          console.error("Error parsing WS message:", err);
+        }
+      };
+
+      ws.onerror = (err) => {
+        console.error("WebSocket error:", err);
+      };
+
+      ws.onclose = () => {
+        wsRef.current = null;
+      };
     };
 
-    ws.onerror = (err) => {
-      console.error("WebSocket error:", err);
-    };
-
-    ws.onclose = () => {
-      wsRef.current = null;
-    };
+    void open();
 
     return () => {
-      ws.close();
+      cancelled = true;
+      ws?.close();
     };
   }, [accessToken]);
 
