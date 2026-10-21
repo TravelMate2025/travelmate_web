@@ -1,5 +1,4 @@
-import instance from "../../../utils/axiosConfig";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import instance, { API_BASE_URL } from "../../../api/services/api";
 
 export const fetchRecentSearches = async (
   setLocation: (data: string[]) => void,

@@ -67,8 +67,6 @@ export default function DeleteAccountModal({ isOpen, onClose }: DeleteAccountMod
       localStorage.setItem("logout_reason", "account_deleted");
       
       dispatch(logout());
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
       localStorage.removeItem("email");
       localStorage.removeItem("verify_email");
 

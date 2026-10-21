@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   AppBar,
   Box,
@@ -79,18 +79,6 @@ const Navbar: React.FC = () => {
     () => Boolean(accessToken && user && user.email),
     [user, accessToken],
   );
-
-  useEffect(() => {
-    // Scoped to the two auth keys this is actually meant to clean up --
-    // a blanket localStorage.clear() here ran on every render for every
-    // logged-out visitor (the majority of homepage traffic) and wiped
-    // unrelated device-local data (Recently Viewed, recent searches) that
-    // has nothing to do with auth state.
-    if (!isLoggedIn) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-    }
-  }, [isLoggedIn]);
 
   // Notifications
   const { notifications, unreadCount, markAsRead } = useNotifications();

@@ -2,8 +2,6 @@
 import api from "../../../api/services/api";
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 export interface TicketSummary {
   id: number;
   ticket_id: string;
@@ -137,7 +135,6 @@ export const getTicketById = async (id: number | string): Promise<TicketDetail> 
 export const replyToTicket = async (
   ticketId: number | string,
   message: string,
-  accessToken: string,
   attachment?: File | null
 ) => {
   try {
@@ -147,15 +144,10 @@ export const replyToTicket = async (
       formData.append("attachment", attachment);
     }
 
-    const response = await axios.post<TicketDetail>(
-      `${API_BASE_URL}/tickets/${ticketId}/messages/`,
+    const response = await api.post<TicketDetail>(
+      `/tickets/${ticketId}/messages/`,
       formData,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
+      { headers: { "Content-Type": "multipart/form-data" } }
     );
     console.log(`[REPLY TICKET ${ticketId}] Success:`, response.data);
     return response.data;

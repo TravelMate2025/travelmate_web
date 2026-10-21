@@ -28,33 +28,25 @@ const rootReducer = combineReducers({
 });
 
 // 2. Persist config
-// Transform to remove sensitive fields (e.g., tokens) from the `auth` slice before persisting
+// Tokens are persisted with the rest of `auth` -- redux-persist is their only home.
 type RootReducerState = ReturnType<typeof rootReducer>;
 const persistStorage = (storage as typeof storage & { default?: typeof storage }).default ?? storage;
 
-const removeSensitiveTransform = createTransform<AuthState, AuthState, RootReducerState, RootReducerState>(
-  // inbound: state being persisted
-  (inboundState, key) => {
-    if (key === "auth" && inboundState) {
-      return {
-        ...inboundState,
-        accessToken: null,
-        refreshToken: null,
-      };
-    }
-    return inboundState;
-  },
-  // outbound: state being rehydrated (we keep as-is)
+// Older builds kept tokens in separate `accessToken`/`refreshToken` localStorage keys
+// and stripped them from the persisted slice. Adopt those once so existing sessions
+// survive the upgrade, then remove the legacy keys.
+const legacyTokenMigration = createTransform<AuthState, AuthState, RootReducerState, RootReducerState>(
+  (inboundState) => inboundState,
   (outboundState, key) => {
-    if (key === "auth" && outboundState) {
-      const storedAccessToken =
-        typeof window !== "undefined" ? window.localStorage.getItem("accessToken") : null;
-      const storedRefreshToken =
-        typeof window !== "undefined" ? window.localStorage.getItem("refreshToken") : null;
+    if (key === "auth" && outboundState && typeof window !== "undefined") {
+      const legacyAccessToken = window.localStorage.getItem("accessToken");
+      const legacyRefreshToken = window.localStorage.getItem("refreshToken");
+      window.localStorage.removeItem("accessToken");
+      window.localStorage.removeItem("refreshToken");
       return {
         ...outboundState,
-        accessToken: outboundState.accessToken || storedAccessToken,
-        refreshToken: outboundState.refreshToken || storedRefreshToken,
+        accessToken: outboundState.accessToken ?? legacyAccessToken,
+        refreshToken: outboundState.refreshToken ?? legacyRefreshToken,
       };
     }
     return outboundState;
@@ -66,7 +58,7 @@ const persistConfig: PersistConfig<RootReducerState, RootReducerState, AuthState
   key: "root",
   storage: persistStorage,
   whitelist: ["auth", "profile", "stays", "cars"],
-  transforms: [removeSensitiveTransform],
+  transforms: [legacyTokenMigration],
 };
 
 // 3. Persisted reducer — type assertion needed due to redux-persist + RTK strict TypeScript compatibility

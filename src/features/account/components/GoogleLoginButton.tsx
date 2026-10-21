@@ -58,8 +58,6 @@ function GoogleLoginButtonActive() {
               registrationComplete: res.registration_complete ?? false,
             })
           );
-          localStorage.setItem("accessToken", res.access);
-          localStorage.setItem("refreshToken", res.refresh);
           localStorage.setItem("email", res.user?.email ?? googleEmail ?? "");
           navigate("/", { replace: true });
         } else {

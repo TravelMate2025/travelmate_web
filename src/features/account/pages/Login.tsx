@@ -66,8 +66,6 @@ export default function Login() {
         })
       );
 
-      localStorage.setItem("accessToken", res.access);
-      localStorage.setItem("refreshToken", res.refresh);
       localStorage.setItem("email", res.setup_info.email);
 
       // Step 3: Fetch full user profile — non-critical, auth is already complete

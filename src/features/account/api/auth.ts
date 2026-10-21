@@ -131,19 +131,6 @@ export const logoutUser = async (accessToken: string) => {
   }
 };
 
-export const refreshToken = async (refresh: string) => {
-  try {
-    const response = await axios.post(`${API_BASE_URL}/auth/jwt/token/refresh/`, {
-      refresh,
-    });
-    return response.data;
-  } catch (error: unknown) {
-    const msg = toErrorMessage(error);
-    console.error("❌ Token refresh error:", msg);
-    throw new Error(msg);
-  }
-};
-
 export const socialGoogleLogin = async (access_token: string) => {
   const response = await axios.post(
     `${API_BASE_URL}/auth/social/google/`,
