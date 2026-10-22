@@ -40,6 +40,7 @@ import { useNotifications } from "../../features/account/components/notification
 const navItems = [
   { name: "Home", path: "/" },
   { name: "Stays", path: "/?tab=stays" },
+  { name: "Hotels", path: "/hotels" },
   { name: "Flights", path: "/?tab=flights" },
   { name: "Transfers", path: "/?tab=transfers" },
 ];
@@ -71,7 +72,9 @@ const Navbar: React.FC = () => {
   const initials = user?.name?.charAt(0).toUpperCase() || "U";
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-  const [activeTab, setActiveTab] = useState("Home");
+  const [activeTab, setActiveTab] = useState(() =>
+    window.location.pathname === "/hotels" ? "Hotels" : "Home",
+  );
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
