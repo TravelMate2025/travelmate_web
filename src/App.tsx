@@ -34,6 +34,9 @@ const BookingConfirmationPage = lazy(() => import("./features/stays/pages/Bookin
 const BookingProgress = lazy(() => import("./features/stays/pages/BookingProgress"));
 const DownloadStaysPage = lazy(() => import("./features/stays/components/confirmation/Download"));
 
+// Hotels page (lazy)
+const HotelsPage = lazy(() => import("./features/hotels/pages/HotelsPage"));
+
 // Flights pages (lazy)
 const DeparturePage = lazy(() => import("./pages/flights/departureFlight/DeparturePage"));
 const ReturnPage = lazy(() => import("./pages/flights/returnFlight/ReturnPage"));
@@ -268,6 +271,9 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        {/* Hotels */}
+        <Route path="/hotels" element={<HotelsPage />} />
 
         {/* Flights */}
         <Route path="/flights" element={<Flight />} />
