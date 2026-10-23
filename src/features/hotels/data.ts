@@ -6,25 +6,14 @@ export type DestinationTag = "City" | "Beach" | "Mountains";
 
 export type Destination = {
   name: string;
+  lat: number;
+  lng: number;
   country: string;
   tag: DestinationTag;
   image: string;
   alt: string;
-  priceEur: number;
   months: string;
   blurb: string;
-};
-
-export type Stay = {
-  id: string;
-  name: string;
-  place: string;
-  score: string;
-  priceEur: number;
-  perk: string;
-  badge: string;
-  image: string;
-  alt: string;
 };
 
 const img = (name: string) => `/images/hotels/${name}.jpg`;
@@ -32,39 +21,32 @@ const img = (name: string) => `/images/hotels/${name}.jpg`;
 export const HERO_IMAGE = img("hero");
 
 export const destinations: Destination[] = [
-  { name: "Santorini", country: "Greece", tag: "Beach", image: img("santorini"), alt: "Oia village with windmills at dusk", priceEur: 132, months: "May–Oct", blurb: "Cliffside suites, caldera sunsets and plunge pools over the Aegean." },
-  { name: "Kyoto", country: "Japan", tag: "City", image: img("kyoto"), alt: "Kiyomizu-dera temple in Kyoto", priceEur: 118, months: "Oct–Nov", blurb: "Maple season, temple mornings and ryokan baths at dusk." },
-  { name: "Lisbon", country: "Portugal", tag: "City", image: img("lisbon"), alt: "Rooftops of the Alfama district", priceEur: 89, months: "Mar–Jun", blurb: "Tiled hills, river light and dinners that start at ten." },
-  { name: "Dolomites", country: "Italy", tag: "Mountains", image: img("dolomites"), alt: "Alpine lake below Dolomite peaks", priceEur: 124, months: "Jun–Sep", blurb: "Pale peaks, lakeside lodges and hut-to-hut walks." },
-  { name: "Bali", country: "Indonesia", tag: "Beach", image: img("bali"), alt: "Cliffside villa above the ocean", priceEur: 64, months: "Apr–Oct", blurb: "Jungle villas, surf breaks and infinity pools on the cliffs." },
-  { name: "Paris", country: "France", tag: "City", image: img("paris"), alt: "Paris street with the Eiffel Tower", priceEur: 146, months: "Apr–Jun", blurb: "Left Bank hotels and the long walk home along the Seine." },
-  { name: "Marrakech", country: "Morocco", tag: "City", image: img("marrakech"), alt: "Riad courtyard with arches and fountain", priceEur: 72, months: "Mar–May", blurb: "Riads behind plain doors, rooftops above the souk." },
-  { name: "Maldives", country: "Maldives", tag: "Beach", image: img("maldives"), alt: "Overwater bungalows on turquoise water", priceEur: 310, months: "Nov–Apr", blurb: "Overwater villas, house reefs and nothing on the calendar." },
-  { name: "Chamonix", country: "France", tag: "Mountains", image: img("chamonix"), alt: "Chalet in the snowy French Alps", priceEur: 158, months: "Dec–Mar", blurb: "Ski-in chalets beneath Mont Blanc and fondue after dark." },
-  { name: "New York", country: "United States", tag: "City", image: img("new-york"), alt: "Manhattan skyline from the Brooklyn Bridge", priceEur: 189, months: "Sep–Dec", blurb: "Loft hotels, late bars and the skyline from your window." },
-  { name: "Cape Town", country: "South Africa", tag: "Beach", image: img("cape-town"), alt: "Cape Town coastline and Table Mountain", priceEur: 81, months: "Nov–Mar", blurb: "Two oceans, one mountain and long summer evenings." },
+  { name: "Santorini", lat: 36.42107, lng: 25.43087, country: "Greece", tag: "Beach", image: img("santorini"), alt: "Oia village with windmills at dusk", months: "May–Oct", blurb: "Cliffside suites, caldera sunsets and plunge pools over the Aegean." },
+  { name: "Kyoto", lat: 35.02107, lng: 135.75385, country: "Japan", tag: "City", image: img("kyoto"), alt: "Kiyomizu-dera temple in Kyoto", months: "Oct–Nov", blurb: "Maple season, temple mornings and ryokan baths at dusk." },
+  { name: "Lisbon", lat: 38.72509, lng: -9.1498, country: "Portugal", tag: "City", image: img("lisbon"), alt: "Rooftops of the Alfama district", months: "Mar–Jun", blurb: "Tiled hills, river light and dinners that start at ten." },
+  { name: "Dolomites", lat: 46.5405, lng: 12.1357, country: "Italy", tag: "Mountains", image: img("dolomites"), alt: "Alpine lake below Dolomite peaks", months: "Jun–Sep", blurb: "Pale peaks, lakeside lodges and hut-to-hut walks." },
+  { name: "Bali", lat: -8.5098, lng: 115.2654, country: "Indonesia", tag: "Beach", image: img("bali"), alt: "Cliffside villa above the ocean", months: "Apr–Oct", blurb: "Jungle villas, surf breaks and infinity pools on the cliffs." },
+  { name: "Paris", lat: 48.85341, lng: 2.3488, country: "France", tag: "City", image: img("paris"), alt: "Paris street with the Eiffel Tower", months: "Apr–Jun", blurb: "Left Bank hotels and the long walk home along the Seine." },
+  { name: "Marrakech", lat: 31.63416, lng: -7.99994, country: "Morocco", tag: "City", image: img("marrakech"), alt: "Riad courtyard with arches and fountain", months: "Mar–May", blurb: "Riads behind plain doors, rooftops above the souk." },
+  { name: "Maldives", lat: 4.17521, lng: 73.50916, country: "Maldives", tag: "Beach", image: img("maldives"), alt: "Overwater bungalows on turquoise water", months: "Nov–Apr", blurb: "Overwater villas, house reefs and nothing on the calendar." },
+  { name: "Chamonix", lat: 45.92375, lng: 6.86933, country: "France", tag: "Mountains", image: img("chamonix"), alt: "Chalet in the snowy French Alps", months: "Dec–Mar", blurb: "Ski-in chalets beneath Mont Blanc and fondue after dark." },
+  { name: "New York", lat: 40.71427, lng: -74.00597, country: "United States", tag: "City", image: img("new-york"), alt: "Manhattan skyline from the Brooklyn Bridge", months: "Sep–Dec", blurb: "Loft hotels, late bars and the skyline from your window." },
+  { name: "Cape Town", lat: -33.92584, lng: 18.42322, country: "South Africa", tag: "Beach", image: img("cape-town"), alt: "Cape Town coastline and Table Mountain", months: "Nov–Mar", blurb: "Two oceans, one mountain and long summer evenings." },
 ];
 
-export const moreDestinations: Pick<Destination, "name" | "country" | "image" | "alt" | "priceEur">[] = [
-  { name: "Barcelona", country: "Spain", image: img("barcelona"), alt: "Sagrada Família from above", priceEur: 112 },
-  { name: "Rome", country: "Italy", image: img("rome"), alt: "Colosseum at sunset", priceEur: 128 },
-  { name: "Amsterdam", country: "Netherlands", image: img("amsterdam"), alt: "Canal houses", priceEur: 139 },
-  { name: "Dubai", country: "United Arab Emirates", image: img("dubai"), alt: "Dubai Marina skyline", priceEur: 154 },
-  { name: "Istanbul", country: "Türkiye", image: img("istanbul"), alt: "Mosque on the waterfront at sunset", priceEur: 76 },
-  { name: "Bangkok", country: "Thailand", image: img("bangkok"), alt: "Bangkok skyline with temples", priceEur: 48 },
-  { name: "Sydney", country: "Australia", image: img("sydney"), alt: "Sydney Opera House", priceEur: 171 },
-  { name: "Tulum", country: "Mexico", image: img("tulum"), alt: "Tulum coastline", priceEur: 98 },
-  { name: "Iceland", country: "Iceland", image: img("iceland"), alt: "Godafoss waterfall", priceEur: 165 },
-  { name: "Prague", country: "Czechia", image: img("prague"), alt: "Prague bridges from above", priceEur: 74 },
-  { name: "Positano", country: "Italy", image: img("positano"), alt: "Positano houses on the cliffs", priceEur: 196 },
-  { name: "Rio de Janeiro", country: "Brazil", image: img("rio"), alt: "Vidigal beach, Rio", priceEur: 83 },
-];
-
-export const topStays: Stay[] = [
-  { id: "casa-alfama", name: "Casa Alfama", place: "Lisbon", score: "9.2", priceEur: 142, perk: "Breakfast included", badge: "Guest favourite", image: img("stay-casa-alfama"), alt: "Boutique hotel bedroom" },
-  { id: "mar-azul", name: "Mar Azul Suites", place: "Santorini", score: "9.5", priceEur: 268, perk: "Sea-view terrace", badge: "Sea view", image: img("stay-mar-azul"), alt: "Seaside bedroom with ocean view" },
-  { id: "riad-noor", name: "Riad Noor", place: "Marrakech", score: "9.0", priceEur: 96, perk: "Rooftop pool", badge: "Guest favourite", image: img("stay-riad-noor"), alt: "Moroccan bedroom with traditional decor" },
-  { id: "pine-loft", name: "Pine Loft Chalet", place: "Chamonix", score: "9.3", priceEur: 214, perk: "Ski-in, ski-out", badge: "Only 2 rooms left", image: img("stay-pine-loft"), alt: "Rustic loft bedroom with wooden beams" },
+export const moreDestinations: Pick<Destination, "name" | "lat" | "lng" | "country" | "image" | "alt">[] = [
+  { name: "Barcelona", lat: 41.38879, lng: 2.15899, country: "Spain", image: img("barcelona"), alt: "Sagrada Família from above" },
+  { name: "Rome", lat: 41.89193, lng: 12.51133, country: "Italy", image: img("rome"), alt: "Colosseum at sunset" },
+  { name: "Amsterdam", lat: 52.37403, lng: 4.88969, country: "Netherlands", image: img("amsterdam"), alt: "Canal houses" },
+  { name: "Dubai", lat: 25.07725, lng: 55.30927, country: "United Arab Emirates", image: img("dubai"), alt: "Dubai Marina skyline" },
+  { name: "Istanbul", lat: 41.01384, lng: 28.94966, country: "Türkiye", image: img("istanbul"), alt: "Mosque on the waterfront at sunset" },
+  { name: "Bangkok", lat: 13.75398, lng: 100.50144, country: "Thailand", image: img("bangkok"), alt: "Bangkok skyline with temples" },
+  { name: "Sydney", lat: -33.86785, lng: 151.20732, country: "Australia", image: img("sydney"), alt: "Sydney Opera House" },
+  { name: "Tulum", lat: 20.21173, lng: -87.46325, country: "Mexico", image: img("tulum"), alt: "Tulum coastline" },
+  { name: "Iceland", lat: 64.13548, lng: -21.89541, country: "Iceland", image: img("iceland"), alt: "Godafoss waterfall" },
+  { name: "Prague", lat: 50.08804, lng: 14.42076, country: "Czechia", image: img("prague"), alt: "Prague bridges from above" },
+  { name: "Positano", lat: 40.62829, lng: 14.48427, country: "Italy", image: img("positano"), alt: "Positano houses on the cliffs" },
+  { name: "Rio de Janeiro", lat: -22.90642, lng: -43.18223, country: "Brazil", image: img("rio"), alt: "Vidigal beach, Rio" },
 ];
 
 export const stayTypes = [
@@ -95,10 +77,13 @@ export const guides = [
   { kicker: "City", title: "48 hours in Lisbon, one viewpoint at a time", read: "6 min read", image: img("guide-lisbon"), alt: "Lisbon bridge at sunset" },
 ];
 
-export const trending = ["Weekend in Lisbon", "Kyoto in November", "Ski chalets", "Pet-friendly", "Riads with pools", "Under €80 a night"];
-
-export const searchTabs = ["Hotels", "Homes & villas", "Resorts"] as const;
+export const trending = [
+  { label: "Weekend in Lisbon", spot: { name: "Lisbon", lat: 38.72509, lng: -9.1498 } },
+  { label: "Kyoto in November", spot: { name: "Kyoto", lat: 35.02107, lng: 135.75385 } },
+  { label: "Ski chalets", spot: { name: "Chamonix", lat: 45.92375, lng: 6.86933 } },
+  { label: "Riads with pools", spot: { name: "Marrakech", lat: 31.63416, lng: -7.99994 } },
+  { label: "Beach escapes", spot: { name: "Santorini", lat: 36.42107, lng: 25.43087 } },
+] as const;
 
 export const destinationFilters = ["All", "City", "Beach", "Mountains"] as const;
 
-export const formatEur = (value: number) => `€${Math.round(value)}`;

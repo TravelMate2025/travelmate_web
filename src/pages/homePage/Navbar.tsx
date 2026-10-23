@@ -73,7 +73,7 @@ const Navbar: React.FC = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [activeTab, setActiveTab] = useState(() =>
-    window.location.pathname === "/hotels" ? "Hotels" : "Home",
+    window.location.pathname.startsWith("/hotels") ? "Hotels" : "Home",
   );
   const navigate = useNavigate();
   const dispatch = useDispatch();

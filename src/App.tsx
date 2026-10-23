@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 import AppErrorBoundary from "./AppErrorBoundary";
 import PrivateRoute from "./routes/PrivateRoute";
 import { bookingFlowRoutes } from "./features/shared/bookingFlowRoutes";
+import { hotelsRoutes } from "./features/hotels/routes";
 
 // Eagerly loaded — lightweight, always needed on first paint
 import Home from "./pages/Home";
@@ -36,6 +37,8 @@ const DownloadStaysPage = lazy(() => import("./features/stays/components/confirm
 
 // Hotels page (lazy)
 const HotelsPage = lazy(() => import("./features/hotels/pages/HotelsPage"));
+const HotelResultsPage = lazy(() => import("./features/hotels/pages/HotelResultsPage"));
+const HotelDetailsPage = lazy(() => import("./features/hotels/pages/HotelDetailsPage"));
 
 // Flights pages (lazy)
 const DeparturePage = lazy(() => import("./pages/flights/departureFlight/DeparturePage"));
@@ -273,7 +276,9 @@ function App() {
         />
 
         {/* Hotels */}
-        <Route path="/hotels" element={<HotelsPage />} />
+        <Route path={hotelsRoutes.home} element={<HotelsPage />} />
+        <Route path={hotelsRoutes.results} element={<HotelResultsPage />} />
+        <Route path={`${hotelsRoutes.home}/:hotelId`} element={<HotelDetailsPage />} />
 
         {/* Flights */}
         <Route path="/flights" element={<Flight />} />

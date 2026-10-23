@@ -2,7 +2,7 @@ import { useState, type MouseEvent } from "react";
 import { ClickAwayListener, Drawer, Paper, Popper, useMediaQuery } from "@mui/material";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import RemoveOutlinedIcon from "@mui/icons-material/RemoveOutlined";
-import { summariseGuests, type GuestCounts } from "../guests";
+import { DEFAULT_CHILD_AGE, summariseGuests, type GuestCounts } from "../guests";
 
 type Props = {
   value: GuestCounts;
@@ -15,6 +15,10 @@ const ROWS = [
   { key: "rooms", label: "Rooms", hint: "How many rooms you need", min: 1, max: 8 },
 ] as const;
 
+type RowKey = (typeof ROWS)[number]["key"];
+
+const AGES = Array.from({ length: 16 }, (_, age) => age);
+
 /** The Guests field of the search card: adults, children and rooms steppers (same options as the Stays search). */
 export function GuestsField({ value, onChange }: Props) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
@@ -22,10 +26,22 @@ export function GuestsField({ value, onChange }: Props) {
   const open = Boolean(anchor);
   const close = () => setAnchor(null);
 
-  const step = (key: keyof GuestCounts, delta: number, min: number, max: number) => {
-    const next = Math.min(max, Math.max(min, value[key] + delta));
-    if (next !== value[key]) onChange({ ...value, [key]: next });
+  const countOf = (key: RowKey) => (key === "children" ? value.childAges.length : value[key]);
+
+  const step = (key: RowKey, delta: number, min: number, max: number) => {
+    const next = Math.min(max, Math.max(min, countOf(key) + delta));
+    if (next === countOf(key)) return;
+    if (key === "children") {
+      // one age per child: a new child starts at the default age, removing drops the last one
+      const childAges = next > value.childAges.length ? [...value.childAges, DEFAULT_CHILD_AGE] : value.childAges.slice(0, next);
+      onChange({ ...value, childAges });
+    } else {
+      onChange({ ...value, [key]: next });
+    }
   };
+
+  const setAge = (index: number, age: number) =>
+    onChange({ ...value, childAges: value.childAges.map((a, i) => (i === index ? age : a)) });
 
   const panel = (
     <div className="w-full p-4 font-inter sm:w-[340px]">
@@ -40,17 +56,17 @@ export function GuestsField({ value, onChange }: Props) {
               <button
                 type="button"
                 aria-label={`Fewer ${row.label.toLowerCase()}`}
-                disabled={value[row.key] <= row.min}
+                disabled={countOf(row.key) <= row.min}
                 onClick={() => step(row.key, -1, row.min, row.max)}
                 className="flex disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <RemoveOutlinedIcon fontSize="small" />
               </button>
-              <span aria-live="polite">{value[row.key]}</span>
+              <span aria-live="polite">{countOf(row.key)}</span>
               <button
                 type="button"
                 aria-label={`More ${row.label.toLowerCase()}`}
-                disabled={value[row.key] >= row.max}
+                disabled={countOf(row.key) >= row.max}
                 onClick={() => step(row.key, 1, row.min, row.max)}
                 className="flex disabled:cursor-not-allowed disabled:opacity-40"
               >
@@ -58,6 +74,26 @@ export function GuestsField({ value, onChange }: Props) {
               </button>
             </div>
           </div>
+          {row.key === "children" && value.childAges.length > 0 && (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {value.childAges.map((age, index) => (
+                <label key={index} className="flex flex-col gap-1 text-[13px] text-[#5D6880]">
+                  Child {index + 1} age
+                  <select
+                    value={age}
+                    onChange={(event) => setAge(index, Number(event.target.value))}
+                    className="h-[36px] rounded border border-[#CBD3E1] bg-white px-2 text-[14px] text-[#181818]"
+                  >
+                    {AGES.map((a) => (
+                      <option key={a} value={a}>
+                        {a === 0 ? "Under 1" : a}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+          )}
         </div>
       ))}
       <button

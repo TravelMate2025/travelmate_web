@@ -188,3 +188,14 @@
 @media (prefers-reduced-motion: reduce) {
   .tmh *, .tmh *::before, .tmh *::after { transition: none !important; }
 }
+
+/* place suggestions under the "Where to" box */
+.tmh-field-where { position: relative; }
+.tmh-suggest { position: absolute; z-index: 20; left: 8px; right: 8px; top: calc(100% + 6px); margin: 0; padding: 6px; list-style: none; background: #fff; border: 1px solid var(--tmh-line); border-radius: 14px; box-shadow: 0 16px 36px rgba(10,30,70,.16); max-height: 320px; overflow-y: auto; }
+.tmh-suggest li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: 15px; }
+.tmh-suggest li b { font-weight: 600; }
+.tmh-suggest li small { font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--tmh-muted); }
+.tmh-suggest li:hover, .tmh-suggest li.is-active { background: #eef2f9; }
+.tmh-note.is-problem { color: #b3261e; }
+.tmh-stay-link { margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--tmh-blue); }
+.tmh-stay-link:hover { text-decoration: underline; }

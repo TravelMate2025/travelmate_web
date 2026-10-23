@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 import { DateRangeFields, type StayDates } from "./DateRangeFields";
 import { GuestsField } from "./GuestsField";
 import { summariseGuests, type GuestCounts } from "../guests";
@@ -20,7 +20,7 @@ function DatesHarness() {
 }
 
 function GuestsHarness() {
-  const [guests, setGuests] = useState<GuestCounts>({ adults: 2, children: 0, rooms: 1 });
+  const [guests, setGuests] = useState<GuestCounts>({ adults: 2, rooms: 1, childAges: [] });
   return <GuestsField value={guests} onChange={setGuests} />;
 }
 
@@ -32,6 +32,8 @@ const pressDay = (day: HTMLElement) => {
 
 const pickableDays = () =>
   Array.from(document.querySelectorAll<HTMLElement>(".rdrDay:not(.rdrDayDisabled):not(.rdrDayPassive)"));
+
+afterEach(cleanup);
 
 describe("hotels page pickers", () => {
   it("opens one calendar from either date field and picks check-in then check-out", () => {
@@ -66,6 +68,16 @@ describe("hotels page pickers", () => {
     fireEvent.click(screen.getByRole("button", { name: "Fewer adults" }));
     expect(screen.getAllByText("1 adult, 1 child, 2 rooms").length).toBeGreaterThan(0);
 
+    // each child has an age, starting at 8, which the guest can change
+    const age = screen.getByLabelText("Child 1 age") as HTMLSelectElement;
+    expect(age.value).toBe("8");
+    fireEvent.change(age, { target: { value: "3" } });
+    expect((screen.getByLabelText("Child 1 age") as HTMLSelectElement).value).toBe("3");
+    fireEvent.click(screen.getByRole("button", { name: "More children" }));
+    expect(screen.getAllByLabelText(/Child \d age/)).toHaveLength(2);
+    fireEvent.click(screen.getByRole("button", { name: "Fewer children" }));
+    expect(screen.getAllByLabelText(/Child \d age/)).toHaveLength(1);
+
     // adults and rooms cannot go below 1
     const fewerAdults = screen.getByRole("button", { name: "Fewer adults" }) as HTMLButtonElement;
     expect(fewerAdults.disabled).toBe(true);
@@ -75,7 +87,7 @@ describe("hotels page pickers", () => {
   });
 
   it("summarises guests", () => {
-    expect(summariseGuests({ adults: 1, children: 0, rooms: 1 })).toBe("1 adult, 1 room");
-    expect(summariseGuests({ adults: 3, children: 2, rooms: 2 })).toBe("3 adults, 2 children, 2 rooms");
+    expect(summariseGuests({ adults: 1, rooms: 1, childAges: [] })).toBe("1 adult, 1 room");
+    expect(summariseGuests({ adults: 3, rooms: 2, childAges: [4, 9] })).toBe("3 adults, 2 children, 2 rooms");
   });
 });
