@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearStaysCache, setLocationDetails, setSearchParams } from "../slice";
 import { AppDispatch, RootState } from "../../../store";
 import { fetchDestinations, fetchRecommendedHotels } from "../api";
+import { stayResultsPath } from "../../shared/bookingFlowRoutes";
 
 interface Destination {
   code: string;
@@ -152,7 +153,14 @@ const SearchFilter: React.FC = () => {
     dispatch(setSearchParams(searchParams));
 
     navigate(
-      `/stay-results?location=${encodeURIComponent(destinationCode)}&checkin=${formatDate(checkIn)}&checkout=${formatDate(checkOut)}&adults=${counts.adults}&children=${totalChildren}&rooms=${counts.rooms}`
+      stayResultsPath({
+        location: destinationCode,
+        checkin: formatDate(checkIn),
+        checkout: formatDate(checkOut),
+        adults: counts.adults,
+        children: totalChildren,
+        rooms: counts.rooms,
+      })
     );
   };
 

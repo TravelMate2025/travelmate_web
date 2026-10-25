@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { Airport } from "../types";
 
 import { useLazyGetLocationInfoQuery } from "../api/locationApi";
+import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 
 export type Flight = {
   id?: number;
@@ -150,9 +151,9 @@ const [flights, setFlights] = useState<Flight[]>(() => {
       sessionStorage.setItem("trip", JSON.stringify(searchData));
       if (location.pathname === "/") {
         if (tripType === "multi-city") {
-          navigate("/flight/departure", { state: searchData });
+          navigate(bookingFlowRoutes.flightDeparture, { state: searchData });
         } else {
-          navigate("/flight/departure", { state: searchData });
+          navigate(bookingFlowRoutes.flightDeparture, { state: searchData });
         }
       }
     },

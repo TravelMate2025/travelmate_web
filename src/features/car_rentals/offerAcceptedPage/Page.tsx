@@ -14,6 +14,7 @@ import {
   guestDetailsLabel,
   transferReviewLabel,
 } from "../../shared/booking/bookingFlowLabels";
+import { bookingFlowRoutes, transferResultsPath } from "../../shared/bookingFlowRoutes";
 
 export interface CarOfferInfo {
   id?: string | number;
@@ -132,7 +133,7 @@ const Page = () => {
   const listingId = String(routeState.car?.id ?? routeState.car?.rateKey ?? "");
 
   const getTransferSuccessRedirectUrl = () => {
-    const url = new URL("/transfers/payment-success", window.location.origin);
+    const url = new URL(bookingFlowRoutes.transferPaymentSuccess, window.location.origin);
     const isLocalHost =
       url.hostname === "localhost" ||
       url.hostname === "127.0.0.1" ||
@@ -223,7 +224,13 @@ const Page = () => {
       setActiveStep((prev) => prev - 1);
     } else {
       navigate(
-        `/cars-searchResults?ride=${encodeURIComponent(departureInfo.selectedRide)}&from=${departureInfo.pickupLocaDescription}&to=${departureInfo.dropoffLocaDescription}&time=${departureInfo.pickupDate}&pricerange=${departureInfo.priceRange}`
+        transferResultsPath({
+          ride: departureInfo.selectedRide,
+          from: departureInfo.pickupLocaDescription,
+          to: departureInfo.dropoffLocaDescription,
+          time: departureInfo.pickupDate,
+          pricerange: departureInfo.priceRange,
+        })
       );
     }
     window.scrollTo({ top: 0, behavior: "smooth" });

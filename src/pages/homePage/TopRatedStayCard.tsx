@@ -1,6 +1,7 @@
 import { FaStar, FaMapMarkerAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Hotel } from "../../features/stays/types";
+import { stayDetailPath } from "../../features/shared/bookingFlowRoutes";
 
 const SIZE = {
   default: { w: "w-[290px]", h: "h-[194px]" },
@@ -67,9 +68,7 @@ const TopRatedStayCard: React.FC<TopRatedStayCardProps> = ({
     <button
       type="button"
       onClick={() =>
-        navigate(
-          `/stay-details/${hotelId}?stay=${encodeURIComponent(hotel.name)}`,
-        )
+        navigate(stayDetailPath(hotelId, { stay: hotel.name }))
       }
       className={`${w} flex-shrink-0 text-left cursor-pointer group`}
     >

@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { Hotel } from "../../../features/stays/types";
+import { stayDetailPath } from "../../../features/shared/bookingFlowRoutes";
 
 interface TrendingStaysProps {
   stays: Hotel[];
@@ -47,7 +48,7 @@ const TrendingStays = ({ stays }: TrendingStaysProps) => {
                 key={hotelId}
                 type="button"
                 onClick={() =>
-                  navigate(`/stay-details/${hotelId}?stay=${encodeURIComponent(hotel.name)}`)
+                  navigate(stayDetailPath(hotelId, { stay: hotel.name }))
                 }
                 className="flex items-center gap-3 py-[10px] text-left cursor-pointer group"
               >

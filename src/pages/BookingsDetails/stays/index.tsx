@@ -30,6 +30,7 @@ import {
   getBookingLifecycleStatus,
   isBookingCancelable,
 } from "../../../features/shared/bookingStatus";
+import { stayDownloadPath } from "../../../features/shared/bookingFlowRoutes";
 
 type CancelledBooking = BookingDetailsVerifyData & {
   cancelled_at?: string;
@@ -294,7 +295,7 @@ const BookingStaysDetailsPage: React.FC = () => {
     try {
       setDownloadLoading(true);
       window.open(
-        `/stays-paid/download?data=${encodeURIComponent(JSON.stringify(cars))}`,
+        stayDownloadPath(cars),
         "_blank",
       );
     } catch (_error) {

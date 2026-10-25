@@ -22,6 +22,7 @@ import { PassengerCounts } from "../../hooks/useFlightBooking";
 import { useStepContext } from "./StepLayout";
 import { getCity } from "../../utils/functions";
 import { useState } from "react";
+import { bookingFlowRoutes } from "../../../shared/bookingFlowRoutes";
 export interface LocationState {
   pathname: string;
   search: string;
@@ -105,7 +106,7 @@ const FlightCard = ({
               {getCity(destination)?.municipality}({destination})
             </p>
             <Link
-              to={index === 0 ? "/flight/departure" : "/flight/return"}
+              to={index === 0 ? bookingFlowRoutes.flightDeparture : bookingFlowRoutes.flightReturn}
               className="text-[#023E8A] text-[14px] cursor-pointer"
             >
               Change Flight

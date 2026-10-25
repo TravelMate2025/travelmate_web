@@ -44,7 +44,7 @@ import {
   stayTypeDisplayLabel,
   propertyTypeDisplayLabel,
 } from "../../shared/booking/bookingFlowLabels";
-import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
+import { bookingFlowRoutes, stayDetailPath } from "../../shared/bookingFlowRoutes";
 import { CatalogReview } from "../types";
 import { recordViewed, recentlyViewedFromHotel } from "../../shared/recentlyViewed";
 
@@ -546,7 +546,7 @@ const StaysDetail: React.FC = () => {
         {showShareModal && selectedHotel && (
           <ShareModal
             onClose={() => setShowShareModal(false)}
-            shareLink={`${bookingFlowRoutes.stayDetail}/${hotelId}`}
+            shareLink={stayDetailPath(hotelId ?? "")}
           />
         )}
       </div>
