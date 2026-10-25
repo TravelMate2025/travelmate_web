@@ -2,7 +2,7 @@ import { Checkbox, Divider, FormControlLabel } from "@mui/material";
 import { ArrowRight } from "lucide-react";
 import { DeskProps } from "../Page";
 import type { CarTransferOption } from "../../types/booking";
-import { getPaymentProviderLabel, getPaymentRedirectCopy } from "../../../shared/bookingFlowLabels";
+import { paymentProviderLabel, paymentRedirectCopy } from "../../../shared/booking/bookingFlowLabels";
 
 type PaymentMethodProps = {
   car: CarTransferOption;
@@ -44,14 +44,14 @@ const PaymentMethod = ({
         <div className="flex items-center gap-1 mb-4">
           <div className="lg:w-24 w-16 h-6 lg:h-10 bg-[#FAFAFA] rounded-lg p-2 border border-[#CDCED1] flex items-center justify-center">
             <span className="text-[11px] font-semibold text-[#4E4F52]">
-              {getPaymentProviderLabel()}
+              {paymentProviderLabel()}
             </span>
           </div>
-          <p className="font-bold text-lg">{getPaymentProviderLabel()}</p>
+          <p className="font-bold text-lg">{paymentProviderLabel()}</p>
         </div>
         <div className="flex flex-col justify-center items-center gap-4 bg-[#FAFAFA] rounded-lg lg:p-26 p-12">
           <ArrowRight className="font-bold lg:w-12 lg:h-12 h-8 w-8" />
-          <p className="text-[#4E4F52]">{getPaymentRedirectCopy()}</p>
+          <p className="text-[#4E4F52]">{paymentRedirectCopy()}</p>
         </div>
       </div>
 
