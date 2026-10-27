@@ -7,6 +7,7 @@ import { DateTime } from "luxon";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { InfoPageHeader } from "../components/infoPages/InfoPageHeader";
 import { CompanyConnectCard } from "../components/infoPages/CompanyConnectCard";
+import { SanitizedHtml } from "../components/infoPages/SanitizedHtml";
 
 export function PrivacyPolicyPage() {
   usePageMeta({
@@ -30,7 +31,7 @@ export function PrivacyPolicyPage() {
         setContent(res);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -66,11 +67,7 @@ export function PrivacyPolicyPage() {
               <Skeleton variant="text" width="84%" height={28} />
             </div>
           ) : (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: content?.content ?? "",
-              }}
-            />
+            <SanitizedHtml html={content?.content ?? ""} />
           )}
         </div>
         <CompanyConnectCard currentPage="privacy" />

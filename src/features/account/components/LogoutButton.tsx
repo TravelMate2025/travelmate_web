@@ -1,38 +1,21 @@
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { RootState } from "../../../store";
-import { logoutUser } from "../api/auth";
-import { logout } from "../slices/authSlice";
+import { performLogout } from "../slices/performLogout";
+import { useAppDispatch } from "../../../hooks/redux";
 import { PiSignOutFill } from "react-icons/pi";
 import { useState } from "react";
-import { toast } from "react-hot-toast";
 
 
 
 export default function LogoutButton() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { user, accessToken } = useSelector((state: RootState) => state.auth);
   const [logoutLoading, setLogoutLoading] = useState(false);
 
   const handleLogout = async () => {
-    if (!user?.email || !accessToken) {
-      toast.error("User session expired. Login again to continue.");
-      return;
-    }
-
     setLogoutLoading(true);
-    try {
-      await logoutUser(accessToken);
-      dispatch(logout());
-      localStorage.clear();
-      navigate("/create-account");
-    } catch (error) {
-      console.error("Logout failed", error);
-      toast.error("Logout failed. Please try again.");
-    } finally {
-      setLogoutLoading(false);
-    }
+    await dispatch(performLogout());
+    setLogoutLoading(false);
+    navigate("/create-account");
   };
 
 

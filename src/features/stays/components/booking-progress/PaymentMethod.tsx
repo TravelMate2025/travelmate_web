@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Checkbox, Divider, FormControlLabel } from "@mui/material";
-import { getPaymentProviderLabel, getPaymentRedirectCopy } from "../../../shared/bookingFlowLabels";
+import { paymentProviderLabel, paymentRedirectCopy } from "../../../shared/booking/bookingFlowLabels";
 interface PaymentMethodProps {
   checked: boolean;
   toggleCheck: () => void;
@@ -18,15 +18,15 @@ const PaymentMethod = ({
         <div className="flex items-center gap-1 mb-4">
           <div className="lg:w-24 w-16 h-6 lg:h-10 bg-[#FAFAFA] rounded-lg p-2 border-1 border-[#CDCED1] flex items-center justify-center">
             <span className="text-[11px] font-semibold text-[#4E4F52]">
-              {getPaymentProviderLabel()}
+              {paymentProviderLabel()}
             </span>
           </div>
-          <p className="font-bold text-lg">{getPaymentProviderLabel()}</p>
+          <p className="font-bold text-lg">{paymentProviderLabel()}</p>
         </div>
         <div className="flex flex-col justify-center items-center gap-4 bg-[#FAFAFA] rounded-lg lg:p-26 p-6 py-12  ">
           <ArrowRight className="font-bold lg:w-12 lg:h-12 h-8 w-8" />
           <p className="text-[#4E4F52] text-center">
-            {getPaymentRedirectCopy()}
+            {paymentRedirectCopy()}
           </p>
         </div>
       </div>

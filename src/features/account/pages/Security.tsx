@@ -1,4 +1,4 @@
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate, NavLink, Link } from "react-router-dom";
 import { FaAngleLeft, FaAngleRight, FaRegBell, FaRegStar, FaRegUser } from "react-icons/fa";
 import Footer from "../../../components/2Footer";
@@ -9,15 +9,13 @@ import { MdCreditCard } from "react-icons/md";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import { RootState } from "../../../store"
 import { useState } from "react";
-import { logoutUser } from "../api/auth";
-import { logout } from "../slices/authSlice"
-import toast from "react-hot-toast";
+import { performLogout } from "../slices/performLogout";
+import { useAppDispatch } from "../../../hooks/redux";
 import { PiSignOutFill } from "react-icons/pi";
 
 function Security() {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const { accessToken } = useSelector((state: RootState) => state.auth);
     const [logoutLoading, setLogoutLoading] = useState(false);
 
     const user = useSelector((state: RootState) => state.auth.user);
@@ -29,23 +27,10 @@ function Security() {
     ];
 
     const handleLogout = async () => {
-        if (!accessToken) {
-          toast.error("User session expired. Login again to continue.");
-          return;
-        }
-
-         setLogoutLoading(true);
-            try {
-              await logoutUser(accessToken);
-              dispatch(logout());
-              localStorage.clear();
-              navigate("/create-account");
-            } catch (error) {
-              console.error("Logout failed", error);
-              toast.error("Logout failed. Please try again.");
-            } finally {
-              setLogoutLoading(false);
-            }
+        setLogoutLoading(true);
+        await dispatch(performLogout());
+        setLogoutLoading(false);
+        navigate("/create-account");
     };
 
     const options = [

@@ -317,7 +317,6 @@ export const searchStays = async (
       count: results.length,
       results,
     };
-    console.debug("[Stays][search] response", normalized);
     return normalized;
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error);
@@ -399,7 +398,6 @@ export const getHotelDetails = async (
         rooms,
       },
     });
-    console.debug("[Stays][detail] response", response.data);
     return (response.data?.data ?? response.data) as Hotel;
   } catch (error: unknown) {
     let errorMessage = `Failed to get details for hotel ${hotelId}`;
@@ -452,7 +450,6 @@ export const createStayPaymentIntent = async (payload: {
       { headers: { "Idempotency-Key": `pi-${payload.bookingReference}` } },
     );
     const data = response.data?.data ?? response.data;
-    console.debug("[Stays][paymentIntent] response", data);
     const paymentLink = data?.paymentLink ?? data?.nextAction?.url;
     return {
       success: true,
@@ -472,16 +469,14 @@ export const createStayPaymentIntent = async (payload: {
 export const verifyHotelBooking = async (
   sessionId: string | null,
 ): Promise<BookingStaysVerifyDetails> => {
-  console.debug("[Stays][verify] request", { sessionId });
   try {
     const response = await api.get(
       `/v1/public/bookings/verification?payment_intent_id=${encodeURIComponent(sessionId ?? "")}`,
     );
-    console.debug("[Stays][verify] response", response.data);
     return { success: true, data: response.data };
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error) || "Something went wrong!";
-    console.debug("[Stays][verify] failed", error);
+    console.error("[Stays][verify] failed", error);
     toast.error(errorMessage);
     return {
       data: {} as BookingDetailsVerifyData,
@@ -497,7 +492,6 @@ export const verifyHotelBooking = async (
 export const searchHotelBookingByReference = async (
   bookingReference: string | null,
 ): Promise<BookingStaysVerifyDetails> => {
-  console.debug("[Stays][searchByReference] request", { bookingReference });
   try {
     const response = await api.get(
       `/bookings/my/search/${encodeURIComponent(bookingReference ?? "")}/`,
@@ -513,11 +507,10 @@ export const searchHotelBookingByReference = async (
       (payload?.result as BookingDetailsVerifyData | undefined) ??
       (payload?.data as BookingDetailsVerifyData | undefined) ??
       (response.data as BookingDetailsVerifyData);
-    console.debug("[Stays][searchByReference] response", response.data);
     return { success: true, data: booking };
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error) || "Something went wrong!";
-    console.debug("[Stays][searchByReference] failed", error);
+    console.error("[Stays][searchByReference] failed", error);
     toast.error(errorMessage);
     return {
       data: {} as BookingDetailsVerifyData,
@@ -677,7 +670,6 @@ export const submitReview = async (
         "Idempotency-Key": `hotel-review-${String(hotelId ?? "")}-${String(id ?? "")}`,
       },
     });
-    console.log(response);
     return response.data;
   } catch (error: unknown) {
     const errorMessage = getErrorMessage(error);

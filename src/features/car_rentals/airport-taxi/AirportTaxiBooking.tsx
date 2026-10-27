@@ -12,6 +12,7 @@ import Passengers from "../carsFirstScreen/modals/Passengers";
 import { formatPassengerCount } from "../utilities/formatting";
 import type { PassengerCounts, CarTransferOption } from "../types/booking";
 import { setCarInfo, setSearchResults } from "../carPaymentSlice";
+import { transferResultsPath } from "../../shared/bookingFlowRoutes";
 
 type PickupSuggestion = {
   displayName: string;
@@ -162,11 +163,13 @@ export default function AirportTaxiBooking() {
       );
       dispatch(setSearchResults(result.data.results.services as CarTransferOption[]));
       navigate(
-        `/cars-searchResults?ride=Transfer&from=${encodeURIComponent(
-          pickupQuery
-        )}&to=${encodeURIComponent(dropoffQuery)}&time=${pickupDate}&pricerange=${encodeURIComponent(
-          priceRange
-        )}`,
+        transferResultsPath({
+          ride: "Transfer",
+          from: pickupQuery,
+          to: dropoffQuery,
+          time: pickupDate,
+          pricerange: priceRange,
+        }),
         { state: { search_id: result.data.search_id } }
       );
     } catch (error) {

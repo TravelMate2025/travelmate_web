@@ -1,6 +1,7 @@
 import { useGoogleLogin } from "@react-oauth/google";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getReturnPath } from "../../../routes/returnPath";
 import { FaGoogle } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { socialGoogleLogin } from "../api/auth";
@@ -18,6 +19,7 @@ type ApiErrorLike = {
 // to be seeded with a real clientId or it throws.
 function GoogleLoginButtonActive() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
 
   const googleLogin = useGoogleLogin({
@@ -58,10 +60,8 @@ function GoogleLoginButtonActive() {
               registrationComplete: res.registration_complete ?? false,
             })
           );
-          localStorage.setItem("accessToken", res.access);
-          localStorage.setItem("refreshToken", res.refresh);
           localStorage.setItem("email", res.user?.email ?? googleEmail ?? "");
-          navigate("/", { replace: true });
+          navigate(getReturnPath(location.state) ?? "/", { replace: true });
         } else {
           toast.error("Unexpected response format. Please try again.");
           console.error("Unexpected Google login response:", res);
@@ -75,7 +75,7 @@ function GoogleLoginButtonActive() {
           )
         ) {
           toast.success("This Google account is already registered. Please log in instead.");
-          navigate("/login", { state: { email: googleEmail } });
+          navigate("/login", { state: { email: googleEmail, from: getReturnPath(location.state) ?? undefined } });
         } else {
           toast.error("Google login failed. Please try again.");
           console.error("Google login error response:", backendError);

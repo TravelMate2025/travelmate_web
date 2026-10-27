@@ -5,6 +5,7 @@ import "./index.css";
 import App from "./App";
 import { Provider } from "react-redux";
 import { persistor, store } from "./store";
+import { injectStore } from "./api/services/api";
 import { PersistGate } from "redux-persist/integration/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeProvider } from "@mui/material/styles";
@@ -18,6 +19,8 @@ if (!googleClientId) {
   // Log a dev-time warning so deploys include the env var
   console.warn("VITE_GOOGLE_CLIENT_ID is not set. Google OAuth will not function.");
 }
+
+injectStore(store);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

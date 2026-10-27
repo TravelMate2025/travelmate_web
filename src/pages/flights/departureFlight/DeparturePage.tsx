@@ -544,7 +544,6 @@ reset({
                            }
                          //  defaultDate={date}
                          onDateChange={(val) => {
-                           console.log(val);
                            
                            
                            field.onChange(

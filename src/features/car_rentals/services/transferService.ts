@@ -1,7 +1,7 @@
 import { parse, format, isValid } from 'date-fns';
 import { BookingFormData, CarTransferOption, CatalogReviewsResponse } from '../types/booking';
 import axios from 'axios';
-import instance from '../../../utils/axiosConfig';
+import instance, { API_BASE_URL } from '../../../api/services/api';
 import toast from 'react-hot-toast';
 
 interface ApiErrorPayload {
@@ -154,7 +154,7 @@ interface TransferSearchPayload {
 }
 
 class TransferService {
-    private baseUrl = (instance.defaults.baseURL || "https://travelmate.com").replace(/\/$/, "");
+    private baseUrl = API_BASE_URL;
     private terminalCache: Map<string, LookupLocation[]> = new Map();
 
     private getErrorMessage(error: unknown): string {

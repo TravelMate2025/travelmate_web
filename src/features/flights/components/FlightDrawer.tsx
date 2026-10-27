@@ -42,10 +42,10 @@ import dayjs from "dayjs";
 import FlightDetails from "./FlightDetails";
 import { useUpsellFlightOfferMutation } from "../api/flightApi";
 import { SearchData } from "../hooks/useFlightBooking";
+import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function formatDateRange(range: string) {
-  console.log(range);
 
   const [start, end] = range.split(" to ");
   const startDate = dayjs(start);
@@ -207,7 +207,6 @@ export const FlightDrawer = memo<FlightDrawerProps>(
         returnFlight + 1 < searchState.flights.length &&
         onNext
       ) {
-        console.log("Proceeding to next segment");
         handleCloseClick();
         onNext();
         return;
@@ -215,14 +214,11 @@ export const FlightDrawer = memo<FlightDrawerProps>(
 
       // If last segment, navigate to review page
 
-      navigate("/flight/review", {
+      navigate(bookingFlowRoutes.flightReview, {
         state: { ...searchState, multiCitySelections: updatedSelections },
       });
     };
 
-    useEffect(() => {
-      console.log("multiCitySelections updated:", multiCitySelections);
-    }, [multiCitySelections]);
 
     const Content = (
       <DialogContent
@@ -694,16 +690,16 @@ export const FlightDrawer = memo<FlightDrawerProps>(
 
     const checkRoute = (): string => {
       switch (location.pathname) {
-        case "/flight/departure":
+        case bookingFlowRoutes.flightDeparture:
           return state.tripType === "round-trip"
-            ? "/flight/return"
-            : "/flight/review";
+            ? bookingFlowRoutes.flightReturn
+            : bookingFlowRoutes.flightReview;
 
-        case "/flight/review":
-          return "/flight/review";
+        case bookingFlowRoutes.flightReview:
+          return bookingFlowRoutes.flightReview;
 
         default:
-          return "/flight/review";
+          return bookingFlowRoutes.flightReview;
       }
     };
     const ActionButton = (
@@ -722,7 +718,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
               ? () => {
                   let state;
 
-                  if (location.pathname === "/flight/departure") {
+                  if (location.pathname === bookingFlowRoutes.flightDeparture) {
                     state = {
                       ...searchState,
                       departureFlight: selectedDeparture,
@@ -731,7 +727,7 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                       departureCounts: counts,
                       departureFlightOption: selectedOption,
                     };
-                  } else if (location.pathname === "/flight/return") {
+                  } else if (location.pathname === bookingFlowRoutes.flightReturn) {
                     state = {
                       ...searchState,
                       ...location.state,
@@ -742,7 +738,6 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                       returnCounts: counts,
                       returnFlightOption: selectedOption,
                     };
-                    console.log("return,", state);
                   } else {
                     state = {
                       ...searchState,
@@ -751,7 +746,6 @@ export const FlightDrawer = memo<FlightDrawerProps>(
                       upsell,
                     };
 
-                    console.log("any", state);
                   }
 
                   navigate(checkRoute(), { state });

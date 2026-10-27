@@ -10,6 +10,7 @@ import { fetchFavorites } from "../features/stays/api";
 import { CiLocationOn } from "react-icons/ci";
 
 import { IoStarSharp } from "react-icons/io5";
+import { stayDetailPath } from "../features/shared/bookingFlowRoutes";
 
 export interface Hotel {
   id: number;
@@ -61,7 +62,7 @@ const Favorites = () => {
                 <div
                   key={hotel.id}
                   className="border rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer p-4 border-gray-300 "
-                  onClick={() => navigate(`/stay-details/${hotel.hotel_code}`)}
+                  onClick={() => navigate(stayDetailPath(hotel.hotel_code))}
                 >
                   <img
                     src={hotel?.images[0]?.url || hotelImage}

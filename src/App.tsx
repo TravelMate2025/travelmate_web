@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 import AppErrorBoundary from "./AppErrorBoundary";
 import PrivateRoute from "./routes/PrivateRoute";
 import { bookingFlowRoutes } from "./features/shared/bookingFlowRoutes";
+import { hotelsRoutes } from "./features/hotels/routes";
 
 // Eagerly loaded — lightweight, always needed on first paint
 import Home from "./pages/Home";
@@ -33,6 +34,11 @@ const StaysDetail = lazy(() => import("./features/stays/pages/StaysDetail"));
 const BookingConfirmationPage = lazy(() => import("./features/stays/pages/BookingConfirmationPage"));
 const BookingProgress = lazy(() => import("./features/stays/pages/BookingProgress"));
 const DownloadStaysPage = lazy(() => import("./features/stays/components/confirmation/Download"));
+
+// Hotels page (lazy)
+const HotelsPage = lazy(() => import("./features/hotels/pages/HotelsPage"));
+const HotelResultsPage = lazy(() => import("./features/hotels/pages/HotelResultsPage"));
+const HotelDetailsPage = lazy(() => import("./features/hotels/pages/HotelDetailsPage"));
 
 // Flights pages (lazy)
 const DeparturePage = lazy(() => import("./pages/flights/departureFlight/DeparturePage"));
@@ -108,7 +114,7 @@ function App() {
         <Route path={bookingFlowRoutes.stayResults} element={<StaysSearchResults />} />
         <Route path={bookingFlowRoutes.stayBookingReview} element={<BookingProgress />} />
         <Route path={`${bookingFlowRoutes.stayDetail}/:hotelId`} element={<StaysDetail />} />
-        <Route path="/stays-paid/download" element={<DownloadStaysPage />} />
+        <Route path={bookingFlowRoutes.stayDownload} element={<DownloadStaysPage />} />
         <Route
           path={bookingFlowRoutes.stayConfirmation}
           element={<BookingConfirmationPage />}
@@ -269,38 +275,43 @@ function App() {
           }
         />
 
+        {/* Hotels */}
+        <Route path={hotelsRoutes.home} element={<HotelsPage />} />
+        <Route path={hotelsRoutes.results} element={<HotelResultsPage />} />
+        <Route path={`${hotelsRoutes.home}/:hotelId`} element={<HotelDetailsPage />} />
+
         {/* Flights */}
         <Route path="/flights" element={<Flight />} />
         <Route
-          path="/flight/departure"
+          path={bookingFlowRoutes.flightDeparture}
           element={<DeparturePage departureInfo={[]} />}
         />
         <Route
-          path="/flight/return"
+          path={bookingFlowRoutes.flightReturn}
           element={<ReturnPage departureInfo={[]} />}
         />
-        <Route path="/flight/review" element={<FlightInfoPage />} />
+        <Route path={bookingFlowRoutes.flightReview} element={<FlightInfoPage />} />
         <Route
-          path="/flights/payment-success"
+          path={bookingFlowRoutes.flightPaymentSuccess}
           element={<FlightConfirmationPage />}
         />
-        <Route path="/flights/payment-cancelled" element={<PaymentFailed />} />
+        <Route path={bookingFlowRoutes.flightPaymentCancelled} element={<PaymentFailed />} />
 
         {/* Cars */}
-        <Route path="/cars-searchResults" element={<DisplayCars />} />
+        <Route path={bookingFlowRoutes.transferResults} element={<DisplayCars />} />
         <Route path={`${bookingFlowRoutes.transferDetail}/:transferId`} element={<TransferDetail />} />
         <Route path={bookingFlowRoutes.transferBookingReview} element={<CarOfferPage />} />
         <Route path={bookingFlowRoutes.transferGuestDetails} element={<CarOfferPage />} />
         <Route
-          path="/transfers/payment-success"
+          path={bookingFlowRoutes.transferPaymentSuccess}
           element={<CarPaidForPage />}
         />
         <Route
-          path="/transfers/payment-failure"
+          path={bookingFlowRoutes.transferPaymentFailure}
           element={<CarFailedPayment />}
         />
         <Route
-          path="/car-paid/download"
+          path={bookingFlowRoutes.transferDownload}
           element={
             <PrivateRoute>
               <DownloadPage />

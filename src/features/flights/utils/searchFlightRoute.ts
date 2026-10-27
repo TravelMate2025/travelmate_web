@@ -1,5 +1,6 @@
 import { NavigateFunction } from "react-router-dom";
 import { Airport } from "../types";
+import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 
 // Re-runs a fresh one-way flight search for a given route, from just IATA
 // codes -- no full Airport lookup needed. Mirrors the exact same approach
@@ -57,5 +58,5 @@ export function searchFlightRoute(
 
   sessionStorage.setItem("trip", JSON.stringify(searchData));
   sessionStorage.setItem("tripType", "one-way");
-  navigate("/flight/departure", { state: searchData });
+  navigate(bookingFlowRoutes.flightDeparture, { state: searchData });
 }

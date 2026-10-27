@@ -37,6 +37,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { validateBookingForm } from "../utilities/validation";
+import { transferResultsPath } from "../../shared/bookingFlowRoutes";
 
 const CarBookingFirstScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -243,13 +244,14 @@ const CarBookingFirstScreen: React.FC = () => {
           (result?.data?.results?.services || []) as CarTransferOption[]
         )
       );
-      console.log("Search results:", result?.data);
       navigate(
-        `/cars-searchResults?ride=${encodeURIComponent(
-          formData.selectedRide
-        )}&from=${formData.pickupLocaDescription}&to=${
-          formData.dropoffLocaDescription
-        }&time=${formData.pickupDate}&pricerange=${formData.priceRange}`,
+        transferResultsPath({
+          ride: formData.selectedRide,
+          from: formData.pickupLocaDescription,
+          to: formData.dropoffLocaDescription,
+          time: formData.pickupDate,
+          pricerange: `${formData.priceRange.min}-${formData.priceRange.max}`,
+        }),
         { state: { search_id: result.data.search_id } }
       );
     } catch (error) {

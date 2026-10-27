@@ -6,6 +6,8 @@ import {
   continueToPaymentLabel,
   guestDetailsLabel,
   partnerPricingSourceCopy,
+  paymentProviderLabel,
+  paymentRedirectCopy,
   pricingSourceLabel,
   stayDetailsLabel,
   stayFlowTypeLabel,
@@ -41,5 +43,10 @@ describe("bookingFlowLabels", () => {
     expect(stayTypeDisplayLabel("room_level")).toBe("Room stay");
     expect(stayTypeDisplayLabel("unit_level")).toBe("Unit stay");
     expect(stayTypeDisplayLabel(undefined)).toBe("Stay");
+  });
+
+  it("uses provider-neutral payment copy", () => {
+    expect(paymentProviderLabel()).toBe("Secure payment");
+    expect(paymentRedirectCopy()).toBe("You'll be redirected to complete your secure payment");
   });
 });

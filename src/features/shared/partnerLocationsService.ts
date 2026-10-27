@@ -1,4 +1,4 @@
-import instance from "../../utils/axiosConfig";
+import instance, { API_BASE_URL } from "../../api/services/api";
 
 export type PartnerStayLocation = {
   country: string;
@@ -41,7 +41,7 @@ export type PartnerTransferLocations = {
   destinations: PartnerTransferDestination[];
 };
 
-const base = (instance.defaults.baseURL || "http://127.0.0.1:8000/api").replace(/\/$/, "");
+const base = API_BASE_URL;
 
 let _staysCache: PartnerStayLocations | null = null;
 let _transfersCache: PartnerTransferLocations | null = null;
