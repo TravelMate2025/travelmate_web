@@ -4,7 +4,7 @@ import { Dialog } from "@mui/material";
 import { usePageMeta } from "../../../hooks/usePageMeta";
 import Navbar from "../../../pages/homePage/Navbar";
 import Footer from "../../../components/2Footer";
-import { Stars } from "../components/HotelCard";
+import { HotelCard, Stars } from "../components/HotelCard";
 import { outOfTen, scoreWord } from "../format";
 import { HotelsApiError, getHotel } from "../api/hotelsApi";
 import { hotelsRoutes } from "../routes";
@@ -14,7 +14,7 @@ import "../hotels.css";
 import "../results.css";
 import { refreshBookLink, withVisitor } from "../visitor";
 
-const FACILITIES_SHOWN = 16;
+const KEY_FACILITIES = 8;
 
 export default function HotelDetailsPage() {
   const { hotelId = "" } = useParams();
@@ -28,11 +28,24 @@ export default function HotelDetailsPage() {
   const [allFacilities, setAllFacilities] = useState(false);
 
   usePageMeta({
-    title: `${state.hotel?.name ?? "Hotel"} | TravelMate`,
+    title: `${state.hotel?.name ?? "Hotel"}${state.hotel?.city ? `, ${state.hotel.city}` : ""} | TravelMate`,
     description: state.hotel
-      ? `${state.hotel.name} in ${[state.hotel.city, state.hotel.country].filter(Boolean).join(", ")}: photos, facilities and guest reviews. Check live prices with TravelMate.`
+      ? (state.hotel.summary ?? "").split(". ").slice(0, 2).join(". ").slice(0, 160) ||
+        `${state.hotel.name} in ${[state.hotel.city, state.hotel.country].filter(Boolean).join(", ")}: photos, facilities and guest reviews. Check live prices with TravelMate.`
       : "Hotel details with TravelMate.",
   });
+
+  // Hotel data for search engines (name, place, map point, stars, photos, facilities). Removed again when the visitor leaves.
+  useEffect(() => {
+    const schema = state.hotel?.schema;
+    if (!schema) return undefined;
+    const el = document.createElement("script");
+    el.type = "application/ld+json";
+    el.id = "tmh-hotel-schema";
+    el.text = JSON.stringify(schema);
+    document.head.appendChild(el);
+    return () => el.remove();
+  }, [state.hotel]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -56,6 +69,7 @@ export default function HotelDetailsPage() {
   const hotel = state.hotel;
   const score10 = hotel?.review ? Number(outOfTen(hotel.review.score)) : null;
   const images = hotel?.images ?? [];
+  const keyFacilities = hotel ? (hotel.highlights?.length ? hotel.highlights : hotel.facilities.slice(0, KEY_FACILITIES)) : [];
   const back = `${hotelsRoutes.results}?${backQuery}`;
 
   return (
@@ -121,6 +135,12 @@ export default function HotelDetailsPage() {
 
               <div className="tmh-detail-cols">
                 <div className="tmh-detail-main">
+                  {hotel.summary && (
+                    <section>
+                      <h2 className="tmh-h4">In short</h2>
+                      <p className="tmh-prose">{hotel.summary}</p>
+                    </section>
+                  )}
                   {hotel.description && (
                     <section>
                       <h2 className="tmh-h4">About this stay</h2>
@@ -130,14 +150,28 @@ export default function HotelDetailsPage() {
                   {hotel.facilities.length > 0 && (
                     <section>
                       <h2 className="tmh-h4">What this place offers</h2>
-                      <ul className="tmh-facilities">
-                        {(allFacilities ? hotel.facilities : hotel.facilities.slice(0, FACILITIES_SHOWN)).map((f) => (
+                      <ul className="tmh-chips">
+                        {keyFacilities.map((f) => (
                           <li key={f}>{f}</li>
                         ))}
                       </ul>
-                      {hotel.facilities.length > FACILITIES_SHOWN && (
+                      {allFacilities && (
+                        <div className="tmh-fac-all">
+                          {(hotel.facility_groups?.length ? hotel.facility_groups : [{ title: "", items: hotel.facilities }]).map((g) => (
+                            <div key={g.title} className="tmh-fac-group">
+                              {g.title && <h3 className="tmh-h5">{g.title}</h3>}
+                              <ul className="tmh-facilities">
+                                {g.items.map((f) => (
+                                  <li key={f}>{f}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {hotel.facilities.length > keyFacilities.length && (
                         <button type="button" className="tmh-more-btn" onClick={() => setAllFacilities((v) => !v)}>
-                          {allFacilities ? "Show fewer" : `Show all ${hotel.facilities.length}`}
+                          {allFacilities ? "Show fewer" : `Show all ${hotel.facilities.length} facilities`}
                         </button>
                       )}
                     </section>
@@ -151,6 +185,43 @@ export default function HotelDetailsPage() {
                       </p>
                     </section>
                   )}
+                  <section className="tmh-cta-strip">
+                    <p>Want to see the price for your dates?</p>
+                    <a href={withVisitor(hotel.book_url)} onClick={refreshBookLink(hotel.book_url)} className="tmh-btn tmh-btn-solid">
+                      Check price
+                    </a>
+                  </section>
+                  {hotel.map && (
+                    <section>
+                      <h2 className="tmh-h4">Where it is</h2>
+                      <p className="tmh-prose">{hotel.full_address || [hotel.address, hotel.city, hotel.country].filter(Boolean).join(", ")}</p>
+                      <iframe className="tmh-map" title={`Map of ${hotel.name}`} src={hotel.map.embed_url} loading="lazy" referrerPolicy="no-referrer" />
+                      <a className="tmh-more-btn" href={hotel.map.link_url} target="_blank" rel="noopener noreferrer">
+                        Open a larger map
+                      </a>
+                    </section>
+                  )}
+                  {hotel.faq && hotel.faq.length > 0 && (
+                    <section>
+                      <h2 className="tmh-h4">Questions, answered</h2>
+                      {hotel.faq.map((f) => (
+                        <details key={f.q} className="tmh-faq">
+                          <summary>{f.q}</summary>
+                          <p>{f.a}</p>
+                        </details>
+                      ))}
+                    </section>
+                  )}
+                  {hotel.nearby && hotel.nearby.length > 0 && (
+                    <section>
+                      <h2 className="tmh-h4">Other stays nearby</h2>
+                      <div className="tmh-nearby">
+                        {hotel.nearby.map((n) => (
+                          <HotelCard key={n.id} hotel={n} searchQuery={backQuery} />
+                        ))}
+                      </div>
+                    </section>
+                  )}
                 </div>
 
                 <aside className="tmh-book" aria-label="Check price">
@@ -161,6 +232,12 @@ export default function HotelDetailsPage() {
                   </a>
                   <p className="tmh-fineprint">Live prices, rooms and booking are on TravelMate’s secure booking page. Taxes and fees are shown before you pay.</p>
                 </aside>
+              </div>
+
+              <div className="tmh-sticky-cta">
+                <a href={withVisitor(hotel.book_url)} onClick={refreshBookLink(hotel.book_url)} className="tmh-btn tmh-btn-solid tmh-btn-wide">
+                  Check price
+                </a>
               </div>
 
               <Dialog open={gallery !== null} onClose={() => setGallery(null)} maxWidth="lg" fullWidth aria-label="Photos">

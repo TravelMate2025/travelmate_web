@@ -23,6 +23,16 @@ export type HotelDetails = HotelSummary & {
   description: string;
   check_in_time: string | null;
   check_out_time: string | null;
+  /** Ready-made page content from the hotels service (built from the hotel's own listed facts). */
+  summary?: string;
+  /** The facilities guests look for first (exact listed text), for a compact row. */
+  highlights?: string[];
+  facility_groups?: { title: string; items: string[] }[];
+  faq?: { q: string; a: string }[];
+  map?: { lat: number; lng: number; embed_url: string; link_url: string } | null;
+  /** schema.org Hotel data for search engines. */
+  schema?: Record<string, unknown>;
+  nearby?: HotelSummary[];
 };
 
 export type Place = {

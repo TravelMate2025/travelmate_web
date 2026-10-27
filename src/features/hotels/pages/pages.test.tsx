@@ -146,9 +146,43 @@ describe("details page", () => {
     expect(screen.getByText("A calm hotel near the park.")).toBeTruthy();
     expect(screen.getByText("Spa")).toBeTruthy();
     expect(screen.getByText(/Check-in from 15:00/)).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Check price" }).getAttribute("href")).toBe(details.book_url);
+    const checks = screen.getAllByRole("link", { name: "Check price" });
+    expect(checks.length).toBeGreaterThanOrEqual(2); // box, strip and the mobile bar all lead to IMPT
+    checks.forEach((a) => expect(a.getAttribute("href")).toBe(details.book_url));
     expect(screen.getByRole("link", { name: "← Back to results" }).getAttribute("href")).toContain("/hotels/results?lat=38.72");
     expect(api.getHotel.mock.calls[0][0]).toBe("11");
+  });
+
+  it("shows the ready-made content: summary, grouped facilities, map, FAQ, nearby stays and hotel data for search engines", async () => {
+    api.getHotel.mockResolvedValue({
+      ...details,
+      summary: "Iberostar Lisboa is a 4-star hotel in Lisbon, Portugal. It offers free Wi-Fi.",
+      highlights: ["Free Wifi", "Pool"],
+      facility_groups: [{ title: "Wellness and leisure", items: ["Pool", "Spa"] }, { title: "Rooms and comfort", items: ["Wifi"] }],
+      faq: [{ q: "Does Iberostar Lisboa have free Wi-Fi?", a: "Yes, free Wi-Fi is listed." }],
+      map: { lat: 38.72, lng: -9.14, embed_url: "https://www.openstreetmap.org/export/embed.html?bbox=1,2,3,4", link_url: "https://www.openstreetmap.org/?mlat=38.72&mlon=-9.14" },
+      schema: { "@context": "https://schema.org", "@type": "Hotel", name: "Iberostar Lisboa" },
+      nearby: [hotel("12", "Hotel Nearby")],
+    });
+    renderAt(`/hotels/11?${SEARCH}`);
+    expect(await screen.findByText(/is a 4-star hotel in Lisbon/)).toBeTruthy();
+    expect(screen.getByText("Free Wifi")).toBeTruthy();                 // key facilities show at once
+    expect(screen.queryByRole("heading", { name: "Wellness and leisure" })).toBeNull();   // the full grouped list is collapsed
+    fireEvent.click(screen.getByRole("button", { name: /Show all 3 facilities/ }));
+    expect(screen.getByRole("heading", { name: "Wellness and leisure" })).toBeTruthy();
+    expect(screen.getByTitle("Map of Iberostar Lisboa").getAttribute("src")).toContain("openstreetmap.org");
+    expect(screen.getByText("Does Iberostar Lisboa have free Wi-Fi?")).toBeTruthy();
+    expect(screen.getByText("Hotel Nearby")).toBeTruthy();
+    const ld = document.getElementById("tmh-hotel-schema");
+    expect(ld?.textContent).toContain('"@type":"Hotel"');
+  });
+
+  it("still works when the service sends no extras (older response)", async () => {
+    api.getHotel.mockResolvedValue(details);
+    renderAt(`/hotels/11?${SEARCH}`);
+    expect(await screen.findByText("Spa")).toBeTruthy();
+    expect(screen.queryByText("Where it is")).toBeNull();
+    expect(screen.queryByText("Other stays nearby")).toBeNull();
   });
 
   it("says plainly when the hotel is not found", async () => {

@@ -111,3 +111,30 @@
 
 .tmh-more-btn { align-self: flex-start; margin-top: 14px; padding: 11px 18px; border-radius: 10px; border: 1px solid #cbd6ea; background: #fff; color: var(--tmh-blue); font-size: 14px; font-weight: 600; cursor: pointer; }
 .tmh-more-btn:hover { border-color: var(--tmh-blue); }
+
+/* hotel page extras (summary, grouped facilities, map, FAQ, nearby stays, extra Check price buttons) */
+.tmh-fac-group { margin-top: 16px; }
+.tmh-fac-group:first-of-type { margin-top: 8px; }
+.tmh-h5 { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #0a1d44; letter-spacing: .01em; }
+.tmh-cta-strip { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 22px; border: 1px solid var(--tmh-line); border-radius: 16px; background: #f5f8ff; }
+.tmh-cta-strip p { margin: 0; font-weight: 500; }
+.tmh-map { width: 100%; height: 280px; border: 0; border-radius: 14px; margin: 8px 0; background: #eef2fa; }
+.tmh-faq { border-top: 1px solid var(--tmh-line); padding: 12px 0; }
+.tmh-faq:last-of-type { border-bottom: 1px solid var(--tmh-line); }
+.tmh-faq summary { cursor: pointer; font-weight: 600; font-size: 15px; }
+.tmh-faq p { margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: #34415c; }
+.tmh-nearby { display: grid; gap: 14px; }
+.tmh-sticky-cta { display: none; }
+@media (max-width: 860px) {
+  .tmh-sticky-cta { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--tmh-line); box-shadow: 0 -8px 24px rgba(10,30,70,.08); }
+  .tmh-detail { padding-bottom: 84px; }
+}
+
+/* compact key facilities: a chip row, the full grouped list opens on request */
+.tmh-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; padding: 0; list-style: none; }
+.tmh-chips li { padding: 6px 12px; border: 1px solid var(--tmh-line); border-radius: 999px; font-size: 13.5px; color: #34415c; background: #fff; }
+.tmh-fac-all { margin: 4px 0 12px; }
+.tmh-fac-all .tmh-facilities { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 20px; }
+.tmh-fac-all .tmh-fac-group { margin-top: 14px; }
+@media (max-width: 860px) { .tmh-fac-all .tmh-facilities { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .tmh-fac-all .tmh-facilities { grid-template-columns: 1fr; } }
