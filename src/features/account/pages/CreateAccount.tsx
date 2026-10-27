@@ -3,7 +3,8 @@ import { FaApple } from "react-icons/fa";
 import AuthNavbar from "../components/AuthNavbar";
 import Spinner from "../components/Spinner";
 import GoogleLoginButton from "../components/GoogleLoginButton";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getReturnPath } from "../../../routes/returnPath";
 import { submitEmail } from "../api/auth";
 import { toast } from "react-hot-toast";
 import AppErrorBoundary from "../../../AppErrorBoundary";
@@ -12,6 +13,8 @@ export default function CreateAccount() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = getReturnPath(location.state) ?? undefined;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +35,7 @@ export default function CreateAccount() {
         navigate("/verify-page", { state: { email } });
       } else if (res?.Status === 307) {
         // Existing user — navigate to login
-        navigate("/login", { state: { email } });
+        navigate("/login", { state: { email, from } });
       } else {
         toast.error(res?.Message || "Failed to send verification email. Please try again.");
       }

@@ -8,6 +8,7 @@ import { AppDispatch, RootState } from "../../../store";
 import { fetchDestinations } from "../api";
 import { useNavigate } from "react-router";
 import { Destination } from "../types";
+import { stayResultsPath } from "../../shared/bookingFlowRoutes";
 
 function normalizeLocations(input: unknown): Destination[] {
   if (Array.isArray(input)) return input as Destination[];
@@ -162,13 +163,14 @@ export default function UpdateSearchFilter() {
       await dispatch(setSearchParams(updatedSearchParams));
 
       navigate(
-        `/stay-results?location=${encodeURIComponent(
-          destination
-        )}&checkin=${formatDate(checkIn)}&checkout=${formatDate(
-          checkOut
-        )}&adults=${counts.adults}&children=${totalChildren}&rooms=${
-          counts.rooms
-        }`
+        stayResultsPath({
+          location: destination,
+          checkin: formatDate(checkIn),
+          checkout: formatDate(checkOut),
+          adults: counts.adults,
+          children: totalChildren,
+          rooms: counts.rooms,
+        })
       );
     } catch (error) {
       console.error("Error updating search parameters:", error);

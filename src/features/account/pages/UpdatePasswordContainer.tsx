@@ -65,12 +65,9 @@ function UpdatePasswordContainer() {
                 return;
             }
 
-            const res = await api.post(`${API_BASE_URL}/users/resend_reset_token/`, {
+            await api.post(`${API_BASE_URL}/users/resend_reset_token/`, {
                 email: user.email,
             });
-            if (res.status === 200) {
-                console.log("OTP resent successfully!");
-            }
         } catch (error) {
             console.error("Resend OTP error:", error);
         }
@@ -119,9 +116,7 @@ function UpdatePasswordContainer() {
                 { email: user.email, new_password: userNewPassword }
             );
 
-            if (res.status === 204) {
-                console.log("Password updated successfully!");
-            } else {
+            if (res.status !== 204) {
                 setError("Unexpected response from server.");
             }
         } catch (error: unknown) {

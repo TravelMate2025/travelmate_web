@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { useAppDispatch } from "../../../hooks/redux";
 import { RootState } from "../../../store";
 import Modal from "../../stays/components/modals/Modal";
 import { deleteUserAccount } from "../api/profile";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../slices/authSlice";
+import { performLogout } from "../slices/performLogout";
 import Spinner from "./Spinner";
 
 interface DeleteAccountModalProps {
@@ -40,7 +41,7 @@ export default function DeleteAccountModal({ isOpen, onClose }: DeleteAccountMod
   const [feedback, setFeedback] = useState("");
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { accessToken } = useSelector((state: RootState) => state.auth);
 
   const handleDelete = async () => {
@@ -63,15 +64,8 @@ export default function DeleteAccountModal({ isOpen, onClose }: DeleteAccountMod
     setError(null);
     try {
       await deleteUserAccount(accessToken, reason, feedback);
-
-      localStorage.setItem("logout_reason", "account_deleted");
-      
-      dispatch(logout());
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("email");
-      localStorage.removeItem("verify_email");
-
+      // The server session went with the account, so there's nothing to revoke
+      await dispatch(performLogout({ reason: "account_deleted", revokeSession: false }));
       navigate("/create-account");
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to delete account. Please try again."));

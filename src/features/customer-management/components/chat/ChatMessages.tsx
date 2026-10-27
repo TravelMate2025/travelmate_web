@@ -11,7 +11,6 @@ const ChatMessages = ({ activeChat }: { activeChat: Chat | null }) => {
   }, [activeChat]);
 
   if (!activeChat) {
-    console.log("no active chat");
     return null;
   }
 

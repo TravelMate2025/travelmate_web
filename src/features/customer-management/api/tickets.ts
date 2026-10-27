@@ -2,8 +2,6 @@
 import api from "../../../api/services/api";
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 export interface TicketSummary {
   id: number;
   ticket_id: string;
@@ -104,7 +102,6 @@ const axiosErrMsg = (error: unknown) =>
 export const getTickets = async (): Promise<TicketListResponse> => {
   try {
     const response = await api.get<TicketListResponse>('/tickets/');
-    console.log('[GET TICKETS] Success:', response.data);
     return response.data;
   } catch (error: unknown) {
     console.error('[GET TICKETS] Error:', axiosErrMsg(error));
@@ -115,7 +112,6 @@ export const getTickets = async (): Promise<TicketListResponse> => {
 export const createTicket = async (ticketData: TicketData) => {
   try {
     const response = await api.post<TicketDetail>('/tickets/', ticketData);
-    console.log('[CREATE TICKET] Success:', response.data);
     return response.data;
   } catch (error: unknown) {
     console.error('[CREATE TICKET] Error:', axiosErrMsg(error));
@@ -126,7 +122,6 @@ export const createTicket = async (ticketData: TicketData) => {
 export const getTicketById = async (id: number | string): Promise<TicketDetail> => {
   try {
     const response = await api.get<TicketDetail>(`/tickets/${id}/`);
-    console.log(`[GET TICKET ${id}] Success:`, response.data);
     return response.data;
   } catch (error: unknown) {
     console.error(`[GET TICKET ${id}] Error:`, axiosErrMsg(error));
@@ -137,7 +132,6 @@ export const getTicketById = async (id: number | string): Promise<TicketDetail> 
 export const replyToTicket = async (
   ticketId: number | string,
   message: string,
-  accessToken: string,
   attachment?: File | null
 ) => {
   try {
@@ -147,17 +141,11 @@ export const replyToTicket = async (
       formData.append("attachment", attachment);
     }
 
-    const response = await axios.post<TicketDetail>(
-      `${API_BASE_URL}/tickets/${ticketId}/messages/`,
+    const response = await api.post<TicketDetail>(
+      `/tickets/${ticketId}/messages/`,
       formData,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
+      { headers: { "Content-Type": "multipart/form-data" } }
     );
-    console.log(`[REPLY TICKET ${ticketId}] Success:`, response.data);
     return response.data;
   } catch (error: unknown) {
     console.error(`[REPLY TICKET ${ticketId}] Error:`, axiosErrMsg(error));

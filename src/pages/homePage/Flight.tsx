@@ -89,7 +89,6 @@ export const simpleTripSchema = yup.object({
     .test("future-date", "Date must be in the future", (value) => {
       if (!value) return false;
       
-      console.log("value", value);
       if (value instanceof Date) {
         return !isBefore(startOfDay(value), today);
       }
@@ -163,7 +162,6 @@ const FlightBookingForm: React.FC = () => {
   });
 
   const onSubmit = simpleForm.handleSubmit((data) => {
-    console.log("✅ Validated Form:", data);
 
     handleSearch(
       data.class,
@@ -174,7 +172,6 @@ const FlightBookingForm: React.FC = () => {
     );
   });
   const onSubmitMulti = multiForm.handleSubmit((data) => {
-    console.log("✅ Validated Form:", data);
 
      handleSearch(
        data.class,

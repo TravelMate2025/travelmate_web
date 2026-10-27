@@ -1,5 +1,4 @@
-import instance from "../../../utils/axiosConfig";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import instance, { API_BASE_URL } from "../../../api/services/api";
 
 export const fetchRecentSearches = async (
   setLocation: (data: string[]) => void,
@@ -14,7 +13,6 @@ export const fetchRecentSearches = async (
         }
         );
         setLocation(response.data)
-        console.log("Recent searches:", response.data);
         return response.data;
     } catch (error: unknown) {
         console.error("Error fetching recent searches:", error);

@@ -113,7 +113,6 @@ export const loginUser = async (email: string, password: string) => {
 
 export const logoutUser = async (accessToken: string) => {
   try {
-    console.debug("📤 Initiating logout request...");
     await axios.post(
       `${API_BASE_URL}/users/logout/`,
       {},
@@ -128,19 +127,6 @@ export const logoutUser = async (accessToken: string) => {
     const msg = toErrorMessage(error);
     console.error("Logout failed:", msg);
     throw new Error("Logout failed. Check network and CORS settings.");
-  }
-};
-
-export const refreshToken = async (refresh: string) => {
-  try {
-    const response = await axios.post(`${API_BASE_URL}/auth/jwt/token/refresh/`, {
-      refresh,
-    });
-    return response.data;
-  } catch (error: unknown) {
-    const msg = toErrorMessage(error);
-    console.error("❌ Token refresh error:", msg);
-    throw new Error(msg);
   }
 };
 

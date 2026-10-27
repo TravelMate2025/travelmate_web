@@ -17,6 +17,7 @@ import SkeletonConfirm from "./Skeleton";
 import { Download, Loader, Share } from "lucide-react";
 import ShareModal from "../../stays/components/modals/ShareModal";
 import CarFailedPayment from "./CarFailedPayment";
+import { transferDownloadPath } from "../../shared/bookingFlowRoutes";
 
 interface TransferConfirmation {
   booking_reference?: string;
@@ -305,7 +306,7 @@ const CarPaidForPage = () => {
     try {
       setDownloadLoading(true);
       window.open(
-        `/car-paid/download?data=${encodeURIComponent(JSON.stringify(currentBooking))}`,
+        transferDownloadPath(currentBooking),
         "_blank",
       );
     } catch (err: unknown) {

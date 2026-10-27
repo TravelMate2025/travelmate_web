@@ -23,7 +23,8 @@ import {
   CancelTransferBookings,
   fetchAllBookings,
 } from "../features/stays/api";
-import { getAccessToken } from "../api/services/authUtils";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 
 type BookingsResponse = {
   data?: {
@@ -85,7 +86,8 @@ export interface NormalizedBooking {
 
 const Bookings = () => {
   const [searchParams] = useSearchParams();
-  const accessToken = getAccessToken();
+  // A boolean, so a background token refresh doesn't refetch the list
+  const isLoggedIn = useSelector((state: RootState) => Boolean(state.auth.accessToken));
 
   // State
   const [loading, setLoading] = useState(false);
@@ -192,7 +194,7 @@ const Bookings = () => {
 
   useEffect(() => {
     const load = async () => {
-      if (!accessToken) return;
+      if (!isLoggedIn) return;
 
       try {
         setLoading(true);
@@ -209,7 +211,7 @@ const Bookings = () => {
     };
 
     load();
-  }, [accessToken]);
+  }, [isLoggedIn]);
 
   // --- Handlers ---
 

@@ -2,7 +2,7 @@ import { FaHotel, FaPlane, FaCar } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { RecentlyViewedItem } from "../../features/shared/recentlyViewed";
-import { bookingFlowRoutes } from "../../features/shared/bookingFlowRoutes";
+import { bookingFlowRoutes, stayDetailPath } from "../../features/shared/bookingFlowRoutes";
 import { CarTransferOption } from "../../features/car_rentals/types/booking";
 import { CarInfo, setSelectedTransfer } from "../../features/car_rentals/carPaymentSlice";
 
@@ -28,7 +28,7 @@ const RecentlyViewedCard: React.FC<RecentlyViewedCardProps> = ({ item }) => {
   const handleClick = () => {
     switch (item.kind) {
       case "stay":
-        navigate(`/stay-details/${item.id}`);
+        navigate(stayDetailPath(item.id));
         break;
       case "transfer": {
         const { car, departureInfo } = item.payload as {

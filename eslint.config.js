@@ -37,6 +37,8 @@ export default [
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       // Keep no-explicit-any as a warning, not an error
       '@typescript-eslint/no-explicit-any': 'warn',
+      // No debug logging in shipped code; warn/error are kept for real failures
+      'no-console': ['error', { allow: ['warn', 'error'] }],
     },
   },
 ]

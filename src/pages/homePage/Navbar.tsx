@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   AppBar,
   Box,
@@ -28,12 +28,11 @@ import { PiSignOutFill } from "react-icons/pi";
 import { Link, useNavigate } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { motion } from "framer-motion";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import Travelmate from "../../assets/Travelmate_logo.svg";
 import { RootState } from "../../store";
-import { logoutUser } from "../../features/account/api/auth";
-import { logout as navlogout } from "../../features/account/slices/authSlice";
-import toast from "react-hot-toast";
+import { performLogout } from "../../features/account/slices/performLogout";
+import { useAppDispatch } from "../../hooks/redux";
 import Spinner from "../../features/account/components/Spinner";
 import { useNotifications } from "../../features/account/components/notifications/NotificationProvider";
 
@@ -76,24 +75,12 @@ const Navbar: React.FC = () => {
     window.location.pathname.startsWith("/hotels") ? "Hotels" : "Home",
   );
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const isLoggedIn = useMemo(
     () => Boolean(accessToken && user && user.email),
     [user, accessToken],
   );
-
-  useEffect(() => {
-    // Scoped to the two auth keys this is actually meant to clean up --
-    // a blanket localStorage.clear() here ran on every render for every
-    // logged-out visitor (the majority of homepage traffic) and wiped
-    // unrelated device-local data (Recently Viewed, recent searches) that
-    // has nothing to do with auth state.
-    if (!isLoggedIn) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-    }
-  }, [isLoggedIn]);
 
   // Notifications
   const { notifications, unreadCount, markAsRead } = useNotifications();
@@ -106,23 +93,10 @@ const Navbar: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    if (!accessToken) {
-      toast.error("User session expired. Login again to continue.");
-      return;
-    }
     setLogoutLoading(true);
-    try {
-      await logoutUser(accessToken);
-      localStorage.clear();
-      localStorage.setItem("logout_reason", "account_deleted");
-      dispatch(navlogout());
-      navigate("/create-account");
-    } catch (_error) {
-      localStorage.clear();
-      dispatch(navlogout());
-    } finally {
-      setLogoutLoading(false);
-    }
+    await dispatch(performLogout());
+    setLogoutLoading(false);
+    navigate("/create-account");
   };
 
   const toggleDrawer = () => setOpenDrawer((prev) => !prev);

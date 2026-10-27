@@ -2,11 +2,12 @@ import { Link, useLocation } from "react-router-dom";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Typography from "@mui/material/Typography";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import { bookingFlowRoutes } from "../features/shared/bookingFlowRoutes";
 
 const breadcrumbMap: { [key: string]: { label: string; path?: string }[] } = {
   // Round-trip section
-  "/flight/departure": [{ label: "Departure Flight" }],
-  "/flight/return": [
+  [bookingFlowRoutes.flightDeparture]: [{ label: "Departure Flight" }],
+  [bookingFlowRoutes.flightReturn]: [
     { label: "Departure Flight", path: "/flightdeparture" },
     { label: "Return Flight" },
   ],
@@ -23,7 +24,7 @@ const breadcrumbMap: { [key: string]: { label: string; path?: string }[] } = {
     { label: "Departure Flight 2" },
   ],
 
-   "/cars-searchResults": [{ label: "Search Results" }],
+   [bookingFlowRoutes.transferResults]: [{ label: "Search Results" }],
 };
 
 const Breadcrumb = () => {

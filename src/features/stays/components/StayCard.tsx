@@ -13,6 +13,7 @@ import { addOrRemoveFavorite } from "../api";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { propertyTypeDisplayLabel, stayTypeDisplayLabel } from "../../shared/booking/bookingFlowLabels";
+import { stayDetailPath } from "../../shared/bookingFlowRoutes";
 
 interface StayCardProps {
   hotel: Hotel;
@@ -117,11 +118,12 @@ const StayCard: React.FC<StayCardProps> = ({
         const target = e.target as HTMLElement;
         if (!target.closest("button")) {
           navigate(
-            `/stay-details/${hotelId}?location=${
-              searchParams?.destination
-            }&stay=${encodeURIComponent(hotel.name)}&available=${
-              hotel.available
-            }&favorite=${hotel.is_favorite}`,
+            stayDetailPath(hotelId, {
+              location: searchParams?.destination,
+              stay: hotel.name,
+              available: hotel.available,
+              favorite: hotel.is_favorite,
+            }),
             {
               state: { checkIn, checkOut, selectedHotel: hotel },
             }

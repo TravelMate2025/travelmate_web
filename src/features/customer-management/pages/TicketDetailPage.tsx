@@ -96,7 +96,7 @@ const TicketDetailPage = () => {
   
     setSending(true);
     try {
-      const response = await replyToTicket(id, messageToSend, accessToken, attachment);
+      const response = await replyToTicket(id, messageToSend, attachment);
   
       const correctedMessage: Message = {
         ...response,

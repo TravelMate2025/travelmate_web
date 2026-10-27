@@ -36,6 +36,7 @@ import {
   isBookingCancelable,
 } from "../../../features/shared/bookingStatus";
 import { RefundPanel } from "../../../features/shared/refundTracking";
+import { transferDownloadPath } from "../../../features/shared/bookingFlowRoutes";
 
 const text = (value: unknown, fallback = "Not Available") => {
   if (typeof value === "string" && value.trim()) return value.trim();
@@ -353,9 +354,7 @@ const BookingTransfersDetails = () => {
     try {
       setDownloadLoading(true);
       window.open(
-        `/car-paid/download?data=${encodeURIComponent(
-          JSON.stringify(bookingItem)
-        )}`,
+        transferDownloadPath(bookingItem),
         "_blank"
       );
     } catch (_error) {

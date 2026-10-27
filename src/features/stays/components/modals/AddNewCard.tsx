@@ -21,7 +21,6 @@ const AddNewCardModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const handleSubmit = () => {
     if (validate()) {
-      console.log("Card Added Successfully");
       onClose();
     }
   };

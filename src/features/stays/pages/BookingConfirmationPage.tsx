@@ -17,6 +17,7 @@ import {
   getBookingLifecycleLabel,
   getBookingLifecycleStatus,
 } from "../../shared/bookingStatus";
+import { stayDownloadPath } from "../../shared/bookingFlowRoutes";
 
 const formatDate = (value?: string) => {
   if (!value) return "N/A";
@@ -111,7 +112,7 @@ const BookingConfirmationPage: React.FC = () => {
     try {
       setDownloadLoading(true);
       window.open(
-        `/stays-paid/download?data=${encodeURIComponent(JSON.stringify(bookingData))}`,
+        stayDownloadPath(bookingData),
         "_blank",
       );
     } catch {

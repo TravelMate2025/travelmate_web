@@ -1,16 +1,24 @@
 import React from "react";
 import { FaTimes, FaLink } from "react-icons/fa";
 import { RiMailFill, RiWhatsappFill } from "react-icons/ri";
+import toast from "react-hot-toast";
 
 interface ShareModalProps {
   onClose: () => void;
+  // An in-app path such as "/stay-details/123"; it's made absolute before sharing
   shareLink: string;
 }
 
-const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareLink);
-    alert("Link copied to clipboard!");
+const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink: path }) => {
+  const shareLink = new URL(path, window.location.origin).href;
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareLink);
+      toast.success("Link copied to clipboard!");
+    } catch {
+      toast.error("Couldn't copy the link. Please copy it from the address bar.");
+    }
   };
 
   return (

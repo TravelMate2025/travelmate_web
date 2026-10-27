@@ -48,11 +48,6 @@ export default function StaysSearchResults() {
   const lastSearchSignature = useRef<string>("");
 
   const sortedHotels = useMemo(() => {
-    console.debug("[Stays][search] hotels", {
-      total: hotels.length,
-      filtered: hotels.length,
-      searchParams,
-    });
 
     const sorted = [...hotels];
     if (selectedSort === "Price: low to high") {
@@ -69,7 +64,7 @@ export default function StaysSearchResults() {
       });
     }
     return sorted;
-  }, [hotels, searchParams, selectedSort]);
+  }, [hotels, selectedSort]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 640);
