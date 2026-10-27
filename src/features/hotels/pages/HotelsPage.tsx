@@ -22,6 +22,7 @@ import {
 import type { HotelSummary, SearchState } from "../types";
 import "../hotels.css";
 import "../results.css";
+import { refreshBookLink, withVisitor } from "../visitor";
 
 type Filter = (typeof destinationFilters)[number];
 
@@ -178,7 +179,7 @@ export default function HotelsPage() {
                       {h.review && <span className="tmh-score">{outOfTen(h.review.score)}</span>}
                     </div>
                     <span className="tmh-stay-place">{[h.city, h.country].filter(Boolean).join(", ")}</span>
-                    <a className="tmh-stay-link" href={h.book_url}>
+                    <a className="tmh-stay-link" href={withVisitor(h.book_url)} onClick={refreshBookLink(h.book_url)}>
                       Check price →
                     </a>
                   </div>

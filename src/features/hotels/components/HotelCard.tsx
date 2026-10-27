@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { hotelsRoutes } from "../routes";
 import { outOfTen, scoreWord } from "../format";
+import { refreshBookLink, withVisitor } from "../visitor";
 import type { HotelSummary } from "../types";
 
 export function Stars({ count }: { count: number | null }) {
@@ -60,7 +61,7 @@ export function HotelCard({ hotel, searchQuery }: Props) {
           <Link to={`${hotelsRoutes.detail(hotel.id)}?${searchQuery}`} className="tmh-btn tmh-btn-ghost">
             View details
           </Link>
-          <a href={hotel.book_url} className="tmh-btn tmh-btn-solid">
+          <a href={withVisitor(hotel.book_url)} onClick={refreshBookLink(hotel.book_url)} className="tmh-btn tmh-btn-solid">
             Check price
           </a>
         </div>

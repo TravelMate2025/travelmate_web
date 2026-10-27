@@ -12,6 +12,7 @@ import { buildSearchParams, parseSearch, stayLine } from "../search";
 import type { HotelDetails } from "../types";
 import "../hotels.css";
 import "../results.css";
+import { refreshBookLink, withVisitor } from "../visitor";
 
 const FACILITIES_SHOWN = 16;
 
@@ -155,7 +156,7 @@ export default function HotelDetailsPage() {
                 <aside className="tmh-book" aria-label="Check price">
                   <h2 className="tmh-h4">Your stay</h2>
                   <p className="tmh-book-line">{stayLine(search)}</p>
-                  <a href={hotel.book_url} className="tmh-btn tmh-btn-solid tmh-btn-wide">
+                  <a href={withVisitor(hotel.book_url)} onClick={refreshBookLink(hotel.book_url)} className="tmh-btn tmh-btn-solid tmh-btn-wide">
                     Check price
                   </a>
                   <p className="tmh-fineprint">Live prices, rooms and booking are on TravelMate’s secure booking page. Taxes and fees are shown before you pay.</p>
