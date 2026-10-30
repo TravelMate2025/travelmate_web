@@ -53,6 +53,16 @@ export function searchHotels(search: SearchState, page: number, signal?: AbortSi
   return get<HotelsPageResult>("/hotels", buildSearchParams(search, { page: String(page) }), signal);
 }
 
+/** Every page of a search (the service caps it at 5 pages), so filters and sorting see all of the hotels, not just one page. */
+export async function searchAllHotels(search: SearchState, signal?: AbortSignal): Promise<HotelsPageResult> {
+  const first = await searchHotels(search, 1, signal);
+  if (first.pages <= 1) return first;
+  const rest = await Promise.all(Array.from({ length: first.pages - 1 }, (_, i) => searchHotels(search, i + 2, signal)));
+  const seen = new Set<string>();
+  const hotels = [first, ...rest].flatMap((r) => r.hotels).filter((h) => !seen.has(h.id) && seen.add(h.id));
+  return { ...first, hotels, total: hotels.length, page: 1, pages: 1 };
+}
+
 export async function getHotel(hotelId: string, search: SearchState, signal?: AbortSignal): Promise<HotelDetails> {
   // the hotel id is part of the path, so the place is not needed: only dates and guests, for the "Check price" link
   const params = buildSearchParams({ ...search, q: "", lat: null, lng: null, name: "" });

@@ -70,6 +70,46 @@ export function buildSearchParams(state: SearchState, extra: Record<string, stri
   return p;
 }
 
+/** Filters and sort for the results list. They live in the page address so a reload or a shared link keeps them. */
+export type SortKey = "recommended" | "rating" | "stars_desc" | "stars_asc" | "distance";
+export type ResultFilters = {
+  sort: SortKey;
+  /** whole-star levels to keep (4 = 4 to 4.5 stars); empty = any */
+  stars: number[];
+  /** lowest guest score out of 10; 0 = any */
+  score: number;
+  /** furthest distance from the centre in km; 0 = any */
+  dist: number;
+  /** part of a hotel name */
+  name: string;
+};
+
+const SORTS: SortKey[] = ["recommended", "rating", "stars_desc", "stars_asc", "distance"];
+
+export const NO_FILTERS: Omit<ResultFilters, "sort"> = { stars: [], score: 0, dist: 0, name: "" };
+
+export function parseFilters(params: URLSearchParams): ResultFilters {
+  const sort = params.get("sort") as SortKey;
+  const stars = [...new Set((params.get("stars") ?? "").split(",").map((n) => Number.parseInt(n, 10)).filter((n) => n >= 1 && n <= 5))].sort((x, y) => y - x);
+  return {
+    sort: SORTS.includes(sort) ? sort : "recommended",
+    stars,
+    score: toInt(params.get("score"), 0, 10, 0),
+    dist: toInt(params.get("dist"), 0, 500, 0),
+    name: (params.get("hq") ?? "").slice(0, 60),
+  };
+}
+
+export function filterParams(f: ResultFilters): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (f.sort !== "recommended") out.sort = f.sort;
+  if (f.stars.length) out.stars = f.stars.join(",");
+  if (f.score) out.score = String(f.score);
+  if (f.dist) out.dist = String(f.dist);
+  if (f.name.trim()) out.hq = f.name.trim();
+  return out;
+}
+
 export const hasPlace = (state: SearchState) =>
   (state.lat !== null && state.lng !== null) || state.q.trim().length >= 2;
 
