@@ -3,10 +3,11 @@ import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { HotelDetails, HotelSummary, HotelsPageResult } from "../types";
 
-const api = vi.hoisted(() => ({ searchHotels: vi.fn(), getHotel: vi.fn(), suggestPlaces: vi.fn() }));
+const api = vi.hoisted(() => ({ searchHotels: vi.fn(), searchAllHotels: vi.fn(), getHotel: vi.fn(), suggestPlaces: vi.fn() }));
 
 vi.mock("../api/hotelsApi", () => ({
   searchHotels: api.searchHotels,
+  searchAllHotels: api.searchAllHotels,
   getHotel: api.getHotel,
   suggestPlaces: api.suggestPlaces,
   HotelsApiError: class extends Error {
@@ -75,6 +76,7 @@ beforeEach(() => {
   window.scrollTo = vi.fn();
   api.suggestPlaces.mockResolvedValue([]);
   api.searchHotels.mockResolvedValue(page([]));
+  api.searchAllHotels.mockResolvedValue(page([]));
 });
 afterEach(() => {
   cleanup();
@@ -83,7 +85,7 @@ afterEach(() => {
 
 describe("results page", () => {
   it("lists real hotels with a Check price link into IMPT and a details link on our site", async () => {
-    api.searchHotels.mockResolvedValue(page([hotel("11", "Iberostar Lisboa"), hotel("12", "PortoBay Liberdade")], { total: 2 }));
+    api.searchAllHotels.mockResolvedValue(page([hotel("11", "Iberostar Lisboa"), hotel("12", "PortoBay Liberdade")], { total: 2 }));
     renderAt(`/hotels/results?${SEARCH}`);
     expect(await screen.findByText("2 places to stay near Lisbon")).toBeTruthy();
     expect(screen.getByText("Iberostar Lisboa")).toBeTruthy();
@@ -95,28 +97,64 @@ describe("results page", () => {
     expect(screen.getAllByText("9.4")).toHaveLength(2); // 4.7 out of 5 shown out of 10, one per hotel
     expect(screen.getByRole("link", { name: "See live prices for all hotels" }).getAttribute("href")).toContain("step=results");
     expect(screen.getByText(/10 Jan – 13 Jan · 3 nights · 2 adults, 1 room/)).toBeTruthy();
-    expect(api.searchHotels.mock.calls[0][1]).toBe(1);
+    expect(api.searchAllHotels).toHaveBeenCalledTimes(1);
   });
 
   it("pages through the results", async () => {
-    api.searchHotels.mockResolvedValue(page([hotel("11", "A")], { pages: 3 }));
+    const many = Array.from({ length: 45 }, (_, i) => hotel(String(100 + i), `Hotel ${i + 1}`));
+    api.searchAllHotels.mockResolvedValue(page(many, { pages: 1 }));
     renderAt(`/hotels/results?${SEARCH}`);
-    await screen.findByText("A");
+    await screen.findByText("Hotel 1");
+    expect(screen.queryByText("Hotel 21")).toBeNull(); // 20 per page
     fireEvent.click(screen.getByRole("link", { name: "Next →" }));
-    await waitFor(() => expect(api.searchHotels.mock.calls[api.searchHotels.mock.calls.length - 1]?.[1]).toBe(2));
+    expect(await screen.findByText("Hotel 21")).toBeTruthy();
     expect(screen.getByTestId("where").textContent).toContain("page=2");
   });
 
+  it("filters by stars, score and name, and sorts, with the choices kept in the address", async () => {
+    api.searchAllHotels.mockResolvedValue(
+      page(
+        [
+          hotel("1", "Grand Five", { stars: 5, review: { score: 4.8, scale: 5, count: 10 }, distance_km: 4 }),
+          hotel("2", "Simple Three", { stars: 3, review: { score: 3.6, scale: 5, count: 10 }, distance_km: 1 }),
+          hotel("3", "Middle Four", { stars: 4, review: { score: 4.2, scale: 5, count: 10 }, distance_km: 9 }),
+        ],
+        { pages: 1 },
+      ),
+    );
+    renderAt(`/hotels/results?${SEARCH}`);
+    await screen.findByText("Grand Five");
+    expect(screen.getByText("3 hotels")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /3 star/ }));
+    await waitFor(() => expect(screen.queryByText("Grand Five")).toBeNull());
+    expect(screen.getByText("Simple Three")).toBeTruthy();
+    expect(screen.getByTestId("where").textContent).toContain("stars=3");
+    expect(screen.getByText("1 of 3 hotels")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset all" }));
+    await screen.findByText("Grand Five");
+
+    fireEvent.change(screen.getByLabelText("Sort by"), { target: { value: "distance" } });
+    await waitFor(() => expect(screen.getByTestId("where").textContent).toContain("sort=distance"));
+    const names = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    expect(names.indexOf("Simple Three")).toBeLessThan(names.indexOf("Grand Five"));
+
+    fireEvent.change(screen.getByLabelText("Hotel name"), { target: { value: "middle" } });
+    await waitFor(() => expect(screen.queryByText("Grand Five")).toBeNull());
+    expect(screen.getByText("Middle Four")).toBeTruthy();
+  });
+
   it("shows empty, error (with retry) and no-place states", async () => {
-    api.searchHotels.mockResolvedValueOnce(page([], { pages: 0 }));
+    api.searchAllHotels.mockResolvedValueOnce(page([], { pages: 0 }));
     const first = renderAt(`/hotels/results?${SEARCH}`);
     expect(await screen.findByText("No hotels found near Lisbon")).toBeTruthy();
     first.unmount();
 
-    api.searchHotels.mockRejectedValueOnce(Object.assign(new Error("Too many searches. Please wait a minute and try again."), { status: 429 }));
+    api.searchAllHotels.mockRejectedValueOnce(Object.assign(new Error("Too many searches. Please wait a minute and try again."), { status: 429 }));
     renderAt(`/hotels/results?${SEARCH}`);
     expect(await screen.findByText("We could not load the hotels")).toBeTruthy();
-    api.searchHotels.mockResolvedValueOnce(page([hotel("11", "Back again")]));
+    api.searchAllHotels.mockResolvedValueOnce(page([hotel("11", "Back again")]));
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(await screen.findByText("Back again")).toBeTruthy();
   });
@@ -124,7 +162,7 @@ describe("results page", () => {
   it("asks for a place when the address has none and does not call the service", async () => {
     renderAt("/hotels/results");
     expect(screen.getByText("Where would you like to stay?")).toBeTruthy();
-    expect(api.searchHotels).not.toHaveBeenCalled();
+    expect(api.searchAllHotels).not.toHaveBeenCalled();
   });
 });
 
