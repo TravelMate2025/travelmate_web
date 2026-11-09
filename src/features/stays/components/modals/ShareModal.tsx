@@ -1,16 +1,24 @@
 import React from "react";
 import { FaTimes, FaLink } from "react-icons/fa";
 import { RiMailFill, RiWhatsappFill } from "react-icons/ri";
+import toast from "react-hot-toast";
 
 interface ShareModalProps {
   onClose: () => void;
+  // An in-app path such as "/stay-details/123"; it's made absolute before sharing
   shareLink: string;
 }
 
-const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareLink);
-    alert("Link copied to clipboard!");
+const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink: path }) => {
+  const shareLink = new URL(path, window.location.origin).href;
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareLink);
+      toast.success("Link copied to clipboard!");
+    } catch {
+      toast.error("Couldn't copy the link. Please copy it from the address bar.");
+    }
   };
 
   return (
@@ -19,7 +27,10 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareLink }) => {
         {/* Modal Header */}
         <div className="flex justify-between items-center border-b pb-4">
           <h2 className="text-xl font-bold mx-auto">Share</h2>
-          <button onClick={onClose} className="text-gray-600 border border-gray-300 rounded-md p-1">
+          <button
+            onClick={onClose}
+            className="text-gray-600 border border-gray-300 rounded-md p-1"
+          >
             <FaTimes size={20} />
           </button>
         </div>

@@ -57,6 +57,20 @@ git pull origin main              # Ensure it's up to date
 git merge development
 git push origin main
 
+## Local Setup
+
+1. Install dependencies with `npm install`.
+2. Create `.env` values from `.env.example`, especially `VITE_GOOGLE_CLIENT_ID`.
+3. Start the app with `npm run dev`.
+
+## Scripts
+
+- `npm run dev` - start the Vite dev server.
+- `npm run build` - type-check and create a production build.
+- `npm run lint` - run ESLint across the project.
+- `npm run test` - run the Vitest suite once.
+- `npm run test:watch` - run the Vitest suite in watch mode.
+
 
 
 # React + TypeScript + Vite

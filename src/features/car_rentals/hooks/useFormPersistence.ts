@@ -2,9 +2,12 @@ import { useCallback, useEffect, useRef } from 'react';
 import { BookingFormData } from '../types/booking';
 
 // Custom debounce function
-const debounce = <T extends (...args: any[]) => void>(func: T, delay: number) => {
+const debounce = <TArgs extends unknown[]>(
+  func: (...args: TArgs) => void,
+  delay: number
+) => {
   let timer: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>) => {
+  return (...args: TArgs) => {
     clearTimeout(timer);
     timer = setTimeout(() => func(...args), delay);
   };
@@ -45,7 +48,6 @@ export const useFormPersistence = (
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        console.log('Loaded from localStorage:', parsed);
         return parsed;
       }
       return null;
@@ -58,7 +60,6 @@ export const useFormPersistence = (
   const clearSavedData = useCallback(() => {
     try {
       localStorage.removeItem(storageKey);
-      console.log('Cleared localStorage');
     } catch (error) {
       console.error('Failed to clear saved form data:', error);
     }

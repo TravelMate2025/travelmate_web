@@ -310,7 +310,7 @@ type StripeCheckoutSession = {
   locale: string | null;
   object: string;
   status: string;
-  consent: any;
+  consent: unknown;
   created: number;
   invoice: string | null;
   ui_mode: string;
@@ -323,12 +323,12 @@ type StripeCheckoutSession = {
     flight_booking_id: string;
     service_fee_percentage: string;
   };
-  discounts: any[];
+  discounts: unknown[];
   refund_id: string;
   cancel_url: string;
   expires_at: number;
-  custom_text: Record<string, any>;
-  permissions: any;
+  custom_text: Record<string, unknown>;
+  permissions: unknown;
   refund_date: string;
   submit_type: string | null;
   success_url: string;
@@ -343,9 +343,9 @@ type StripeCheckoutSession = {
     liability: string | null;
   };
   client_secret: string | null;
-  custom_fields: any[];
+  custom_fields: unknown[];
   refund_status: "succeeded" | "failed" | "pending" | string;
-  shipping_cost: any;
+  shipping_cost: unknown;
   total_details: {
     amount_tax: number;
     amount_discount: number;
@@ -356,12 +356,12 @@ type StripeCheckoutSession = {
   payment_intent: string;
   payment_status: string;
   recovered_from: string | null;
-  wallet_options: any;
+  wallet_options: unknown;
   amount_subtotal: number;
   adaptive_pricing: {
     enabled: boolean;
   };
-  after_expiration: any;
+  after_expiration: unknown;
   customer_details: {
     name: string;
     email: string;
@@ -374,7 +374,7 @@ type StripeCheckoutSession = {
       country: string;
       postal_code: string | null;
     };
-    tax_ids: any[];
+    tax_ids: unknown[];
     tax_exempt: string;
     business_name: string | null;
     individual_name: string | null;
@@ -384,15 +384,15 @@ type StripeCheckoutSession = {
     invoice_data: {
       footer: string | null;
       issuer: string | null;
-      metadata: Record<string, any>;
+      metadata: Record<string, unknown>;
       description: string | null;
       custom_fields: string | null;
       account_tax_ids: string | null;
-      rendering_options: any;
+      rendering_options: unknown;
     };
   };
-  shipping_details: any;
-  shipping_options: any[];
+  shipping_details: unknown;
+  shipping_options: unknown[];
   branding_settings: {
     icon: string | null;
     logo: string | null;
@@ -403,12 +403,12 @@ type StripeCheckoutSession = {
     background_color: string;
   };
   customer_creation: string;
-  consent_collection: any;
+  consent_collection: unknown;
   client_reference_id: string | null;
-  currency_conversion: any;
+  currency_conversion: unknown;
   payment_method_types: string[];
-  allow_promotion_codes: any;
-  collected_information: any;
+  allow_promotion_codes: unknown;
+  collected_information: unknown;
   payment_method_options: {
     card: {
       request_three_d_secure: string;
@@ -420,8 +420,8 @@ type StripeCheckoutSession = {
   payment_method_collection: string;
   billing_address_collection: string | null;
   shipping_address_collection: string | null;
-  saved_payment_method_options: any;
-  payment_method_configuration_details: any;
+  saved_payment_method_options: unknown;
+  payment_method_configuration_details: unknown;
 };
 
 type Flight = {

@@ -2,6 +2,19 @@ import carImage from "../../../assets/carImage.png";
 import { Loader } from "lucide-react";
 import { useState } from "react";
 import { TransfersDetailsResponse } from "./type";
+
+const text = (value: unknown, fallback = "Not Available") => {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return fallback;
+};
+
+const formatDate = (value?: string | null) => {
+  if (!value) return "Not Available";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toDateString();
+};
+
 type props = {
   bookings: TransfersDetailsResponse | undefined;
   closeModal: () => void;
@@ -20,6 +33,8 @@ const ConfirmCancel = ({
 }: props) => {
 
   const [reason, setReason] = useState("");
+  const preview = bookings?.cancellation_preview;
+  const refundPercent = preview?.refundPercent ?? bookings?.refund_percent;
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
       <div className="bg-white w-full max-w-lg rounded-xl shadow-lg p-6 space-y-6">
@@ -42,17 +57,14 @@ const ConfirmCancel = ({
           />
           <div>
             <h3 className="font-semibold text-gray-800">
-              {bookings?.transfers[0].category.name}{" "}
-              {bookings?.transfers[0].vehicle.name}
+              {text(bookings?.transfers?.[0]?.category?.name, "")}{" "}
+              {text(bookings?.transfers?.[0]?.vehicle?.name, "")}
             </h3>
             <p className="text-gray-500 text-sm">
-              {bookings?.transfers[0].pickupInformation.date &&
-                new Date(
-                  bookings?.transfers[0].pickupInformation.date
-                ).toDateString()}{" "}
+              {formatDate(bookings?.transfers?.[0]?.pickupInformation?.date)}{" "}
             </p>
             <p className="text-gray-800 font-medium text-sm">
-              €{bookings?.totalAmount || "-----"}
+              {bookings?.currency ? `${bookings.currency} ` : ""}{text(bookings?.totalAmount, "-----")}
             </p>
           </div>
         </div>
@@ -64,14 +76,14 @@ const ConfirmCancel = ({
           </h3>
           <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
             <li>
-              Fully refundable before{" "}
-              {bookings?.transfers[0].cancellationPolicies[0].from}
+              {refundPercent != null ? `${refundPercent}% refund` : "Refund available"} under the selected policy.
             </li>
-            <li>
-              Cancellations after 11:59 on{" "}
-              {bookings?.transfers[0].cancellationPolicies[0].from} or no-shows
-              are subject to fee equal to 100% of amount paid.
-            </li>
+            {preview?.refundAmount != null && (
+              <li className="font-medium text-[#2D9C5E]">
+                Estimated refund: {bookings?.currency ? `${bookings.currency} ` : ""}{preview.refundAmount}
+              </li>
+            )}
+            <li>Cancellation and refund are separate steps. This is an estimate; cancellation does not return money immediately.</li>
           </ul>
         </div>
 

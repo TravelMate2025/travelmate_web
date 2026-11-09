@@ -1,16 +1,30 @@
 import { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { useAppDispatch } from "../../../hooks/redux";
 import { RootState } from "../../../store";
 import Modal from "../../stays/components/modals/Modal";
 import { deleteUserAccount } from "../api/profile";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../slices/authSlice";
+import { performLogout } from "../slices/performLogout";
 import Spinner from "./Spinner";
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error && typeof error === "object" && "response" in error) {
+    const response = (error as { response?: { data?: { Message?: string; message?: string } } }).response;
+    return response?.data?.Message || response?.data?.message || fallback;
+  }
+
+  if (error instanceof Error) {
+    return error.message || fallback;
+  }
+
+  return fallback;
+};
 
 const REASONS = [
   "Found another app",
@@ -27,7 +41,7 @@ export default function DeleteAccountModal({ isOpen, onClose }: DeleteAccountMod
   const [feedback, setFeedback] = useState("");
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { accessToken } = useSelector((state: RootState) => state.auth);
 
   const handleDelete = async () => {
@@ -50,19 +64,11 @@ export default function DeleteAccountModal({ isOpen, onClose }: DeleteAccountMod
     setError(null);
     try {
       await deleteUserAccount(accessToken, reason, feedback);
-
-      localStorage.setItem("logout_reason", "account_deleted");
-      
-      dispatch(logout());
-      localStorage.removeItem("access");
-      localStorage.removeItem("refresh");
-      localStorage.removeItem("email");
-      localStorage.removeItem("verify_email");
-
+      // The server session went with the account, so there's nothing to revoke
+      await dispatch(performLogout({ reason: "account_deleted", revokeSession: false }));
       navigate("/create-account");
-    } catch (err: any) {
-      const backendMessage = err?.response?.data?.Message || err?.response?.data?.message;
-      setError(backendMessage || "Failed to delete account. Please try again.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to delete account. Please try again."));
     } finally {
       setLoading(false);
     }

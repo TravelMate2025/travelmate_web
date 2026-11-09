@@ -2,7 +2,6 @@
 import { FlightOffer } from "../types";
 import Line2 from "../../../assets/Line4.svg";
 import dayjs from "dayjs";
-import { useLocation } from "react-router-dom";
 import { getCity } from "../utils/functions";
 const FlightDetails = ({
   flight,
@@ -12,8 +11,6 @@ const FlightDetails = ({
   segment: number;
 }) => {
   const itinerary = flight.itineraries[segment];
-  const location = useLocation()
-  console.log(location.state);
   
   return (
     <>

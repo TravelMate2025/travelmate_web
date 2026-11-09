@@ -32,15 +32,113 @@ export interface BookingFormData {
   priceRange: { min: number; max: number };
   toLat?: number;
   toLon?: number;
-  searchResults?: any[];
+  searchResults?: CarTransferOption[];
   search_id?: string;
   rate_key?: string;
   confirmationId?: string
 }
 
+export interface CarTransferOption {
+  id?: string | number;
+  name?: string;
+  description?: string;
+  status?: string;
+  transferType?: string;
+  transfer_type?: string;
+  // rideType is the partner's current field ("private_hire" | "shared");
+  // transferType/transfer_type above predate the partner's rename and are
+  // kept only for older cached data.
+  rideType?: string;
+  ride_type?: string;
+  maxPaxCapacity?: string | number;
+  passenger_capacity?: number;
+  luggage_capacity?: number;
+  vehicleCount?: number;
+  vehicle_count?: number;
+  estimatedDurationMinutes?: number;
+  estimated_duration_minutes?: number;
+  // Only present for shared rides, and only when the search included a
+  // pickup date+time (the backend derives pickupAt server-side from the
+  // pickup_date/pickup_time already sent — see PartnerTransferService).
+  availableSeats?: number | null;
+  available_seats?: number | null;
+  provider?: {
+    name?: string;
+    displayName?: string;
+    contactPhone?: string;
+    websiteUrl?: string;
+    arrivalInstructions?: string;
+  } | null;
+  features?: string[];
+  currency?: string;
+  base_fare?: number;
+  rateKey?: string;
+  supplier?: string;
+  vehicle: {
+    name?: string;
+    code?: string;
+  };
+  category?: {
+    name?: string;
+    code?: string;
+  };
+  price?: {
+    currencyId?: string;
+    totalAmount?: number;
+    totalAmountWithFee?: number;
+    amount?: number;
+  };
+  content?: {
+    images?: Array<{ url?: string; secureUrl?: string }>;
+    transferDetailInfo?: Array<{
+      value?: string | number;
+      description?: string;
+    }>;
+    transferRemarks?: Array<{
+      description?: string;
+    }>;
+  };
+  cancellationPolicies?: Array<{
+    optionId?: string;
+    label?: string;
+    amount?: number;
+    currency?: string;
+    cancelDeadlineHoursBeforeCheckIn?: number | null;
+    policyCopy?: string;
+    refundPercent?: number;
+    penaltyPercent?: number;
+    deadlineType?: string;
+    cancellable?: boolean;
+  }>;
+  pickupInformation?: {
+    from?: { description?: string };
+    to?: { description?: string };
+    date?: string;
+    time?: string;
+  };
+  raw?: Record<string, unknown>;
+}
+
 export interface FormValidationResult {
   isValid: boolean;
   errors: Record<string, string>;
+}
+
+/** A single published review from GET .../catalog/transfers/{id}/reviews.
+ * No reviewer identity is exposed by this endpoint (see
+ * docs/BACKEND_PUBLIC_API_IMPLEMENTATION_GUIDE.md, "Guest Review System"). */
+export interface CatalogReview {
+  rating: number;
+  subcategoryRatings?: Record<string, number>;
+  comment?: string;
+  submittedAt?: string;
+}
+
+export interface CatalogReviewsResponse {
+  page?: number;
+  pageSize?: number;
+  total?: number;
+  results: CatalogReview[];
 }
 
 export interface ApiResponse<T> {

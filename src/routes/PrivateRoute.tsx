@@ -1,36 +1,36 @@
-import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
+import { toReturnPath, type ReturnPathState } from "./returnPath";
 
 interface PrivateRouteProps {
-  children: JSX.Element;
+  children: React.ReactNode;
 }
+
+// A fixed id stops duplicate toasts (StrictMode runs effects twice in development)
+const AUTH_REQUIRED_TOAST_ID = "auth-required";
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   const token = useSelector((state: RootState) => state.auth.accessToken);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
+  const location = useLocation();
+  // Read during render, cleared in the effect: the effect's closure keeps this value
+  // even when it runs a second time.
+  const logoutReason = token ? null : localStorage.getItem("logout_reason");
 
   useEffect(() => {
-    const logoutReason = localStorage.getItem("logout_reason");
-
-    if (!token) {
-      // Only show the toast if logout wasn't intentional
-      if (logoutReason !== "logout" && logoutReason !== "account_deleted") {
-        toast.error("You must be logged in to access that page.");
-      }
-      localStorage.removeItem("logout_reason");
-      setShouldRedirect(true);
+    if (token) return;
+    if (logoutReason !== "logout" && logoutReason !== "account_deleted") {
+      toast.error("You must be logged in to access that page.", { id: AUTH_REQUIRED_TOAST_ID });
     }
-  }, [token]);
+    localStorage.removeItem("logout_reason");
+  }, [token, logoutReason]);
 
-
-  if (shouldRedirect) {
-    return <Navigate to="/create-account" replace />;
+  if (!token) {
+    const state: ReturnPathState = { from: toReturnPath(location) };
+    return <Navigate to="/create-account" replace state={state} />;
   }
-
-  if (!token) return null; 
 
   return children;
 };

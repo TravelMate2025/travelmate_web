@@ -20,6 +20,14 @@ export interface Transfers {
     sourceMarketEmergencyNumber: string;
 }
 export interface TransfersDetailsResponse {
+    // The TransferBooking row's own pk — required by
+    // `POST /transfers/booking/{id}/cancel/`, distinct from `reference`/
+    // `booking_reference`. Present on both the by-session confirmation and
+    // by-reference detail responses (see docs/BOOKING_API_CONTRACT.md §2).
+    id?: string;
+    booking_reference?: string;
+    booking_status?: string;
+    listing_name?: string;
     holder: Holder;
     remark: string;
     status: "CONFIRMED" | "CANCELLED" | string;
@@ -28,14 +36,27 @@ export interface TransfersDetailsResponse {
     reference: string;
     transfers: Transfers[];
     totalAmount: number;
+    totalNetAmount?: number;
     creationDate: string;
     bookingFileId: string | null;
     pendingAmount: number;
     invoiceCompany: InvoiceCompany;
-    totalNetAmount: number;
     clientReference: string;
     paymentDataRequired: boolean;
     modificationsPolicies: ModificationsPolicies;
+    refund_amount?: string | number | null;
+    refund_percent?: number | null;
+    cancellation_fee?: string | number | null;
+    cancellation_preview?: {
+        cancellable?: boolean;
+        refundPercent?: number;
+        refundAmount?: string | number | null;
+        cancellationFee?: string | number | null;
+        currency?: string | null;
+        deadlineType?: string | null;
+        message?: string | null;
+    } | null;
+    refund?: import("../../../features/shared/refundTracking").RefundTracking | null;
 }
 export interface Holder {
     name: string;

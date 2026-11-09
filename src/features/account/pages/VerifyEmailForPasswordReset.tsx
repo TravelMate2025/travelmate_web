@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import AuthNavbar from "../components/AuthNavbar";
 import Spinner from "../components/Spinner";
@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 
 export default function ResetEmailLink() {
   const [code, setCode] = useState<string[]>(["", "", "", ""]);
-  const [resendTimer, setResendTimer] = useState<number>(120);
+  const [resendTimer, setResendTimer] = useState<number>(300);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showError, setShowError] = useState<boolean>(false);
   const [resendVisible, setResendVisible] = useState<boolean>(false);
@@ -28,13 +28,7 @@ export default function ResetEmailLink() {
     }
   };
 
-  useEffect(() => {
-    if (code.every((digit) => digit !== "")) {
-      handleAutoSubmit();
-    }
-  }, [code]);
-
-  const handleAutoSubmit = async () => {
+  const handleAutoSubmit = useCallback(async () => {
     if (!email) return;
     setIsLoading(true);
     const fullCode = code.join("");
@@ -58,7 +52,13 @@ export default function ResetEmailLink() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [code, email, navigate]);
+
+  useEffect(() => {
+    if (code.every((digit) => digit !== "")) {
+      void handleAutoSubmit();
+    }
+  }, [code, handleAutoSubmit]);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -75,7 +75,7 @@ export default function ResetEmailLink() {
       await requestPasswordReset(email);
       toast.success("New code sent successfully");
       setCode(["", "", "", ""]);
-      setResendTimer(120);
+      setResendTimer(300);
       setResendVisible(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to resend code");

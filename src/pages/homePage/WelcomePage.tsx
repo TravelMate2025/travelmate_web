@@ -8,26 +8,31 @@ import plane from "../../assets/plane.svg";
 import car from "../../assets/car.svg";
 import stay from "../../assets/stay.svg";
 import RoundTrip from "./Flight";
-import SearchFilter from "../../features/stays/components/SearchFilter";
-import Page from "../../features/car_rentals/carsFirstScreen/Page";
+import Page from "../../features/car_rentals/carsFirstScreen/CarBookingFirstScreen";
+import PartnerStaySearchPage from "../../features/stays/pages/PartnerStaySearchPage";
 import { useMediaQuery } from "react-responsive";
+import HomeHero from "./HomeHero";
+import HeroTrustStrip from "./HeroTrustStrip";
 
-const WelcomePage = () => {
+interface WelcomePageProps {
+  // Lifted to Home.tsx so the content sections rendered below this
+  // component (see TransfersHomeContent vs the stays carousels) can react
+  // to which vertical is active -- previously this state was fully local
+  // to WelcomePage, so Home.tsx had no way to know the Transfers tab was
+  // selected and kept rendering stays content underneath it regardless.
+  value: string;
+  onChange: (event: React.SyntheticEvent, newValue: string) => void;
+}
+
+const WelcomePage = ({ value, onChange }: WelcomePageProps) => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
-  const [value, setValue] = React.useState<string>(() => {
-    return localStorage.getItem("selectedTab") || "1";
-  });
-
-  const handleChange = (_event: React.SyntheticEvent, newValue: string) => {
-    setValue(newValue);
-    localStorage.setItem("selectedTab", newValue);
-  };
 
   return (
     <div>
+      <HomeHero />
       {isMobile ? (
-        <div className="w-[100%] m-auto">
-          <div className="mt-[100px] border-none h-[100%] rounded-[4px]">
+        <div className="w-[100%] m-auto px-[16px]">
+          <div id="transfers-search" className="-mt-[50px] relative bg-white shadow-[0_16px_32px_-16px_rgba(2,62,138,0.4)] h-[100%] rounded-[12px]">
             <Box sx={{ width: "100%", typography: "body1" }}>
               <TabContext value={value}>
                 <Box
@@ -40,7 +45,7 @@ const WelcomePage = () => {
                   }}
                 >
                   <TabList
-                    onChange={handleChange}
+                    onChange={onChange}
                     aria-label="lab API tabs example"
                     sx={{
                       display: "flex",
@@ -71,7 +76,7 @@ const WelcomePage = () => {
                           alt="stay"
                           style={{ width: 20, height: 20 }}
                         />
-                      }   
+                      }
                       iconPosition="start"
                       label="Stays"
                       value="1"
@@ -97,13 +102,13 @@ const WelcomePage = () => {
                         />
                       }
                       iconPosition="start"
-                      label="Airport Taxi"
+                      label="Transfers"
                       value="3"
                     />
                   </TabList>
                 </Box>
                 <TabPanel value="1">
-                  <SearchFilter />
+                  <PartnerStaySearchPage />
                 </TabPanel>
                 <TabPanel value="2">
                   <RoundTrip />
@@ -114,11 +119,12 @@ const WelcomePage = () => {
               </TabContext>
             </Box>
           </div>
+          <HeroTrustStrip />
         </div>
       ) : (
         // web view
-        <div className="w-[90%] m-auto">
-          <div className="mt-[100px] border border-[#CDCED1] h-[100%] rounded-[4px]">
+        <div className="w-[90%] max-w-[1280px] m-auto">
+          <div id="transfers-search" className="-mt-[76px] relative border border-[#E4E7EB] shadow-[0_20px_45px_-18px_rgba(2,62,138,0.35)] bg-white h-[100%] rounded-[10px]">
             <Box sx={{ width: "100%", typography: "body1" }}>
               <TabContext value={value}>
                 <Box
@@ -129,7 +135,7 @@ const WelcomePage = () => {
                   }}
                 >
                   <TabList
-                    onChange={handleChange}
+                    onChange={onChange}
                     aria-label="lab API tabs example"
                     sx={{
                       "& .MuiTab-root": {
@@ -146,7 +152,7 @@ const WelcomePage = () => {
                       icon={
                         <img
                           src={stay}
-                          alt="plane"
+                          alt="stay"
                           style={{ width: 20, height: 20 }}
                         />
                       }
@@ -158,7 +164,7 @@ const WelcomePage = () => {
                       icon={
                         <img
                           src={plane}
-                          alt="stay"
+                          alt="flights"
                           style={{ width: 20, height: 20 }}
                         />
                       }
@@ -175,13 +181,13 @@ const WelcomePage = () => {
                         />
                       }
                       iconPosition="start"
-                      label="Airport Taxi"
+                      label="Transfers"
                       value="3"
                     />
                   </TabList>
                 </Box>
                 <TabPanel value="1">
-                  <SearchFilter />
+                  <PartnerStaySearchPage />
                 </TabPanel>
                 <TabPanel value="2">
                   <RoundTrip />
@@ -192,6 +198,7 @@ const WelcomePage = () => {
               </TabContext>
             </Box>
           </div>
+          <HeroTrustStrip />
         </div>
       )}
     </div>

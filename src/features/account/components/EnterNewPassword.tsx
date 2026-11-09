@@ -1,13 +1,12 @@
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { FiLock } from "react-icons/fi";
 import { FaCheck, FaEye, FaEyeSlash, FaTimes } from "react-icons/fa";
 import { useState } from "react";
 import SuccessModal from "./SuccessModal";
 import { Link, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-import { logoutUser } from "../api/auth";
-import { logout } from "../slices/authSlice";
+import { performLogout } from "../slices/performLogout";
+import { useAppDispatch } from "../../../hooks/redux";
 
 type EnterNewPasswordProps = {
   setHasReceivedOtp: React.Dispatch<React.SetStateAction<boolean>>;
@@ -35,8 +34,7 @@ function EnterNewPassword({
   const [errors, setErrors] = useState<{ newPassword?: string; confirmPassword?: string }>({});
   const navigate = useNavigate();
 
-  const dispatch = useDispatch();
-  const { accessToken } = useSelector((state: RootState) => state.auth);
+  const dispatch = useAppDispatch();
   const [logoutLoading, setLogoutLoading] = useState(false);
 
   const passwordRules = [
@@ -51,23 +49,10 @@ function EnterNewPassword({
   if (!user) return null;
 
    const handleLogout = async () => {
-      if (!accessToken) {
-        toast.error("User session expired. Login again to continue.");
-        return;
-      }
-    
       setLogoutLoading(true);
-        try {
-          await logoutUser(accessToken);
-          dispatch(logout());
-          localStorage.clear();
-          navigate("/create-account");
-        } catch (error) {
-          console.error("Logout failed", error);
-          toast.error("Logout failed. Please try again.");
-        } finally {
-          setLogoutLoading(false);
-        }
+      await dispatch(performLogout());
+      setLogoutLoading(false);
+      navigate("/create-account");
     };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -20,7 +20,7 @@ const BookingDetails: React.FC<BookingDetailsProps> = ({
     try {
       const date = new Date(dateStr);
       return formatDate(date);
-    } catch (error) {
+    } catch (_error) {
       return "---";
     }
   };

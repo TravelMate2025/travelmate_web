@@ -1,5 +1,5 @@
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, NavLink, useLocation, Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useNavigate, NavLink, Link } from "react-router-dom";
 import { FaAngleLeft, FaAngleRight, FaRegBell, FaRegStar, FaRegUser } from "react-icons/fa";
 import Footer from "../../../components/2Footer";
 import Breadcrumbs from "../../../components/Breadcrumbs"
@@ -9,17 +9,14 @@ import { MdCreditCard } from "react-icons/md";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import { RootState } from "../../../store"
 import { useState } from "react";
-import { logoutUser } from "../api/auth";
-import { logout } from "../slices/authSlice"
-import toast from "react-hot-toast";
+import { performLogout } from "../slices/performLogout";
+import { useAppDispatch } from "../../../hooks/redux";
 import { PiSignOutFill } from "react-icons/pi";
 
 function Security() {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const { accessToken } = useSelector((state: RootState) => state.auth);
     const [logoutLoading, setLogoutLoading] = useState(false);
-    const location = useLocation()
 
     const user = useSelector((state: RootState) => state.auth.user);
     if (!user) return null;
@@ -30,23 +27,10 @@ function Security() {
     ];
 
     const handleLogout = async () => {
-        if (!accessToken) {
-          toast.error("User session expired. Login again to continue.");
-          return;
-        }
-
-         setLogoutLoading(true);
-            try {
-              await logoutUser(accessToken);
-              dispatch(logout());
-              localStorage.clear();
-              navigate("/create-account");
-            } catch (error) {
-              console.error("Logout failed", error);
-              toast.error("Logout failed. Please try again.");
-            } finally {
-              setLogoutLoading(false);
-            }
+        setLogoutLoading(true);
+        await dispatch(performLogout());
+        setLogoutLoading(false);
+        navigate("/create-account");
     };
 
     const options = [
@@ -54,13 +38,13 @@ function Security() {
         icon: <FaRegUser size={24} />,
         title: "Profile",
         description: "Update your personal details",
-        link: "/profile-info",
+        link: "/account/profile",
         },
         {
         icon: <MdCreditCard size={24} />,
         title: "Payment Method",
         description: "Manage your payment methods",
-        link: "/profile-info",
+        link: "/account/payment-method",
         state: { activeTab: "Payment Method" },
         },
         {
@@ -124,19 +108,18 @@ function Security() {
             <div className="hidden md:block border border-gray-300 rounded-xl h-auto w-[290px] m-auto">
             {options.map((item, index) => {
                 const isLogout = item.title === "Log Out";
-                const isActive = location.pathname === item.link;
 
                 const content = (
                 <div
                     className={`flex items-center gap-2 p-3 rounded-md cursor-pointer transition 
-                    ${isActive ? "text-blue-700" : ""}`}
+                    ${item.link === "/account/security" ? "text-blue-700" : ""}`}
                 >
                     <div className="mt-1">{item.icon}</div>
                     <div>
-                    <h3 className={`text-lg font-semibold ${isActive ? "text-blue-700" : ""}`}>
+                    <h3 className="text-lg font-semibold">
                         {item.title}
                     </h3>
-                    <p className={`text-sm ${isActive ? "text-blue-700" : "text-gray-500"}`}>
+                    <p className="text-sm text-gray-500">
                         {item.description}
                     </p>
                     </div>

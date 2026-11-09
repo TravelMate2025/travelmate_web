@@ -15,6 +15,14 @@ import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined
 import { Calendar, DateRange } from "react-date-range";
 import { format, parse } from "date-fns";
 
+type RangeSelection = {
+  [key: string]: {
+    startDate?: Date;
+    endDate?: Date;
+    key?: string;
+  };
+};
+
 export interface DateSelectorProps {
   id: string;
   label: string;
@@ -95,9 +103,15 @@ export const DateSelector = memo<DateSelectorProps>(
        handleClose();
     };
 
-    const handleSelectRange = (ranges: any) => {
-      const { startDate, endDate } = ranges.selection;
-      setSelectedRange(ranges.selection);
+    const handleSelectRange = (ranges: RangeSelection) => {
+      const selection = ranges.selection;
+      const { startDate, endDate } = selection;
+      if (!startDate || !endDate) return;
+      setSelectedRange({
+        startDate,
+        endDate,
+        key: selection.key ?? "selection",
+      });
       const formatted = `${format(startDate, "dd MMM yyyy")} - ${format(
         endDate,
         "dd MMM yyyy"

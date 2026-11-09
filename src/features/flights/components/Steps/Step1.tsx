@@ -22,12 +22,27 @@ import { PassengerCounts } from "../../hooks/useFlightBooking";
 import { useStepContext } from "./StepLayout";
 import { getCity } from "../../utils/functions";
 import { useState } from "react";
+import { bookingFlowRoutes } from "../../../shared/bookingFlowRoutes";
 export interface LocationState {
   pathname: string;
   search: string;
   hash: string;
   key: string;
   state: FlightReviewState;
+}
+
+export type FlightUpsellSummary =
+  | { id?: string; total: number; upsell: UpsellFlightOffer }
+  | UpsellFlightOffer;
+
+export interface FlightSummaryState {
+  tripType: string;
+  passengers: PassengerCounts;
+  departureFlight: FlightOffer;
+  returnFlight: FlightOffer;
+  departureUpsell: FlightUpsellSummary;
+  returnUpsell: FlightUpsellSummary;
+  multiCitySelections?: { flight: FlightOffer; upsell: UpsellFlightOffer }[];
 }
 
 export interface FlightReviewState {
@@ -91,7 +106,7 @@ const FlightCard = ({
               {getCity(destination)?.municipality}({destination})
             </p>
             <Link
-              to={index === 0 ? "/flight/departure" : "/flight/return"}
+              to={index === 0 ? bookingFlowRoutes.flightDeparture : bookingFlowRoutes.flightReturn}
               className="text-[#023E8A] text-[14px] cursor-pointer"
             >
               Change Flight
@@ -154,7 +169,7 @@ loading=false,
     nextStep?: () => void;
     final?: boolean
     loading?:boolean
-  state?:FlightReviewState
+  state?:FlightSummaryState
 }) => {
 
 const [check, setCheck] =  useState(false)
@@ -164,6 +179,9 @@ const [check, setCheck] =  useState(false)
   let airlineFees = 0;
   let serviceFee = 0;
   let currency = "EUR"; // Default fallback currency
+
+  const getUpsellTotal = (upsell: FlightUpsellSummary | undefined) =>
+    upsell && typeof upsell === "object" && "total" in upsell ? upsell.total : 0;
 
   // Determine currency based on trip type
   if (state?.tripType === "multi-city" && state?.multiCitySelections?.length) {
@@ -207,8 +225,7 @@ const [check, setCheck] =  useState(false)
     });
   } else {
     const departure = state?.departureFlight?.price;
-    const departureUpsell = state?.departureUpsell?.total || 0;
-    console.log(state);
+    const departureUpsell = getUpsellTotal(state?.departureUpsell);
     
     const returnFlight = state?.returnFlight;
     

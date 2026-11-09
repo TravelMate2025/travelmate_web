@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import AuthNavbar from "../components/AuthNavbar";
 import Spinner from "../components/Spinner";
@@ -28,13 +28,7 @@ export default function VerifyEmail() {
     }
   };
 
-  useEffect(() => {
-    if (code.every((digit) => digit !== "")) {
-      handleAutoSubmit();
-    }
-  }, [code]);
-
-  const handleAutoSubmit = async () => {
+  const handleAutoSubmit = useCallback(async () => {
     if (!email) return;
     setIsLoading(true);
     const fullCode = code.join("");
@@ -54,7 +48,13 @@ export default function VerifyEmail() {
         if (firstInput) firstInput.focus();
       }, 100);
     }
-  };
+  }, [code, email, navigate]);
+
+  useEffect(() => {
+    if (code.every((digit) => digit !== "")) {
+      void handleAutoSubmit();
+    }
+  }, [code, handleAutoSubmit]);
   
 
   useEffect(() => {
@@ -67,9 +67,10 @@ export default function VerifyEmail() {
   }, [resendTimer]);
 
   const handleResend = async () => {
+    if (!email) return;
     setIsLoading(true);
     try {
-      await resendCode();
+      await resendCode(email);
       setCode(["", "", "", ""]);
       setResendTimer(120);
       setResendVisible(false);

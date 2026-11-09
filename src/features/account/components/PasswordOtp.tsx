@@ -4,7 +4,7 @@ import { RootState } from "../../../store";
 
 type PasswordOtpProps = {
   handleResendOtp: () => Promise<void>;
-  validateOtp: (passwordToken: string) => Promise<void>;
+  validateOtp: (_passwordToken: string) => Promise<void>;
   loading: boolean;
   error?: string;
 };
@@ -16,13 +16,35 @@ function PasswordOtp({
   error,
 }:PasswordOtpProps) {
   const user = useSelector((state: RootState) => state.auth.user);
-  if (!user) return null;
 
   const [otp, setOtp] = useState(Array(4).fill(""));
   const inputRef = useRef<(HTMLInputElement | null)[]>([]);
   const [countDown, setCountDown] = useState(10);
 
-  //Handle OTP input change
+  useEffect(() => {
+    if (!user) return;
+    inputRef.current[0]?.focus();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const countInterval = setInterval(() => {
+      if (countDown <= 0) return;
+
+      setCountDown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countInterval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(countInterval);
+  }, [countDown, user]);
+
+  if (!user) return null;
+
   function handleChange(value: string, index: number) {
     if (value.length > 1) return;
     if (!/^[0-9]?$/.test(value)) return;
@@ -48,27 +70,6 @@ function PasswordOtp({
       inputRef.current[index - 1]?.focus();
     }
   }
-
-  useEffect(() => {
-    inputRef.current[0]?.focus();
-  }, []);
-
-  // Countdown timer
-  useEffect(() => {
-    const countInterval = setInterval(() => {
-      if (countDown <= 0) return;
-
-      setCountDown((prev) => {
-        if (prev <= 1) {
-          clearInterval(countInterval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(countInterval);
-  }, [countDown]);
 
   return (
     <div>

@@ -3,9 +3,9 @@ import { FaTimes } from "react-icons/fa";
 
 interface RefundCancellationModalProps {
   onClose: () => void;
-  formattedTime: string;
-  formattedDate: string;
-  refundableUntil: string;
+  policyCopy?: string;
+  refundPercent?: number;
+  deadlineLabel?: string;
 }
 
 const ResponsiveFlexContainer = ({ children }: { children: ReactNode }) => {
@@ -44,9 +44,9 @@ const ResponsiveFlexContainer = ({ children }: { children: ReactNode }) => {
 
 const RefundCancellationModal: React.FC<RefundCancellationModalProps> = ({
   onClose,
-  formattedTime,
-  formattedDate,
-  refundableUntil,
+  policyCopy,
+  refundPercent,
+  deadlineLabel,
 }) => {
   return (
     <div className="fixed inset-0 z-50  bg-opacity-40 flex items-center justify-center mt-16 lg:mt-auto">
@@ -69,7 +69,10 @@ const RefundCancellationModal: React.FC<RefundCancellationModalProps> = ({
           <ResponsiveFlexContainer>
             <p className="font-medium mb-4 md:mr-60 pt-6">Refunds</p>
             <ul className="text-gray-700 ml-4 list-disc">
-              <li>Fully Refundable before {refundableUntil}</li>
+              <li>
+                {refundPercent != null ? `${refundPercent}% refund` : "Refund terms"}
+                {deadlineLabel ? ` before ${deadlineLabel}` : " under the selected policy"}
+              </li>
             </ul>
           </ResponsiveFlexContainer>
 
@@ -79,8 +82,7 @@ const RefundCancellationModal: React.FC<RefundCancellationModalProps> = ({
             <p className="font-medium mb-4 md:mr-50">Cancellations</p>
             <ul className="text-gray-700 ml-4 list-disc">
               <li>
-                Cancellations made after {formattedTime} on {formattedDate} or
-                no-shows are subject to a fee equal to 100% of the amount paid.
+                {policyCopy || "Cancellation terms are governed by the selected policy."}
               </li>
             </ul>
           </ResponsiveFlexContainer>

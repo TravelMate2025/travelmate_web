@@ -52,8 +52,6 @@ export default function CreatePassword() {
           registrationComplete: true,
         })
       );
-      localStorage.setItem("accessToken", res.tokens.access);
-      localStorage.setItem("refreshToken", res.tokens.refresh);
       localStorage.setItem("email", email);
       setTimeout(() => setShowSpinner(true), 2000);
       setTimeout(() => {

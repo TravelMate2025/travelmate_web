@@ -3,6 +3,7 @@ import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
 import Navbar from "../../../pages/homePage/Navbar";
 import Footer from "../../../components/2Footer";
 import { Link } from "react-router-dom";
+import { bookingFlowRoutes } from "../../shared/bookingFlowRoutes";
 
 
 export default function PaymentFailed() {
@@ -75,7 +76,7 @@ export default function PaymentFailed() {
         <Button
             variant="contained"
             component={Link}
-            to={"/flight/departure"}
+            to={bookingFlowRoutes.flightDeparture}
           
           sx={{
             bgcolor: "#003087",

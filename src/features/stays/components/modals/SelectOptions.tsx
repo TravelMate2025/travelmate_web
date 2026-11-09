@@ -41,7 +41,7 @@ const SelectOptions = ({
   const isButtonEnabled = !!selectedRateKey;
 
   // Handle case where no room ID or no rates are found
-  if (!roomId || availableRooomsRate?.rates.length === 0) {
+  if (!roomId || availableRooomsRate?.rates?.length === 0) {
     return (
       <div className="inset-0 fixed z-50">
         <div className="fixed inset-0 bg-black/20" onClick={closeDialog} />
@@ -102,7 +102,7 @@ const SelectOptions = ({
             </p>
           </div>
 
-          {availableRooomsRate?.rates.map((option) => (
+          {availableRooomsRate?.rates?.map((option) => (
             <label
               key={option.rateKey}
               htmlFor={option.rateKey}

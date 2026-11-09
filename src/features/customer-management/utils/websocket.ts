@@ -1,33 +1,47 @@
+import { getTicketedWsUrl } from "../../../api/services/wsTicket";
+
+// Type is used for callback signatures; allow unused parameter name in type.
+type MessageCallback = (data: unknown) => void;
 
 export class ChatWebSocket {
     private socket: WebSocket | null = null;
     public sessionId: number;
-    private token: string;
-  
-    private onMessageCallback: ((message: any) => void) | null = null;
+    private closed = false;
+
+    private onMessageCallback: MessageCallback | null = null;
     private onOpenCallback: (() => void) | null = null;
     private onCloseCallback: (() => void) | null = null;
-  
-    constructor(sessionId: number, token: string) {
+
+    constructor(sessionId: number) {
       this.sessionId = sessionId;
-      this.token = token;
     }
-  
-    connect() {
-      const wsUrl = `wss://travelmate-backend-0suw.onrender.com/ws/chat/${this.sessionId}/?token=${this.token}`;
-      console.log(`Connecting to WebSocket: ${wsUrl}`);
-  
+
+    async connect() {
+      let wsUrl: string;
+      try {
+        wsUrl = await getTicketedWsUrl(`/chat/${this.sessionId}/`);
+      } catch (error) {
+        console.error(`Couldn't get a WebSocket ticket for chat ${this.sessionId}`, error);
+        if (this.onCloseCallback) this.onCloseCallback();
+        return;
+      }
+      // close() was called (e.g. the user switched chats) while the ticket was in flight
+      if (this.closed) return;
+
       this.socket = new WebSocket(wsUrl);
   
       this.socket.onopen = () => {
-        console.log(`WebSocket connected ✅ to chat ${this.sessionId}`);
         if (this.onOpenCallback) this.onOpenCallback();
       };
   
-      this.socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log("WebSocket message received:", data);
-        if (this.onMessageCallback) this.onMessageCallback(data);
+      this.socket.onmessage = (event: MessageEvent) => {
+        try {
+          const raw = typeof event.data === 'string' ? event.data : JSON.stringify(event.data);
+          const data = JSON.parse(raw);
+          if (this.onMessageCallback) this.onMessageCallback(data);
+        } catch (e) {
+          console.warn("Failed to parse WebSocket message", e);
+        }
       };
   
       this.socket.onclose = (event) => {
@@ -47,14 +61,13 @@ export class ChatWebSocket {
           return reject(new Error("WebSocket not open"));
         }
 
-        const payload: any = { message };
+        const payload: Record<string, unknown> = { message };
 
         if (file) {
           const reader = new FileReader();
 
           reader.onload = () => {
-            payload.attachment = reader.result;
-            console.log("[WebSocket] 🚀 File read complete. Sending:", payload);
+            payload.attachment = reader.result as string | ArrayBuffer | null;
             this.socket!.send(JSON.stringify(payload));
             resolve();
           };
@@ -66,7 +79,6 @@ export class ChatWebSocket {
 
           reader.readAsDataURL(file);
         } else {
-          console.log("[WebSocket] 🚀 Sending:", payload);
           this.socket.send(JSON.stringify(payload));
           resolve();
         }
@@ -74,7 +86,7 @@ export class ChatWebSocket {
   }
 
   
-    onMessage(callback: (message: any) => void) {
+    onMessage(callback: MessageCallback) {
       this.onMessageCallback = callback;
     }
   
@@ -87,6 +99,7 @@ export class ChatWebSocket {
     }
   
     close() {
+      this.closed = true;
       if (this.socket) {
         this.socket.close();
       }
