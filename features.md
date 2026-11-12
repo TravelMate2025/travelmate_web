@@ -24,10 +24,7 @@
 - Stays detail experiences such as rooms, photos, amenities, policies, refund/cancellation rules, reviews, and room selection.
 
 ### Flights
-- Flight search entry page.
-- Departure selection, return selection, and review flow.
-- Flight payment success and payment cancelled states.
-- Flight confirmation flow.
+Being rebuilt from scratch on Amadeus Quick-Connect. The current flight UI is deleted in phase W0; see [Flights UI rebuild](#flights-ui-rebuild-amadeus-quick-connect) below.
 
 ### Car Rentals And Airport Taxi
 - Car rental search and results.
@@ -69,4 +66,144 @@
 - The app is organized by feature rather than by screen type, which makes booking and account workflows easier to follow.
 - Several routes are guarded, but the homepage and discovery flows remain public.
 - The codebase includes both product UI and support tooling, so the app functions as a full consumer portal rather than only a booking checkout.
+
+---
+
+## Flights UI rebuild (Amadeus Quick-Connect)
+
+Started 12 Nov 2026. The flight UI is built **before** the backend, against the agreed data format and a fake data layer. The backend phases in `travelmate_backend/flights_plan.md` (F2 onwards) then replace the fake data with real calls.
+
+### Ground rules
+
+- **Source of truth for screens:** the approved web mock (Main, Results, Fares, Travellers, Extras, Pay, Status, Manage, MultiCity, PriceChanged, HoldExpired, BookingFailed). Seats are in the mock but are **R3** and not built here.
+- **Source of truth for data:** `flights_plan.md` §C2 (offer format) and §C9 (v2 endpoints). The UI never sends prices; it sends `offerToken` and the server prices.
+- **Scope:** R1 (sell and ticket) and R2 (complete service). R3 (seats, search by schedule, low-cost/NDC content) is deferred.
+- **Fake data layer:** every call goes through `features/flights/api/` (AGENTS.md rule 1). A switch `VITE_FLIGHTS_API_MODE=mock|live` picks fake responses or the real backend, with **no changes in components**. Fake responses are built from real Amadeus test-host responses (12 Nov 2026), reshaped to §C2; no invented prices or flights.
+- **Every fake scenario the backend can produce is reachable in mock mode:** price changed, hold expired, seats sold out, booking failed after payment, ticket being issued, ticketed, schedule change. Pick it with a dev-only query string, e.g. `?mock=price-changed`.
+- **Currencies:** USD, NGN, GBP. The default comes from the user's country (NG → NGN, GB → GBP, else USD), with a switcher. Amounts are shown as the server sends them; the UI does no currency conversion.
+- **Codebase rules (AGENTS.md):**
+  - Routes live in `bookingFlowRoutes`, labels in `bookingFlowLabels`, and every page is lazy-loaded.
+  - Redux slices with thunks; no business logic in JSX.
+  - Tailwind for layout, MUI for complex inputs, brand colours `#023E8A` and `#FF6F1E`.
+  - Responsive at 375, 768 and 1280 px.
+- **Sensitive data:** never persist passport numbers or dates of birth with redux-persist. Persist only the search criteria and the chosen currency.
+- **Each phase is done when:** `npm run build` and `npm test` pass, a Playwright spec covers the phase at 375/768/1280 in mock mode, and the screen matches the mock.
+
+### Phases
+
+#### W0: Remove the old flight UI and set up the foundation
+Delete:
+- [x] `src/features/flights/` (all of it, including the 45k-line `data.ts` airport bundle, `roundTripSlices.ts`, `flightApi.ts`, `locationApi.ts`, `nationalityApi.ts`, `components/ui/*`).
+- [x] `src/pages/flights/` (departure, return, review, confirmation) and `src/pages/Flight.tsx`.
+- [x] Old routes in `App.tsx` and `bookingFlowRoutes` (`flightDeparture`, `flightReturn`, `flightReview`, `flightPaymentSuccess`, `flightPaymentCancelled`) and the matching labels and tests.
+- [x] `flightsApi`, `nationsApi`, `locationApi` reducers and middleware in `src/store/index.ts`; flight references in `performLogout.ts` (+ test) and `src/api/services/api.ts`.
+- [x] `FlightsPersonalized.tsx` (built on the old API).
+
+Keep, and rewire in W1: `pages/homePage/Flight.tsx`, `FlightsHomeContent.tsx`, `FlightsClassBrowse.tsx`, `FlightsPopularRoutes.tsx`, `FlightsTrustRow.tsx`, `FlightsPromoBanner.tsx`, `FlightsFAQ.tsx`.
+
+Build:
+- [x] `features/flights/types.ts`: §C2 offer, places, search criteria, price check result, booking requirements, booking (status, PNR, tickets, payment), cancellation preview, error codes.
+- [x] `features/flights/api/`: one function per §C9 endpoint plus the mock/live switch.
+- [x] `features/flights/mocks/`: fixtures (search LOS⇄LON return, one-way, multi-city LOS→LON→DXB→LOS, LOS⇄ABV domestic, empty result) and the scenarios listed above.
+- [x] `features/flights/slice.ts`: search criteria, results, chosen offer, travellers, booking id, currency.
+- [x] New routes in `bookingFlowRoutes` (results, fare, travellers, extras, review and pay, status, manage) and labels in `bookingFlowLabels`. Step count comes from config so R1 can hide Extras.
+- [x] Currency preference: country default plus switcher, shared with the header.
+
+Exit: the app builds with no old flight code, and the home Flights tab renders its kept sections.
+
+**Done 12 Nov 2026** (branch `feature/flights-ui-rebuild`):
+- 44 old files removed.
+- The contract is in `features/flights/types.ts`; the fake data and scenarios are described in `features/flights/mocks/README.md`.
+- 161 unit tests and `e2e/flights-home.spec.ts` pass at 375/768/1280.
+- Until W1 the home search slot shows "Flight search is being rebuilt", and Popular routes cards scroll to the top instead of searching.
+
+
+#### W1: Home Flights tab and search (R1)
+- [ ] Trip type: return, one-way, multi-city (2 to 6 flights, add and remove).
+- [ ] Airport and city autocomplete from `places` (replaces `data.ts`), with recent searches.
+- [ ] Dates: range for return, single date per flight, no past dates, return not before departure.
+- [ ] Travellers and cabin panel: adults, children 2–11, infants on lap (at most one per adult), infants in own seat, 9 seated travellers maximum. Cabins: Economy, Premium Economy, Business, First.
+- [ ] Direct flights only toggle.
+- [ ] Rewire the kept sections:
+  - Browse by class and Popular routes start a prefilled search.
+  - Popular routes are per country and come from the API; staff configure them later.
+  - Why book with us, the promo card and the FAQ stay as content.
+- [ ] Search criteria in the URL, so results can be shared and reloaded.
+
+Exit: every search type reaches Results in mock mode, and invalid combinations are blocked with clear messages.
+
+#### W2: Results (R1)
+- [ ] Sort tabs: Best, Cheapest, Fastest (each shows its lowest price).
+- [ ] Filters: stops, airlines, departure and arrival times, bags included, refundable. Chips on mobile, side panel on desktop.
+- [ ] Offer card: airline, times, +1 day, duration, stops and airports, included bags, fare brand, seats left, price per adult with taxes.
+- [ ] Notes on the card: different arrival and departure airports, overnight connection, "book by" date when the ticketing deadline is soon.
+- [ ] Details expand with each flight, connection time and aircraft.
+- [ ] Multi-city results: one price for the whole trip.
+- [ ] Loading skeleton, no results (with suggestions), error and retry, "results expired, search again".
+- [ ] Edit search without leaving the page.
+
+Exit: all result fixtures render correctly; sort and filter are covered by unit tests.
+
+#### W3: Fare and price check (R1)
+- [ ] Calls `price` when the screen opens and shows a "price confirmed with the airline" banner.
+- [ ] R1 shows the chosen fare only: conditions (refund, changes, bags, cabin bag), full fare rules, price breakdown.
+- [ ] Price changed (up) dialog: old vs new price, continue or see other flights. If the price goes down, show a notice and continue at the lower price.
+- [ ] Offer no longer available: back to results.
+
+Exit: the price-changed and sold-out scenarios work in mock mode.
+
+#### W4: Traveller details (R1)
+- [ ] One form per traveller, built from the airline's requirements returned by the price check (which fields are required, name length limits). No hardcoded rules.
+- [ ] Names as on passport; the lap infant is linked to an adult; the combined adult and infant name limit is shown.
+- [ ] Contact email and mobile with country code.
+- [ ] "Use my profile" for the signed-in user; passport and frequent flyer are optional unless required.
+- [ ] Sign-in required before booking (the bookings endpoint needs auth), keeping everything already entered.
+
+Exit: validation tests cover each passenger type and the requirements fixtures.
+
+#### W5: Review and pay (R1)
+- [ ] Create booking (hold) on "Continue to payment": show the reservation, the countdown to the payment deadline, and a summary of flights, travellers and fare conditions.
+- [ ] Choose the currency (USD, NGN, GBP), with amounts from the server.
+- [ ] Consent checkbox; the Pay button is enabled only when it is ticked.
+- [ ] Flutterwave checkout via `checkout`, and the return from Flutterwave (success, cancelled, failed).
+- [ ] Hold expired screen; seats sold out while holding; price changed at hold.
+
+Exit: the full path from search to payment works in mock mode, including all three failure screens.
+
+#### W6: Booking status and confirmation (R1)
+- [ ] Status timeline: payment received → booked with airline → issuing ticket → ticket issued and sent.
+- [ ] Polls the booking until ticketed or failed; safe to leave and return.
+- [ ] References: TravelMate booking reference, airline PNR, e-ticket numbers when issued.
+- [ ] Booking failed after payment: automatic full refund with its tracking (reuse `shared/refundTracking`).
+- [ ] Add to calendar, view booking.
+
+Exit: the issuing, ticketed and failed-after-payment scenarios render.
+
+#### W7: My bookings and manage (R1)
+- [ ] Flights in the bookings list with status badges.
+- [ ] Manage page: itinerary, references, tickets, download itinerary PDF, airline check-in link, contact support.
+- [ ] Cancel before ticketing: full refund preview, reason, confirm, then refund tracking.
+
+Exit: **R1 UI complete.** The whole journey works in mock mode and is ready for backend F2–F6.
+
+#### W8: Fare families (R2)
+- [ ] Fare screen shows the airline's fare options from `upsell` (e.g. Eco Essential, Classic, Flex), with what is included, the price difference, and the selection carried into the booking.
+
+#### W9: Paid extra bags (R2)
+- [ ] Extras step (turned on by config): bag options per direction from the price check with bags, running total, and bags shown on review, status and manage.
+
+#### W10: Cancellation after ticketing (R2)
+- [ ] Manage → cancel when ticketed: refund estimate from `cancellation-preview` (non-refundable fare vs refundable taxes), request, then status until the airline confirms and the refund completes.
+- [ ] Void within the airline's void window, shown as a full refund when available.
+
+#### W11: Schedule change alerts (R2)
+- [ ] Alert on the booking list and manage page when the airline changes a flight: what changed, and contact or alternative options.
+- [ ] Notification through the existing notification provider.
+
+Exit: **R2 UI complete.**
+
+#### Later (R3, not planned yet)
+- Seat choice (Seats screen in the mock); needs the consolidator to confirm seat EMDs.
+- Search by schedule (Availabilities).
+- Low-cost/NDC content.
 

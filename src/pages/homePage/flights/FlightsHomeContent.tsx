@@ -1,4 +1,3 @@
-import FlightsPersonalized from "./FlightsPersonalized";
 import FlightsClassBrowse from "./FlightsClassBrowse";
 import FlightsPopularRoutes from "./FlightsPopularRoutes";
 import FlightsTrustRow from "./FlightsTrustRow";
@@ -13,7 +12,6 @@ import FlightsFAQ from "./FlightsFAQ";
 const FlightsHomeContent = () => {
   return (
     <>
-      <FlightsPersonalized />
       <FlightsClassBrowse />
       <FlightsPopularRoutes />
       <FlightsTrustRow />

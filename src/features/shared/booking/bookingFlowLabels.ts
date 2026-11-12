@@ -20,7 +20,21 @@ export const stayDetailsLabel = () => "Stay details";
 export const pricingSourceLabel = () => "Pricing source";
 export const partnerPricingSourceCopy = () => "Loaded from the partner pricing endpoint before checkout.";
 
-export const stayTypeDisplayLabel = (accommodationType?: string | null) => {
+export type FlightStepKey = "flight" | "fare" | "travellers" | "extras" | "pay";
+
+export const flightStepLabel = (step: FlightStepKey) =>
+  ({ flight: "Flight", fare: "Fare", travellers: "Travellers", extras: "Extras", pay: "Pay" })[step];
+
+export const flightStepTitle = (step: FlightStepKey) =>
+  ({
+    flight: "Choose your flight",
+    fare: "Choose your fare",
+    travellers: "Who's travelling?",
+    extras: "Extras",
+    pay: "Review and pay",
+  })[step];
+
+export const stayTypeDisplayLabel =(accommodationType?: string | null) => {
   const normalized = accommodationType?.toLowerCase().trim() ?? "";
   if (normalized.includes("room")) return "Room stay";
   if (

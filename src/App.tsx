@@ -40,13 +40,6 @@ const HotelsPage = lazy(() => import("./features/hotels/pages/HotelsPage"));
 const HotelResultsPage = lazy(() => import("./features/hotels/pages/HotelResultsPage"));
 const HotelDetailsPage = lazy(() => import("./features/hotels/pages/HotelDetailsPage"));
 
-// Flights pages (lazy)
-const DeparturePage = lazy(() => import("./pages/flights/departureFlight/DeparturePage"));
-const ReturnPage = lazy(() => import("./pages/flights/returnFlight/ReturnPage"));
-const FlightInfoPage = lazy(() => import("./pages/flights/flightInfo-review/FlightInfoPage"));
-const FlightConfirmationPage = lazy(() => import("./pages/flights/flightConfirmation/FlightConfirmationPage"));
-const PaymentFailed = lazy(() => import("./features/flights/components/PaymentFailed"));
-
 // Car rental pages (lazy)
 const DisplayCars = lazy(() => import("./features/car_rentals/displayAllCars/DisplayCars"));
 const TransferDetail = lazy(() => import("./features/car_rentals/transferDetail/TransferDetail"));
@@ -66,7 +59,6 @@ const Bookings = lazy(() => import("./pages/Bookings"));
 const Favorites = lazy(() => import("./pages/Favorites"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicy").then(m => ({ default: m.PrivacyPolicyPage })));
 const TermsOfUsePage = lazy(() => import("./pages/TermsOfUse").then(m => ({ default: m.TermsOfUsePage })));
-const Flight = lazy(() => import("./pages/Flight"));
 const AboutPage = lazy(() => import("./pages/About").then(m => ({ default: m.AboutPage })));
 const PartnersPage = lazy(() => import("./pages/Partners").then(m => ({ default: m.PartnersPage })));
 const ContactPage = lazy(() => import("./pages/Contact").then(m => ({ default: m.ContactPage })));
@@ -280,22 +272,8 @@ function App() {
         <Route path={hotelsRoutes.results} element={<HotelResultsPage />} />
         <Route path={`${hotelsRoutes.home}/:hotelId`} element={<HotelDetailsPage />} />
 
-        {/* Flights */}
-        <Route path="/flights" element={<Flight />} />
-        <Route
-          path={bookingFlowRoutes.flightDeparture}
-          element={<DeparturePage departureInfo={[]} />}
-        />
-        <Route
-          path={bookingFlowRoutes.flightReturn}
-          element={<ReturnPage departureInfo={[]} />}
-        />
-        <Route path={bookingFlowRoutes.flightReview} element={<FlightInfoPage />} />
-        <Route
-          path={bookingFlowRoutes.flightPaymentSuccess}
-          element={<FlightConfirmationPage />}
-        />
-        <Route path={bookingFlowRoutes.flightPaymentCancelled} element={<PaymentFailed />} />
+        {/* Flights: being rebuilt (features.md W0-W11); search lives on the home Flights tab */}
+        <Route path="/flights" element={<Navigate to="/?tab=flights" replace />} />
 
         {/* Cars */}
         <Route path={bookingFlowRoutes.transferResults} element={<DisplayCars />} />

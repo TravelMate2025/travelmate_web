@@ -13,11 +13,15 @@ export const bookingFlowRoutes = {
   transferPaymentSuccess: "/transfers/payment-success",
   transferPaymentFailure: "/transfers/payment-failure",
   transferDownload: "/car-paid/download",
-  flightDeparture: "/flight/departure",
-  flightReturn: "/flight/return",
-  flightReview: "/flight/review",
-  flightPaymentSuccess: "/flights/payment-success",
-  flightPaymentCancelled: "/flights/payment-cancelled",
+  flightResults: "/flights/results",
+  flightFare: "/flights/fare",
+  flightTravellers: "/flights/travellers",
+  flightExtras: "/flights/extras",
+  flightReviewAndPay: "/flights/review",
+  // Flutterwave redirects back here, so the path must not change
+  flightPaymentReturn: "/flights/payment-return",
+  flightBookingStatus: "/flights/bookings/:bookingId/status",
+  flightBookingManage: "/flights/bookings/:bookingId",
 } as const;
 
 type QueryValue = string | number | boolean | null | undefined;
@@ -40,6 +44,24 @@ export const stayResultsPath = (params: Record<string, QueryValue>) =>
 
 export const transferResultsPath = (params: Record<string, QueryValue>) =>
   withQuery(bookingFlowRoutes.transferResults, params);
+
+export const flightResultsPath = (params: Record<string, QueryValue>) =>
+  withQuery(bookingFlowRoutes.flightResults, params);
+
+// Offer tokens are opaque and may contain any character, so they travel as a query value
+export const flightStepPath = (
+  step: "flightFare" | "flightTravellers" | "flightExtras" | "flightReviewAndPay",
+  offerToken: string
+) => withQuery(bookingFlowRoutes[step], { offer: offerToken });
+
+const withBookingId = (pattern: string, bookingId: string) =>
+  pattern.replace(":bookingId", encodeURIComponent(bookingId));
+
+export const flightBookingStatusPath = (bookingId: string) =>
+  withBookingId(bookingFlowRoutes.flightBookingStatus, bookingId);
+
+export const flightBookingManagePath = (bookingId: string) =>
+  withBookingId(bookingFlowRoutes.flightBookingManage, bookingId);
 
 // The download pages read the booking back from the `data` query param
 export const stayDownloadPath = (booking: unknown) =>

@@ -4,6 +4,8 @@ import {
   bookingManagementLabel,
   bookingReviewLabel,
   continueToPaymentLabel,
+  flightStepLabel,
+  flightStepTitle,
   guestDetailsLabel,
   partnerPricingSourceCopy,
   paymentProviderLabel,
@@ -43,6 +45,12 @@ describe("bookingFlowLabels", () => {
     expect(stayTypeDisplayLabel("room_level")).toBe("Room stay");
     expect(stayTypeDisplayLabel("unit_level")).toBe("Unit stay");
     expect(stayTypeDisplayLabel(undefined)).toBe("Stay");
+  });
+
+  it("labels the flight booking steps", () => {
+    expect(flightStepLabel("travellers")).toBe("Travellers");
+    expect(flightStepTitle("fare")).toBe("Choose your fare");
+    expect(flightStepTitle("pay")).toBe("Review and pay");
   });
 
   it("uses provider-neutral payment copy", () => {

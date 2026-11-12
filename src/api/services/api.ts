@@ -5,7 +5,7 @@ import { logout, updateToken } from '../../features/account/slices/authSlice';
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api').replace(/\/$/, '');
 
 // The slice of the Redux store this client needs. It is injected from main.tsx
-// rather than imported, because store -> flightApi -> api -> store is a cycle.
+// rather than imported, because store -> slices -> api -> store is a cycle.
 export type AuthStore = {
   getState: () => { auth: { accessToken: string | null; refreshToken: string | null } };
   dispatch: (action: ReturnType<typeof logout> | ReturnType<typeof updateToken>) => unknown;

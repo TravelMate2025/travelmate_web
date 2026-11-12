@@ -1,10 +1,8 @@
 import { useRef } from "react";
 import { FaPlane } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 import KeyboardArrowLeftOutlinedIcon from "@mui/icons-material/KeyboardArrowLeftOutlined";
 import KeyboardArrowRightOutlinedIcon from "@mui/icons-material/KeyboardArrowRightOutlined";
 import { useMediaQuery } from "react-responsive";
-import { searchFlightRoute } from "../../../features/flights/utils/searchFlightRoute";
 
 // Illustrative routes -- no "most searched routes" aggregation exists in
 // the backend yet, same reasoning as Transfers' PopularTransferRoutes and
@@ -41,20 +39,16 @@ const formatPrice = (amount: number) => `From ₦${amount.toLocaleString()}`;
 
 const FlightsPopularRoutes = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
-  const navigate = useNavigate();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollBy = (amount: number) => {
     scrollContainerRef.current?.scrollBy({ left: amount, behavior: "smooth" });
   };
 
-  const handleSelect = (route: PopularRoute) => {
-    searchFlightRoute(navigate, {
-      originCode: route.originCode,
-      originCity: route.originCity,
-      destinationCode: route.destinationCode,
-      destinationCity: route.destinationCity,
-    });
+  // Until phase W1 wires a prefilled search, a route card takes the user back
+  // to the search area (same as Browse by class).
+  const handleSelect = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const cards = (
@@ -67,7 +61,7 @@ const FlightsPopularRoutes = () => {
         <button
           key={r.id}
           type="button"
-          onClick={() => handleSelect(r)}
+          onClick={handleSelect}
           className="w-[258px] h-[168px] flex-shrink-0 text-left cursor-pointer group relative overflow-hidden rounded-[20px] shadow-[0_10px_24px_-12px_rgba(15,23,42,0.35)]"
           style={{ background: gradients[r.kind] }}
         >

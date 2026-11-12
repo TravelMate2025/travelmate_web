@@ -7,7 +7,7 @@ import TabPanel from "@mui/lab/TabPanel";
 import plane from "../../assets/plane.svg";
 import car from "../../assets/car.svg";
 import stay from "../../assets/stay.svg";
-import RoundTrip from "./Flight";
+import { FlightSearchPlaceholder } from "../../features/flights/components/FlightSearchPlaceholder";
 import Page from "../../features/car_rentals/carsFirstScreen/CarBookingFirstScreen";
 import PartnerStaySearchPage from "../../features/stays/pages/PartnerStaySearchPage";
 import { useMediaQuery } from "react-responsive";
@@ -111,7 +111,7 @@ const WelcomePage = ({ value, onChange }: WelcomePageProps) => {
                   <PartnerStaySearchPage />
                 </TabPanel>
                 <TabPanel value="2">
-                  <RoundTrip />
+                  <FlightSearchPlaceholder />
                 </TabPanel>
                 <TabPanel value="3">
                   <Page />
@@ -190,7 +190,7 @@ const WelcomePage = ({ value, onChange }: WelcomePageProps) => {
                   <PartnerStaySearchPage />
                 </TabPanel>
                 <TabPanel value="2">
-                  <RoundTrip />
+                  <FlightSearchPlaceholder />
                 </TabPanel>
                 <TabPanel value="3">
                   <Page />
