@@ -57,3 +57,17 @@ test("the nav's Flights link and old links open the flights page", async ({ page
   await page.goto("/?tab=flights");
   await expect(page).toHaveURL(/\/flights$/);
 });
+
+test("multi-city follows the mock: numbered rows, add and remove", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/flights");
+  await page.getByRole("radio", { name: "Multi-city" }).click();
+  await expect(page.getByRole("group", { name: /^Flight \d$/ })).toHaveCount(2);
+  await expect(page.getByRole("button", { name: "Remove flight 1" })).toBeDisabled();
+  await page.getByRole("button", { name: /Add another flight/ }).click();
+  await expect(page.getByRole("group", { name: /^Flight \d$/ })).toHaveCount(3);
+  await expect(page.getByRole("button", { name: "Remove flight 3" })).toBeEnabled();
+  await page.locator("#flight-search").screenshot({ path: "test-results/flights-multicity-1280.png" });
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.locator("#flight-search").screenshot({ path: "test-results/flights-multicity-375.png" });
+});

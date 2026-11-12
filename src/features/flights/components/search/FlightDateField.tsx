@@ -8,10 +8,11 @@ import Drawer from "@mui/material/Drawer";
 import Paper from "@mui/material/Paper";
 import Popper from "@mui/material/Popper";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { flightDoneLabel } from "../../../shared/booking/bookingFlowLabels";
 import { FLEXIBLE_DAY_OPTIONS } from "../../search/searchDraft";
 import type { FlexibleDays } from "../../types";
-import { CELL_CLASS, CELL_LABEL_CLASS, CELL_VALUE_CLASS, ERROR_TEXT_CLASS } from "./fieldStyles";
+import { CELL_HINT_CLASS, CELL_LABEL_CLASS, ERROR_TEXT_CLASS, cellClass, cellValueClass } from "./fieldStyles";
 
 const BRAND = "#023E8A";
 
@@ -33,6 +34,10 @@ interface FlightDateFieldProps {
   error?: string;
   /** Opens the calendar whenever this changes (e.g. after a popular route prefilled the places). */
   openKey?: number;
+  /** Extra classes, e.g. a narrower box in multi-city rows. */
+  className?: string;
+  /** Multi-city rows: smaller box, no sub-line (mock .fld). */
+  compact?: boolean;
 }
 
 export const FlightDateField = ({
@@ -45,6 +50,8 @@ export const FlightDateField = ({
   onFlexibleDaysChange,
   error,
   openKey,
+  className = "",
+  compact = false,
 }: FlightDateFieldProps) => {
   const anchorRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -87,38 +94,49 @@ export const FlightDateField = ({
     </div>
   );
 
+  const flexibleSelect = (
+    <span className={`relative inline-flex w-fit items-center gap-0.5 ${compact ? "text-[#023E8A]" : "text-[#4E4F52]"}`}>
+      <select
+        aria-label={`${label}: flexible dates`}
+        value={flexibleDays}
+        onChange={(event) => onFlexibleDaysChange(Number(event.target.value) as FlexibleDays)}
+        className={`h-auto cursor-pointer appearance-none bg-transparent p-0 pr-4 leading-tight ${compact ? "text-xs font-semibold" : CELL_HINT_CLASS}`}
+      >
+        {FLEXIBLE_DAY_OPTIONS.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      <ExpandMoreIcon aria-hidden className="pointer-events-none absolute right-0 !h-4 !w-4" />
+    </span>
+  );
+
   return (
-    <div className={CELL_CLASS} ref={anchorRef}>
-      <label htmlFor={id} className={CELL_LABEL_CLASS}>
-        {label}
-      </label>
+    <div className={`${cellClass(compact)} ${className}`} ref={anchorRef}>
+      <div className="flex items-center justify-between gap-2">
+        <label htmlFor={id} className={CELL_LABEL_CLASS}>
+          {label}
+        </label>
+        {/* Multi-city boxes have no sub-line (mock), so the ± days choice sits beside the label */}
+        {compact && flexibleSelect}
+      </div>
       <button
         id={id}
         type="button"
         onClick={openPicker}
         aria-haspopup="dialog"
         aria-describedby={error ? errorId : undefined}
-        className={`cursor-pointer bg-transparent p-0 text-left ${CELL_VALUE_CLASS} ${value ? "" : "!font-medium !text-[#8A9096]"}`}
+        className={`cursor-pointer bg-transparent p-0 text-left ${cellValueClass(compact)} ${value ? "" : "!font-medium !text-[#8A9096]"}`}
       >
-        {value ? format(toDate(value), "EEE d MMM yyyy") : "Add date"}
+        {value ? format(toDate(value), compact ? "EEE d MMM" : "EEE d MMM yyyy") : "Add date"}
       </button>
       {error ? (
         <span id={errorId} className={ERROR_TEXT_CLASS}>
           {error}
         </span>
       ) : (
-        <select
-          aria-label={`${label}: flexible dates`}
-          value={flexibleDays}
-          onChange={(event) => onFlexibleDaysChange(Number(event.target.value) as FlexibleDays)}
-          className="w-fit cursor-pointer bg-transparent p-0 text-sm text-[#4E4F52]"
-        >
-          {FLEXIBLE_DAY_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        !compact && flexibleSelect
       )}
 
       {isMobile ? (

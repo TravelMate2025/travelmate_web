@@ -3,7 +3,7 @@ import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import { usePlaceSearch } from "../../hooks/usePlaces";
 import type { Place } from "../../types";
-import { CELL_CLASS, CELL_HINT_CLASS, CELL_LABEL_CLASS, ERROR_TEXT_CLASS, cellInputSx, placeHint, placeLabel } from "./fieldStyles";
+import { CELL_HINT_CLASS, CELL_LABEL_CLASS, ERROR_TEXT_CLASS, cellClass, cellInputSx, placeHint, placeLabel } from "./fieldStyles";
 
 interface PlaceFieldProps {
   id: string;
@@ -13,9 +13,11 @@ interface PlaceFieldProps {
   error?: string;
   /** Extra classes, e.g. to join the From and To boxes. */
   className?: string;
+  /** Multi-city rows: smaller box, no sub-line (mock .fld). */
+  compact?: boolean;
 }
 
-export const PlaceField = ({ id, label, value, onChange, error, className = "" }: PlaceFieldProps) => {
+export const PlaceField = ({ id, label, value, onChange, error, className = "", compact = false }: PlaceFieldProps) => {
   const [input, setInput] = useState("");
   const { options, loading } = usePlaceSearch(input);
   // Keep the chosen place in the list so MUI can show it while new results load
@@ -26,7 +28,7 @@ export const PlaceField = ({ id, label, value, onChange, error, className = "" }
   const errorId = `${id}-error`;
 
   return (
-    <div className={`${CELL_CLASS} ${className}`}>
+    <div className={`${cellClass(compact)} ${className}`}>
       <label htmlFor={id} className={CELL_LABEL_CLASS}>
         {label}
       </label>
@@ -43,7 +45,7 @@ export const PlaceField = ({ id, label, value, onChange, error, className = "" }
         loading={loading}
         forcePopupIcon={false}
         noOptionsText={input.trim().length < 2 ? "Type a city or airport" : "No matching airports"}
-        sx={cellInputSx}
+        sx={cellInputSx(compact)}
         slotProps={{ popper: { className: "min-w-80" } }}
         renderOption={(props, place) => {
           const { key, ...rest } = props as React.HTMLAttributes<HTMLLIElement> & { key?: React.Key };
@@ -79,7 +81,7 @@ export const PlaceField = ({ id, label, value, onChange, error, className = "" }
           {error}
         </span>
       ) : (
-        <span className={`truncate ${CELL_HINT_CLASS}`}>{placeHint(value) || " "}</span>
+        !compact && <span className={`truncate ${CELL_HINT_CLASS}`}>{placeHint(value) || "\u00a0"}</span>
       )}
     </div>
   );
