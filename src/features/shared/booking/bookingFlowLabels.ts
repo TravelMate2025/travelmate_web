@@ -34,7 +34,12 @@ export const flightStepTitle = (step: FlightStepKey) =>
     pay: "Review and pay",
   })[step];
 
-export const stayTypeDisplayLabel =(accommodationType?: string | null) => {
+export const flightSearchLabel = () => "Search flights";
+export const flightDoneLabel = () => "Done";
+export const flightAddLegLabel = (max: number) => `Add another flight (up to ${max})`;
+export const flightResultsLabel = () => "Flight results";
+
+export const stayTypeDisplayLabel = (accommodationType?: string | null) => {
   const normalized = accommodationType?.toLowerCase().trim() ?? "";
   if (normalized.includes("room")) return "Room stay";
   if (

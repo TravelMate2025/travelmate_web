@@ -17,6 +17,11 @@ const id = (value: string) => encodeURIComponent(value);
 
 export const liveFlightsApi: FlightsApi = {
   searchPlaces: (query) => call(() => api.get(`${BASE}/places`, { params: { q: query } })),
+  getPopularRoutes: (countryCode, currency) =>
+    call(() => api.get(`${BASE}/popular-routes`, { params: { country: countryCode ?? undefined, currency } })),
+  getClassFares: (countryCode, currency) =>
+    call(() => api.get(`${BASE}/class-fares`, { params: { country: countryCode ?? undefined, currency } })),
+  getCampaign: (countryCode) => call(() => api.get(`${BASE}/campaign`, { params: { country: countryCode ?? undefined } })),
   search: (criteria) => call(() => api.post(`${BASE}/search`, criteria)),
   getOffer: (offerToken, currency) => call(() => api.get(`${BASE}/offers/${id(offerToken)}`, { params: { currency } })),
   priceOffer: (offerToken, { currency, includeBags }) =>

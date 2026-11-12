@@ -4,6 +4,10 @@ import {
   bookingManagementLabel,
   bookingReviewLabel,
   continueToPaymentLabel,
+  flightAddLegLabel,
+  flightDoneLabel,
+  flightResultsLabel,
+  flightSearchLabel,
   flightStepLabel,
   flightStepTitle,
   guestDetailsLabel,
@@ -51,6 +55,10 @@ describe("bookingFlowLabels", () => {
     expect(flightStepLabel("travellers")).toBe("Travellers");
     expect(flightStepTitle("fare")).toBe("Choose your fare");
     expect(flightStepTitle("pay")).toBe("Review and pay");
+    expect(flightSearchLabel()).toBe("Search flights");
+    expect(flightDoneLabel()).toBe("Done");
+    expect(flightAddLegLabel(6)).toBe("Add another flight (up to 6)");
+    expect(flightResultsLabel()).toBe("Flight results");
   });
 
   it("uses provider-neutral payment copy", () => {

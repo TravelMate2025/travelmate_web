@@ -34,13 +34,14 @@ import { RootState } from "../../store";
 import { performLogout } from "../../features/account/slices/performLogout";
 import { useAppDispatch } from "../../hooks/redux";
 import Spinner from "../../features/account/components/Spinner";
+import { bookingFlowRoutes } from "../../features/shared/bookingFlowRoutes";
 import { useNotifications } from "../../features/account/components/notifications/NotificationProvider";
 
 const navItems = [
   { name: "Home", path: "/" },
   { name: "Stays", path: "/?tab=stays" },
   { name: "Hotels", path: "/hotels" },
-  { name: "Flights", path: "/?tab=flights" },
+  { name: "Flights", path: bookingFlowRoutes.flightsLanding },
   { name: "Transfers", path: "/?tab=transfers" },
 ];
 
@@ -72,7 +73,11 @@ const Navbar: React.FC = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [activeTab, setActiveTab] = useState(() =>
-    window.location.pathname.startsWith("/hotels") ? "Hotels" : "Home",
+    window.location.pathname.startsWith("/hotels")
+      ? "Hotels"
+      : window.location.pathname.startsWith(bookingFlowRoutes.flightsLanding)
+        ? "Flights"
+        : "Home",
   );
   const navigate = useNavigate();
   const dispatch = useAppDispatch();

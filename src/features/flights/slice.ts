@@ -18,6 +18,8 @@ export type FlightError = { code: FlightErrorCode; message: string };
 export interface FlightsState {
   /** Chosen by the user; null means "use the country default". Persisted. */
   currency: CurrencyCode | null;
+  /** Chosen country for popular routes and the default currency; null = from the browser. Persisted. */
+  country: string | null;
   /** Last search, so the form and results survive a reload. Persisted. */
   criteria: FlightSearchCriteria | null;
   search: { status: RequestStatus; result: FlightSearchResult | null; error: FlightError | null };
@@ -32,6 +34,7 @@ export interface FlightsState {
 
 export const initialFlightsState: FlightsState = {
   currency: null,
+  country: null,
   criteria: null,
   search: { status: "idle", result: null, error: null },
   selectedOfferToken: null,
@@ -43,7 +46,7 @@ export const initialFlightsState: FlightsState = {
 };
 
 /** Only these keys are written to storage (see store/index.ts). */
-export const PERSISTED_FLIGHT_KEYS: (keyof FlightsState)[] = ["currency", "criteria"];
+export const PERSISTED_FLIGHT_KEYS: (keyof FlightsState)[] = ["currency", "country", "criteria"];
 
 const asFlightError = (error: unknown): FlightError => {
   const e = error instanceof FlightApiError ? error : new FlightApiError("UNKNOWN", "Something went wrong. Please try again.");
@@ -88,6 +91,9 @@ const flightsSlice = createSlice({
   reducers: {
     setFlightCurrency(state, action: PayloadAction<CurrencyCode>) {
       state.currency = action.payload;
+    },
+    setFlightCountry(state, action: PayloadAction<string>) {
+      state.country = action.payload;
     },
     selectFlightOffer(state, action: PayloadAction<string>) {
       if (state.selectedOfferToken !== action.payload) clearBookingInProgress(state);
@@ -135,6 +141,7 @@ const flightsSlice = createSlice({
 
 export const {
   setFlightCurrency,
+  setFlightCountry,
   selectFlightOffer,
   setFlightTravelers,
   setFlightBags,

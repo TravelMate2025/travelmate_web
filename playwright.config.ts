@@ -16,6 +16,8 @@ export default defineConfig({
     url: "https://127.0.0.1:3100",
     ignoreHTTPSErrors: true,
     reuseExistingServer: true,
+    // Flights run on the recorded Amadeus data (src/features/flights/mocks)
+    env: { VITE_FLIGHTS_API_MODE: "mock" },
     timeout: 120_000,
   },
   projects: [

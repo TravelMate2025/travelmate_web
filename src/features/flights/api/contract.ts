@@ -1,5 +1,7 @@
 import type {
+  Campaign,
   CancellationPreview,
+  ClassFares,
   CheckoutSession,
   CreateBookingInput,
   CurrencyCode,
@@ -9,6 +11,7 @@ import type {
   FlightSearchCriteria,
   FlightSearchResult,
   Place,
+  PopularRoute,
   PriceCheckResult,
 } from "../types";
 
@@ -17,6 +20,9 @@ import type {
 // serves recorded Amadeus test-host data. Both throw FlightApiError.
 export interface FlightsApi {
   searchPlaces(query: string): Promise<Place[]>;
+  getPopularRoutes(countryCode: string | null, currency: CurrencyCode): Promise<PopularRoute[]>;
+  getClassFares(countryCode: string | null, currency: CurrencyCode): Promise<ClassFares | null>;
+  getCampaign(countryCode: string | null): Promise<Campaign | null>;
   search(criteria: FlightSearchCriteria): Promise<FlightSearchResult>;
   getOffer(offerToken: string, currency: CurrencyCode): Promise<FlightOffer>;
   priceOffer(offerToken: string, options: { currency: CurrencyCode; includeBags: boolean }): Promise<PriceCheckResult>;

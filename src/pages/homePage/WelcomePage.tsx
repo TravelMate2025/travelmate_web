@@ -4,10 +4,8 @@ import Tab from "@mui/material/Tab";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import plane from "../../assets/plane.svg";
 import car from "../../assets/car.svg";
 import stay from "../../assets/stay.svg";
-import { FlightSearchPlaceholder } from "../../features/flights/components/FlightSearchPlaceholder";
 import Page from "../../features/car_rentals/carsFirstScreen/CarBookingFirstScreen";
 import PartnerStaySearchPage from "../../features/stays/pages/PartnerStaySearchPage";
 import { useMediaQuery } from "react-responsive";
@@ -84,18 +82,6 @@ const WelcomePage = ({ value, onChange }: WelcomePageProps) => {
                     <Tab
                       icon={
                         <img
-                          src={plane}
-                          alt="plane"
-                          style={{ width: 20, height: 20 }}
-                        />
-                      }
-                      iconPosition="start"
-                      label="Flights"
-                      value="2"
-                    />
-                    <Tab
-                      icon={
-                        <img
                           src={car}
                           alt="car"
                           style={{ width: 20, height: 20 }}
@@ -109,9 +95,6 @@ const WelcomePage = ({ value, onChange }: WelcomePageProps) => {
                 </Box>
                 <TabPanel value="1">
                   <PartnerStaySearchPage />
-                </TabPanel>
-                <TabPanel value="2">
-                  <FlightSearchPlaceholder />
                 </TabPanel>
                 <TabPanel value="3">
                   <Page />
@@ -163,18 +146,6 @@ const WelcomePage = ({ value, onChange }: WelcomePageProps) => {
                     <Tab
                       icon={
                         <img
-                          src={plane}
-                          alt="flights"
-                          style={{ width: 20, height: 20 }}
-                        />
-                      }
-                      iconPosition="start"
-                      label="Flights"
-                      value="2"
-                    />
-                    <Tab
-                      icon={
-                        <img
                           src={car}
                           alt="car"
                           style={{ width: 20, height: 20 }}
@@ -188,9 +159,6 @@ const WelcomePage = ({ value, onChange }: WelcomePageProps) => {
                 </Box>
                 <TabPanel value="1">
                   <PartnerStaySearchPage />
-                </TabPanel>
-                <TabPanel value="2">
-                  <FlightSearchPlaceholder />
                 </TabPanel>
                 <TabPanel value="3">
                   <Page />

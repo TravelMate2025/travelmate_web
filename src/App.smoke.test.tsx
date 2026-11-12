@@ -171,6 +171,10 @@ vi.mock("./features/stays/components/booking-progress/Policies", () => ({
   default: () => <div>policies</div>,
 }));
 
+vi.mock("./features/flights/pages/FlightsPage", () => ({
+  default: () => <div>flights page</div>,
+}));
+
 vi.mock("./features/account/components/UserData", () => ({
   default: () => <div>user data</div>,
 }));
@@ -408,11 +412,10 @@ describe("App route smoke coverage", () => {
     expect(await screen.findByText("booking progress hotel card")).toBeInTheDocument();
   });
 
-  it("sends the old flights route to the home Flights tab", async () => {
+  it("renders the flights page", async () => {
     renderRoute("/flights");
 
-    // Home is stubbed here; e2e/flights-home.spec.ts checks the Flights tab itself
-    expect(await screen.findByText("home page")).toBeInTheDocument();
+    expect(await screen.findByText("flights page")).toBeInTheDocument();
   });
 
   it("renders the account route for signed-in users", async () => {

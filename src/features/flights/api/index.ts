@@ -20,6 +20,9 @@ const withApi = <T,>(call: (api: FlightsApi) => Promise<T>) => resolve().then(ca
 
 export const flightsApi: FlightsApi = {
   searchPlaces: (query) => withApi((a) => a.searchPlaces(query)),
+  getPopularRoutes: (countryCode, currency) => withApi((a) => a.getPopularRoutes(countryCode, currency)),
+  getClassFares: (countryCode, currency) => withApi((a) => a.getClassFares(countryCode, currency)),
+  getCampaign: (countryCode) => withApi((a) => a.getCampaign(countryCode)),
   search: (criteria) => withApi((a) => a.search(criteria)),
   getOffer: (offerToken, currency) => withApi((a) => a.getOffer(offerToken, currency)),
   priceOffer: (offerToken, options) => withApi((a) => a.priceOffer(offerToken, options)),

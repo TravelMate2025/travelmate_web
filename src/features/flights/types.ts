@@ -30,13 +30,42 @@ export interface Place {
   countryCode: string;
 }
 
+/** Staff-configured per country (dashboard, later); priceFrom is the server's cached cheapest fare. */
+export interface PopularRoute {
+  origin: Place;
+  destination: Place;
+  /** Null when there's no recent fare to show. */
+  priceFrom: Money | null;
+}
+
+/** "From" fares per cabin on one route, from the server's latest search. */
+export interface ClassFares {
+  origin: Place;
+  destination: Place;
+  fares: { cabin: CabinClass; priceFrom: Money | null }[];
+}
+
+/** Promo card content, set by staff in the dashboard. Null when none is running. */
+export interface Campaign {
+  label: string;
+  headline: string;
+  body: string;
+  ctaLabel: string;
+  /** Prefills the search form when set. */
+  route: { origin: string; destination: string } | null;
+}
+
 // ---------------------------------------------------------------- search
+
+export type FlexibleDays = 0 | 1 | 2 | 3;
 
 export interface SearchLeg {
   origin: string;
   destination: string;
   /** Local departure date, YYYY-MM-DD. */
   date: string;
+  /** Also search this many days either side (Amadeus dateWindow, up to 3). */
+  flexibleDays: FlexibleDays;
 }
 
 export interface PassengerCounts {
@@ -55,6 +84,8 @@ export interface FlightSearchCriteria {
   passengers: PassengerCounts;
   cabin: CabinClass;
   nonStop: boolean;
+  /** Also search airports near origin and destination (Amadeus origin/destination radius). */
+  includeNearbyAirports: boolean;
   currency: CurrencyCode;
 }
 

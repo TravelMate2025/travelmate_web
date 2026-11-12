@@ -6,12 +6,13 @@ import { DEV_ONLY_RATES_FROM_USD, shiftLocal } from "./transform";
 const returnLondon = (overrides: Partial<FlightSearchCriteria> = {}): FlightSearchCriteria => ({
   tripType: "RETURN",
   legs: [
-    { origin: "LOS", destination: "LON", date: "2026-12-15" },
-    { origin: "LON", destination: "LOS", date: "2026-12-28" },
+    { origin: "LOS", destination: "LON", date: "2026-12-15", flexibleDays: 0 },
+    { origin: "LON", destination: "LOS", date: "2026-12-28", flexibleDays: 0 },
   ],
   passengers: { adults: 1, children: 0, heldInfants: 0, seatedInfants: 0 },
   cabin: "ECONOMY",
   nonStop: false,
+  includeNearbyAirports: false,
   currency: "USD",
   ...overrides,
 });
@@ -82,8 +83,8 @@ describe("mockFlightsApi", () => {
       api.search(
         returnLondon({
           legs: [
-            { origin: "LOS", destination: "LON", date: "2026-12-18" },
-            { origin: "LON", destination: "LOS", date: "2026-12-30" },
+            { origin: "LOS", destination: "LON", date: "2026-12-18", flexibleDays: 0 },
+            { origin: "LON", destination: "LOS", date: "2026-12-30", flexibleDays: 0 },
           ],
         })
       )
@@ -98,8 +99,8 @@ describe("mockFlightsApi", () => {
       api.search(
         returnLondon({
           legs: [
-            { origin: "LOS", destination: "LHR", date: "2026-12-15" },
-            { origin: "LON", destination: "LOS", date: "2026-12-28" },
+            { origin: "LOS", destination: "LHR", date: "2026-12-15", flexibleDays: 0 },
+            { origin: "LON", destination: "LOS", date: "2026-12-28", flexibleDays: 0 },
           ],
         })
       )
@@ -119,7 +120,7 @@ describe("mockFlightsApi", () => {
 
   it("returns nothing for routes, cabins or scenarios without a recording", async () => {
     const domestic = await settle(
-      api.search(returnLondon({ tripType: "ONE_WAY", legs: [{ origin: "ABV", destination: "PHC", date: "2026-12-15" }] }))
+      api.search(returnLondon({ tripType: "ONE_WAY", legs: [{ origin: "ABV", destination: "PHC", date: "2026-12-15", flexibleDays: 0 }] }))
     );
     expect(domestic.offers).toEqual([]);
     expect((await settle(api.search(returnLondon({ cabin: "BUSINESS" })))).offers).toEqual([]);

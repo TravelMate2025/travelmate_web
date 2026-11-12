@@ -118,19 +118,25 @@ Exit: the app builds with no old flight code, and the home Flights tab renders i
 - Until W1 the home search slot shows "Flight search is being rebuilt", and Popular routes cards scroll to the top instead of searching.
 
 
-#### W1: Home Flights tab and search (R1)
-- [ ] Trip type: return, one-way, multi-city (2 to 6 flights, add and remove).
-- [ ] Airport and city autocomplete from `places` (replaces `data.ts`), with recent searches.
-- [ ] Dates: range for return, single date per flight, no past dates, return not before departure.
-- [ ] Travellers and cabin panel: adults, children 2–11, infants on lap (at most one per adult), infants in own seat, 9 seated travellers maximum. Cabins: Economy, Premium Economy, Business, First.
-- [ ] Direct flights only toggle.
-- [ ] Rewire the kept sections:
-  - Browse by class and Popular routes start a prefilled search.
-  - Popular routes are per country and come from the API; staff configure them later.
-  - Why book with us, the promo card and the FAQ stay as content.
-- [ ] Search criteria in the URL, so results can be shared and reloaded.
+#### W1: Flights page and search (R1)
+Changed during W1 (user decision): flights got its own page at `/flights`, styled like `/hotels`, instead of a tab on the home page. The top nav links to it; the home tab bar now has only Stays and Transfers.
 
-Exit: every search type reaches Results in mock mode, and invalid combinations are blocked with clear messages.
+- [x] `/flights` page following the approved web mock: photo hero ("Find your next flight"), search card, travellers panel, recent searches, three promises.
+- [x] Trip type: return, one-way, multi-city (2 to 6 flights, add and remove).
+- [x] Airport and city autocomplete from `places` (replaces `data.ts`), with recent searches and "Search again".
+- [x] Separate Depart and Return dates, each with ± 0–3 flexible days. No past dates; return not before departure; multi-city in date order.
+- [x] Travellers and cabin panel: adults, children 2–11, infants on lap (at most one per adult), infants in own seat, 9 seated travellers maximum. Cabins: Economy, Premium Economy, Business, First.
+- [x] Direct flights only and Include nearby airports.
+- [x] Sections:
+  - Browse by class sets the cabin and shows real "from" fares (`class-fares` API).
+  - Popular routes per country come from the API, with "Change country".
+  - Why book your flight with us, the promo card (from the `campaign` API; hidden when there's none) and the FAQ, all with the mock's copy.
+- [x] Search criteria in the URL (results can be shared and reloaded); old `/?tab=flights` links redirect to `/flights`.
+
+**Done 12 Nov 2026.**
+- Results page shows the search summary and states only (searching, error, no results, count); W2 builds the flight list.
+- New API endpoints for the backend: `popular-routes`, `class-fares`, `campaign`. New search fields: `flexibleDays` per leg, `includeNearbyAirports`.
+- Open: the "support hours" promise (left out of Why book until confirmed).
 
 #### W2: Results (R1)
 - [ ] Sort tabs: Best, Cheapest, Fastest (each shows its lowest price).

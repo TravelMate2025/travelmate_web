@@ -13,6 +13,8 @@ export const bookingFlowRoutes = {
   transferPaymentSuccess: "/transfers/payment-success",
   transferPaymentFailure: "/transfers/payment-failure",
   transferDownload: "/car-paid/download",
+  // Flights landing page (search + sections), reached from the top nav like /hotels
+  flightsLanding: "/flights",
   flightResults: "/flights/results",
   flightFare: "/flights/fare",
   flightTravellers: "/flights/travellers",
@@ -44,6 +46,10 @@ export const stayResultsPath = (params: Record<string, QueryValue>) =>
 
 export const transferResultsPath = (params: Record<string, QueryValue>) =>
   withQuery(bookingFlowRoutes.transferResults, params);
+
+// Flights page with the search form prefilled (Popular routes, Browse by class, campaigns)
+export const flightsLandingPath = (prefill: { from?: string; to?: string; cabin?: string } = {}) =>
+  withQuery(bookingFlowRoutes.flightsLanding, prefill);
 
 export const flightResultsPath = (params: Record<string, QueryValue>) =>
   withQuery(bookingFlowRoutes.flightResults, params);

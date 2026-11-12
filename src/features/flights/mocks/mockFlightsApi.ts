@@ -10,6 +10,7 @@ import { FlightApiError } from "../api/errors";
 import type {
   BagOption,
   BookingRequirements,
+  CabinClass,
   CancellationPreview,
   CurrencyCode,
   FareOption,
@@ -23,6 +24,7 @@ import type {
   TravelerRequirements,
   TravelerType,
 } from "../types";
+import classFaresFixture from "./fixtures/classFares.json";
 import fareOptionsFixture from "./fixtures/fareOptions.json";
 import placesFixture from "./fixtures/places.json";
 import priceCheckFixture from "./fixtures/priceCheck.json";
@@ -260,6 +262,59 @@ export const mockFlightsApi: FlightsApi = {
       .filter((p) => [p.code, p.name, p.city, p.country].some((v) => v.toLowerCase().includes(q)))
       .sort((a, b) => Number(b.code.toLowerCase() === q) - Number(a.code.toLowerCase() === q))
       .slice(0, 8);
+  },
+
+  async getPopularRoutes(countryCode, currency) {
+    await wait(300);
+    // Stand-in for the staff-configured list. "From" prices only where a
+    // one-way search was recorded; otherwise null, as the server would send.
+    const routesByCountry: Record<string, [string, string][]> = {
+      NG: [["LOS", "LON"], ["LOS", "DXB"], ["LOS", "ABV"], ["ABV", "LON"]],
+      GB: [["LON", "LOS"], ["LON", "DXB"], ["LON", "ABV"]],
+      DEFAULT: [["LOS", "LON"], ["LON", "DXB"], ["LOS", "DXB"]],
+    };
+    const pairs = routesByCountry[countryCode ?? ""] ?? routesByCountry.DEFAULT;
+    const placeFor = (code: string) => places.find((p) => p.code === code) as Place;
+    return pairs.map(([origin, destination]) => {
+      const recording = Object.values(searches).find(
+        (s) => s.criteria.tripType === "ONE_WAY" && cityOf(s.criteria.legs[0].origin) === origin && cityOf(s.criteria.legs[0].destination) === destination
+      );
+      const cheapest = recording?.offers.reduce<FlightOffer | null>(
+        (best, o) => (!best || Number(o.price.amount) < Number(best.price.amount) ? o : best),
+        null
+      );
+      return {
+        origin: placeFor(origin),
+        destination: placeFor(destination),
+        priceFrom: cheapest ? moneyInCurrency({ amount: cheapest.price.amount, currency: cheapest.price.currency }, currency) : null,
+      };
+    });
+  },
+
+  async getClassFares(_countryCode, currency) {
+    await wait(300);
+    // Recorded per-cabin search, Lagos -> London one-way (see fixtures/classFares.json)
+    const placeFor = (code: string) => places.find((p) => p.code === code) as Place;
+    return {
+      origin: placeFor("LOS"),
+      destination: placeFor("LON"),
+      fares: (Object.entries(classFaresFixture.cabins) as [CabinClass, { cheapest: string | null }][]).map(([cabin, fare]) => ({
+        cabin,
+        priceFrom: fare.cheapest ? moneyInCurrency({ amount: fare.cheapest, currency: "USD" }, currency) : null,
+      })),
+    };
+  },
+
+  async getCampaign() {
+    await wait(200);
+    // Sample so the card can be designed; the live API returns null until staff set one
+    return {
+      label: "Sample campaign · mock data",
+      headline: "Christmas in London",
+      body: "A campaign set in the dashboard shows here, with its own route and dates.",
+      ctaLabel: "See fares",
+      route: { origin: "LOS", destination: "LON" },
+    };
   },
 
   async search(criteria) {

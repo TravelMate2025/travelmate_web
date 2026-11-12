@@ -45,7 +45,7 @@ const RecentlyViewedCard: React.FC<RecentlyViewedCardProps> = ({ item }) => {
         // No routed flight detail page exists and offers expire -- land on
         // the search entry instead of resuming this exact (possibly stale)
         // offer. Same scope decision as the mobile app for this vertical.
-        navigate("/?tab=flights");
+        navigate(bookingFlowRoutes.flightsLanding);
         break;
     }
   };

@@ -30,3 +30,6 @@ build_log.txt
 code_reveiw.md
 /git
 /et --hard*
+
+# Playwright output
+test-results/

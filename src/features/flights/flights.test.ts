@@ -35,10 +35,11 @@ describe("flightBookingSteps", () => {
 describe("flights slice", () => {
   const criteria: FlightSearchCriteria = {
     tripType: "ONE_WAY",
-    legs: [{ origin: "LOS", destination: "LON", date: "2026-12-15" }],
+    legs: [{ origin: "LOS", destination: "LON", date: "2026-12-15", flexibleDays: 0 }],
     passengers: { adults: 1, children: 0, heldInfants: 0, seatedInfants: 0 },
     cabin: "ECONOMY",
     nonStop: false,
+    includeNearbyAirports: false,
     currency: "GBP",
   };
 

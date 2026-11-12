@@ -3,6 +3,7 @@ import {
   bookingFlowRoutes,
   flightBookingManagePath,
   flightBookingStatusPath,
+  flightsLandingPath,
   flightResultsPath,
   flightStepPath,
   stayDetailPath,
@@ -46,6 +47,9 @@ describe("bookingFlowRoutes", () => {
     expect(flightStepPath("flightFare", "mock-return/1 2")).toBe("/flights/fare?offer=mock-return%2F1+2");
     expect(flightBookingStatusPath("bk/7")).toBe("/flights/bookings/bk%2F7/status");
     expect(flightBookingManagePath("bk-7")).toBe("/flights/bookings/bk-7");
+    expect(flightsLandingPath()).toBe("/flights");
+    expect(flightsLandingPath({ from: "LOS", to: "LON" })).toBe("/flights?from=LOS&to=LON");
+    expect(flightsLandingPath({ cabin: "BUSINESS" })).toBe("/flights?cabin=BUSINESS");
   });
 
   it("round-trips the booking through the download page's data param", () => {

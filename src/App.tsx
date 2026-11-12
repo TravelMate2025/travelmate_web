@@ -40,6 +40,10 @@ const HotelsPage = lazy(() => import("./features/hotels/pages/HotelsPage"));
 const HotelResultsPage = lazy(() => import("./features/hotels/pages/HotelResultsPage"));
 const HotelDetailsPage = lazy(() => import("./features/hotels/pages/HotelDetailsPage"));
 
+// Flights pages (lazy)
+const FlightsPage = lazy(() => import("./features/flights/pages/FlightsPage"));
+const FlightResultsPage = lazy(() => import("./features/flights/pages/FlightResultsPage"));
+
 // Car rental pages (lazy)
 const DisplayCars = lazy(() => import("./features/car_rentals/displayAllCars/DisplayCars"));
 const TransferDetail = lazy(() => import("./features/car_rentals/transferDetail/TransferDetail"));
@@ -272,8 +276,9 @@ function App() {
         <Route path={hotelsRoutes.results} element={<HotelResultsPage />} />
         <Route path={`${hotelsRoutes.home}/:hotelId`} element={<HotelDetailsPage />} />
 
-        {/* Flights: being rebuilt (features.md W0-W11); search lives on the home Flights tab */}
-        <Route path="/flights" element={<Navigate to="/?tab=flights" replace />} />
+        {/* Flights (features.md W0-W11) */}
+        <Route path={bookingFlowRoutes.flightsLanding} element={<FlightsPage />} />
+        <Route path={bookingFlowRoutes.flightResults} element={<FlightResultsPage />} />
 
         {/* Cars */}
         <Route path={bookingFlowRoutes.transferResults} element={<DisplayCars />} />
