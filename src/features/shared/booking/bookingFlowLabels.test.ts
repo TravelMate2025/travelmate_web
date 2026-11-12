@@ -8,6 +8,7 @@ import {
   flightDoneLabel,
   flightResultsLabel,
   flightSearchLabel,
+  flightSearchShortLabel,
   flightStepLabel,
   flightStepTitle,
   guestDetailsLabel,
@@ -57,6 +58,7 @@ describe("bookingFlowLabels", () => {
     expect(flightStepTitle("pay")).toBe("Review and pay");
     expect(flightSearchLabel()).toBe("Search flights");
     expect(flightDoneLabel()).toBe("Done");
+    expect(flightSearchShortLabel()).toBe("Search");
     expect(flightAddLegLabel(6)).toBe("Add another flight (up to 6)");
     expect(flightResultsLabel()).toBe("Flight results");
   });

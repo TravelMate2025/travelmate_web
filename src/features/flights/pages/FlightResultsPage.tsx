@@ -1,13 +1,19 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import Footer from "../../../components/2Footer";
 import Navbar from "../../../pages/homePage/Navbar";
-import { flightsLandingPath } from "../../shared/bookingFlowRoutes";
+import { bookingFlowRoutes, flightsLandingPath } from "../../shared/bookingFlowRoutes";
 import { ResultsStatus } from "../components/results/ResultsStatus";
 import { ResultsSummary } from "../components/results/ResultsSummary";
 import { useFlightResults } from "../hooks/useFlightResults";
 
 const FlightResultsPage = () => {
   const { criteria, title, status, result, error, retry } = useFlightResults();
+  const { search } = useLocation();
+
+  // Multi-city searches and their results live on the multi-city page
+  if (criteria?.tripType === "MULTI_CITY") {
+    return <Navigate to={`${bookingFlowRoutes.flightMultiCity}${search}`} replace />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F4F6FA]">

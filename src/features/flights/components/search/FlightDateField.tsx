@@ -29,8 +29,9 @@ interface FlightDateFieldProps {
   minDate: string;
   value: string | null;
   onChange: (date: string) => void;
-  flexibleDays: FlexibleDays;
-  onFlexibleDaysChange: (days: FlexibleDays) => void;
+  /** Left out where the mock has no flexible dates (multi-city). */
+  flexibleDays?: FlexibleDays;
+  onFlexibleDaysChange?: (days: FlexibleDays) => void;
   error?: string;
   /** Opens the calendar whenever this changes (e.g. after a popular route prefilled the places). */
   openKey?: number;
@@ -94,13 +95,13 @@ export const FlightDateField = ({
     </div>
   );
 
-  const flexibleSelect = (
-    <span className={`relative inline-flex w-fit items-center gap-0.5 ${compact ? "text-[#023E8A]" : "text-[#4E4F52]"}`}>
+  const flexibleSelect = onFlexibleDaysChange && (
+    <span className="relative inline-flex w-fit items-center text-[#4E4F52]">
       <select
         aria-label={`${label}: flexible dates`}
-        value={flexibleDays}
+        value={flexibleDays ?? 0}
         onChange={(event) => onFlexibleDaysChange(Number(event.target.value) as FlexibleDays)}
-        className={`h-auto cursor-pointer appearance-none bg-transparent p-0 pr-4 leading-tight ${compact ? "text-xs font-semibold" : CELL_HINT_CLASS}`}
+        className={`h-auto cursor-pointer appearance-none bg-transparent p-0 pr-4 ${CELL_HINT_CLASS}`}
       >
         {FLEXIBLE_DAY_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
@@ -118,8 +119,6 @@ export const FlightDateField = ({
         <label htmlFor={id} className={CELL_LABEL_CLASS}>
           {label}
         </label>
-        {/* Multi-city boxes have no sub-line (mock), so the ± days choice sits beside the label */}
-        {compact && flexibleSelect}
       </div>
       <button
         id={id}
@@ -136,7 +135,7 @@ export const FlightDateField = ({
           {error}
         </span>
       ) : (
-        !compact && flexibleSelect
+        flexibleSelect
       )}
 
       {isMobile ? (

@@ -16,6 +16,8 @@ export const bookingFlowRoutes = {
   // Flights landing page (search + sections), reached from the top nav like /hotels
   flightsLanding: "/flights",
   flightResults: "/flights/results",
+  // Multi-city search and its results on one page (mock: MultiCity)
+  flightMultiCity: "/flights/multi-city",
   flightFare: "/flights/fare",
   flightTravellers: "/flights/travellers",
   flightExtras: "/flights/extras",
@@ -50,6 +52,9 @@ export const transferResultsPath = (params: Record<string, QueryValue>) =>
 // Flights page with the search form prefilled (Popular routes, Browse by class, campaigns)
 export const flightsLandingPath = (prefill: { from?: string; to?: string; cabin?: string } = {}) =>
   withQuery(bookingFlowRoutes.flightsLanding, prefill);
+
+export const flightMultiCityPath = (params: Record<string, QueryValue> = {}) =>
+  withQuery(bookingFlowRoutes.flightMultiCity, params);
 
 export const flightResultsPath = (params: Record<string, QueryValue>) =>
   withQuery(bookingFlowRoutes.flightResults, params);

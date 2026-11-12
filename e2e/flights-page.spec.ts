@@ -58,16 +58,32 @@ test("the nav's Flights link and old links open the flights page", async ({ page
   await expect(page).toHaveURL(/\/flights$/);
 });
 
-test("multi-city follows the mock: numbered rows, add and remove", async ({ page }) => {
+test("multi-city opens its own page, as in the mock", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/flights");
+  await page.getByRole("button", { name: /Lagos → London/ }).first().click();
+  await expect(page.locator("#flight-from")).toHaveValue("Lagos (LOS)");
   await page.getByRole("radio", { name: "Multi-city" }).click();
+  await expect(page).toHaveURL(/\/flights\/multi-city/);
+  await expect(page.getByRole("form", { name: "Multi-city search" })).toBeVisible();
+  await expect(page.locator("#flight-0-from")).toHaveValue("Lagos (LOS)");
   await expect(page.getByRole("group", { name: /^Flight \d$/ })).toHaveCount(2);
   await expect(page.getByRole("button", { name: "Remove flight 1" })).toBeDisabled();
   await page.getByRole("button", { name: /Add another flight/ }).click();
   await expect(page.getByRole("group", { name: /^Flight \d$/ })).toHaveCount(3);
   await expect(page.getByRole("button", { name: "Remove flight 3" })).toBeEnabled();
-  await page.locator("#flight-search").screenshot({ path: "test-results/flights-multicity-1280.png" });
-  await page.setViewportSize({ width: 375, height: 900 });
-  await page.locator("#flight-search").screenshot({ path: "test-results/flights-multicity-375.png" });
+  await page.getByRole("button", { name: "1 adult · Economy" }).click();
+  await page.getByRole("button", { name: "More adults" }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "2 adults · Economy" })).toBeVisible();
+  await page.getByRole("radio", { name: "Return" }).click();
+  await expect(page).toHaveURL(/\/flights(\?|$)/);
+  await expect(page.locator("#flight-from")).toHaveValue("Lagos (LOS)");
+});
+
+test("a multi-city results link searches on the multi-city page", async ({ page }) => {
+  await page.goto("/flights/results?trip=MULTI_CITY&legs=LOS.LON.2026-12-15_LON.DXB.2026-12-20_DXB.LOS.2026-12-28&adults=1&cabin=ECONOMY&currency=USD");
+  await expect(page).toHaveURL(/\/flights\/multi-city\?/);
+  await expect(page.getByRole("group", { name: /^Flight \d$/ })).toHaveCount(3);
+  await expect(page.getByText("20 flights found")).toBeVisible();
 });

@@ -43,6 +43,7 @@ const HotelDetailsPage = lazy(() => import("./features/hotels/pages/HotelDetails
 // Flights pages (lazy)
 const FlightsPage = lazy(() => import("./features/flights/pages/FlightsPage"));
 const FlightResultsPage = lazy(() => import("./features/flights/pages/FlightResultsPage"));
+const FlightMultiCityPage = lazy(() => import("./features/flights/pages/FlightMultiCityPage"));
 
 // Car rental pages (lazy)
 const DisplayCars = lazy(() => import("./features/car_rentals/displayAllCars/DisplayCars"));
@@ -279,6 +280,7 @@ function App() {
         {/* Flights (features.md W0-W11) */}
         <Route path={bookingFlowRoutes.flightsLanding} element={<FlightsPage />} />
         <Route path={bookingFlowRoutes.flightResults} element={<FlightResultsPage />} />
+        <Route path={bookingFlowRoutes.flightMultiCity} element={<FlightMultiCityPage />} />
 
         {/* Cars */}
         <Route path={bookingFlowRoutes.transferResults} element={<DisplayCars />} />

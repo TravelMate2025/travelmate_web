@@ -3,8 +3,8 @@ import { useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import type { RootState } from "../../../store";
-import { flightResultsPath } from "../../shared/bookingFlowRoutes";
-import { criteriaToQuery } from "../search/criteriaUrl";
+import { flightMultiCityPath, flightResultsPath, flightsLandingPath } from "../../shared/bookingFlowRoutes";
+import { criteriaFromQuery, criteriaToQuery } from "../search/criteriaUrl";
 import { loadRecentSearches, saveRecentSearch, type RecentFlightSearch } from "../search/recentSearches";
 import {
   CABINS,
@@ -25,6 +25,13 @@ import { resolvePlace } from "./usePlaces";
 
 export const FLIGHT_SEARCH_ANCHOR_ID = "flight-search";
 
+/**
+ * "single": the /flights search card (Return, One-way). Search opens the results page.
+ * "multi": the /flights/multi-city page (mock: MultiCity). Search stays on that page.
+ * Switching between them navigates, carrying the first flight's From and To.
+ */
+export type SearchFormMode = "single" | "multi";
+
 const localToday = () => format(new Date(), "yyyy-MM-dd");
 
 /** Rebuilds a draft from saved criteria, dropping dates that have passed. */
@@ -41,20 +48,37 @@ const restoreDraft = async (criteria: FlightSearchCriteria, known: Record<string
   };
 };
 
-export const useFlightSearchForm = () => {
+/** The multi-city screen has no flexible dates, direct-only or nearby-airport options (mock). */
+const asMultiCity = (draft: SearchDraft): SearchDraft => {
+  const multi = withTripType(draft, "MULTI_CITY");
+  return { ...multi, nonStop: false, includeNearbyAirports: false, legs: multi.legs.map((leg) => ({ ...leg, flexibleDays: 0 })) };
+};
+
+const asSingle = (draft: SearchDraft): SearchDraft => (draft.tripType === "MULTI_CITY" ? withTripType(draft, "RETURN") : draft);
+
+export const useFlightSearchForm = (mode: SearchFormMode = "single") => {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const lastCriteria = useSelector((state: RootState) => state.flights.criteria);
   const { currency, setCurrency } = useFlightCurrency();
+  const shape = mode === "multi" ? asMultiCity : asSingle;
 
-  const [draft, setDraft] = useState<SearchDraft>(initialDraft);
+  const [draft, setDraft] = useState<SearchDraft>(() => shape(initialDraft()));
   const [submitted, setSubmitted] = useState(false);
   const [recent, setRecent] = useState<RecentFlightSearch[]>(loadRecentSearches);
   // Which date box should open its calendar; the key changes on every request so it can re-open
   const [openDate, setOpenDate] = useState<{ index: number; key: number } | null>(null);
   const today = localToday();
 
-  // ---- prefill from Popular routes / Browse by class / campaigns (/flights?from=LOS&to=LON&cabin=BUSINESS)
+  // ---- the search in the URL (multi-city page after Search, or a shared link)
+  const urlCriteria = useMemo(
+    () => (mode === "multi" ? criteriaFromQuery(params, currency) : null),
+    // Only the URL matters here, not later currency changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [mode, params]
+  );
+
+  // ---- prefill from Popular routes / Browse by class / campaigns / the other page (?from=LOS&to=LON&cabin=BUSINESS)
   const prefill = useMemo(
     () => ({ from: params.get("from"), to: params.get("to"), cabin: params.get("cabin") }),
     [params]
@@ -77,28 +101,38 @@ export const useFlightSearchForm = () => {
           cabin: cabin ?? d.cabin,
         }));
         if (origin || destination) setOpenDate({ index: 0, key: Date.now() });
-        document.getElementById(FLIGHT_SEARCH_ANCHOR_ID)?.scrollIntoView({ behavior: "smooth", block: "start" });
-        setParams({}, { replace: true });
+        if (mode === "single") {
+          document.getElementById(FLIGHT_SEARCH_ANCHOR_ID)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        setParams(
+          (current) => {
+            ["from", "to", "cabin"].forEach((key) => current.delete(key));
+            return current;
+          },
+          { replace: true }
+        );
       }
     );
     return () => {
       cancelled = true;
     };
-  }, [hasPrefill, prefill, setParams]);
+  }, [hasPrefill, mode, prefill, setParams]);
 
-  // ---- otherwise start from the last search on this device
+  // ---- otherwise start from the search in the URL, else the last search on this device
   const restored = useRef(false);
   useEffect(() => {
-    if (restored.current || hasPrefill || !lastCriteria) return;
+    if (restored.current || hasPrefill) return;
+    const source = urlCriteria ?? lastCriteria;
+    if (!source) return;
     restored.current = true;
     let cancelled = false;
-    restoreDraft(lastCriteria).then((next) => {
-      if (!cancelled) setDraft(next);
+    restoreDraft(source).then((next) => {
+      if (!cancelled) setDraft(shape(next));
     });
     return () => {
       cancelled = true;
     };
-  }, [hasPrefill, lastCriteria]);
+  }, [hasPrefill, lastCriteria, shape, urlCriteria]);
 
   // ---- editing
   const updateLeg = useCallback((index: number, patch: Partial<DraftLeg>) => {
@@ -112,7 +146,23 @@ export const useFlightSearchForm = () => {
     }));
   }, []);
 
-  const setTripType = useCallback((tripType: TripType) => setDraft((d) => withTripType(d, tripType)), []);
+  /** Within a page the trip type changes in place; across pages it navigates with From and To. */
+  const setTripType = useCallback(
+    (tripType: TripType) => {
+      const first = draft.legs[0];
+      const carry = { from: first?.origin?.code, to: first?.destination?.code };
+      if (mode === "single" && tripType === "MULTI_CITY") {
+        navigate(flightMultiCityPath(carry));
+        return;
+      }
+      if (mode === "multi" && tripType !== "MULTI_CITY") {
+        navigate(flightsLandingPath(carry));
+        return;
+      }
+      setDraft((d) => withTripType(d, tripType));
+    },
+    [draft.legs, mode, navigate]
+  );
 
   const setReturn = useCallback((patch: { returnDate?: string; returnFlexibleDays?: FlexibleDays }) => {
     setDraft((d) => ({ ...d, ...patch }));
@@ -146,19 +196,29 @@ export const useFlightSearchForm = () => {
   const setNonStop = useCallback((nonStop: boolean) => setDraft((d) => ({ ...d, nonStop })), []);
   const setNearby = useCallback((includeNearbyAirports: boolean) => setDraft((d) => ({ ...d, includeNearbyAirports })), []);
 
+  const pathFor = useCallback(
+    (criteria: FlightSearchCriteria) =>
+      criteria.tripType === "MULTI_CITY" ? flightMultiCityPath(criteriaToQuery(criteria)) : flightResultsPath(criteriaToQuery(criteria)),
+    []
+  );
+
   /** "Search again": runs it if its dates are still ahead, otherwise fills the form to pick new dates. */
   const searchAgain = useCallback(
     async (entry: RecentFlightSearch) => {
       if (entry.criteria.legs.every((leg) => leg.date >= localToday())) {
-        navigate(flightResultsPath(criteriaToQuery({ ...entry.criteria, currency })));
+        navigate(pathFor({ ...entry.criteria, currency }));
         return;
       }
-      setDraft(await restoreDraft(entry.criteria, entry.places));
+      if (entry.criteria.tripType === "MULTI_CITY" && mode === "single") {
+        navigate(flightMultiCityPath({ from: entry.criteria.legs[0].origin, to: entry.criteria.legs[0].destination }));
+        return;
+      }
+      setDraft(shape(await restoreDraft(entry.criteria, entry.places)));
       setSubmitted(false);
       setOpenDate({ index: 0, key: Date.now() });
       document.getElementById(FLIGHT_SEARCH_ANCHOR_ID)?.scrollIntoView({ behavior: "smooth", block: "start" });
     },
-    [currency, navigate]
+    [currency, mode, navigate, pathFor, shape]
   );
 
   // ---- validation and submit
@@ -176,7 +236,7 @@ export const useFlightSearchForm = () => {
     const criteria = toCriteria(draft, currency);
     const places = draft.legs.flatMap((leg) => [leg.origin, leg.destination]).filter((p): p is Place => p !== null);
     setRecent(saveRecentSearch(criteria, places));
-    navigate(flightResultsPath(criteriaToQuery(criteria)));
+    navigate(pathFor(criteria));
   };
 
   return {

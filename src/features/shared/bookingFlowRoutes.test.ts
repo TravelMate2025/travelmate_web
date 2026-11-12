@@ -4,6 +4,7 @@ import {
   flightBookingManagePath,
   flightBookingStatusPath,
   flightsLandingPath,
+  flightMultiCityPath,
   flightResultsPath,
   flightStepPath,
   stayDetailPath,
@@ -48,6 +49,8 @@ describe("bookingFlowRoutes", () => {
     expect(flightBookingStatusPath("bk/7")).toBe("/flights/bookings/bk%2F7/status");
     expect(flightBookingManagePath("bk-7")).toBe("/flights/bookings/bk-7");
     expect(flightsLandingPath()).toBe("/flights");
+    expect(flightMultiCityPath()).toBe("/flights/multi-city");
+    expect(flightMultiCityPath({ from: "LOS", to: "LON" })).toBe("/flights/multi-city?from=LOS&to=LON");
     expect(flightsLandingPath({ from: "LOS", to: "LON" })).toBe("/flights?from=LOS&to=LON");
     expect(flightsLandingPath({ cabin: "BUSINESS" })).toBe("/flights?cabin=BUSINESS");
   });

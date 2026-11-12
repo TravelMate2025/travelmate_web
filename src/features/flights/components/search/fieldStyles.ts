@@ -4,7 +4,7 @@ import type { Place } from "../../types";
 // - search card (.tm-field): padding 12/16, gap 6, label 12px/600 uppercase .04em,
 //   value 17px/600, sub-line 13px  -> about 90px tall
 // - multi-city rows (.fld): padding 10/14, gap 4, value 16px bold, no sub-line -> about 61px
-const CELL_BASE = "relative flex min-w-0 flex-1 basis-44 flex-col rounded-xl border border-[#CDCED1] bg-white text-left";
+const CELL_BASE = "relative flex min-w-0 flex-1 basis-45 flex-col rounded-xl border border-[#CDCED1] bg-white text-left";
 export const cellClass = (compact = false) => `${CELL_BASE} ${compact ? "gap-1 px-3.5 py-2.5" : "gap-1.5 px-4 py-3"}`;
 export const CELL_CLASS = cellClass();
 

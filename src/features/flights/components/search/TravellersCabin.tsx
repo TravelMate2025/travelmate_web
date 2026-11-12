@@ -47,7 +47,7 @@ export const TravellersCabinCell = ({ id, passengers, cabin, error }: CellProps)
   };
 
   return (
-    <div className={`${CELL_CLASS} basis-52`}>
+    <div className={`${CELL_CLASS} basis-50`}>
       <label htmlFor={id} className={CELL_LABEL_CLASS}>
         Travellers and cabin
       </label>

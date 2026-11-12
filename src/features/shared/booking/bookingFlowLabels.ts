@@ -36,6 +36,7 @@ export const flightStepTitle = (step: FlightStepKey) =>
 
 export const flightSearchLabel = () => "Search flights";
 export const flightDoneLabel = () => "Done";
+export const flightSearchShortLabel = () => "Search";
 export const flightAddLegLabel = (max: number) => `Add another flight (up to ${max})`;
 export const flightResultsLabel = () => "Flight results";
 
