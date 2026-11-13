@@ -34,15 +34,21 @@ import { RootState } from "../../store";
 import { performLogout } from "../../features/account/slices/performLogout";
 import { useAppDispatch } from "../../hooks/redux";
 import Spinner from "../../features/account/components/Spinner";
+import { bookingFlowRoutes } from "../../features/shared/bookingFlowRoutes";
+import { FEATURES, HAS_TRAVELMATE_BOOKINGS, HOTELS_ONLY } from "../../config/features";
 import { useNotifications } from "../../features/account/components/notifications/NotificationProvider";
 
+// Products follow the switches in config/features.ts. Hotels only: the home page is hotels, so no separate "Home".
 const navItems = [
-  { name: "Home", path: "/" },
-  { name: "Stays", path: "/?tab=stays" },
-  { name: "Hotels", path: "/hotels" },
-  { name: "Flights", path: "/?tab=flights" },
-  { name: "Transfers", path: "/?tab=transfers" },
+  ...(HOTELS_ONLY ? [] : [{ name: "Home", path: "/" }]),
+  ...(FEATURES.stays ? [{ name: "Stays", path: "/?tab=stays" }] : []),
+  { name: "Hotels", path: HOTELS_ONLY ? "/" : "/hotels" },
+  ...(FEATURES.flights ? [{ name: "Flights", path: bookingFlowRoutes.flightsLanding }] : []),
+  ...(FEATURES.transfers ? [{ name: "Transfers", path: "/?tab=transfers" }] : []),
 ];
+
+// Bookings and Favorites only when a product booked on TravelMate is on
+const bookingMenu = (text: string) => HAS_TRAVELMATE_BOOKINGS || (text !== "Bookings" && text !== "Favorites");
 
 const menuItems = [
   { text: "Account", icon: <PersonOutlinedIcon />, path: "/account" },
@@ -52,15 +58,15 @@ const menuItems = [
     icon: <FavoriteBorderOutlinedIcon />,
     path: "/favorites",
   },
-  { text: "Notifications", icon: <FaBell />, path: "/notifications" },
-];
+  { text: "Notifications", icon: <FaBell />, path: "/notification" },
+].filter((item) => bookingMenu(item.text));
 
 const menuItemsWeb = [
   { text: "Account", icon: <PersonOutlinedIcon /> },
   { text: "Bookings", icon: <ClassOutlinedIcon /> },
   { text: "Favorites", icon: <FavoriteBorderOutlinedIcon /> },
   { text: "Log out", icon: <PiSignOutFill size={24} /> },
-];
+].filter((item) => bookingMenu(item.text));
 
 const logout = [{ text: "Log out", icon: <LoginOutlinedIcon /> }];
 
@@ -72,7 +78,11 @@ const Navbar: React.FC = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [activeTab, setActiveTab] = useState(() =>
-    window.location.pathname.startsWith("/hotels") ? "Hotels" : "Home",
+    HOTELS_ONLY || window.location.pathname.startsWith("/hotels")
+      ? "Hotels"
+      : window.location.pathname.startsWith(bookingFlowRoutes.flightsLanding)
+        ? "Flights"
+        : "Home",
   );
   const navigate = useNavigate();
   const dispatch = useAppDispatch();

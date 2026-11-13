@@ -11,6 +11,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import SwitchButton from "../components/SwitchButton";
 import toast from "react-hot-toast";
 import LogoutButton from "../components/LogoutButton";
+import { showAccountLink } from "../../../config/features";
 
 interface NotificationPreferences {
   enabled_types: string[];
@@ -166,7 +167,7 @@ function NotPreferencePresenter({
         {/* LEFT SIDE MENU */}
         <div className="hidden md:block w-[350px]">
           <div className="border border-gray-300 rounded-xl h-auto w-[290px] m-auto">
-            {options.map((item, index) => {
+            {options.filter(showAccountLink).map((item, index) => {
               const isActive = location.pathname === item.link;
 
               if (item.title == "Log Out") {

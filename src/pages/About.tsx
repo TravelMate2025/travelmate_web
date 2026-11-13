@@ -7,13 +7,30 @@ import { usePageMeta } from "../hooks/usePageMeta";
 import { InfoPageHeader } from "../components/infoPages/InfoPageHeader";
 import { CompanyConnectCard } from "../components/infoPages/CompanyConnectCard";
 import { SanitizedHtml } from "../components/infoPages/SanitizedHtml";
+import { HOTELS_ONLY, PRODUCTS_TEXT } from "../config/features";
 
 // Shown when the backend-managed About content is empty or fails to load --
 // previously this page rendered nothing at all in that case (an empty div),
 // which is exactly what an evaluating partner or first-time visitor could
 // hit. This is a stable fallback, not a replacement for the real editable
 // content; the CMS copy still takes priority whenever it's actually there.
-const FALLBACK_ABOUT_COPY = (
+// Hotels-only launch: what's actually live (config/features.ts)
+const HOTELS_ABOUT_COPY = (
+  <div className="space-y-4">
+    <p>
+      TravelMate helps you find hotels, villas and resorts around the world:
+      search by place and dates, compare stays, and see the details that
+      matter before you book.
+    </p>
+    <p>
+      Live prices, rooms and checkout are on our partner's secure booking
+      page, where the hotel's cancellation terms are shown before you pay.
+    </p>
+    <p>Our support team is here to help with your trip, before or after you travel.</p>
+  </div>
+);
+
+const ALL_PRODUCTS_ABOUT_COPY = (
   <div className="space-y-4">
     <p>
       TravelMate brings stays, flights, and airport transfers together in one
@@ -34,11 +51,13 @@ const FALLBACK_ABOUT_COPY = (
   </div>
 );
 
+const FALLBACK_ABOUT_COPY = HOTELS_ONLY ? HOTELS_ABOUT_COPY : ALL_PRODUCTS_ABOUT_COPY;
+
 export function AboutPage() {
   usePageMeta({
     title: "About Us | TravelMate",
     description:
-      "Learn about TravelMate, the travel booking platform bringing stays, flights, and airport transfers together in one account.",
+      `Learn about TravelMate, the travel booking platform for ${PRODUCTS_TEXT}.`,
   });
 
   const [loading, setLoading] = useState(false);
@@ -71,7 +90,7 @@ export function AboutPage() {
       <InfoPageHeader
         eyebrow="Company"
         title="About TravelMate"
-        subtitle="Learn about TravelMate, the travel booking platform bringing stays, flights, and airport transfers together in one account."
+        subtitle={`Learn about TravelMate, the travel booking platform for ${PRODUCTS_TEXT}.`}
       />
       <section className="min-h-screen text-[#4E4F52] px-4 py-14">
         <div className="max-w-[680px] mx-auto text-[15.5px] leading-relaxed">

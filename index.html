@@ -3,10 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TravelMate — Book Stays, Flights & Airport Transfers in One Place</title>
-    <meta name="description" content="TravelMate is a travel booking platform for stays, flights, and airport transfers — one account, real prices, secure checkout." />
+    <title>%SITE_TITLE%</title>
+    <meta name="description" content="%SITE_DESCRIPTION%" />
     <link rel="icon" type="image/png" href="/favicon.png" />
 
+    <!-- Title, description and share image are filled in at build time from the product switches (vite.config.ts) -->
     <!-- OpenGraph -- these are the tags a non-JS crawler (Facebook, Slack,
          LinkedIn, WhatsApp link previews) will always see, regardless of
          which route was actually shared, since this is a client-rendered
@@ -15,9 +16,9 @@
          crawlers that do execute JS (e.g. Googlebot). -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="TravelMate" />
-    <meta property="og:title" content="TravelMate — Book Stays, Flights & Airport Transfers in One Place" />
-    <meta property="og:description" content="TravelMate is a travel booking platform for stays, flights, and airport transfers — one account, real prices, secure checkout." />
-    <meta property="og:image" content="https://travelmateglo.com/og-image.jpg" />
+    <meta property="og:title" content="%SITE_TITLE%" />
+    <meta property="og:description" content="%SITE_DESCRIPTION%" />
+    <meta property="og:image" content="%SITE_IMAGE%" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/jpeg" />
@@ -27,9 +28,9 @@
          actually renders full-width instead of being cropped into a small
          square thumbnail. -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="TravelMate — Book Stays, Flights & Airport Transfers in One Place" />
-    <meta name="twitter:description" content="TravelMate is a travel booking platform for stays, flights, and airport transfers — one account, real prices, secure checkout." />
-    <meta name="twitter:image" content="https://travelmateglo.com/og-image.jpg" />
+    <meta name="twitter:title" content="%SITE_TITLE%" />
+    <meta name="twitter:description" content="%SITE_DESCRIPTION%" />
+    <meta name="twitter:image" content="%SITE_IMAGE%" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <style>

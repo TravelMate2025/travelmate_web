@@ -5,6 +5,7 @@ import { FaCheck, FaTimes } from "react-icons/fa";
 import { RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import { MdLockOutline } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { takeReturnPath } from "../../../routes/returnPath";
 import { createPassword } from "../api/auth";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
@@ -56,7 +57,8 @@ export default function CreatePassword() {
       setTimeout(() => setShowSpinner(true), 2000);
       setTimeout(() => {
         setShowSpinner(false);
-        navigate("/");
+        // New account: back to the page that asked them to sign in (e.g. flight traveller details)
+        navigate(takeReturnPath(null) ?? "/");
       }, 6000);
     } else {
       toast.error(res.Message || "Something went wrong. Please try again.");

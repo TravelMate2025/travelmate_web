@@ -1,7 +1,7 @@
 import { Hotel } from "../stays/types";
 import { CarTransferOption } from "../car_rentals/types/booking";
 import { CarInfo } from "../car_rentals/carPaymentSlice";
-import { FlightOffer } from "../flights/types";
+import type { FlightOffer } from "../flights/types";
 
 // Same localStorage pattern as PartnerStaySearchPage's recent-destination-
 // searches (readRecentSearches/writeRecentSearches) -- generalized into a
@@ -106,14 +106,13 @@ export function recentlyViewedFromTransfer(
 }
 
 export function recentlyViewedFromFlightOffer(offer: FlightOffer): RecentlyViewedItem {
-  const segments = offer.itineraries?.[0]?.segments ?? [];
-  const origin = segments[0]?.departure?.iataCode;
-  const destination = segments[segments.length - 1]?.arrival?.iataCode;
-  const departureDate = segments[0]?.departure?.at;
-  const returnSegments = offer.itineraries?.[1]?.segments;
-  const returnDate = returnSegments?.[0]?.departure?.at;
-  const id = `${origin ?? "?"}-${destination ?? "?"}-${departureDate ?? offer.id}`;
-  const airline = segments[0]?.airline?.name ?? segments[0]?.carrierCode ?? "";
+  const segments = offer.itineraries[0]?.segments ?? [];
+  const origin = segments[0]?.from.iata;
+  const destination = segments[segments.length - 1]?.to.iata;
+  const departureDate = segments[0]?.from.atLocal;
+  const returnDate = offer.itineraries[1]?.segments[0]?.from.atLocal;
+  const id = `${origin ?? "?"}-${destination ?? "?"}-${departureDate ?? offer.offerToken}`;
+  const airline = offer.validatingAirline.name;
 
   return {
     kind: "flight",
@@ -122,8 +121,7 @@ export function recentlyViewedFromFlightOffer(offer: FlightOffer): RecentlyViewe
     title: [origin, destination].filter(Boolean).join(" → "),
     subtitle: airline,
     imageUrl: null,
-    priceLabel:
-      offer.price?.total != null ? formatPrice(Number(offer.price.total), offer.price.currency) : null,
+    priceLabel: formatPrice(Number(offer.price.amount), offer.price.currency),
     payload: { origin, destination, departureDate, returnDate },
   };
 }

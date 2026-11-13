@@ -22,7 +22,7 @@ import {
 import type { HotelSummary, SearchState } from "../types";
 import "../hotels.css";
 import "../results.css";
-import { refreshBookLink, withVisitor } from "../visitor";
+import { useCheckPrice } from "../useCheckPrice";
 
 type Filter = (typeof destinationFilters)[number];
 
@@ -32,6 +32,7 @@ type Spot = { name: string; lat: number; lng: number };
 const FEATURED: Spot = { name: "Lisbon", lat: 38.72509, lng: -9.1498 };
 
 export default function HotelsPage() {
+  const checkPrice = useCheckPrice();
   usePageMeta({
     title: "Hotels, Villas & Resorts | TravelMate",
     description:
@@ -179,7 +180,7 @@ export default function HotelsPage() {
                       {h.review && <span className="tmh-score">{outOfTen(h.review.score)}</span>}
                     </div>
                     <span className="tmh-stay-place">{[h.city, h.country].filter(Boolean).join(", ")}</span>
-                    <a className="tmh-stay-link" href={withVisitor(h.book_url)} onClick={refreshBookLink(h.book_url)}>
+                    <a className="tmh-stay-link" {...checkPrice(h.book_url)}>
                       Check price →
                     </a>
                   </div>

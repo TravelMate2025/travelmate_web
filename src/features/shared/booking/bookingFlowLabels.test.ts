@@ -3,7 +3,15 @@ import {
   bookingConfirmationLabel,
   bookingManagementLabel,
   bookingReviewLabel,
+  continueToExtrasLabel,
   continueToPaymentLabel,
+  flightAddLegLabel,
+  flightDoneLabel,
+  flightResultsLabel,
+  flightSearchLabel,
+  flightSearchShortLabel,
+  flightStepLabel,
+  flightStepTitle,
   guestDetailsLabel,
   partnerPricingSourceCopy,
   paymentProviderLabel,
@@ -31,6 +39,7 @@ describe("bookingFlowLabels", () => {
     expect(bookingConfirmationLabel()).toBe("Booking confirmation");
     expect(bookingManagementLabel()).toBe("Booking management");
     expect(continueToPaymentLabel()).toBe("Continue to payment");
+    expect(continueToExtrasLabel()).toBe("Continue to extras");
     expect(guestDetailsLabel()).toBe("Guest details");
     expect(pricingSourceLabel()).toBe("Pricing source");
     expect(partnerPricingSourceCopy()).toBe(
@@ -43,6 +52,17 @@ describe("bookingFlowLabels", () => {
     expect(stayTypeDisplayLabel("room_level")).toBe("Room stay");
     expect(stayTypeDisplayLabel("unit_level")).toBe("Unit stay");
     expect(stayTypeDisplayLabel(undefined)).toBe("Stay");
+  });
+
+  it("labels the flight booking steps", () => {
+    expect(flightStepLabel("travellers")).toBe("Travellers");
+    expect(flightStepTitle("fare")).toBe("Choose your fare");
+    expect(flightStepTitle("pay")).toBe("Review and pay");
+    expect(flightSearchLabel()).toBe("Search flights");
+    expect(flightDoneLabel()).toBe("Done");
+    expect(flightSearchShortLabel()).toBe("Search");
+    expect(flightAddLegLabel(6)).toBe("Add another flight (up to 6)");
+    expect(flightResultsLabel()).toBe("Flight results");
   });
 
   it("uses provider-neutral payment copy", () => {

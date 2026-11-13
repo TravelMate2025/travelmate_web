@@ -5,25 +5,6 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { bookingFlowRoutes } from "../features/shared/bookingFlowRoutes";
 
 const breadcrumbMap: { [key: string]: { label: string; path?: string }[] } = {
-  // Round-trip section
-  [bookingFlowRoutes.flightDeparture]: [{ label: "Departure Flight" }],
-  [bookingFlowRoutes.flightReturn]: [
-    { label: "Departure Flight", path: "/flightdeparture" },
-    { label: "Return Flight" },
-  ],
-
-
-  // One-way trip section
-  "/departure-flight-one-way": [{ label: "Departure Flight" }],
-  
-
-  // Multi-way trip section
-  "/departure-flight-multi-way": [{ label: "Departure Flight 1" }],
-  "/second-departure-flight": [
-    { label: "Departure Flight 1", path: "/departure-flight-multi-way" },
-    { label: "Departure Flight 2" },
-  ],
-
    [bookingFlowRoutes.transferResults]: [{ label: "Search Results" }],
 };
 

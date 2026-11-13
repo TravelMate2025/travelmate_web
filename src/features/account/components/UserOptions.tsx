@@ -7,6 +7,7 @@ import { MdCreditCard } from "react-icons/md";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import ArrowForwardIosOutlinedIcon from "@mui/icons-material/ArrowForwardIosOutlined";
 import { useState } from "react";
+import { showAccountLink } from "../../../config/features";
 
 export default function UserOptions() {
   const dispatch = useAppDispatch();
@@ -68,7 +69,7 @@ export default function UserOptions() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-[1280px] mx-auto mt-6 px-4">
-      {options.map((item, index) => {
+      {options.filter(showAccountLink).map((item, index) => {
         const isLogout = item.title === "Log Out";
 
         const content = (
