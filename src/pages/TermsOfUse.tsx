@@ -8,12 +8,13 @@ import { usePageMeta } from "../hooks/usePageMeta";
 import { InfoPageHeader } from "../components/infoPages/InfoPageHeader";
 import { CompanyConnectCard } from "../components/infoPages/CompanyConnectCard";
 import { SanitizedHtml } from "../components/infoPages/SanitizedHtml";
+import { PRODUCTS_TEXT } from "../config/features";
 
 export function TermsOfUsePage() {
   usePageMeta({
     title: "Terms of Use | TravelMate",
     description:
-      "The terms that govern booking stays, flights, and airport transfers through TravelMate.",
+      `The terms that govern searching and booking ${PRODUCTS_TEXT} through TravelMate.`,
   });
 
   const [loading, setLoading] = useState(false);
@@ -41,9 +42,8 @@ export function TermsOfUsePage() {
     getContent();
   }, [getContent]);
 
-  const lastUpdatedAt = content?.updated_at
-    ? DateTime.fromJSDate(new Date(content.updated_at))
-    : DateTime.now();
+  // Only the real date: a legal page must not claim it was updated today
+  const lastUpdatedAt = content?.updated_at ? DateTime.fromJSDate(new Date(content.updated_at)) : null;
 
   return (
     <>
@@ -51,13 +51,15 @@ export function TermsOfUsePage() {
       <InfoPageHeader
         eyebrow="Legal"
         title="Terms of Use"
-        subtitle="The terms that govern booking stays, flights, and airport transfers through TravelMate."
+        subtitle={`The terms that govern searching and booking ${PRODUCTS_TEXT} through TravelMate.`}
       />
       <section className="text-[#4E4F52] px-4 py-14">
         <div className="max-w-[680px] mx-auto text-[15.5px] leading-relaxed">
-          <p className="text-[13px] text-[#8A9096] mb-8 pb-6 border-b border-[#EEF0F3]">
-            Last Updated: {lastUpdatedAt.toFormat("LLL dd, yyyy")}
-          </p>
+          {lastUpdatedAt && (
+            <p className="text-[13px] text-[#8A9096] mb-8 pb-6 border-b border-[#EEF0F3]">
+              Last Updated: {lastUpdatedAt.toFormat("LLL dd, yyyy")}
+            </p>
+          )}
           {loading ? (
             <div className="space-y-3">
               <Skeleton variant="text" width="94%" height={28} />

@@ -27,3 +27,23 @@ export const HOTELS_ONLY = !HAS_TRAVELMATE_BOOKINGS;
 
 /** Account sidebar links: Reviews are stay reviews, so only with Stays on. */
 export const showAccountLink = (item: { link?: string }) => FEATURES.stays || item.link !== "/account/reviews";
+
+const ON_PRODUCTS = [
+  "hotels",
+  ...(FEATURES.stays ? ["stays"] : []),
+  ...(FEATURES.flights ? ["flights"] : []),
+  ...(FEATURES.transfers ? ["airport transfers"] : []),
+];
+
+/** The products that are on, for page copy: "hotels", or "hotels, stays, flights, and airport transfers". */
+export const PRODUCTS_TEXT =
+  ON_PRODUCTS.length <= 2 ? ON_PRODUCTS.join(" and ") : `${ON_PRODUCTS.slice(0, -1).join(", ")}, and ${ON_PRODUCTS[ON_PRODUCTS.length - 1]}`;
+
+/** FAQ categories (names from the backend) for a product that's switched off are hidden. */
+export const isFaqCategoryOn = (name: string) => {
+  const n = name.trim().toLowerCase();
+  if (n.startsWith("stay")) return FEATURES.stays;
+  if (n.startsWith("flight")) return FEATURES.flights;
+  if (n.startsWith("car") || n.includes("transfer") || n.includes("taxi")) return FEATURES.transfers;
+  return true;
+};

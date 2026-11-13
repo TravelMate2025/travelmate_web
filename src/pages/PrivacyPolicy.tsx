@@ -8,12 +8,13 @@ import { usePageMeta } from "../hooks/usePageMeta";
 import { InfoPageHeader } from "../components/infoPages/InfoPageHeader";
 import { CompanyConnectCard } from "../components/infoPages/CompanyConnectCard";
 import { SanitizedHtml } from "../components/infoPages/SanitizedHtml";
+import { PRODUCTS_TEXT } from "../config/features";
 
 export function PrivacyPolicyPage() {
   usePageMeta({
     title: "Privacy Policy | TravelMate",
     description:
-      "How TravelMate collects, uses, and protects your data across stays, flights, and airport transfer bookings.",
+      `How TravelMate collects, uses, and protects your data when you search and book ${PRODUCTS_TEXT}.`,
   });
 
   const [loading, setLoading] = useState(false);
@@ -41,9 +42,8 @@ export function PrivacyPolicyPage() {
     getContent();
   }, [getContent]);
 
-  const lastUpdatedAt = content?.updated_at
-    ? DateTime.fromJSDate(new Date(content.updated_at))
-    : DateTime.now();
+  // Only the real date: a legal page must not claim it was updated today
+  const lastUpdatedAt = content?.updated_at ? DateTime.fromJSDate(new Date(content.updated_at)) : null;
 
   return (
     <>
@@ -51,13 +51,15 @@ export function PrivacyPolicyPage() {
       <InfoPageHeader
         eyebrow="Legal"
         title="Privacy Policy"
-        subtitle="How TravelMate collects, uses, and protects your data across stays, flights, and airport transfer bookings."
+        subtitle={`How TravelMate collects, uses, and protects your data when you search and book ${PRODUCTS_TEXT}.`}
       />
       <section className="text-[#4E4F52] px-4 py-14">
         <div className="max-w-[680px] mx-auto text-[15.5px] leading-relaxed">
-          <p className="text-[13px] text-[#8A9096] mb-8 pb-6 border-b border-[#EEF0F3]">
-            Last Updated: {lastUpdatedAt.toFormat("LLL dd, yyyy")}
-          </p>
+          {lastUpdatedAt && (
+            <p className="text-[13px] text-[#8A9096] mb-8 pb-6 border-b border-[#EEF0F3]">
+              Last Updated: {lastUpdatedAt.toFormat("LLL dd, yyyy")}
+            </p>
+          )}
           {loading ? (
             <div className="space-y-3">
               <Skeleton variant="text" width="92%" height={28} />
