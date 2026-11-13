@@ -28,6 +28,8 @@ export const bookingFlowRoutes = {
   flightBookingManage: "/flights/bookings/:bookingId",
   // Support chat, linked from booking failures
   supportChat: "/chat-with-us",
+  // My bookings (all products), linked back from Manage
+  myBookings: "/bookings",
 } as const;
 
 type QueryValue = string | number | boolean | null | undefined;
@@ -73,8 +75,9 @@ const withBookingId = (pattern: string, bookingId: string) =>
 export const flightBookingStatusPath = (bookingId: string) =>
   withBookingId(bookingFlowRoutes.flightBookingStatus, bookingId);
 
-export const flightBookingManagePath = (bookingId: string) =>
-  withBookingId(bookingFlowRoutes.flightBookingManage, bookingId);
+/** `cancel` opens the cancellation section straight away (from My bookings → Cancel). */
+export const flightBookingManagePath = (bookingId: string, options: { cancel?: boolean } = {}) =>
+  withQuery(withBookingId(bookingFlowRoutes.flightBookingManage, bookingId), { cancel: options.cancel ? 1 : undefined });
 
 // The download pages read the booking back from the `data` query param
 export const stayDownloadPath = (booking: unknown) =>

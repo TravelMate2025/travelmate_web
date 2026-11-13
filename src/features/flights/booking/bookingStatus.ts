@@ -82,7 +82,11 @@ export const refundSteps = (booking: FlightBooking): ProgressStep[] => {
   const status = booking.refund?.status ?? "PENDING";
   const completed = status === "COMPLETED";
   return [
-    { title: "Refund started", detail: "Automatically, the moment the booking failed.", state: "done" },
+    {
+      title: "Refund started",
+      detail: booking.status === "FAILED" ? "Automatically, the moment the booking failed." : "When you cancelled.",
+      state: "done",
+    },
     {
       title: "Processing with Flutterwave",
       detail: "Back to your original payment method.",

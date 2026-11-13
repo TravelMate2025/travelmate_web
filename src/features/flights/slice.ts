@@ -3,6 +3,7 @@ import { logout } from "../account/slices/authSlice";
 import { flightsApi } from "./api";
 import { FlightApiError } from "./api/errors";
 import type {
+  CancellationPreview,
   ContactInput,
   CreateBookingInput,
   FlightBooking,
@@ -34,6 +35,9 @@ export interface FlightsState {
   bookingId: string | null;
   /** The held booking (seats held, PNR) while paying, and after. */
   booking: { status: RequestStatus; result: FlightBooking | null; error: FlightError | null };
+  /** Manage: what cancelling would refund, and the cancel request itself. */
+  cancellationPreview: { status: RequestStatus; result: CancellationPreview | null; error: FlightError | null };
+  cancellation: { status: RequestStatus; error: FlightError | null };
 }
 
 export const initialFlightsState: FlightsState = {
@@ -48,6 +52,8 @@ export const initialFlightsState: FlightsState = {
   bagOptionIds: [],
   bookingId: null,
   booking: { status: "idle", result: null, error: null },
+  cancellationPreview: { status: "idle", result: null, error: null },
+  cancellation: { status: "idle", error: null },
 };
 
 /**
@@ -109,6 +115,28 @@ export const refreshFlightBooking = createAsyncThunk<FlightBooking, string, { re
   }
 );
 
+export const previewFlightCancellation = createAsyncThunk<CancellationPreview, string, { rejectValue: FlightError }>(
+  "flights/previewCancellation",
+  async (bookingId, { rejectWithValue }) => {
+    try {
+      return await flightsApi.getCancellationPreview(bookingId);
+    } catch (error) {
+      return rejectWithValue(asFlightError(error));
+    }
+  }
+);
+
+export const cancelFlightBooking = createAsyncThunk<FlightBooking, { bookingId: string; reason: string }, { rejectValue: FlightError }>(
+  "flights/cancelBooking",
+  async ({ bookingId, reason }, { rejectWithValue }) => {
+    try {
+      return await flightsApi.cancelBooking(bookingId, reason);
+    } catch (error) {
+      return rejectWithValue(asFlightError(error));
+    }
+  }
+);
+
 const clearBookingInProgress = (state: FlightsState) => {
   state.selectedOfferToken = null;
   state.priceCheck = initialFlightsState.priceCheck;
@@ -117,6 +145,8 @@ const clearBookingInProgress = (state: FlightsState) => {
   state.bagOptionIds = [];
   state.bookingId = null;
   state.booking = initialFlightsState.booking;
+  state.cancellationPreview = initialFlightsState.cancellationPreview;
+  state.cancellation = initialFlightsState.cancellation;
 };
 
 const flightsSlice = createSlice({
@@ -183,6 +213,26 @@ const flightsSlice = createSlice({
       })
       .addCase(refreshFlightBooking.rejected, (state, action) => {
         state.booking = { ...state.booking, status: "failed", error: action.payload ?? asFlightError(action.error) };
+      })
+      .addCase(previewFlightCancellation.pending, (state) => {
+        state.cancellationPreview = { status: "loading", result: null, error: null };
+      })
+      .addCase(previewFlightCancellation.fulfilled, (state, action) => {
+        state.cancellationPreview = { status: "succeeded", result: action.payload, error: null };
+      })
+      .addCase(previewFlightCancellation.rejected, (state, action) => {
+        state.cancellationPreview = { status: "failed", result: null, error: action.payload ?? asFlightError(action.error) };
+      })
+      .addCase(cancelFlightBooking.pending, (state) => {
+        state.cancellation = { status: "loading", error: null };
+      })
+      .addCase(cancelFlightBooking.fulfilled, (state, action) => {
+        state.cancellation = { status: "succeeded", error: null };
+        state.cancellationPreview = initialFlightsState.cancellationPreview;
+        state.booking = { status: "succeeded", result: action.payload, error: null };
+      })
+      .addCase(cancelFlightBooking.rejected, (state, action) => {
+        state.cancellation = { status: "failed", error: action.payload ?? asFlightError(action.error) };
       })
       // The next person on this browser keeps the currency and last search
       // (device-level, like recent searches) but none of the booking data.

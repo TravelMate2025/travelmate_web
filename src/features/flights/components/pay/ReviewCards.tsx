@@ -8,7 +8,7 @@ import type { ContactInput, FareRuleText, FlightOffer, TravelerSummary, Traveler
 
 // Mock (Pay): white cards, 16px corners, 22px padding, 14px gaps; 19px titles.
 export const CARD = "flex flex-col gap-3.5 rounded-2xl border border-[#DEDFE1] bg-white p-5.5";
-const TITLE = "text-[1.1875rem] font-bold text-[#181818]";
+export const TITLE = "text-[1.1875rem] font-bold text-[#181818]";
 const HINT = "text-[0.8125rem] text-[#4E4F52]";
 const LINK = "text-sm font-semibold text-[#023E8A]";
 
@@ -137,7 +137,7 @@ export const FareConditionsCard = ({ offer, rules }: { offer: FlightOffer; rules
       <h2 id="review-rules-h" className={TITLE}>
         Fare conditions · {brand}
       </h2>
-      <ul className="m-0 flex flex-col gap-1.5 pl-5 text-[0.9375rem]">
+      <ul className="m-0 flex list-disc flex-col gap-1.5 pl-5 text-[0.9375rem]">
         {refunds && (
           <li>
             {refunds.state === "No" ? (

@@ -13,5 +13,10 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 3000,
-  }
+  },
+  // Loaded on click (flight itinerary PDF). Pre-bundled so the dev server
+  // doesn't reload the page the first time it is imported.
+  optimizeDeps: {
+    include: ['jspdf'],
+  },
 })

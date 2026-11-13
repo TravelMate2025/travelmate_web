@@ -211,9 +211,10 @@ Done 13 Nov 2026, as the mock's Status and BookingFailed (after payment) screens
 Exit: the issuing, ticketed and failed-after-payment scenarios render.
 
 #### W7: My bookings and manage (R1)
-- [ ] Flights in the bookings list with status badges.
-- [ ] Manage page: itinerary, references, tickets, download itinerary PDF, airline check-in link, contact support.
-- [ ] Cancel before ticketing: full refund preview, reason, confirm, then refund tracking.
+Done 13 Nov 2026, as the mock's Manage screen shows it. Page: `FlightManageBookingPage` at `bookingFlowRoutes.flightBookingManage` (signed in).
+- [x] Flights in the bookings list with status badges. v2 flights load from `flights/api` next to stays and transfers (one failing doesn't hide the other) and open Manage; the old v1 flight rows and their dead `/bookings/flight-details` link are gone. Paid-then-not-booked goes under Cancelled (it's a refund, not a payment failure); seats released under Payment failed.
+- [x] Manage page: itinerary, references, tickets, download itinerary PDF (jsPDF, loaded on click), contact support, and the fare panel. **Airline check-in link left out:** the booking has no check-in URL yet (needs one in the contract, or a per-airline list). Bag weights show only when the airline gives them (the recorded fare gives "1 bag").
+- [x] Cancel before ticketing: full refund preview, reason, confirm, then refund tracking. Opens from "Cancel booking" on Manage, or from Cancel on My bookings (`?cancel=1`); "Keep my booking" closes it. Unpaid holds go to Review and pay instead.
 
 Exit: **R1 UI complete.** The whole journey works in mock mode and is ready for backend F2–F6.
 
