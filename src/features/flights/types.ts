@@ -257,7 +257,8 @@ export interface FareOption {
 
 // ---------------------------------------------------------------- booking
 
-export type Gender = "FEMALE" | "MALE";
+/** Amadeus also accepts UNDISCLOSED ("Prefer not to say"). */
+export type Gender = "FEMALE" | "MALE" | "UNDISCLOSED";
 
 export interface TravelerInput {
   travelerId: string;
@@ -268,7 +269,8 @@ export interface TravelerInput {
   dateOfBirth: string | null;
   /** For HELD_INFANT: the adult whose lap they travel on. */
   associatedAdultId: string | null;
-  passport: { number: string; expiryDate: string; issuingCountry: string; nationality: string } | null;
+  /** issuingCountry / nationality: ISO 3166-1 alpha-2. */
+  passport: { number: string; expiryDate: string; issuingCountry: string; nationality: string | null } | null;
   frequentFlyer: { airlineCode: string; number: string } | null;
 }
 

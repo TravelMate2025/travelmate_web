@@ -176,13 +176,17 @@ Built from the approved mock's Fares and PriceChanged screens; sizes checked aga
 **Done 13 Nov 2026.** Fare families are priced for the whole trip ($787.70 / $840.20 / $945.20 on the recorded data), not the mock's outbound-only upgrade prices.
 
 #### W4: Traveller details (R1)
-- [ ] One form per traveller, built from the airline's requirements returned by the price check (which fields are required, name length limits). No hardcoded rules.
-- [ ] Names as on passport; the lap infant is linked to an adult; the combined adult and infant name limit is shown.
-- [ ] Contact email and mobile with country code.
-- [ ] "Use my profile" for the signed-in user; passport and frequent flyer are optional unless required.
-- [ ] Sign-in required before booking (the bookings endpoint needs auth), keeping everything already entered.
+Built from the approved mock's Travelers screen; sizes checked against its CSS.
 
-Exit: validation tests cover each passenger type and the requirements fixtures.
+- [x] One card per traveller, built from the airline's requirements returned by the price check (gender, date of birth, passport only when asked; ages always for children and infants). No hardcoded per-airline rules.
+- [x] Names as on passport: plain letters, up to 20 characters each (Amadeus error 477). The lap infant is linked to an adult (one lap each); adult + infant names up to 41 characters together, with the guide's shortened version offered for approval.
+- [x] Ages checked against the trip: adults 12+, children 2–11 at the start, infants under 2 for the whole trip. Passport, when given, must be valid after the last flight.
+- [x] Contact email and mobile with country code (kept as a country, so shared codes like +1 stay as picked).
+- [x] "Use my profile details" for the signed-in user; passport and frequent flyer are optional unless the airline requires them.
+- [x] Sign-in required: the step is behind `PrivateRoute`, so sign-in happens before anything is typed; after sign-in the price is checked again. Traveller details stay in Redux only (not persisted).
+- [x] Trip summary with the real fare and taxes from the price check.
+
+**Done 13 Nov 2026.** "Continue to payment" goes to Review and pay (W5). The country list for phone codes and passports covers 37 countries until the backend's country table exists.
 
 #### W5: Review and pay (R1)
 - [ ] Create booking (hold) on "Continue to payment": show the reservation, the countdown to the payment deadline, and a summary of flights, travellers and fare conditions.
