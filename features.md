@@ -227,8 +227,9 @@ Done 13 Nov 2026, as the mock's Extras screen shows it (its "Seat selection" car
 - [x] Extras step (turned on by config): bag options per direction from the price check with bags, running total, and bags shown on review, status and manage. Switch: `VITE_FLIGHTS_EXTRAS=on` (on in `.env.local` and Playwright). The step and its stepper pill only appear when the airline sells bags for the chosen offer; otherwise Travellers goes straight to payment. Real Royal Air Maroc prices: +1 bag $210.00 / +2 $530.00 outbound, $235.20 / $593.60 return. Weights show only when the airline gives them.
 
 #### W10: Cancellation after ticketing (R2)
-- [ ] Manage → cancel when ticketed: refund estimate from `cancellation-preview` (non-refundable fare vs refundable taxes), request, then status until the airline confirms and the refund completes.
-- [ ] Void within the airline's void window, shown as a full refund when available.
+Done 13 Nov 2026, as the mock's Manage "After ticket issued" shows it.
+- [x] Manage → cancel when ticketed: refund estimate from `cancellation-preview` (non-refundable fare vs refundable taxes), request, then status until the airline confirms and the refund completes. Recorded Eco Essential: $182.00 fare kept, $605.70 taxes estimated back. Manage keeps checking every 5 s until the refund completes; My bookings' Cancel also works for ticketed bookings. New contract field `refund.airlineConfirmed`.
+- [x] Void within the airline's void window, shown as a full refund when available. Fake scenario `?mock=void-window`.
 
 #### W11: Schedule change alerts (R2)
 - [ ] Alert on the booking list and manage page when the airline changes a flight: what changed, and contact or alternative options.

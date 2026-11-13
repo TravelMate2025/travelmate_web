@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { bookingFlowRoutes } from "../../../shared/bookingFlowRoutes";
 import { bagsText } from "../../booking/bags";
 import { refundSteps } from "../../booking/bookingStatus";
-import { fareLines, paidAmount } from "../../booking/manage";
+import { cancelCopy, fareLines } from "../../booking/manage";
 import { formatMoney } from "../../currency";
 import type { FlightsState } from "../../slice";
 import { dayDifference, localDate, timeOf } from "../../results/offerFacts";
@@ -108,43 +108,43 @@ interface CancelProps {
   onKeep: () => void;
 }
 
-/** Mock (Manage, "Before ticket issued"): full refund, what happens next, reason, confirm. */
+/** Mock (Manage, "Before ticket issued" / "After ticket issued"): the refund, what happens next, reason, confirm. */
 export const CancelCard = ({ booking, preview, reasons, reason, onReason, cancelling, error, onConfirm, onKeep }: CancelProps) => {
-  const figures = preview.result;
-  const currency = figures?.paid.currency ?? paidAmount(booking).currency;
-  const refund = figures?.refund ? formatMoney(figures.refund.amount, currency) : "";
+  const copy = preview.result ? cancelCopy(preview.result) : null;
+  const waitingIntro =
+    booking.status === "TICKETED"
+      ? "Your ticket is issued. We’re checking what the airline refunds."
+      : "Your ticket hasn’t been issued yet, so you can cancel now for a full refund.";
   return (
     <section id="manage-cancel" aria-labelledby="manage-cx-h" className={`${CARD} border-2 border-[#023E8A]`}>
       <h2 id="manage-cx-h" className={TITLE}>
         Cancel this booking
       </h2>
-      <p className="text-[0.9375rem] text-[#4E4F52]">Your ticket hasn’t been issued yet, so you can cancel now for a full refund.</p>
+      <p className="text-[0.9375rem] text-[#4E4F52]">{copy?.intro ?? waitingIntro}</p>
       {preview.status === "failed" ? (
         <p role="alert" className="text-[0.9375rem] text-[#B42318]">
           {preview.error?.message ?? "We couldn't work out the refund. Please try again."}
         </p>
-      ) : !figures ? (
+      ) : !copy ? (
         <div role="status" aria-label="Working out your refund" className="h-31 animate-pulse rounded-xl bg-[#F4F6FA]" />
       ) : (
         <>
           <div className="flex flex-col gap-2 rounded-xl bg-[#F4F6FA] p-4">
-            <div className={LINE}>
-              <span>You paid</span>
-              <span>{formatMoney(figures.paid.amount, currency)}</span>
-            </div>
-            <div className={LINE}>
-              <span>Cancellation fee</span>
-              <span>{formatMoney(figures.deduction?.amount ?? "0", currency)}</span>
-            </div>
+            {copy.lines.map((line) => (
+              <div key={line.label} className={LINE}>
+                <span>{line.label}</span>
+                <span>{line.value}</span>
+              </div>
+            ))}
             <div className={`${LINE} border-0 border-t border-solid border-t-[#DEDFE1] pt-2 text-[1.1875rem] font-extrabold`}>
-              <span>You get back</span>
-              <span>{refund}</span>
+              <span>{copy.refundLabel}</span>
+              <span>{copy.refundValue}</span>
             </div>
           </div>
           <ol className="m-0 flex list-decimal flex-col gap-1.5 pl-5 text-[0.9375rem]">
-            <li>We cancel your seats with the airline straight away.</li>
-            <li>We refund {refund} to your original payment method.</li>
-            <li>Refunds usually reach you within a few working days.</li>
+            {copy.steps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
           </ol>
         </>
       )}
@@ -169,10 +169,10 @@ export const CancelCard = ({ booking, preview, reasons, reason, onReason, cancel
         <button
           type="button"
           onClick={onConfirm}
-          disabled={!figures || cancelling}
+          disabled={!copy || cancelling}
           className="min-h-12.5 cursor-pointer rounded-xl border-0 bg-[#B42318] px-5.5 text-[0.9375rem] font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {cancelling ? "Cancelling…" : "Cancel and get full refund"}
+          {cancelling ? "Cancelling…" : (copy?.cta ?? "Cancel booking")}
         </button>
         <button
           type="button"
@@ -200,7 +200,9 @@ export const RefundCard = ({ booking }: { booking: FlightBooking }) => {
   return (
     <section aria-label="Refund" className={CARD}>
       <div className="flex flex-wrap justify-between gap-3">
-        <h2 className={TITLE}>{booking.status === "FAILED" ? "Full refund" : "Your refund"}</h2>
+        <h2 className={TITLE}>
+          {booking.status === "FAILED" ? "Full refund" : booking.refund.airlineConfirmed === false ? "Estimated refund" : "Your refund"}
+        </h2>
         <strong className="text-[1.1875rem]">{formatMoney(amount.amount, amount.currency)}</strong>
       </div>
       <ProgressList steps={refundSteps(booking)} label="Refund progress" compact />

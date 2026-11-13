@@ -31,6 +31,7 @@ import priceCheckFixture from "./fixtures/priceCheck.json";
 import searchesFixture from "./fixtures/searches.json";
 import { currentMockScenario } from "./scenarios";
 import {
+  DEV_ONLY_RATES_FROM_USD,
   bagInCurrency,
   daysBetween,
   fareOptionInCurrency,
@@ -190,6 +191,23 @@ const sumMoney = (items: Money[], currency: CurrencyCode): Money => ({
 
 const PAID_TO_TICKETING_MS = 4_000;
 const TICKETING_TO_TICKETED_MS = 10_000;
+// After a ticketed cancellation: the airline confirms the amount, then the refund settles
+const AIRLINE_CONFIRMS_MS = 8_000;
+const REFUND_SETTLES_MS = 16_000;
+
+const advanceRefund = (booking: FlightBooking, now: number): FlightBooking => {
+  const { refund } = booking;
+  if (!refund || refund.status === "COMPLETED" || refund.status === "FAILED") return booking;
+  const since = now - Date.parse(refund.startedAt);
+  if (booking.status === "CANCELLATION_REQUESTED") {
+    if (since < AIRLINE_CONFIRMS_MS) return booking;
+    return { ...booking, status: "CANCELLED", refund: { ...refund, status: "PROCESSING", airlineConfirmed: true } };
+  }
+  if (booking.status === "CANCELLED" && since >= REFUND_SETTLES_MS) {
+    return { ...booking, refund: { ...refund, status: "COMPLETED", completedAt: new Date(now).toISOString() } };
+  }
+  return booking;
+};
 
 // Status moves on with time the way the server's sync job would move it.
 const advance = (booking: FlightBooking): FlightBooking => {
@@ -199,6 +217,7 @@ const advance = (booking: FlightBooking): FlightBooking => {
   if (booking.status === "HELD" && booking.holdExpiresAt && Date.parse(booking.holdExpiresAt) < now) {
     return { ...booking, status: "HOLD_EXPIRED", holdExpiresAt: null };
   }
+  if (booking.status === "CANCELLATION_REQUESTED" || booking.status === "CANCELLED") return advanceRefund(booking, now);
   if (!booking.payment?.paidAt || !["PAID", "TICKETING"].includes(booking.status)) return booking;
 
   const sincePaid = now - Date.parse(booking.payment.paidAt);
@@ -209,7 +228,7 @@ const advance = (booking: FlightBooking): FlightBooking => {
       ...booking,
       status: "FAILED",
       failure: { stage: "AFTER_PAYMENT", reason: "The airline didn't confirm the booking." },
-      refund: { status: "PROCESSING", amount: booking.payment.amount, startedAt: new Date().toISOString(), completedAt: null },
+      refund: { status: "PROCESSING", amount: booking.payment.amount, airlineConfirmed: null, startedAt: new Date().toISOString(), completedAt: null },
     };
   }
   if (sincePaid < TICKETING_TO_TICKETED_MS || scenario === "slow-ticketing") {
@@ -249,6 +268,13 @@ const readBooking = (bookingId: string) => {
   bookings[bookingId] = current;
   persist();
   return current;
+};
+
+/** An amount from the booked offer in the currency the customer paid in. */
+const inPaidCurrency = (amount: string, booking: FlightBooking): Money => {
+  const from = booking.offer.price.currency;
+  const to = (booking.payment?.amount ?? booking.total).currency;
+  return { amount: from === to ? amount : ((Number(amount) / DEV_ONLY_RATES_FROM_USD[from]) * DEV_ONLY_RATES_FROM_USD[to]).toFixed(2), currency: to };
 };
 
 const isBeforeTicketing = (booking: FlightBooking) => ["HELD", "PAID", "TICKETING"].includes(booking.status);
@@ -507,14 +533,17 @@ export const mockFlightsApi: FlightsApi = {
       return { kind: "FULL_REFUND", paid, deduction: { amount: "0.00", currency: paid.currency }, refund: paid, requiresAirlineConfirmation: false };
     }
     if (booking.status !== "TICKETED") throw new FlightApiError("VALIDATION", "This booking can't be cancelled.");
+    if (currentMockScenario() === "void-window") {
+      return { kind: "VOID", paid, deduction: { amount: "0.00", currency: paid.currency }, refund: paid, requiresAirlineConfirmation: false };
+    }
     // Estimate from the fare: a non-refundable fare keeps the base, taxes may come back
     const refundable = booking.offer.fareConditions.refundable;
     const taxes = booking.offer.price.breakdown.taxesAndFees;
     return {
       kind: "AIRLINE_REFUND",
       paid,
-      deduction: refundable ? null : { amount: booking.offer.price.breakdown.base, currency: paid.currency },
-      refund: refundable ? null : { amount: taxes, currency: paid.currency },
+      deduction: refundable ? null : inPaidCurrency(booking.offer.price.breakdown.base, booking),
+      refund: refundable ? null : inPaidCurrency(taxes, booking),
       requiresAirlineConfirmation: true,
     };
   },
@@ -527,13 +556,16 @@ export const mockFlightsApi: FlightsApi = {
       bookings[bookingId] = { ...booking, status: "CANCELLED", holdExpiresAt: null };
     } else if (isBeforeTicketing(booking)) {
       const amount = booking.payment?.amount ?? booking.total;
-      bookings[bookingId] = { ...booking, status: "CANCELLED", refund: { status: "PROCESSING", amount, startedAt, completedAt: null } };
+      bookings[bookingId] = { ...booking, status: "CANCELLED", refund: { status: "PROCESSING", amount, airlineConfirmed: null, startedAt, completedAt: null } };
+    } else if (booking.status === "TICKETED" && currentMockScenario() === "void-window") {
+      const amount = booking.payment?.amount ?? booking.total;
+      bookings[bookingId] = { ...booking, status: "CANCELLED", refund: { status: "PROCESSING", amount, airlineConfirmed: null, startedAt, completedAt: null } };
     } else if (booking.status === "TICKETED") {
-      const estimate = { amount: booking.offer.price.breakdown.taxesAndFees, currency: booking.total.currency };
+      const estimate = inPaidCurrency(booking.offer.price.breakdown.taxesAndFees, booking);
       bookings[bookingId] = {
         ...booking,
         status: "CANCELLATION_REQUESTED",
-        refund: { status: "PENDING", amount: estimate, startedAt, completedAt: null },
+        refund: { status: "PENDING", amount: estimate, airlineConfirmed: false, startedAt, completedAt: null },
       };
     } else {
       throw new FlightApiError("VALIDATION", "This booking can't be cancelled.");

@@ -96,7 +96,7 @@ test("lists the flight in My bookings, and Cancel opens Manage ready to cancel",
   await expect(page.getByText("Booked · ticket being issued")).toBeVisible();
 });
 
-test("ticketed bookings show their e-tickets and no full-refund cancel", async ({ page }) => {
+test("ticketed bookings show their e-tickets", async ({ page }) => {
   await page.clock.install();
   await bookAndPay(page);
   await page.clock.fastForward(11_000);
@@ -104,7 +104,6 @@ test("ticketed bookings show their e-tickets and no full-refund cancel", async (
   await page.getByRole("link", { name: "Manage booking" }).click();
   await expect(page.getByText("Ticketed", { exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Itinerary" })).toContainText(/147-\d{10}/);
-  await expect(page.getByRole("button", { name: "Cancel booking" })).toHaveCount(0);
 });
 
 test("fits a phone", async ({ page }) => {

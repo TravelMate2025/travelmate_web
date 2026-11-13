@@ -311,7 +311,14 @@ export type RefundStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 
 export interface RefundInfo {
   status: RefundStatus;
+  /** An estimate until the airline confirms it (see airlineConfirmed). */
   amount: Money;
+  /**
+   * Cancelling a ticket outside the void window: the airline (via the
+   * consolidator) confirms the refundable amount first. false = waiting,
+   * true = confirmed, null = no airline step (full refund, void, failed booking).
+   */
+  airlineConfirmed: boolean | null;
   startedAt: string;
   completedAt: string | null;
 }

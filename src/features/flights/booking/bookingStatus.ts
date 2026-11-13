@@ -36,7 +36,11 @@ export const shouldPoll = (booking: FlightBooking | null) =>
   !booking ||
   ["PAID", "TICKETING"].includes(booking.status) ||
   (booking.status === "HELD" && booking.payment?.status === "PENDING") ||
-  (booking.status === "FAILED" && booking.refund !== null && booking.refund.status !== "COMPLETED");
+  // A refund on its way (failed after payment, or cancelled): follow it until it settles
+  (["FAILED", "CANCELLATION_REQUESTED", "CANCELLED"].includes(booking.status) &&
+    booking.refund !== null &&
+    booking.refund.status !== "COMPLETED" &&
+    booking.refund.status !== "FAILED");
 
 export type StepState = "done" | "now" | "next";
 export interface ProgressStep {
@@ -77,25 +81,45 @@ export const bookingSteps = (booking: FlightBooking): ProgressStep[] => {
   ];
 };
 
-/** Mock (BookingFailed after payment): Refund started → Processing with Flutterwave → Refund completed. */
+/**
+ * Mock (BookingFailed after payment, Manage): Refund started → Processing with
+ * Flutterwave → Refund completed. Cancelling a ticket outside the void window
+ * adds the airline step (mock Manage "After ticket issued").
+ */
 export const refundSteps = (booking: FlightBooking): ProgressStep[] => {
-  const status = booking.refund?.status ?? "PENDING";
+  const refund = booking.refund;
+  const status = refund?.status ?? "PENDING";
   const completed = status === "COMPLETED";
+  const processing: ProgressStep = {
+    title: "Processing with Flutterwave",
+    detail: "Back to your original payment method.",
+    state: completed ? "done" : status === "PROCESSING" ? "now" : "next",
+  };
+  const done: ProgressStep = {
+    title: "Refund completed",
+    detail: completed ? "The money is on its way back to you." : "Usually within a few working days, depending on your bank.",
+    state: completed ? "done" : "next",
+  };
+  if (refund?.airlineConfirmed != null) {
+    const confirmed = refund.airlineConfirmed;
+    return [
+      { title: "Cancellation sent to the airline", detail: "We’ve asked the airline to cancel your ticket.", state: "done" },
+      {
+        title: confirmed ? "Airline confirmed the refund" : "Airline confirms the refundable amount",
+        detail: confirmed ? "We refund the confirmed amount and email you." : "This can take several days. We’ll email you.",
+        state: confirmed ? "done" : "now",
+      },
+      processing,
+      done,
+    ];
+  }
   return [
     {
       title: "Refund started",
       detail: booking.status === "FAILED" ? "Automatically, the moment the booking failed." : "When you cancelled.",
       state: "done",
     },
-    {
-      title: "Processing with Flutterwave",
-      detail: "Back to your original payment method.",
-      state: completed ? "done" : status === "PROCESSING" ? "now" : "next",
-    },
-    {
-      title: "Refund completed",
-      detail: completed ? "The money is on its way back to you." : "Usually within a few working days, depending on your bank.",
-      state: completed ? "done" : "next",
-    },
+    processing,
+    done,
   ];
 };

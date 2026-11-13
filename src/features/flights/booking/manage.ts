@@ -2,7 +2,8 @@ import { format } from "date-fns";
 import { flightBookingManagePath } from "../../shared/bookingFlowRoutes";
 import { localDate } from "../results/offerFacts";
 import { fareRows } from "../results/fareRows";
-import type { FlightBooking, FlightOffer, Money, TravelerType } from "../types";
+import { formatMoney } from "../currency";
+import type { CancellationPreview, FlightBooking, FlightOffer, Money, TravelerType } from "../types";
 
 // My bookings and Manage (mock: Manage): status badges, list rows and the
 // facts the manage page shows, all derived from the booking.
@@ -37,8 +38,11 @@ export const statusBadge = (booking: FlightBooking): StatusBadge => {
   }
 };
 
-/** Paid but not ticketed yet: cancel now for a full refund (R1). Cancelling a ticket is W10. */
-export const canCancelForFullRefund = (booking: FlightBooking) => booking.status === "PAID" || booking.status === "TICKETING";
+/**
+ * Paid: before the ticket is issued it's a full refund; once ticketed the
+ * server's cancellation preview says void (full refund) or airline refund.
+ */
+export const canCancel = (booking: FlightBooking) => ["PAID", "TICKETING", "TICKETED"].includes(booking.status);
 
 const lastArrival = (offer: FlightOffer) => {
   const it = offer.itineraries[offer.itineraries.length - 1];
@@ -136,7 +140,7 @@ export const toBookingRow = (booking: FlightBooking, now = Date.now()): FlightBo
     currency: paid.currency,
     badge: statusBadge(booking),
     detailsPath: flightBookingManagePath(booking.id),
-    cancelPath: canCancelForFullRefund(booking) ? flightBookingManagePath(booking.id, { cancel: true }) : null,
+    cancelPath: canCancel(booking) ? flightBookingManagePath(booking.id, { cancel: true }) : null,
   };
 };
 
@@ -162,4 +166,56 @@ export const fareLines = (offer: FlightOffer): FareLine[] => {
     { label: "Checked bags", value: checked?.quantity ? bags(checked.quantity, checked.weightKg ?? kgIn(/^\d+ checked bag/)) : "None" },
     ...(cabin?.quantity ? [{ label: "Cabin bag", value: bags(cabin.quantity, cabin.weightKg ?? kgIn(/^Cabin bag/)) }] : []),
   ];
+};
+
+export interface CancelCopy {
+  intro: string;
+  lines: FareLine[];
+  refundLabel: string;
+  refundValue: string;
+  steps: string[];
+  cta: string;
+}
+
+/**
+ * The cancel section's words and figures from the server's preview (mock:
+ * Manage "Before ticket issued" / "After ticket issued"). VOID reads like the
+ * full refund: the ticket is voided, nothing is kept.
+ */
+export const cancelCopy = (preview: CancellationPreview): CancelCopy => {
+  const money = (m: Money | null) => (m ? formatMoney(m.amount, m.currency) : "To be confirmed");
+  const paid = { label: "You paid", value: money(preview.paid) };
+  if (preview.kind === "FULL_REFUND" || preview.kind === "VOID") {
+    const back = money(preview.refund ?? preview.paid);
+    return {
+      intro:
+        preview.kind === "VOID"
+          ? "Your ticket was issued recently, so the airline still lets us void it. Cancel now for a full refund."
+          : "Your ticket hasn’t been issued yet, so you can cancel now for a full refund.",
+      lines: [paid, { label: "Cancellation fee", value: money(preview.deduction ?? { amount: "0", currency: preview.paid.currency }) }],
+      refundLabel: "You get back",
+      refundValue: back,
+      steps: [
+        preview.kind === "VOID" ? "We void your ticket with the airline straight away." : "We cancel your seats with the airline straight away.",
+        `We refund ${back} to your original payment method.`,
+        "Refunds usually reach you within a few working days.",
+      ],
+      cta: "Cancel and get full refund",
+    };
+  }
+  const nonRefundable = preview.deduction !== null;
+  return {
+    intro: nonRefundable
+      ? "Your ticket is issued and this fare is not refundable. Some taxes may still be refunded. We check the exact amount with the airline before refunding."
+      : "Your ticket is issued. The airline confirms the exact refund, after any fee, before we refund you.",
+    lines: [paid, { label: nonRefundable ? "Not refundable (fare)" : "Airline fee", value: money(preview.deduction) }],
+    refundLabel: nonRefundable ? "Estimated refund (taxes)" : "Estimated refund",
+    refundValue: money(preview.refund),
+    steps: [
+      "We send your cancellation to the airline.",
+      "The airline confirms the refundable amount. This can take several days.",
+      "We refund the confirmed amount to your original payment method and email you.",
+    ],
+    cta: "Request cancellation",
+  };
 };

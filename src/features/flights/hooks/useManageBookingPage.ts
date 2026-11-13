@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import type { AppDispatch, RootState } from "../../../store";
 import { bookingFlowRoutes, flightBookingStatusPath, flightStepPath } from "../../shared/bookingFlowRoutes";
 import { shouldPoll } from "../booking/bookingStatus";
-import { canCancelForFullRefund } from "../booking/manage";
+import { canCancel } from "../booking/manage";
 import { cancelFlightBooking, previewFlightCancellation, refreshFlightBooking } from "../slice";
 
 const POLL_MS = 5000;
@@ -13,7 +13,8 @@ const POLL_MS = 5000;
 export const CANCEL_REASONS = ["Change of plans", "Found another option", "Other"] as const;
 
 // /flights/bookings/:bookingId (mock: Manage). Itinerary, references, tickets,
-// itinerary PDF, and cancelling before the ticket is issued (full refund).
+// itinerary PDF, and cancelling: full refund before the ticket is issued or in
+// the void window, otherwise a refund the airline confirms.
 export const useManageBookingPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export const useManageBookingPage = () => {
   const preview = useSelector((state: RootState) => state.flights.cancellationPreview);
   const cancellation = useSelector((state: RootState) => state.flights.cancellation);
   const booking = bookingState.result?.id === bookingId ? bookingState.result : null;
-  const cancellable = booking ? canCancelForFullRefund(booking) : false;
+  const cancellable = booking ? canCancel(booking) : false;
   const polling = shouldPoll(booking);
 
   // UI state: the cancel section is open when asked for from My bookings
@@ -63,7 +64,11 @@ export const useManageBookingPage = () => {
     const result = await dispatch(cancelFlightBooking({ bookingId: booking.id, reason }));
     if (cancelFlightBooking.fulfilled.match(result)) {
       setCancelOpen(false);
-      toast.success("Booking cancelled. Your refund has started.");
+      toast.success(
+        result.payload.status === "CANCELLATION_REQUESTED"
+          ? "Cancellation requested. We’ll email you when the airline confirms your refund."
+          : "Booking cancelled. Your refund has started."
+      );
     }
   }, [booking, dispatch, reason]);
 

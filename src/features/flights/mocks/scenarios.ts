@@ -12,6 +12,7 @@ export const MOCK_SCENARIOS = [
   "failed-after-payment", // paid, then the booking fails; full refund starts
   "slow-ticketing", // stays "issuing your ticket"
   "schedule-change", // ticketed, then the airline moves a flight
+  "void-window", // ticketed, still inside the airline's void window: cancel for a full refund
 ] as const;
 
 export type MockScenario = (typeof MOCK_SCENARIOS)[number];
