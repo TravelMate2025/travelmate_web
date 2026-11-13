@@ -107,7 +107,7 @@ Build:
 - [x] `features/flights/mocks/`: fixtures (search LOS⇄LON return, one-way, multi-city LOS→LON→DXB→LOS, LOS⇄ABV domestic, empty result) and the scenarios listed above.
 - [x] `features/flights/slice.ts`: search criteria, results, chosen offer, travellers, booking id, currency.
 - [x] New routes in `bookingFlowRoutes` (results, fare, travellers, extras, review and pay, status, manage) and labels in `bookingFlowLabels`. Step count comes from config so R1 can hide Extras.
-- [x] Currency preference: country default plus switcher, shared with the header.
+- [x] Currency preference: country default plus switcher. *(Not in the site header: the header is shared by every page, so the switcher sits in the search card and on the results and multi-city pages. Moving it into the header is still open.)*
 
 Exit: the app builds with no old flight code, and the home Flights tab renders its kept sections.
 
