@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { flightBookingSteps } from "./bookingSteps";
 import { browserCountry, currencyForCountry, formatMoney } from "./currency";
-import reducer, { initialFlightsState, searchFlights, selectFlightOffer, setFlightCurrency } from "./slice";
-import type { FlightSearchCriteria } from "./types";
+import priceCheckFixture from "./mocks/fixtures/priceCheck.json";
+import reducer, { checkFlightPrice, initialFlightsState, searchFlights, selectFlightOffer, setFlightCurrency } from "./slice";
+import type { FlightSearchCriteria, PriceCheckResult } from "./types";
 
 describe("currency", () => {
   it("defaults by country", () => {
@@ -60,5 +61,19 @@ describe("flights slice", () => {
       searchFlights.rejected(null, "req-1", criteria, { code: "NETWORK", message: "offline" })
     );
     expect(state.search).toMatchObject({ status: "failed", error: { code: "NETWORK" } });
+  });
+});
+
+describe("price check", () => {
+  it("keeps the latest check when an earlier one (another fare) answers last", () => {
+    const priced = priceCheckFixture as unknown as PriceCheckResult;
+    const searched = { ...priced, offer: { ...priced.offer, offerToken: "searched" } };
+    const classic = { ...priced, offer: { ...priced.offer, offerToken: "classic" } };
+    const arg = (offerToken: string) => ({ offerToken, currency: "USD" as const, includeBags: true });
+    let state = reducer(initialFlightsState, checkFlightPrice.pending("req-searched", arg("searched")));
+    state = reducer(state, checkFlightPrice.pending("req-classic", arg("classic")));
+    state = reducer(state, checkFlightPrice.fulfilled(classic, "req-classic", arg("classic")));
+    state = reducer(state, checkFlightPrice.fulfilled(searched, "req-searched", arg("searched")));
+    expect(state.priceCheck.result?.offer.offerToken).toBe("classic");
   });
 });

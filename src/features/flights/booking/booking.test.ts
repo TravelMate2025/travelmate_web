@@ -4,7 +4,7 @@ import type { FlightBooking, FlightOffer } from "../types";
 import { bookingCalendar } from "./calendar";
 import { bookingSteps, refundSteps, shouldPoll, statusView } from "./bookingStatus";
 import { itineraryLines } from "./itineraryPdf";
-import { canCancel, cancelCopy, fareLines, routeName, statusBadge, toBookingRow, travellersText, tripDates } from "./manage";
+import { canCancel, cancelCopy, scheduleAlerts, fareLines, routeName, statusBadge, toBookingRow, travellersText, tripDates } from "./manage";
 
 const offer = (searchesFixture as unknown as Record<string, { offers: FlightOffer[] }>).return_los_lon.offers[0];
 const booking = (patch: Partial<FlightBooking> = {}): FlightBooking => ({
@@ -187,5 +187,30 @@ describe("cancelling after the ticket is issued", () => {
     const settled = booking({ status: "CANCELLED", refund: { ...waiting.refund!, status: "COMPLETED", airlineConfirmed: true, completedAt: "2026-11-14T00:00:00Z" } });
     expect(shouldPoll(settled)).toBe(false);
     expect(statusBadge(settled).text).toBe("Cancelled · refunded");
+  });
+});
+
+describe("schedule changes", () => {
+  it("explains the change like the mock's alert, and flags the booking in My bookings", () => {
+    const back = offer.itineraries[1];
+    const at557 = back.segments[back.segments.length - 1];
+    const changed = booking({
+      status: "TICKETED",
+      scheduleChanges: [
+        {
+          segmentId: at557.id,
+          detectedAt: "2026-11-20T08:00:00Z",
+          previousDepartureLocal: at557.from.atLocal,
+          newDepartureLocal: at557.from.atLocal.replace(/T\d\d:\d\d/, "T23:40"),
+          newArrivalLocal: at557.to.atLocal.replace(/T\d\d:\d\d/, "T03:35"),
+        },
+      ],
+    });
+    const [alert] = scheduleAlerts(changed);
+    expect(alert.title).toBe("Schedule change on your return");
+    expect(alert.text).toMatch(/^The airline changed flight AT557 Casablanca → Lagos to depart at 23:40 \(was \d\d:\d\d\), landing at 03:35/);
+    expect(alert.text).toMatch(/Your seat is still confirmed\. If the new time doesn't work, contact us about alternatives\.$/);
+    expect(statusBadge(changed)).toEqual({ text: "Ticketed · schedule changed", tone: "amber" });
+    expect(scheduleAlerts(booking({ status: "TICKETED" }))).toEqual([]);
   });
 });

@@ -11,8 +11,25 @@ const openCheapestFare = async (page: Page, scenario?: string) => {
   await expect(page).toHaveURL(/\/flights\/fare\?offer=mock-return_los_lon-1$/);
 };
 
+/** Travellers is signed-in only, so the hand-over to it needs a session. */
+const signIn = (page: Page) =>
+  page.addInitScript(() => {
+    const auth = {
+      email: "adaeze@example.com",
+      accessToken: "access-token",
+      refreshToken: "refresh-token",
+      user: { profileImage: "", id: 7, email: "adaeze@example.com", name: "Adaeze Okafor" },
+      registrationComplete: true,
+    };
+    window.localStorage.setItem(
+      "persist:root",
+      JSON.stringify({ auth: JSON.stringify(auth), profile: "null", stays: "null", cars: "null", _persist: JSON.stringify({ version: -1, rehydrated: true }) })
+    );
+  });
+
 test("shows the selected flight, a confirmed price and the airline's fare families", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
+  await signIn(page);
   await openCheapestFare(page);
   await expect(page.getByRole("navigation", { name: "Booking steps" })).toContainText("1 Flight ✓");
   await expect(page.getByRole("region", { name: "Selected flight" })).toContainText("Royal Air Maroc");
@@ -37,6 +54,7 @@ test("shows the selected flight, a confirmed price and the airline's fare famili
 
   await page.getByRole("button", { name: "Continue to traveller details" }).click();
   await expect(page).toHaveURL(/\/flights\/travellers\?offer=mock-fare-eclassic$/);
+  await expect(page.getByRole("heading", { name: "Adult 1 · lead traveller" })).toBeVisible();
 });
 
 test("asks before continuing when the airline raised the price", async ({ page }) => {

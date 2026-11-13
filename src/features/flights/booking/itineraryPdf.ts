@@ -3,7 +3,7 @@ import { cabinLabel } from "../search/searchDraft";
 import { formatDuration, localDate, timeOf } from "../results/offerFacts";
 import { titleCase } from "../travellers/names";
 import type { FlightBooking } from "../types";
-import { routeName, statusBadge, travellersText, tripDates } from "./manage";
+import { routeName, segmentTimes, statusBadge, travellersText, tripDates } from "./manage";
 
 // "Download itinerary (PDF)" on Manage. A plain itinerary summary built from
 // the booking, not the airline's e-ticket receipt. jsPDF is loaded on click so
@@ -33,14 +33,15 @@ export const itineraryLines = (booking: FlightBooking): ItineraryLine[] => {
     const label = offer.itineraries.length === 2 ? (index === 0 ? "Outbound" : "Return") : offer.itineraries.length === 1 ? "Outbound" : `Flight ${index + 1}`;
     lines.push({ text: `${label} · ${format(localDate(it.segments[0].from.atLocal), "EEE d MMM yyyy")} · ${formatDuration(it.durationMinutes)}`, style: "heading" });
     it.segments.forEach((s) => {
+      const { departLocal, arriveLocal } = segmentTimes(booking, s);
       const operated = s.operating ? ` · operated by ${s.operating.name}` : "";
       lines.push({ text: `${s.marketing.code}${s.marketing.number} · ${s.marketing.name}${operated} · ${cabinLabel(s.cabin)}`, style: "bold" });
       lines.push({
-        text: `${format(localDate(s.from.atLocal), "d MMM")} ${timeOf(s.from.atLocal)} ${s.from.airportName} (${s.from.iata})${s.from.terminal ? ` T${s.from.terminal}` : ""}`,
+        text: `${format(localDate(departLocal), "d MMM")} ${timeOf(departLocal)} ${s.from.airportName} (${s.from.iata})${s.from.terminal ? ` T${s.from.terminal}` : ""}`,
         style: "normal",
       });
       lines.push({
-        text: `${format(localDate(s.to.atLocal), "d MMM")} ${timeOf(s.to.atLocal)} ${s.to.airportName} (${s.to.iata})${s.to.terminal ? ` T${s.to.terminal}` : ""}`,
+        text: `${format(localDate(arriveLocal), "d MMM")} ${timeOf(arriveLocal)} ${s.to.airportName} (${s.to.iata})${s.to.terminal ? ` T${s.to.terminal}` : ""}`,
         style: "normal",
       });
     });

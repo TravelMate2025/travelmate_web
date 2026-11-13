@@ -27,7 +27,8 @@ export interface FlightsState {
   criteria: FlightSearchCriteria | null;
   search: { status: RequestStatus; result: FlightSearchResult | null; error: FlightError | null };
   selectedOfferToken: string | null;
-  priceCheck: { status: RequestStatus; result: PriceCheckResult | null; error: FlightError | null };
+  /** requestId: the latest check, so a slower earlier one (another fare) can't overwrite it. */
+  priceCheck: { status: RequestStatus; result: PriceCheckResult | null; error: FlightError | null; requestId?: string };
   // Booking in progress. Never persisted: holds names, dates of birth and passports.
   travelers: TravelerInput[];
   contact: ContactInput | null;
@@ -188,14 +189,16 @@ const flightsSlice = createSlice({
       .addCase(searchFlights.rejected, (state, action) => {
         state.search = { status: "failed", result: null, error: action.payload ?? asFlightError(action.error) };
       })
-      .addCase(checkFlightPrice.pending, (state) => {
-        state.priceCheck = { status: "loading", result: null, error: null };
+      .addCase(checkFlightPrice.pending, (state, action) => {
+        state.priceCheck = { status: "loading", result: null, error: null, requestId: action.meta.requestId };
       })
       .addCase(checkFlightPrice.fulfilled, (state, action) => {
-        state.priceCheck = { status: "succeeded", result: action.payload, error: null };
+        if (action.meta.requestId !== state.priceCheck.requestId) return;
+        state.priceCheck = { status: "succeeded", result: action.payload, error: null, requestId: action.meta.requestId };
       })
       .addCase(checkFlightPrice.rejected, (state, action) => {
-        state.priceCheck = { status: "failed", result: null, error: action.payload ?? asFlightError(action.error) };
+        if (action.meta.requestId !== state.priceCheck.requestId) return;
+        state.priceCheck = { status: "failed", result: null, error: action.payload ?? asFlightError(action.error), requestId: action.meta.requestId };
       })
       .addCase(holdFlightBooking.pending, (state) => {
         state.booking = { status: "loading", result: null, error: null };

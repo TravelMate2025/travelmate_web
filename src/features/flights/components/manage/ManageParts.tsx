@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
+import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import { format } from "date-fns";
 import { bookingFlowRoutes } from "../../../shared/bookingFlowRoutes";
 import { bagsText } from "../../booking/bags";
 import { refundSteps } from "../../booking/bookingStatus";
-import { cancelCopy, fareLines } from "../../booking/manage";
+import { cancelCopy, changedSegmentIds, fareLines, segmentTimes, type ScheduleAlert } from "../../booking/manage";
 import { formatMoney } from "../../currency";
 import type { FlightsState } from "../../slice";
 import { dayDifference, localDate, timeOf } from "../../results/offerFacts";
@@ -21,8 +22,23 @@ const ACTION =
 
 const directionLabel = (count: number, index: number) => (count === 2 ? (index === 0 ? "Outbound" : "Return") : count === 1 ? "Outbound" : `Flight ${index + 1}`);
 
-const segmentState = (booking: FlightBooking) =>
-  ["CANCELLED", "CANCELLATION_REQUESTED", "HOLD_EXPIRED", "FAILED"].includes(booking.status) ? "cancelled" : "confirmed";
+const segmentState = (booking: FlightBooking, segmentIds: string[]) =>
+  ["CANCELLED", "CANCELLATION_REQUESTED", "HOLD_EXPIRED", "FAILED"].includes(booking.status)
+    ? "cancelled"
+    : segmentIds.some((id) => changedSegmentIds(booking).has(id))
+      ? "time changed"
+      : "confirmed";
+
+/** Mock (Manage): orange alert, 14px corners, warning icon, "Schedule change on your return". */
+export const ScheduleChangeAlert = ({ alert }: { alert: ScheduleAlert }) => (
+  <div role="alert" className="flex items-start gap-3 rounded-[0.875rem] border border-solid border-[#FFD2B8] bg-[#FFF1E8] px-4 py-3.5">
+    <WarningAmberRoundedIcon aria-hidden className="text-[#9A3412]" />
+    <div className="text-[#7C2D12]">
+      <div className="font-bold">{alert.title}</div>
+      <div className="text-sm">{alert.text}</div>
+    </div>
+  </div>
+);
 
 interface ItineraryProps {
   booking: FlightBooking;
@@ -44,18 +60,22 @@ export const ItineraryCard = ({ booking, downloading, onDownload, onCancel }: It
         {booking.offer.itineraries.map((it, index) => {
           const first = it.segments[0];
           const last = it.segments[it.segments.length - 1];
-          const plus = dayDifference(first.from.atLocal, last.to.atLocal);
+          // The airline's new times when it re-timed a flight
+          const depart = segmentTimes(booking, first).departLocal;
+          const arrive = segmentTimes(booking, last).arriveLocal;
+          const plus = dayDifference(depart, arrive);
           return (
             <div key={index} className="rounded-xl bg-[#F4F6FA] p-3.5">
               <div className={`${HINT} font-bold uppercase`}>
-                {directionLabel(count, index)} · {format(localDate(first.from.atLocal), "EEE d MMM")}
+                {directionLabel(count, index)} · {format(localDate(depart), "EEE d MMM")}
               </div>
               <div className="font-extrabold text-[#181818]">
-                {timeOf(first.from.atLocal)} {first.from.iata} → {timeOf(last.to.atLocal)}
+                {timeOf(depart)} {first.from.iata} → {timeOf(arrive)}
                 {plus > 0 ? `+${plus}` : ""} {last.to.iata}
               </div>
               <div className={HINT}>
-                {it.segments.map((s) => `${s.marketing.code}${s.marketing.number}`).join(" · ")} · {segmentState(booking)}
+                {it.segments.map((s) => `${s.marketing.code}${s.marketing.number}`).join(" · ")} ·{" "}
+                {segmentState(booking, it.segments.map((s) => s.id))}
               </div>
             </div>
           );

@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 import Footer from "../../../components/2Footer";
 import { usePageMeta } from "../../../hooks/usePageMeta";
 import Navbar from "../../../pages/homePage/Navbar";
-import { routeName, statusBadge, travellersText, tripDates } from "../booking/manage";
+import { routeName, scheduleAlerts, statusBadge, travellersText, tripDates } from "../booking/manage";
 import { FareUnavailable } from "../components/fare/FareUnavailable";
-import { CancelCard, FareAside, ItineraryCard, RefundCard } from "../components/manage/ManageParts";
+import { CancelCard, FareAside, ItineraryCard, RefundCard, ScheduleChangeAlert } from "../components/manage/ManageParts";
 import { StatusBadge } from "../components/manage/StatusBadge";
 import { CANCEL_REASONS, useManageBookingPage } from "../hooks/useManageBookingPage";
 
@@ -44,6 +44,7 @@ const FlightManageBookingPage = () => {
                   <StatusBadge badge={statusBadge(booking)} />
                 </div>
               </div>
+              {!ENDED.includes(booking.status) && scheduleAlerts(booking).map((alert) => <ScheduleChangeAlert key={alert.key} alert={alert} />)}
               {ENDED.includes(booking.status) && <RefundCard booking={booking} />}
               <ItineraryCard
                 booking={booking}

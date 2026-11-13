@@ -232,8 +232,9 @@ Done 13 Nov 2026, as the mock's Manage "After ticket issued" shows it.
 - [x] Void within the airline's void window, shown as a full refund when available. Fake scenario `?mock=void-window`.
 
 #### W11: Schedule change alerts (R2)
-- [ ] Alert on the booking list and manage page when the airline changes a flight: what changed, and contact or alternative options.
-- [ ] Notification through the existing notification provider.
+Done 13 Nov 2026, as the mock's Manage alert shows it. Fake scenario `?mock=schedule-change`.
+- [x] Alert on the booking list and manage page when the airline changes a flight: what changed, and contact or alternative options. Manage: one alert per change (new departure and landing, the old time, "contact us about alternatives"; Contact support sits in the itinerary card); the itinerary and PDF show the new times and mark the flight "time changed". My bookings: "Ticketed · schedule changed" badge.
+- [x] Notification through the existing notification provider. Nothing to build on the web: `WsMessageType.SCHEDULE_CHANGE` exists and the notification list opens `link`; the backend sends `link: "/flights/bookings/{id}"` (noted in flights_plan.md F10).
 
 Exit: **R2 UI complete.**
 

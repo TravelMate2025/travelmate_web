@@ -3,7 +3,7 @@ import { flightBookingManagePath } from "../../shared/bookingFlowRoutes";
 import { localDate } from "../results/offerFacts";
 import { fareRows } from "../results/fareRows";
 import { formatMoney } from "../currency";
-import type { CancellationPreview, FlightBooking, FlightOffer, Money, TravelerType } from "../types";
+import type { CancellationPreview, FlightBooking, FlightOffer, Money, Segment, TravelerType } from "../types";
 
 // My bookings and Manage (mock: Manage): status badges, list rows and the
 // facts the manage page shows, all derived from the booking.
@@ -24,7 +24,7 @@ export const statusBadge = (booking: FlightBooking): StatusBadge => {
     case "TICKETING":
       return { text: "Booked · ticket being issued", tone: "blue" };
     case "TICKETED":
-      return { text: "Ticketed", tone: "green" };
+      return booking.scheduleChanges.length > 0 ? { text: "Ticketed · schedule changed", tone: "amber" } : { text: "Ticketed", tone: "green" };
     case "HOLD_EXPIRED":
       return { text: "Seats released", tone: "grey" };
     case "FAILED":
@@ -218,4 +218,51 @@ export const cancelCopy = (preview: CancellationPreview): CancelCopy => {
     ],
     cta: "Request cancellation",
   };
+};
+
+export interface ScheduleAlert {
+  key: string;
+  /** "Schedule change on your return" */
+  title: string;
+  text: string;
+}
+
+const clock = (atLocal: string) => atLocal.slice(11, 16);
+const dayOf = (atLocal: string) => atLocal.slice(0, 10);
+
+/**
+ * Mock (Manage, alert): "The airline changed flight AT557 Casablanca → Lagos to
+ * depart at …. Your seat is still confirmed. If the new time doesn't work,
+ * contact us about alternatives."
+ */
+export const scheduleAlerts = (booking: FlightBooking): ScheduleAlert[] => {
+  const count = booking.offer.itineraries.length;
+  return booking.scheduleChanges.flatMap((change) => {
+    const index = booking.offer.itineraries.findIndex((it) => it.segments.some((s) => s.id === change.segmentId));
+    if (index < 0) return [];
+    const segment = booking.offer.itineraries[index].segments.find((s) => s.id === change.segmentId)!;
+    const where = count === 2 ? (index === 0 ? "outbound" : "return") : count === 1 ? "flight" : `flight ${index + 1}`;
+    const departDay = dayOf(change.newDepartureLocal) === dayOf(change.previousDepartureLocal) ? "" : ` on ${format(localDate(change.newDepartureLocal), "EEE d MMM")}`;
+    const arriveDay = dayOf(change.newArrivalLocal) === dayOf(change.newDepartureLocal) ? "" : ` on ${format(localDate(change.newArrivalLocal), "EEE d MMM")}`;
+    return [
+      {
+        key: `${change.segmentId}-${change.detectedAt}`,
+        title: `Schedule change on your ${where}`,
+        text:
+          `The airline changed flight ${segment.marketing.code}${segment.marketing.number} ${segment.from.city} → ${segment.to.city} ` +
+          `to depart at ${clock(change.newDepartureLocal)}${departDay} (was ${clock(change.previousDepartureLocal)}), ` +
+          `landing at ${clock(change.newArrivalLocal)}${arriveDay}. ` +
+          "Your seat is still confirmed. If the new time doesn't work, contact us about alternatives.",
+      },
+    ];
+  });
+};
+
+/** Segment ids the airline has re-timed (the itinerary marks them). */
+export const changedSegmentIds = (booking: FlightBooking) => new Set(booking.scheduleChanges.map((c) => c.segmentId));
+
+/** A segment's departure and arrival with any schedule change applied. */
+export const segmentTimes = (booking: FlightBooking, segment: Segment) => {
+  const change = [...booking.scheduleChanges].reverse().find((c) => c.segmentId === segment.id);
+  return { departLocal: change?.newDepartureLocal ?? segment.from.atLocal, arriveLocal: change?.newArrivalLocal ?? segment.to.atLocal };
 };
