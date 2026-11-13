@@ -163,13 +163,17 @@ Built from the approved mock's Results and MultiCity screens; sizes checked agai
 
 **Done 13 Nov 2026.** Shows every offer, not one per airline as the mock's sample did. On the recorded data the fastest trip is Royal Air Maroc at $965.70 (19h 10m), not the mock's RwandAir example. "See fares" / "Select" go to the Fare step (W3).
 
-#### W3: Fare and price check (R1)
-- [ ] Calls `price` when the screen opens and shows a "price confirmed with the airline" banner.
-- [ ] R1 shows the chosen fare only: conditions (refund, changes, bags, cabin bag), full fare rules, price breakdown.
-- [ ] Price changed (up) dialog: old vs new price, continue or see other flights. If the price goes down, show a notice and continue at the lower price.
-- [ ] Offer no longer available: back to results.
+#### W3: Fare and price check (R1), with fare families (W8)
+Built from the approved mock's Fares and PriceChanged screens; sizes checked against its CSS. The mock shows the fare families on this screen, so W8 was built here too.
 
-Exit: the price-changed and sold-out scenarios work in mock mode.
+- [x] Calls `price` when the screen opens and shows a "price confirmed with the airline" banner; prices again when another fare is picked.
+- [x] Selected flight card (airline, aircraft, each direction, flight details), steps with "1 Flight ✓" back to results, currency.
+- [x] Fare cards: Included / For a fee / Free / No rows from the airline's amenities (fare conditions as fallback), tagline, price difference, "Best value for bags". The chosen fare alone when the airline has no families.
+- [x] Bottom bar: selected fare and total, "Continue to traveller details", full fare rules (plain summary, then the airline's text).
+- [x] Price changed (up) dialog: price you saw vs new price, continue or see other flights. If the price goes down, the banner says so and booking continues at the lower price.
+- [x] Offer no longer available (sold out) or expired: explained, with "See other flights" / "Search again".
+
+**Done 13 Nov 2026.** Fare families are priced for the whole trip ($787.70 / $840.20 / $945.20 on the recorded data), not the mock's outbound-only upgrade prices.
 
 #### W4: Traveller details (R1)
 - [ ] One form per traveller, built from the airline's requirements returned by the price check (which fields are required, name length limits). No hardcoded rules.
@@ -206,7 +210,8 @@ Exit: the issuing, ticketed and failed-after-payment scenarios render.
 Exit: **R1 UI complete.** The whole journey works in mock mode and is ready for backend F2–F6.
 
 #### W8: Fare families (R2)
-- [ ] Fare screen shows the airline's fare options from `upsell` (e.g. Eco Essential, Classic, Flex), with what is included, the price difference, and the selection carried into the booking.
+Done with W3 (13 Nov 2026), as the mock's Fares screen shows them.
+- [x] Fare screen shows the airline's fare options from `upsell` (e.g. Eco Essential, Classic, Flex), with what is included, the price difference, and the selection carried into the booking.
 
 #### W9: Paid extra bags (R2)
 - [ ] Extras step (turned on by config): bag options per direction from the price check with bags, running total, and bags shown on review, status and manage.

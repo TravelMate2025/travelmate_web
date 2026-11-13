@@ -62,7 +62,9 @@ const isoIn = (ms: number) => new Date(Date.now() + ms).toISOString();
 // ---------------------------------------------------------------- session state
 // Kept in sessionStorage so a page reload mid-booking behaves like the server.
 
-type CachedOffer = { offer: FlightOffer; passengers: PassengerCounts; dayOffsets: number[] };
+// `searched` is the offer as the search returned it: price changes are measured
+// against it (like the server), so pricing twice never compounds a change.
+type CachedOffer = { offer: FlightOffer; searched?: FlightOffer; passengers: PassengerCounts; dayOffsets: number[] };
 
 const load = <T>(key: string, fallback: T): T => {
   try {
@@ -360,13 +362,14 @@ export const mockFlightsApi: FlightsApi = {
     let priced = cached.offer;
     let priceChange = null;
     if (scenario === "price-up" || scenario === "price-down") {
-      priced = changedPrice(cached.offer, scenario === "price-up" ? 1.05 : 0.97);
+      const searched = cached.searched ?? cached.offer;
+      priced = changedPrice(searched, scenario === "price-up" ? 1.05 : 0.97);
       priceChange = {
-        previous: moneyInCurrency({ amount: cached.offer.price.amount, currency: cached.offer.price.currency }, currency),
+        previous: moneyInCurrency({ amount: searched.price.amount, currency: searched.price.currency }, currency),
         current: moneyInCurrency({ amount: priced.price.amount, currency: priced.price.currency }, currency),
         direction: scenario === "price-up" ? ("UP" as const) : ("DOWN" as const),
       };
-      offers[offerToken] = { ...cached, offer: priced };
+      offers[offerToken] = { ...cached, searched, offer: priced };
       persist();
     }
 
