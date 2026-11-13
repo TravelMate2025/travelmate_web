@@ -1,12 +1,13 @@
 import CheckIcon from "@mui/icons-material/Check";
 import { SECTION_CLASS, SECTION_TITLE_CLASS } from "./landingStyles";
 
-// Copy from the approved mock. Its fourth item ("[Support hours]") waits until
-// the support hours we can promise are confirmed.
+// Copy from the approved mock, without naming our supplier (customers book with
+// TravelMate, not a distribution system). Its fourth item ("[Support hours]")
+// waits until the support hours we can promise are confirmed.
 const REASONS = [
   {
     title: "Real airline fares",
-    body: "Fares come straight from the airlines through Amadeus, one of the world’s largest travel networks.",
+    body: "Live fares and seats straight from the airlines, the same ones they sell themselves.",
   },
   {
     title: "Price confirmed before you pay",
