@@ -7,13 +7,14 @@ import { HotelCard, HotelCardSkeleton } from "../components/HotelCard";
 import { SearchCard } from "../components/SearchCard";
 import { HotelsApiError, searchAllHotels } from "../api/hotelsApi";
 import { outOfTen as scoreOutOfTen } from "../format";
-import { hotelsRoutes } from "../routes";
+import { hotelsRoutes, HOTELS_SEARCH_ID } from "../routes";
 import { NO_FILTERS, buildSearchParams, filterParams, hasPlace, parseFilters, parseSearch, stayLine } from "../search";
 import type { ResultFilters, SortKey } from "../search";
 import type { HotelsPageResult, HotelSummary, SearchState } from "../types";
 import "../hotels.css";
 import "../results.css";
 import { useCheckPrice } from "../useCheckPrice";
+import FloatingChatButton from "../../customer-management/components/FloatingChatButton";
 
 const PAGE_SIZE = 20;
 
@@ -375,6 +376,8 @@ export default function HotelResultsPage() {
           )}
         </main>
       </div>
+      {/* Help: FAQs, tickets, chat */}
+      <FloatingChatButton hideWhileVisibleId={HOTELS_SEARCH_ID} />
       <Footer />
     </>
   );
