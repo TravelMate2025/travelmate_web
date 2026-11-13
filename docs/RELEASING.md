@@ -10,6 +10,18 @@
 
 Each release on `production` gets a tag (`v1.0.0`, `v1.1.0`, …), so any earlier version can be redeployed.
 
+## Environments
+
+| | Production | Development (testing) |
+|---|---|---|
+| Web | travelmateglo.com, from `production` | testing.travelmateglo.com, from `development` (team only: Vercel Deployment Protection) |
+| Backend | backend.travelmateglo.com (Render `travelmate-backend-staging` + workers, branch `production`) | staging-api.travelmateglo.com (Render `travelmate-backend-development`, free plan, branch `development`) |
+| Database | Render `travelmate-backend-postgres` | Render `travelmate-backend-development-postgres` (free: expires after 30 days; recreate from `render.yaml`) |
+
+The backend uses the same three branches (`production`, `development`, `main`); its Render Blueprint (`render.yaml`) is read from `production`. Default branch on GitHub: `development` in both repos.
+
+Vercel builds each merge into `production` but travelmateglo.com only switches when someone clicks **Promote** (auto-assign of production domains is off), so check the deployment before promoting.
+
 ## Products and switches
 
 Unfinished products ship switched off, so `development` can always be promoted. See `src/config/features.ts`.
@@ -30,7 +42,7 @@ Other settings, per environment: `VITE_API_BASE_URL` (that environment's backend
 ## One-time setup
 
 **Vercel** (Project → Settings):
-1. Git → Production Branch: `production`.
+1. Environments → Production → Branch Tracking: `production`.
 2. Environment Variables: set the Production values above under *Production* only, and the Preview values under *Preview*. Leave the product switches out of Production.
 3. Domains: `travelmateglo.com` on Production. (Preview URLs are not indexed by search engines.)
 
