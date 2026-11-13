@@ -20,7 +20,7 @@ Each release on `production` gets a tag (`v1.0.0`, `v1.1.0`, …), so any earlie
 
 The backend uses the same three branches (`production`, `development`, `main`); its Render Blueprint (`render.yaml`) is read from `production`. Default branch on GitHub: `development` in both repos.
 
-Vercel builds each merge into `production` but travelmateglo.com only switches when someone clicks **Promote** (auto-assign of production domains is off), so check the deployment before promoting.
+Every merge into `production` deploys to travelmateglo.com automatically, so test on testing.travelmateglo.com before merging the release pull request. To undo a bad release, promote the previous production deployment in Vercel (instant).
 
 ## Products and switches
 
