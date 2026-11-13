@@ -414,13 +414,29 @@ export const mockFlightsApi: FlightsApi = {
       .filter((b): b is BagOption => Boolean(b))
       .map((b) => bagInCurrency(b, input.currency));
 
+    // Synthetic: the scenario needs a different price at hold; real changes come from the airline
+    const heldOffer = scenario === "price-up-at-hold" ? offerInCurrency(changedPrice(cached.searched ?? cached.offer, 1.04), input.currency) : offer;
+    const priceChange =
+      scenario === "price-up-at-hold"
+        ? { previous: { amount: offer.price.amount, currency: input.currency }, current: { amount: heldOffer.price.amount, currency: input.currency }, direction: "UP" as const }
+        : null;
+    const usdOffer = scenario === "price-up-at-hold" ? changedPrice(cached.searched ?? cached.offer, 1.04) : cached.offer;
+    const usdBags = input.bagOptionIds
+      .map((id) => recordedPrice.bagOptions.find((b) => b.id === id))
+      .filter((b): b is BagOption => Boolean(b));
+    const payable = (["USD", "NGN", "GBP"] as CurrencyCode[]).map((currency) => {
+      const flights = Number(offerInCurrency(usdOffer, currency).price.amount);
+      const bagsTotal = usdBags.reduce((n, b) => n + Number(bagInCurrency(b, currency).price.amount), 0);
+      return { currency, flights: flights.toFixed(2), bags: bagsTotal.toFixed(2), total: (flights + bagsTotal).toFixed(2) };
+    });
+
     const id = `mock-bk-${randomCode(8).toLowerCase()}`;
     const booking: FlightBooking = {
       id,
       reference: `TM-FL-${randomCode(6)}`,
       pnr: randomCode(6),
       status: "HELD",
-      offer,
+      offer: heldOffer,
       travelers: input.travelers.map((t) => ({
         travelerId: t.travelerId,
         type: t.type,
@@ -430,7 +446,9 @@ export const mockFlightsApi: FlightsApi = {
       })),
       contact: input.contact,
       bags,
-      total: sumMoney([{ amount: offer.price.amount, currency: input.currency }, ...bags.map((b) => b.price)], input.currency),
+      total: sumMoney([{ amount: heldOffer.price.amount, currency: input.currency }, ...bags.map((b) => b.price)], input.currency),
+      payable,
+      priceChange,
       holdExpiresAt: isoIn(scenario === "hold-expired" ? SHORT_HOLD_MS : HOLD_MS),
       payment: null,
       failure: null,
@@ -443,7 +461,7 @@ export const mockFlightsApi: FlightsApi = {
     return booking;
   },
 
-  async startCheckout(bookingId) {
+  async startCheckout(bookingId, currency) {
     await wait(500);
     const booking = readBooking(bookingId);
     if (booking.status === "HOLD_EXPIRED") throw new FlightApiError("HOLD_EXPIRED", "The time to pay ran out.");
@@ -453,7 +471,11 @@ export const mockFlightsApi: FlightsApi = {
       ...booking,
       status: "PAID",
       holdExpiresAt: null,
-      payment: { status: "PAID", paidAt: new Date().toISOString(), amount: booking.total },
+      payment: {
+        status: "PAID",
+        paidAt: new Date().toISOString(),
+        amount: { amount: booking.payable.find((p) => p.currency === currency)?.total ?? booking.total.amount, currency },
+      },
     };
     persist();
     return {

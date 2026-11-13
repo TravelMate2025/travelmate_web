@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import type { FlightOffer, FlightSearchCriteria, Itinerary, Place } from "../types";
+import type { FlightOffer, FlightSearchCriteria, Itinerary, Place, SegmentEndpoint } from "../types";
 
 // What the results page needs to know about an offer, derived once from the
 // v2 contract. Pure functions, so sorting, filters and card notes are testable.
@@ -13,6 +13,14 @@ export const localDate = (atLocal: string) => {
   const [h, min] = t.split(":").map(Number);
   return new Date(y, m - 1, day, h, min);
 };
+
+/** "London Stansted", "Casablanca": the city, plus the airport when it names one of several. */
+export const placeName = (end: SegmentEndpoint) =>
+  end.airportName.startsWith(end.city)
+    ? end.airportName
+    : /\b(International|Airport)\b/.test(end.airportName)
+      ? end.city
+      : `${end.city} ${end.airportName}`;
 
 export const formatDuration = (minutes: number) => `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, "0")}m`;
 export const timeOf = (atLocal: string) => atLocal.slice(11, 16);

@@ -189,13 +189,16 @@ Built from the approved mock's Travelers screen; sizes checked against its CSS.
 **Done 13 Nov 2026.** "Continue to payment" goes to Review and pay (W5). The country list for phone codes and passports covers 37 countries until the backend's country table exists.
 
 #### W5: Review and pay (R1)
-- [ ] Create booking (hold) on "Continue to payment": show the reservation, the countdown to the payment deadline, and a summary of flights, travellers and fare conditions.
-- [ ] Choose the currency (USD, NGN, GBP), with amounts from the server.
-- [ ] Consent checkbox; the Pay button is enabled only when it is ticked.
-- [ ] Flutterwave checkout via `checkout`, and the return from Flutterwave (success, cancelled, failed).
-- [ ] Hold expired screen; seats sold out while holding; price changed at hold.
+Built from the approved mock's Pay, HoldExpired and BookingFailed (before payment) screens; sizes checked against its CSS.
 
-Exit: the full path from search to payment works in mock mode, including all three failure screens.
+- [x] Holds the seats on arrival (create booking): orange timer bar with the countdown to the payment deadline; Flights (with the different-airports "Heads up"), Travellers, Fare conditions (plain summary + full rules) and Price summary with the reservation (PNR).
+- [x] Pay in USD, NGN or GBP with amounts from the server (`payable` on the booking, fixed at hold).
+- [x] Consent checkbox; the Pay button is enabled only when it is ticked.
+- [x] Flutterwave checkout via `checkout`, and the return page: success goes to the booking status (W6); cancelled or failed explains and offers "Back to payment" while the seats are held.
+- [x] Hold expired screen ("Your seats were released", check this flight again / see other flights); seats sold out while holding; price changed at hold (dialog; "See other flights" releases the seats).
+- [x] A reload during payment resumes the same held booking (only the booking id is stored, never traveller details), so the seats are never held twice. React's development double-run can't create two holds either.
+
+**Done 13 Nov 2026.** Contract additions for the backend: `FlightBooking.payable` (per-currency flights / bags / total) and `FlightBooking.priceChange`.
 
 #### W6: Booking status and confirmation (R1)
 - [ ] Status timeline: payment received → booked with airline → issuing ticket → ticket issued and sent.

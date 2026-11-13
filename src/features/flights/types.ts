@@ -324,6 +324,14 @@ export interface ScheduleChange {
   newArrivalLocal: string;
 }
 
+/** What the customer pays in one selling currency, fixed when the seats are held. */
+export interface PayableAmount {
+  currency: CurrencyCode;
+  flights: string;
+  bags: string;
+  total: string;
+}
+
 export interface FlightBooking {
   id: string;
   /** TravelMate booking reference shown to customers and support. */
@@ -336,6 +344,10 @@ export interface FlightBooking {
   contact: ContactInput;
   bags: BagOption[];
   total: Money;
+  /** The same total in each selling currency (mock: "Pay in" USD / NGN / GBP). */
+  payable: PayableAmount[];
+  /** The hold re-priced the offer and it changed since the price check. */
+  priceChange: PriceChange | null;
   /** HELD only: pay before this or the seats are released. */
   holdExpiresAt: string | null;
   payment: { status: "PENDING" | "PAID" | "FAILED"; paidAt: string | null; amount: Money } | null;

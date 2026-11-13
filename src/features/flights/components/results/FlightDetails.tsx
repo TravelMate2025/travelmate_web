@@ -1,4 +1,4 @@
-import { localDate, formatDuration, layoversOf, timeOf } from "../../results/offerFacts";
+import { localDate, formatDuration, layoversOf, placeName, timeOf } from "../../results/offerFacts";
 import { cabinLabel } from "../../search/searchDraft";
 import type { FlightOffer, SegmentEndpoint } from "../../types";
 import { format } from "date-fns";
@@ -9,10 +9,7 @@ const FLIGHT_BOX = "rounded-[0.625rem] bg-[#F4F6FA] px-3 py-2.5";
 const STOP_BOX = "ml-2 border-0 border-l-3 border-dashed border-l-[#FF6F1E] py-0.5 pl-3";
 
 /** "London Stansted (STN)", "Casablanca (CMN)" */
-const placeLine = (end: SegmentEndpoint) => {
-  const name = end.airportName.startsWith(end.city) ? end.airportName : /\b(International|Airport)\b/.test(end.airportName) ? end.city : `${end.city} ${end.airportName}`;
-  return `${name} (${end.iata})`;
-};
+const placeLine = (end: SegmentEndpoint) => `${placeName(end)} (${end.iata})`;
 
 const titleFor = (offer: FlightOffer, index: number) => {
   const count = offer.itineraries.length;

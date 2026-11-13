@@ -26,6 +26,8 @@ export const bookingFlowRoutes = {
   flightPaymentReturn: "/flights/payment-return",
   flightBookingStatus: "/flights/bookings/:bookingId/status",
   flightBookingManage: "/flights/bookings/:bookingId",
+  // Support chat, linked from booking failures
+  supportChat: "/chat-with-us",
 } as const;
 
 type QueryValue = string | number | boolean | null | undefined;

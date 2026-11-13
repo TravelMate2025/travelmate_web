@@ -7,6 +7,7 @@ export const MOCK_SCENARIOS = [
   "price-down", // price check: the price dropped
   "sold-out", // price check / hold: seats gone at this price
   "offer-expired", // price check: offer too old, search again
+  "price-up-at-hold", // holding the seats re-prices the offer higher
   "hold-expired", // the payment window is 45 seconds instead of 15 minutes
   "failed-after-payment", // paid, then the booking fails; full refund starts
   "slow-ticketing", // stays "issuing your ticket"
