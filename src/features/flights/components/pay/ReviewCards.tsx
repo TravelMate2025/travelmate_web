@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { fareRows, type FareRow } from "../../results/fareRows";
 import { dayDifference, formatDuration, layoversOf, localDate, placeName, timeOf } from "../../results/offerFacts";
 import { cabinLabel } from "../../search/searchDraft";
+import { titleCase } from "../../travellers/names";
 import type { ContactInput, FareRuleText, FlightOffer, TravelerSummary, TravelerType } from "../../types";
 
 // Mock (Pay): white cards, 16px corners, 22px padding, 14px gaps; 19px titles.
@@ -81,7 +82,6 @@ export const ReviewFlightsCard = ({ offer, changeTo }: { offer: FlightOffer; cha
 // ---------------------------------------------------------------- travellers
 
 const TYPE: Record<TravelerType, string> = { ADULT: "Adult", CHILD: "Child", HELD_INFANT: "Infant on lap", SEATED_INFANT: "Infant in own seat" };
-const titleCase = (name: string) => name.toLowerCase().replace(/(^|[\s'-])([a-z])/g, (_, sep: string, c: string) => sep + c.toUpperCase());
 
 /** "+234 801 234 5678" */
 const phoneLine = (contact: ContactInput) => {

@@ -201,11 +201,12 @@ Built from the approved mock's Pay, HoldExpired and BookingFailed (before paymen
 **Done 13 Nov 2026.** Contract additions for the backend: `FlightBooking.payable` (per-currency flights / bags / total) and `FlightBooking.priceChange`.
 
 #### W6: Booking status and confirmation (R1)
-- [ ] Status timeline: payment received → booked with airline → issuing ticket → ticket issued and sent.
-- [ ] Polls the booking until ticketed or failed; safe to leave and return.
-- [ ] References: TravelMate booking reference, airline PNR, e-ticket numbers when issued.
-- [ ] Booking failed after payment: automatic full refund with its tracking (reuse `shared/refundTracking`).
-- [ ] Add to calendar, view booking.
+Done 13 Nov 2026, as the mock's Status and BookingFailed (after payment) screens show them. Page: `FlightBookingStatusPage` at `bookingFlowRoutes.flightBookingStatus` (signed in).
+- [x] Status timeline: payment received → booked with airline → issuing ticket → ticket issued and sent.
+- [x] Polls the booking every 5 s until ticketed or failed; safe to leave and return (only the booking id is kept, so a reload resumes it).
+- [x] References: TravelMate booking reference, airline PNR, e-ticket numbers when issued.
+- [x] Booking failed after payment: automatic full refund with its progress. Uses the mock's refund timeline, not `shared/refundTracking` (whose panel looks different from the mock); the refund data comes from the booking's `refund`.
+- [x] Add to calendar (.ics download), Manage booking. "Online check-in" left out until there is a check-in link.
 
 Exit: the issuing, ticketed and failed-after-payment scenarios render.
 

@@ -1,4 +1,6 @@
+import { format } from "date-fns";
 import { formatMoney } from "../../currency";
+import { localDate } from "../../results/offerFacts";
 import { bestForBagsToken, fareRows, fareTagline, type FareRow } from "../../results/fareRows";
 import { cabinLabel } from "../../search/searchDraft";
 import type { FareOption, FlightOffer, Money } from "../../types";
@@ -62,3 +64,19 @@ export const offerSummary = (offer: FlightOffer) => {
   const route = offer.itineraries.length === 2 && back ? `${from} ⇄ ${to}` : `${from} → ${to}`;
   return `${route} · ${offer.validatingAirline.name} · ${brandOf(offer)}`;
 };
+
+/** "Lagos ⇄ London · 15 – 28 Dec" */
+export const tripLine = (offer: FlightOffer) => {
+  const [route] = offerSummary(offer).split(" · ");
+  const first = localDate(offer.itineraries[0].segments[0].from.atLocal);
+  const lastIt = offer.itineraries[offer.itineraries.length - 1];
+  const last = localDate(lastIt.segments[0].from.atLocal);
+  const dates =
+    offer.itineraries.length === 1
+      ? format(first, "d MMM")
+      : first.getMonth() === last.getMonth()
+        ? `${format(first, "d")} – ${format(last, "d MMM")}`
+        : `${format(first, "d MMM")} – ${format(last, "d MMM")}`;
+  return `${route} · ${dates}`;
+};
+

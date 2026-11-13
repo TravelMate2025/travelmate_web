@@ -48,6 +48,7 @@ const FlightFarePage = lazy(() => import("./features/flights/pages/FlightFarePag
 const FlightTravellersPage = lazy(() => import("./features/flights/pages/FlightTravellersPage"));
 const FlightReviewPayPage = lazy(() => import("./features/flights/pages/FlightReviewPayPage"));
 const FlightPaymentReturnPage = lazy(() => import("./features/flights/pages/FlightPaymentReturnPage"));
+const FlightBookingStatusPage = lazy(() => import("./features/flights/pages/FlightBookingStatusPage"));
 
 // Car rental pages (lazy)
 const DisplayCars = lazy(() => import("./features/car_rentals/displayAllCars/DisplayCars"));
@@ -304,6 +305,14 @@ function App() {
           }
         />
         <Route path={bookingFlowRoutes.flightPaymentReturn} element={<FlightPaymentReturnPage />} />
+        <Route
+          path={bookingFlowRoutes.flightBookingStatus}
+          element={
+            <PrivateRoute>
+              <FlightBookingStatusPage />
+            </PrivateRoute>
+          }
+        />
 
         {/* Cars */}
         <Route path={bookingFlowRoutes.transferResults} element={<DisplayCars />} />

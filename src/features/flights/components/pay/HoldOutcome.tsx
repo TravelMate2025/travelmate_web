@@ -1,32 +1,15 @@
 import { Link } from "react-router-dom";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import TimerOutlinedIcon from "@mui/icons-material/TimerOutlined";
-import { format } from "date-fns";
 import { bookingFlowRoutes } from "../../../shared/bookingFlowRoutes";
 import { formatMoney } from "../../currency";
-import { localDate } from "../../results/offerFacts";
 import type { FlightOffer } from "../../types";
-import { offerSummary } from "../fare/fareCards";
+import { offerSummary, tripLine } from "../fare/fareCards";
 
 // Mock HoldExpired ("Your seats were released") and BookingFailed before
 // payment ("These seats are no longer available"): a centred 640px column.
 const PRIMARY = "flex min-h-13 items-center justify-center rounded-xl bg-[#023E8A] font-extrabold text-white no-underline";
 const SECONDARY = "flex min-h-13 items-center justify-center rounded-xl border-2 border-[#023E8A] font-bold text-[#023E8A] no-underline";
-
-/** "Lagos ⇄ London · 15 – 28 Dec" */
-const tripLine = (offer: FlightOffer) => {
-  const [route] = offerSummary(offer).split(" · ");
-  const first = localDate(offer.itineraries[0].segments[0].from.atLocal);
-  const lastIt = offer.itineraries[offer.itineraries.length - 1];
-  const last = localDate(lastIt.segments[0].from.atLocal);
-  const dates =
-    offer.itineraries.length === 1
-      ? format(first, "d MMM")
-      : first.getMonth() === last.getMonth()
-        ? `${format(first, "d")} – ${format(last, "d MMM")}`
-        : `${format(first, "d MMM")} – ${format(last, "d MMM")}`;
-  return `${route} · ${dates}`;
-};
 
 const fareLine = (offer: FlightOffer, travellers: string) => {
   const [, airline, fare] = offerSummary(offer).split(" · ");
