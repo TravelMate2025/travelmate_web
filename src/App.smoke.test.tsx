@@ -318,6 +318,12 @@ describe("App route smoke coverage", () => {
     expect(screen.getByText("home page")).toBeInTheDocument();
   });
 
+  it("shows the not-found page for an address the site doesn't have", async () => {
+    renderRoute("/no-such-page");
+
+    expect(await screen.findByRole("heading", { name: "We can’t find that page" })).toBeInTheDocument();
+  });
+
   it("renders the login route", () => {
     localStorage.setItem("email", "ada@example.com");
 

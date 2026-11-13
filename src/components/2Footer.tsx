@@ -1,4 +1,14 @@
 
+import { FEATURES } from "../config/features";
+
+// Products follow the switches in config/features.ts
+const PRODUCTS = [
+  { name: "Hotels", href: "/hotels", on: true },
+  { name: "Stays", href: "/?tab=stays", on: FEATURES.stays },
+  { name: "Flights", href: "/flights", on: FEATURES.flights },
+  { name: "Airport Taxi", href: "/?tab=transfers", on: FEATURES.transfers },
+].filter((p) => p.on);
+
 export default function Footer() {
   return (
     <footer className="bg-[#023E8A] text-white py-10 px-6 md:px-14">
@@ -8,9 +18,9 @@ export default function Footer() {
         <div>
           <h3 className="text-lg font-bold mb-3">Our Product</h3>
           <ul className="space-y-2">
-            <li><a href="/?tab=stays" className="hover:underline">Stays</a></li>
-            <li><a href="/?tab=flights" className="hover:underline">Flight</a></li>
-            <li><a href="/?tab=transfers" className="hover:underline">Airport Taxi</a></li>
+            {PRODUCTS.map((p) => (
+              <li key={p.name}><a href={p.href} className="hover:underline">{p.name}</a></li>
+            ))}
           </ul>
         </div>
 

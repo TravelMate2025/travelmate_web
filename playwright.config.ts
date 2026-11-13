@@ -17,7 +17,15 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
     reuseExistingServer: true,
     // Flights run on the recorded Amadeus data (src/features/flights/mocks)
-    env: { VITE_FLIGHTS_API_MODE: "mock", VITE_FLIGHTS_EXTRAS: "on" },
+    env: {
+      VITE_FLIGHTS_API_MODE: "mock",
+      VITE_FLIGHTS_EXTRAS: "on",
+      // Every product on, as on the development preview (production is hotels only)
+      VITE_FEATURE_STAYS: "on",
+      VITE_FEATURE_TRANSFERS: "on",
+      VITE_FEATURE_FLIGHTS: "on",
+      VITE_FEATURE_APP_PROMO: "on",
+    },
     timeout: 120_000,
   },
   projects: [

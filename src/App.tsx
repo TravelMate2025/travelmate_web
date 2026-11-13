@@ -6,6 +6,7 @@ import AppErrorBoundary from "./AppErrorBoundary";
 import PrivateRoute from "./routes/PrivateRoute";
 import { bookingFlowRoutes } from "./features/shared/bookingFlowRoutes";
 import { hotelsRoutes } from "./features/hotels/routes";
+import { FEATURES, HAS_TRAVELMATE_BOOKINGS, HOTELS_ONLY } from "./config/features";
 
 // Eagerly loaded — lightweight, always needed on first paint
 import Home from "./pages/Home";
@@ -34,6 +35,8 @@ const StaysDetail = lazy(() => import("./features/stays/pages/StaysDetail"));
 const BookingConfirmationPage = lazy(() => import("./features/stays/pages/BookingConfirmationPage"));
 const BookingProgress = lazy(() => import("./features/stays/pages/BookingProgress"));
 const DownloadStaysPage = lazy(() => import("./features/stays/components/confirmation/Download"));
+
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 // Hotels page (lazy)
 const HotelsPage = lazy(() => import("./features/hotels/pages/HotelsPage"));
@@ -91,7 +94,8 @@ function App() {
       <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" /></div>}>
       <Routes>
         {/* Public Pages */}
-        <Route path="/" element={<Home />} />
+        {/* Hotels-only launch: the home page is the hotels search */}
+        <Route path="/" element={HOTELS_ONLY ? <HotelsPage /> : <Home />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/terms-of-use" element={<TermsOfUsePage />} />
         <Route path="/about" element={<AboutPage />} />
@@ -113,16 +117,21 @@ function App() {
         <Route path="/create-new-password" element={<CreateNewPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Stays */}
-        <Route path={bookingFlowRoutes.staySearch} element={<PartnerStaySearchPage />} />
-        <Route path={bookingFlowRoutes.stayResults} element={<StaysSearchResults />} />
-        <Route path={bookingFlowRoutes.stayBookingReview} element={<BookingProgress />} />
-        <Route path={`${bookingFlowRoutes.stayDetail}/:hotelId`} element={<StaysDetail />} />
-        <Route path={bookingFlowRoutes.stayDownload} element={<DownloadStaysPage />} />
-        <Route
-          path={bookingFlowRoutes.stayConfirmation}
-          element={<BookingConfirmationPage />}
-        />
+        {/* Stays (switch: VITE_FEATURE_STAYS) */}
+        {FEATURES.stays && (
+          <>
+          <Route path={bookingFlowRoutes.staySearch} element={<PartnerStaySearchPage />} />
+          <Route path={bookingFlowRoutes.stayResults} element={<StaysSearchResults />} />
+          <Route path={bookingFlowRoutes.stayBookingReview} element={<BookingProgress />} />
+          <Route path={`${bookingFlowRoutes.stayDetail}/:hotelId`} element={<StaysDetail />} />
+          <Route path={bookingFlowRoutes.stayDownload} element={<DownloadStaysPage />} />
+          <Route
+            path={bookingFlowRoutes.stayConfirmation}
+            element={<BookingConfirmationPage />}
+          />
+          </>
+        )}
+
         {/* FAQ & Customer Support */}
         <Route path="/faqs" element={<FaqPage />} />
         <Route
@@ -167,14 +176,16 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/reviews/:hotel_id"
-          element={
-            <PrivateRoute>
-              <ReviewDetails />
-            </PrivateRoute>
-          }
-        />
+        {FEATURES.stays && (
+          <Route
+            path="/reviews/:hotel_id"
+            element={
+              <PrivateRoute>
+                <ReviewDetails />
+              </PrivateRoute>
+            }
+          />
+        )}
 
         <Route
           path="/account/security"
@@ -200,14 +211,16 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/account/reviews"
-          element={
-            <PrivateRoute>
-              <ReviewsSettingsPage />
-            </PrivateRoute>
-          }
-        />
+        {FEATURES.stays && (
+          <Route
+            path="/account/reviews"
+            element={
+              <PrivateRoute>
+                <ReviewsSettingsPage />
+              </PrivateRoute>
+            }
+          />
+        )}
 
         <Route
           path="/account/update-email"
@@ -245,118 +258,135 @@ function App() {
           }
         />
 
-        <Route
-          path="/favorites"
-          element={
-            <PrivateRoute>
-              <Favorites />
-            </PrivateRoute>
-          }
-        />
+        {/* Favorites and My bookings: only when a product booked on TravelMate is on */}
+        {HAS_TRAVELMATE_BOOKINGS && (
+          <>
+          <Route
+            path="/favorites"
+            element={
+              <PrivateRoute>
+                <Favorites />
+              </PrivateRoute>
+            }
+          />
 
-        <Route
-          path="/bookings"
-          element={
-            <PrivateRoute>
-              <Bookings />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/bookings/stays-details"
-          element={
-            <PrivateRoute>
-              <BookingStaysDetailsPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/bookings/transfers-details"
-          element={
-            <PrivateRoute>
-              <BookingTransfersDetails />
-            </PrivateRoute>
-          }
-        />
+          <Route
+            path="/bookings"
+            element={
+              <PrivateRoute>
+                <Bookings />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/bookings/stays-details"
+            element={
+              <PrivateRoute>
+                <BookingStaysDetailsPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/bookings/transfers-details"
+            element={
+              <PrivateRoute>
+                <BookingTransfersDetails />
+              </PrivateRoute>
+            }
+          />
+
+          </>
+        )}
 
         {/* Hotels */}
         <Route path={hotelsRoutes.home} element={<HotelsPage />} />
         <Route path={hotelsRoutes.results} element={<HotelResultsPage />} />
         <Route path={`${hotelsRoutes.home}/:hotelId`} element={<HotelDetailsPage />} />
 
-        {/* Flights (features.md W0-W11) */}
-        <Route path={bookingFlowRoutes.flightsLanding} element={<FlightsPage />} />
-        <Route path={bookingFlowRoutes.flightResults} element={<FlightResultsPage />} />
-        <Route path={bookingFlowRoutes.flightMultiCity} element={<FlightMultiCityPage />} />
-        <Route path={bookingFlowRoutes.flightFare} element={<FlightFarePage />} />
-        {/* Booking needs an account: sign in before entering traveller details */}
-        <Route
-          path={bookingFlowRoutes.flightTravellers}
-          element={
-            <PrivateRoute>
-              <FlightTravellersPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path={bookingFlowRoutes.flightExtras}
-          element={
-            <PrivateRoute>
-              <FlightExtrasPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path={bookingFlowRoutes.flightReviewAndPay}
-          element={
-            <PrivateRoute>
-              <FlightReviewPayPage />
-            </PrivateRoute>
-          }
-        />
-        <Route path={bookingFlowRoutes.flightPaymentReturn} element={<FlightPaymentReturnPage />} />
-        <Route
-          path={bookingFlowRoutes.flightBookingStatus}
-          element={
-            <PrivateRoute>
-              <FlightBookingStatusPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path={bookingFlowRoutes.flightBookingManage}
-          element={
-            <PrivateRoute>
-              <FlightManageBookingPage />
-            </PrivateRoute>
-          }
-        />
+        {/* Flights (features.md W0-W11; switch: VITE_FEATURE_FLIGHTS) */}
+        {FEATURES.flights && (
+          <>
+          <Route path={bookingFlowRoutes.flightsLanding} element={<FlightsPage />} />
+          <Route path={bookingFlowRoutes.flightResults} element={<FlightResultsPage />} />
+          <Route path={bookingFlowRoutes.flightMultiCity} element={<FlightMultiCityPage />} />
+          <Route path={bookingFlowRoutes.flightFare} element={<FlightFarePage />} />
+          {/* Booking needs an account: sign in before entering traveller details */}
+          <Route
+            path={bookingFlowRoutes.flightTravellers}
+            element={
+              <PrivateRoute>
+                <FlightTravellersPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path={bookingFlowRoutes.flightExtras}
+            element={
+              <PrivateRoute>
+                <FlightExtrasPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path={bookingFlowRoutes.flightReviewAndPay}
+            element={
+              <PrivateRoute>
+                <FlightReviewPayPage />
+              </PrivateRoute>
+            }
+          />
+          <Route path={bookingFlowRoutes.flightPaymentReturn} element={<FlightPaymentReturnPage />} />
+          <Route
+            path={bookingFlowRoutes.flightBookingStatus}
+            element={
+              <PrivateRoute>
+                <FlightBookingStatusPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path={bookingFlowRoutes.flightBookingManage}
+            element={
+              <PrivateRoute>
+                <FlightManageBookingPage />
+              </PrivateRoute>
+            }
+          />
 
-        {/* Cars */}
-        <Route path={bookingFlowRoutes.transferResults} element={<DisplayCars />} />
-        <Route path={`${bookingFlowRoutes.transferDetail}/:transferId`} element={<TransferDetail />} />
-        <Route path={bookingFlowRoutes.transferBookingReview} element={<CarOfferPage />} />
-        <Route path={bookingFlowRoutes.transferGuestDetails} element={<CarOfferPage />} />
-        <Route
-          path={bookingFlowRoutes.transferPaymentSuccess}
-          element={<CarPaidForPage />}
-        />
-        <Route
-          path={bookingFlowRoutes.transferPaymentFailure}
-          element={<CarFailedPayment />}
-        />
-        <Route
-          path={bookingFlowRoutes.transferDownload}
-          element={
-            <PrivateRoute>
-              <DownloadPage />
-            </PrivateRoute>
-          }
-        />
+          </>
+        )}
 
-        {/* Legacy airport-taxi routes redirect to the canonical Transfers tab */}
-        <Route path="/airport-taxi" element={<Navigate to="/?tab=transfers" replace />} />
-        <Route path="/transfer-flow" element={<Navigate to="/?tab=transfers" replace />} />
+        {/* Transfers (switch: VITE_FEATURE_TRANSFERS) */}
+        {FEATURES.transfers && (
+          <>
+          <Route path={bookingFlowRoutes.transferResults} element={<DisplayCars />} />
+          <Route path={`${bookingFlowRoutes.transferDetail}/:transferId`} element={<TransferDetail />} />
+          <Route path={bookingFlowRoutes.transferBookingReview} element={<CarOfferPage />} />
+          <Route path={bookingFlowRoutes.transferGuestDetails} element={<CarOfferPage />} />
+          <Route
+            path={bookingFlowRoutes.transferPaymentSuccess}
+            element={<CarPaidForPage />}
+          />
+          <Route
+            path={bookingFlowRoutes.transferPaymentFailure}
+            element={<CarFailedPayment />}
+          />
+          <Route
+            path={bookingFlowRoutes.transferDownload}
+            element={
+              <PrivateRoute>
+                <DownloadPage />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Legacy airport-taxi routes redirect to the canonical Transfers tab */}
+          <Route path="/airport-taxi" element={<Navigate to="/?tab=transfers" replace />} />
+          <Route path="/transfer-flow" element={<Navigate to="/?tab=transfers" replace />} />
+          </>
+        )}
+        {/* Anything else, including switched-off products */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </Suspense>
       </AppErrorBoundary>
