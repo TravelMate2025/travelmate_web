@@ -5,7 +5,7 @@ import Navbar from "../../../pages/homePage/Navbar";
 import Footer from "../../../components/2Footer";
 import { SearchCard } from "../components/SearchCard";
 import { searchHotels } from "../api/hotelsApi";
-import { hotelsRoutes } from "../routes";
+import { hotelsRoutes, HOTELS_SEARCH_ID } from "../routes";
 import { outOfTen } from "../format";
 import { DEFAULT_SEARCH, buildSearchParams } from "../search";
 import {
@@ -23,6 +23,7 @@ import type { HotelSummary, SearchState } from "../types";
 import "../hotels.css";
 import "../results.css";
 import { useCheckPrice } from "../useCheckPrice";
+import FloatingChatButton from "../../customer-management/components/FloatingChatButton";
 
 type Filter = (typeof destinationFilters)[number];
 
@@ -262,6 +263,8 @@ export default function HotelsPage() {
 
         <div className="tmh-end" />
       </div>
+      {/* Help: FAQs, tickets, chat */}
+      <FloatingChatButton hideWhileVisibleId={HOTELS_SEARCH_ID} />
       <Footer />
     </>
   );

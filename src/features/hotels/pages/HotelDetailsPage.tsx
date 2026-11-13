@@ -13,6 +13,7 @@ import type { HotelDetails } from "../types";
 import "../hotels.css";
 import "../results.css";
 import { useCheckPrice } from "../useCheckPrice";
+import FloatingChatButton from "../../customer-management/components/FloatingChatButton";
 
 const KEY_FACILITIES = 8;
 
@@ -257,6 +258,8 @@ export default function HotelDetailsPage() {
           )}
         </main>
       </div>
+      {/* Help: FAQs, tickets, chat; above the phone Check price bar */}
+      <FloatingChatButton positionClassName="bottom-10 right-4 max-[860px]:bottom-24" />
       <Footer />
     </>
   );

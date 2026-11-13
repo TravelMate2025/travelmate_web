@@ -5,6 +5,7 @@ import { GuestsField } from "./GuestsField";
 import { fromIsoDate, hasPlace, toIsoDate } from "../search";
 import type { GuestCounts } from "../guests";
 import type { PlaceSuggestion, SearchState } from "../types";
+import { HOTELS_SEARCH_ID } from "../routes";
 
 type Props = {
   /** What the card starts with (the landing page starts empty; the results page starts with the current search). */
@@ -122,7 +123,7 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
   return (
     <div className="tmh-search">
       {tabs}
-      <form ref={formRef} className="tmh-form" role="search" onSubmit={submit}>
+      <form ref={formRef} id={HOTELS_SEARCH_ID} className="tmh-form" role="search" onSubmit={submit}>
         <label className="tmh-field tmh-field-where">
           <span>Where to</span>
           <input

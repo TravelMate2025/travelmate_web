@@ -166,11 +166,14 @@ const Navbar: React.FC = () => {
               </Box>
 
               <div className="flex">
-                <div>
-                  <div className="mt-1 border-1 border-[#023E8A] p-[8px] text-[#023E8A] rounded-[8px]">
-                    <p>Open App</p>
+                {/* Only once the app is in the stores (VITE_FEATURE_APP_PROMO) */}
+                {FEATURES.appPromo && (
+                  <div>
+                    <div className="mt-1 border-1 border-[#023E8A] p-[8px] text-[#023E8A] rounded-[8px]">
+                      <p>Open App</p>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {isLoggedIn && (
                   <div className="relative ml-4">
