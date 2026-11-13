@@ -75,3 +75,21 @@ export const deleteUserChat = async (id: number) => {
     throw error;
   }
 };
+
+export interface ChatAgent {
+  id: number;
+  displayName: string;
+}
+
+type ChatAdminsResponse = {
+  results: Array<{ id: number; first_name?: string | null; email?: string | null }>;
+};
+
+// Support agents available to chat
+export const fetchChatAgents = async (): Promise<ChatAgent[]> => {
+  const response = await api.get<ChatAdminsResponse>("/chat/admins");
+  return response.data.results.map((agent) => ({
+    id: agent.id,
+    displayName: agent.first_name?.trim() || agent.email?.split("@")[0] || "A",
+  }));
+};

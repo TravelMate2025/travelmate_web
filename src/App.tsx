@@ -41,11 +41,16 @@ const HotelResultsPage = lazy(() => import("./features/hotels/pages/HotelResults
 const HotelDetailsPage = lazy(() => import("./features/hotels/pages/HotelDetailsPage"));
 
 // Flights pages (lazy)
-const DeparturePage = lazy(() => import("./pages/flights/departureFlight/DeparturePage"));
-const ReturnPage = lazy(() => import("./pages/flights/returnFlight/ReturnPage"));
-const FlightInfoPage = lazy(() => import("./pages/flights/flightInfo-review/FlightInfoPage"));
-const FlightConfirmationPage = lazy(() => import("./pages/flights/flightConfirmation/FlightConfirmationPage"));
-const PaymentFailed = lazy(() => import("./features/flights/components/PaymentFailed"));
+const FlightsPage = lazy(() => import("./features/flights/pages/FlightsPage"));
+const FlightResultsPage = lazy(() => import("./features/flights/pages/FlightResultsPage"));
+const FlightMultiCityPage = lazy(() => import("./features/flights/pages/FlightMultiCityPage"));
+const FlightFarePage = lazy(() => import("./features/flights/pages/FlightFarePage"));
+const FlightTravellersPage = lazy(() => import("./features/flights/pages/FlightTravellersPage"));
+const FlightReviewPayPage = lazy(() => import("./features/flights/pages/FlightReviewPayPage"));
+const FlightPaymentReturnPage = lazy(() => import("./features/flights/pages/FlightPaymentReturnPage"));
+const FlightExtrasPage = lazy(() => import("./features/flights/pages/FlightExtrasPage"));
+const FlightBookingStatusPage = lazy(() => import("./features/flights/pages/FlightBookingStatusPage"));
+const FlightManageBookingPage = lazy(() => import("./features/flights/pages/FlightManageBookingPage"));
 
 // Car rental pages (lazy)
 const DisplayCars = lazy(() => import("./features/car_rentals/displayAllCars/DisplayCars"));
@@ -66,7 +71,6 @@ const Bookings = lazy(() => import("./pages/Bookings"));
 const Favorites = lazy(() => import("./pages/Favorites"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicy").then(m => ({ default: m.PrivacyPolicyPage })));
 const TermsOfUsePage = lazy(() => import("./pages/TermsOfUse").then(m => ({ default: m.TermsOfUsePage })));
-const Flight = lazy(() => import("./pages/Flight"));
 const AboutPage = lazy(() => import("./pages/About").then(m => ({ default: m.AboutPage })));
 const PartnersPage = lazy(() => import("./pages/Partners").then(m => ({ default: m.PartnersPage })));
 const ContactPage = lazy(() => import("./pages/Contact").then(m => ({ default: m.ContactPage })));
@@ -280,22 +284,53 @@ function App() {
         <Route path={hotelsRoutes.results} element={<HotelResultsPage />} />
         <Route path={`${hotelsRoutes.home}/:hotelId`} element={<HotelDetailsPage />} />
 
-        {/* Flights */}
-        <Route path="/flights" element={<Flight />} />
+        {/* Flights (features.md W0-W11) */}
+        <Route path={bookingFlowRoutes.flightsLanding} element={<FlightsPage />} />
+        <Route path={bookingFlowRoutes.flightResults} element={<FlightResultsPage />} />
+        <Route path={bookingFlowRoutes.flightMultiCity} element={<FlightMultiCityPage />} />
+        <Route path={bookingFlowRoutes.flightFare} element={<FlightFarePage />} />
+        {/* Booking needs an account: sign in before entering traveller details */}
         <Route
-          path={bookingFlowRoutes.flightDeparture}
-          element={<DeparturePage departureInfo={[]} />}
+          path={bookingFlowRoutes.flightTravellers}
+          element={
+            <PrivateRoute>
+              <FlightTravellersPage />
+            </PrivateRoute>
+          }
         />
         <Route
-          path={bookingFlowRoutes.flightReturn}
-          element={<ReturnPage departureInfo={[]} />}
+          path={bookingFlowRoutes.flightExtras}
+          element={
+            <PrivateRoute>
+              <FlightExtrasPage />
+            </PrivateRoute>
+          }
         />
-        <Route path={bookingFlowRoutes.flightReview} element={<FlightInfoPage />} />
         <Route
-          path={bookingFlowRoutes.flightPaymentSuccess}
-          element={<FlightConfirmationPage />}
+          path={bookingFlowRoutes.flightReviewAndPay}
+          element={
+            <PrivateRoute>
+              <FlightReviewPayPage />
+            </PrivateRoute>
+          }
         />
-        <Route path={bookingFlowRoutes.flightPaymentCancelled} element={<PaymentFailed />} />
+        <Route path={bookingFlowRoutes.flightPaymentReturn} element={<FlightPaymentReturnPage />} />
+        <Route
+          path={bookingFlowRoutes.flightBookingStatus}
+          element={
+            <PrivateRoute>
+              <FlightBookingStatusPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path={bookingFlowRoutes.flightBookingManage}
+          element={
+            <PrivateRoute>
+              <FlightManageBookingPage />
+            </PrivateRoute>
+          }
+        />
 
         {/* Cars */}
         <Route path={bookingFlowRoutes.transferResults} element={<DisplayCars />} />

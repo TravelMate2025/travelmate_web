@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import NotificationPresenter from "./NotificationPresenter";
 import { useNotifications } from "../components/notifications/NotificationProvider"; // use your actual path
-import api from "../../../api/services/api";
+import { deleteNotifications, fetchNotifications, markNotificationRead } from "../api/settings";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 type NotificationDetails = {
   id: string;
@@ -73,7 +72,7 @@ function NotificationContainer() {
   const handleFetchNotifications = async (url?: string) => {
     setLoading(true);
     try {
-      const res = await api.get(url || `${API_BASE_URL}/notifications/`);
+      const res = await fetchNotifications(url);
       const data = res?.data?.results || [];
 
       setNotifications((prev) => (url ? [...prev, ...data] : data));
@@ -92,7 +91,7 @@ function NotificationContainer() {
 
   const handleMarkAsRead = async (id: string) => {
     try {
-      await api.post(`${API_BASE_URL}/notifications/${id}/mark_read/`);
+      await markNotificationRead(id);
       setNotifications((prev) =>
         prev.map((n) =>
           n.id === id ? { ...n, is_read: true } : n
@@ -105,7 +104,7 @@ function NotificationContainer() {
 
   const handleDeleteOne = async (id: string) => {
     try {
-      await api.post(`/notifications/bulk-delete/`, { notification_ids: [id] });
+      await deleteNotifications([id]);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
     } catch (error) {
       console.error("Error deleting notification:", error);
@@ -118,7 +117,7 @@ function NotificationContainer() {
       const ids = notifications.map((n) => n.id);
       if (ids.length === 0) return;
 
-      await api.post(`/notifications/bulk-delete/`, { notification_ids: ids });
+      await deleteNotifications(ids);
       setNotifications([]);
       setHasNewNotification(false);
       setIsDeleting(false);

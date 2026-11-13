@@ -70,10 +70,6 @@ vi.mock("./features/stays/pages/StaysSearchResults", () => ({
   default: () => <div>stay results</div>,
 }));
 
-vi.mock("./pages/Flight", () => ({
-  default: () => <div>flight search</div>,
-}));
-
 vi.mock("./features/stays/api", () => ({
   getReviews: vi.fn().mockResolvedValue([]),
   searchStays: vi.fn().mockResolvedValue({ count: 0, results: [] }),
@@ -175,8 +171,8 @@ vi.mock("./features/stays/components/booking-progress/Policies", () => ({
   default: () => <div>policies</div>,
 }));
 
-vi.mock("./pages/homePage/Flight", () => ({
-  default: () => <div>flight search</div>,
+vi.mock("./features/flights/pages/FlightsPage", () => ({
+  default: () => <div>flights page</div>,
 }));
 
 vi.mock("./features/account/components/UserData", () => ({
@@ -416,10 +412,10 @@ describe("App route smoke coverage", () => {
     expect(await screen.findByText("booking progress hotel card")).toBeInTheDocument();
   });
 
-  it("renders the flights route", async () => {
+  it("renders the flights page", async () => {
     renderRoute("/flights");
 
-    expect(await screen.findByText("flight search")).toBeInTheDocument();
+    expect(await screen.findByText("flights page")).toBeInTheDocument();
   });
 
   it("renders the account route for signed-in users", async () => {
