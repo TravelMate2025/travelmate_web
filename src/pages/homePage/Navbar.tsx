@@ -37,12 +37,15 @@ import Spinner from "../../features/account/components/Spinner";
 import { bookingFlowRoutes } from "../../features/shared/bookingFlowRoutes";
 import { FEATURES, HAS_TRAVELMATE_BOOKINGS, HOTELS_ONLY } from "../../config/features";
 import { useNotifications } from "../../features/account/components/notifications/NotificationProvider";
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+import MailOutlineOutlinedIcon from "@mui/icons-material/MailOutlineOutlined";
 
-// Products follow the switches in config/features.ts. Hotels only: the home page is hotels, so no separate "Home".
+// Products follow the switches in config/features.ts. Hotels only: the whole
+// site is hotels and the logo goes to the hotels search, so no product links.
 const navItems = [
   ...(HOTELS_ONLY ? [] : [{ name: "Home", path: "/" }]),
   ...(FEATURES.stays ? [{ name: "Stays", path: "/?tab=stays" }] : []),
-  { name: "Hotels", path: HOTELS_ONLY ? "/" : "/hotels" },
+  ...(HOTELS_ONLY ? [] : [{ name: "Hotels", path: "/hotels" }]),
   ...(FEATURES.flights ? [{ name: "Flights", path: bookingFlowRoutes.flightsLanding }] : []),
   ...(FEATURES.transfers ? [{ name: "Transfers", path: "/?tab=transfers" }] : []),
 ];
@@ -67,6 +70,11 @@ const menuItemsWeb = [
   { text: "Favorites", icon: <FavoriteBorderOutlinedIcon /> },
   { text: "Log out", icon: <PiSignOutFill size={24} /> },
 ].filter((item) => bookingMenu(item.text));
+
+const helpItems = [
+  { text: "Help & FAQs", icon: <HelpOutlineOutlinedIcon />, path: "/faqs" },
+  { text: "Contact us", icon: <MailOutlineOutlinedIcon />, path: "/contact" },
+];
 
 const logout = [{ text: "Log out", icon: <LoginOutlinedIcon /> }];
 
@@ -211,7 +219,8 @@ const Navbar: React.FC = () => {
                       "& .MuiDrawer-paper": {
                         width: "90%",
                         margin: "0 auto",
-                        height: "70%",
+                        height: "auto",
+                        maxHeight: "70%",
                         marginTop: "16%",
                         borderRadius: "12px",
                         boxShadow: "0px 4px 10px rgba(102, 71, 71, 0.1)",
@@ -226,7 +235,7 @@ const Navbar: React.FC = () => {
                       sx={{
                         width: "100%",
                         backgroundColor: "#FFF",
-                        height: "100vh",
+                        paddingBottom: "16px",
                       }}
                       role="presentation"
                       onClick={(e) => e.stopPropagation()}
@@ -281,22 +290,39 @@ const Navbar: React.FC = () => {
                         )}
                       </Box>
 
-                      <Divider />
-                      <List>
-                        {navItems.map((item) => (
-                          <ListItem
-                            key={item.name}
-                            onClick={() => handleNavItemClick(item.path)}
-                            sx={{ cursor: "pointer" }}
-                          >
-                            <ListItemText primary={item.name} />
-                          </ListItem>
-                        ))}
-                      </List>
+                      <Divider sx={{ marginBottom: navItems.length ? 0 : "20px" }} />
+                      {/* Product links (none on the hotels-only site) */}
+                      {navItems.length > 0 && (
+                        <>
+                          <List>
+                            {navItems.map((item) => (
+                              <ListItem
+                                key={item.name}
+                                onClick={() => handleNavItemClick(item.path)}
+                                sx={{ cursor: "pointer" }}
+                              >
+                                <ListItemText primary={item.name} />
+                              </ListItem>
+                            ))}
+                          </List>
+                          <Divider sx={{ marginBottom: "20px" }} />
+                        </>
+                      )}
 
-                      <Divider sx={{ marginBottom: "20px" }} />
+                      {/* Help, for everyone */}
+                      {helpItems.map(({ text, icon, path }) => (
+                        <ListItem
+                          key={text}
+                          onClick={() => handleNavItemClick(path)}
+                          sx={{ cursor: "pointer", display: "flex", alignItems: "center" }}
+                        >
+                          <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
+                          <ListItemText primary={text} />
+                        </ListItem>
+                      ))}
 
-                      {menuItems.map(({ text, icon, path }) => (
+                      {/* Account links and Log out only when signed in */}
+                      {isLoggedIn && menuItems.map(({ text, icon, path }) => (
                         <ListItem
                           key={text}
                           onClick={() => handleNavItemClick(path)}
@@ -327,7 +353,7 @@ const Navbar: React.FC = () => {
                         </ListItem>
                       ))}
 
-                      {logout.map(({ text, icon }) => (
+                      {isLoggedIn && logout.map(({ text, icon }) => (
                         <ListItem
                           key={text}
                           onClick={() => {
