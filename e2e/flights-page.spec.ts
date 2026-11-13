@@ -45,8 +45,8 @@ test("the travellers panel updates the search card", async ({ page }) => {
 
 test("a results link runs the search", async ({ page }) => {
   await page.goto("/flights/results?trip=RETURN&legs=LOS.LON.2026-12-15_LON.LOS.2026-12-28&adults=1&cabin=ECONOMY&currency=USD");
-  await expect(page.getByRole("heading", { name: "Lagos ⇄ London" })).toBeVisible();
-  await expect(page.getByText("60 flights found")).toBeVisible();
+  await expect(page.getByText("Lagos (LOS) ⇄ London (LON)")).toBeVisible();
+  await expect(page.getByText(/^60 flights ·/)).toBeVisible();
 });
 
 test("the nav's Flights link and old links open the flights page", async ({ page }) => {
@@ -85,5 +85,5 @@ test("a multi-city results link searches on the multi-city page", async ({ page 
   await page.goto("/flights/results?trip=MULTI_CITY&legs=LOS.LON.2026-12-15_LON.DXB.2026-12-20_DXB.LOS.2026-12-28&adults=1&cabin=ECONOMY&currency=USD");
   await expect(page).toHaveURL(/\/flights\/multi-city\?/);
   await expect(page.getByRole("group", { name: /^Flight \d$/ })).toHaveCount(3);
-  await expect(page.getByText("20 flights found")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "20 options for your 3 flights" })).toBeVisible();
 });

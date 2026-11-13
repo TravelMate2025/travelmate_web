@@ -139,16 +139,29 @@ Changed during W1 (user decision): flights got its own page at `/flights`, style
 - Open: the "support hours" promise (left out of Why book until confirmed).
 
 #### W2: Results (R1)
-- [ ] Sort tabs: Best, Cheapest, Fastest (each shows its lowest price).
-- [ ] Filters: stops, airlines, departure and arrival times, bags included, refundable. Chips on mobile, side panel on desktop.
-- [ ] Offer card: airline, times, +1 day, duration, stops and airports, included bags, fare brand, seats left, price per adult with taxes.
-- [ ] Notes on the card: different arrival and departure airports, overnight connection, "book by" date when the ticketing deadline is soon.
-- [ ] Details expand with each flight, connection time and aircraft.
-- [ ] Multi-city results: one price for the whole trip.
-- [ ] Loading skeleton, no results (with suggestions), error and retry, "results expired, search again".
-- [ ] Edit search without leaving the page.
+Built from the approved mock's Results and MultiCity screens; sizes checked against its CSS.
 
-Exit: all result fixtures render correctly; sort and filter are covered by unit tests.
+- [x] Search summary pill ("Edit search") with currency; changing currency searches again in that currency.
+- [x] Booking steps (from config; R1 shows Flight, Fare, Travellers, Pay).
+- [x] Sort tabs: Best, Cheapest, Fastest, each with its top price and total travel time. Best balances price and time.
+- [x] Filters (side panel on desktop, "Filters" button on phones):
+  - Stops and Airlines, each with "from" prices.
+  - What's included: 2 checked bags, free changes, refundable.
+  - Outbound departure time.
+  - Same airport both ways (for city searches like London).
+  - Reset.
+- [x] Offer card:
+  - Airline and fare brand.
+  - One line per direction (times, +1 day, duration, stops and stop length).
+  - Bags.
+  - Notes: different airports, overnight / long stops, airport changes, fastest, ticketing deadline within 21 days.
+  - Price per adult (plus a total line for several travellers), seats left.
+  - See fares, Flight details.
+- [x] Flight details: each flight (number, airline, aircraft, duration, cabin, operated by) and each stop (length, overnight, airport change).
+- [x] Multi-city results under the form: "N options for your N flights", numbered lines, whole-trip price, Select.
+- [x] Loading skeletons, search error with retry, no results, no matches for filters; 10 at a time with "Show more".
+
+**Done 13 Nov 2026.** Shows every offer, not one per airline as the mock's sample did. On the recorded data the fastest trip is Royal Air Maroc at $965.70 (19h 10m), not the mock's RwandAir example. "See fares" / "Select" go to the Fare step (W3).
 
 #### W3: Fare and price check (R1)
 - [ ] Calls `price` when the screen opens and shows a "price confirmed with the airline" banner.

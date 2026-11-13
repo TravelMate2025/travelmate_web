@@ -1,6 +1,7 @@
 import Footer from "../../../components/2Footer";
 import { usePageMeta } from "../../../hooks/usePageMeta";
 import Navbar from "../../../pages/homePage/Navbar";
+import { MultiCityResults } from "../components/results/MultiCityResults";
 import { ResultsStatus } from "../components/results/ResultsStatus";
 import { MultiCitySearchForm } from "../components/search/MultiCitySearchForm";
 import { useFlightCurrency } from "../hooks/useFlightCurrency";
@@ -9,14 +10,14 @@ import { SELLING_CURRENCIES, type CurrencyCode } from "../types";
 
 // /flights/multi-city: multi-city search and its results on one page (mock:
 // MultiCity). No hero; the form sits at the top, results underneath once the
-// search is in the URL. Phase W2 replaces ResultsStatus with the offer cards.
+// search is in the URL.
 const FlightMultiCityPage = () => {
   usePageMeta({
     title: "Multi-city Flights | TravelMate",
     description: "Search up to six flights in one trip and pay one price for the whole journey with TravelMate.",
   });
-  const { criteria, status, result, error, retry } = useFlightResults();
-  const { currency, setCurrency } = useFlightCurrency();
+  const { criteria, places, status, result, error, retry, changeCurrency } = useFlightResults();
+  const { currency } = useFlightCurrency();
   const hasSearch = criteria?.tripType === "MULTI_CITY";
 
   return (
@@ -28,7 +29,7 @@ const FlightMultiCityPage = () => {
           <select
             aria-label="Currency"
             value={currency}
-            onChange={(event) => setCurrency(event.target.value as CurrencyCode)}
+            onChange={(event) => changeCurrency(event.target.value as CurrencyCode)}
             className="min-h-11 cursor-pointer rounded-full border border-[#CDCED1] bg-white px-3.5 text-sm font-semibold"
           >
             {SELLING_CURRENCIES.map((code) => (
@@ -39,7 +40,12 @@ const FlightMultiCityPage = () => {
           </select>
         </div>
         <MultiCitySearchForm />
-        {hasSearch && <ResultsStatus status={status} result={result} error={error} onRetry={retry} />}
+        {hasSearch &&
+          (status === "succeeded" && result && result.offers.length > 0 ? (
+            <MultiCityResults key={result.searchId} offers={result.offers} criteria={criteria} places={places} />
+          ) : (
+            <ResultsStatus status={status} result={result} error={error} onRetry={retry} />
+          ))}
       </main>
       <Footer />
     </div>

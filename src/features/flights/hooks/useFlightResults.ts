@@ -5,7 +5,7 @@ import type { AppDispatch, RootState } from "../../../store";
 import { criteriaFromQuery } from "../search/criteriaUrl";
 import { routeTitle } from "../search/recentSearches";
 import { searchFlights } from "../slice";
-import type { FlightSearchCriteria } from "../types";
+import type { CurrencyCode, FlightSearchCriteria } from "../types";
 import { useFlightCurrency } from "./useFlightCurrency";
 import { usePlaceNames } from "./usePlaces";
 
@@ -15,8 +15,8 @@ const sameCriteria = (a: FlightSearchCriteria | null, b: FlightSearchCriteria | 
 /** Reads the search from the URL and runs it (once per distinct search). */
 export const useFlightResults = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const [params] = useSearchParams();
-  const { currency } = useFlightCurrency();
+  const [params, setParams] = useSearchParams();
+  const { currency, setCurrency } = useFlightCurrency();
   const search = useSelector((state: RootState) => state.flights.search);
   const lastCriteria = useSelector((state: RootState) => state.flights.criteria);
 
@@ -42,8 +42,25 @@ export const useFlightResults = () => {
 
   const places = usePlaceNames(criteria ? criteria.legs.flatMap((l) => [l.origin, l.destination]) : []);
 
+  /** A new currency is a new search: the server prices in it. */
+  const changeCurrency = useCallback(
+    (next: CurrencyCode) => {
+      setCurrency(next);
+      setParams(
+        (current) => {
+          current.set("currency", next);
+          return current;
+        },
+        { replace: true }
+      );
+    },
+    [setCurrency, setParams]
+  );
+
   return {
     criteria,
+    places,
+    changeCurrency,
     title: criteria ? routeTitle(criteria, places) : "",
     status: search.status,
     result: search.result,
