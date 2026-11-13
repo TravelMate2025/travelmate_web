@@ -8,11 +8,15 @@ export interface FlightBookingStep {
   path: string;
 }
 
-// Which optional steps are on. R1 ships without Extras (paid bags arrive in R2,
-// phase W9); seats are R3 and not a step yet.
+// Which optional steps are on. Extras (paid bags, R2) is switched on with
+// VITE_FLIGHTS_EXTRAS=on once the backend sells bags (F-phase "bags"); seats are
+// R3 and not a step yet.
 export const FLIGHT_FEATURES = {
-  extras: false,
+  extras: import.meta.env.VITE_FLIGHTS_EXTRAS === "on",
 } as const;
+
+/** Extras is a step only when it's switched on and the airline sells bags for this offer. */
+export const hasExtrasStep = (bagOptions: readonly unknown[] | null | undefined) => FLIGHT_FEATURES.extras && (bagOptions?.length ?? 0) > 0;
 
 export const flightBookingSteps = (features: { extras: boolean } = FLIGHT_FEATURES): FlightBookingStep[] => {
   const steps: [FlightStepKey, string][] = [

@@ -67,7 +67,7 @@ const FlightManageBookingPage = () => {
             </>
           )}
         </main>
-        {booking && booking.status !== "HELD" && <FareAside offer={booking.offer} />}
+        {booking && booking.status !== "HELD" && <FareAside offer={booking.offer} bags={booking.bags} />}
       </div>
       <Footer />
     </div>

@@ -223,7 +223,8 @@ Done with W3 (13 Nov 2026), as the mock's Fares screen shows them.
 - [x] Fare screen shows the airline's fare options from `upsell` (e.g. Eco Essential, Classic, Flex), with what is included, the price difference, and the selection carried into the booking.
 
 #### W9: Paid extra bags (R2)
-- [ ] Extras step (turned on by config): bag options per direction from the price check with bags, running total, and bags shown on review, status and manage.
+Done 13 Nov 2026, as the mock's Extras screen shows it (its "Seat selection" card is R3 and left out). Page: `FlightExtrasPage` at `bookingFlowRoutes.flightExtras` (signed in).
+- [x] Extras step (turned on by config): bag options per direction from the price check with bags, running total, and bags shown on review, status and manage. Switch: `VITE_FLIGHTS_EXTRAS=on` (on in `.env.local` and Playwright). The step and its stepper pill only appear when the airline sells bags for the chosen offer; otherwise Travellers goes straight to payment. Real Royal Air Maroc prices: +1 bag $210.00 / +2 $530.00 outbound, $235.20 / $593.60 return. Weights show only when the airline gives them.
 
 #### W10: Cancellation after ticketing (R2)
 - [ ] Manage → cancel when ticketed: refund estimate from `cancellation-preview` (non-refundable fare vs refundable taxes), request, then status until the airline confirms and the refund completes.

@@ -57,7 +57,7 @@ test("signed-out visitors sign in first", async ({ page }) => {
 test.describe("signed in", () => {
   test.beforeEach(async ({ page }) => signIn(page));
 
-  test("collects the lead traveller and contact, then continues to payment", async ({ page }) => {
+  test("collects the lead traveller and contact, then continues to extras", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await toTravellers(page);
     await expect(page.getByRole("navigation", { name: "Booking steps" })).toContainText("2 Fare ✓");
@@ -70,7 +70,7 @@ test.describe("signed in", () => {
     await expect(summary).toContainText("$605.70");
     await expect(summary).toContainText("$787.70");
 
-    await page.getByRole("button", { name: "Continue to payment" }).click();
+    await page.getByRole("button", { name: "Continue to extras" }).click();
     await expect(page.getByText("Enter the first and middle names as on the passport")).toBeVisible();
     await expect(page.getByText("Enter an email for your e-ticket")).toBeVisible();
     await page.screenshot({ path: "test-results/flights-travellers-errors-1280.png", fullPage: true });
@@ -82,8 +82,9 @@ test.describe("signed in", () => {
     await expect(page.getByLabel(/Country code/)).toHaveValue("NG");
     await page.screenshot({ path: "test-results/flights-travellers-1280.png", fullPage: true });
 
-    await page.getByRole("button", { name: "Continue to payment" }).click();
-    await expect(page).toHaveURL(/\/flights\/review\?offer=mock-return_los_lon-1$/);
+    // Royal Air Maroc sells extra bags on this fare, so Extras comes next
+    await page.getByRole("button", { name: "Continue to extras" }).click();
+    await expect(page).toHaveURL(/\/flights\/extras\?offer=mock-return_los_lon-1$/);
   });
 
   test("a family: child and lap-infant ages, one lap per adult, names too long together", async ({ page }) => {

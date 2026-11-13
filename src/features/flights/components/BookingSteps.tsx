@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
-import { flightBookingSteps } from "../bookingSteps";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../store";
+import { flightBookingSteps, hasExtrasStep } from "../bookingSteps";
 import type { FlightStepKey } from "../../shared/booking/bookingFlowLabels";
 
 // Mock: numbered step pills. Done steps link back with a tick ("1 Flight ✓"),
 // the current one is solid blue, later ones are outlined. Steps come from
-// config (R1 has no Extras step).
-const PILL = "rounded-full px-3 py-1.5";
+// config and the offer (Extras only when the airline sells bags).
+const PILL = "inline-block rounded-full px-3 py-1.5";
 
 interface BookingStepsProps {
   current: FlightStepKey;
@@ -14,7 +16,11 @@ interface BookingStepsProps {
 }
 
 export const BookingSteps = ({ current, backTo = {} }: BookingStepsProps) => {
-  const steps = flightBookingSteps();
+  // Extras only shows when the airline sells bags for the chosen offer (or bags were bought)
+  const extras = useSelector(
+    (state: RootState) => hasExtrasStep(state.flights.priceCheck.result?.bagOptions) || (state.flights.booking.result?.bags.length ?? 0) > 0
+  );
+  const steps = flightBookingSteps({ extras });
   const currentIndex = steps.findIndex((s) => s.key === current);
   return (
     <nav aria-label="Booking steps">

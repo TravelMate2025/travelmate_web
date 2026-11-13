@@ -1,3 +1,4 @@
+import { bagsText } from "../../booking/bags";
 import { formatMoney } from "../../currency";
 import { cabinLabel, passengersSummary } from "../../search/searchDraft";
 import type { FlightBooking, PassengerCounts, PayableAmount } from "../../types";
@@ -26,7 +27,7 @@ export const PriceSummary = ({ booking, payable }: { booking: FlightBooking; pay
         <span>{formatMoney(payable.flights, payable.currency)}</span>
       </div>
       <div className={LINE}>
-        <span>Extra bags</span>
+        <span>Extra bags{booking.bags.length > 0 ? ` · ${bagsText(booking.bags, booking.offer)}` : ""}</span>
         <span>{formatMoney(payable.bags, payable.currency)}</span>
       </div>
       <div className={`${LINE} mt-1 border-0 border-t border-t-[#EBECED] pt-2.5 text-xl font-extrabold`}>

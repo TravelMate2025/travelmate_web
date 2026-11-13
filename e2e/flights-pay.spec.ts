@@ -31,6 +31,7 @@ const toReview = async (page: Page, scenario?: string) => {
   await page.getByRole("button", { name: "Continue to traveller details" }).click();
   await page.getByRole("button", { name: "Use my profile details" }).click();
   if (scenario) await page.evaluate((s) => window.sessionStorage.setItem("tm.flights.mockScenario", s), scenario);
+  await page.getByRole("button", { name: "Continue to extras" }).click();
   await page.getByRole("button", { name: "Continue to payment" }).click();
   await expect(page).toHaveURL(/\/flights\/review\?offer=mock-return_los_lon-1$/);
 };
@@ -68,6 +69,8 @@ test("holds the seats, shows the review, and pays through Flutterwave", async ({
 test("a reload during payment keeps the same held booking (no second hold)", async ({ page }) => {
   await toReview(page);
   const summary = page.getByRole("complementary", { name: "Price summary" });
+  // Wait for Review's summary (Extras has one too) and its held reservation
+  await expect(summary).toContainText(/Reservation: [A-Z0-9]{6}/);
   const before = (await summary.textContent())?.match(/Reservation: ([A-Z0-9]{6})/)?.[1];
   expect(before).toBeTruthy();
   await page.reload();

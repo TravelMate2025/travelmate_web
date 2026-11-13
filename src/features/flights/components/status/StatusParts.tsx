@@ -1,6 +1,7 @@
 import CheckIcon from "@mui/icons-material/Check";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import { format } from "date-fns";
+import { bagsText } from "../../booking/bags";
 import { formatMoney } from "../../currency";
 import type { ProgressStep } from "../../booking/bookingStatus";
 import { dayDifference, layoversOf, localDate, timeOf } from "../../results/offerFacts";
@@ -138,6 +139,7 @@ export const TripCard = ({ booking }: { booking: FlightBooking }) => (
           </div>
         </div>
       ))}
+      {booking.bags.length > 0 && <div className={HINT}>Extra bags: {bagsText(booking.bags, booking.offer)}</div>}
     </div>
   </section>
 );

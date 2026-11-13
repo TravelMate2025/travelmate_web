@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { bookingFlowRoutes } from "../../../shared/bookingFlowRoutes";
+import { bagsText } from "../../booking/bags";
 import { refundSteps } from "../../booking/bookingStatus";
 import { fareLines, paidAmount } from "../../booking/manage";
 import { formatMoney } from "../../currency";
@@ -8,7 +9,7 @@ import type { FlightsState } from "../../slice";
 import { dayDifference, localDate, timeOf } from "../../results/offerFacts";
 import { cabinLabel } from "../../search/searchDraft";
 import { titleCase } from "../../travellers/names";
-import type { FlightBooking, FlightOffer } from "../../types";
+import type { BagOption, FlightBooking, FlightOffer } from "../../types";
 import { CARD, TITLE } from "../pay/ReviewCards";
 import { ProgressList } from "../status/StatusParts";
 
@@ -208,7 +209,7 @@ export const RefundCard = ({ booking }: { booking: FlightBooking }) => {
 };
 
 /** Mock: aside "Your fare · Eco Essential" with refunds, changes and bags. */
-export const FareAside = ({ offer }: { offer: FlightOffer }) => {
+export const FareAside = ({ offer, bags }: { offer: FlightOffer; bags: BagOption[] }) => {
   const segment = offer.itineraries[0].segments[0];
   return (
     <aside
@@ -222,6 +223,12 @@ export const FareAside = ({ offer }: { offer: FlightOffer }) => {
           <strong>{line.value}</strong>
         </div>
       ))}
+      {bags.length > 0 && (
+        <div className={LINE}>
+          <span>Extra bags</span>
+          <strong className="text-right">{bagsText(bags, offer)}</strong>
+        </div>
+      )}
       <p className={`${HINT} mt-1`}>
         To change dates or names, contact support. Changes are handled with the airline and may cost a fee plus any fare difference.
       </p>

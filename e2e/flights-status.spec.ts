@@ -30,6 +30,7 @@ const bookAndPay = async (page: Page, scenario?: string) => {
   await page.getByRole("article").first().getByRole("button", { name: "See fares" }).click();
   await page.getByRole("button", { name: "Continue to traveller details" }).click();
   await page.getByRole("button", { name: "Use my profile details" }).click();
+  await page.getByRole("button", { name: "Continue to extras" }).click();
   await page.getByRole("button", { name: "Continue to payment" }).click();
   await page.getByLabel(/I've checked the traveller names/).check();
   if (scenario) await page.evaluate((s) => window.sessionStorage.setItem("tm.flights.mockScenario", s), scenario);

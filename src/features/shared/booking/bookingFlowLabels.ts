@@ -11,6 +11,7 @@ export const guestDetailsLabel = () => "Guest details";
 export const bookingConfirmationLabel = () => "Booking confirmation";
 export const bookingManagementLabel = () => "Booking management";
 export const continueToPaymentLabel = () => "Continue to payment";
+export const continueToExtrasLabel = () => "Continue to extras";
 export const paymentProviderLabel = () => "Secure payment";
 export const paymentRedirectCopy = () => "You'll be redirected to complete your secure payment";
 export const transferReviewLabel = () => "Transfer review";

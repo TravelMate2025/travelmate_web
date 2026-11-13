@@ -3,6 +3,7 @@ import {
   bookingConfirmationLabel,
   bookingManagementLabel,
   bookingReviewLabel,
+  continueToExtrasLabel,
   continueToPaymentLabel,
   flightAddLegLabel,
   flightDoneLabel,
@@ -38,6 +39,7 @@ describe("bookingFlowLabels", () => {
     expect(bookingConfirmationLabel()).toBe("Booking confirmation");
     expect(bookingManagementLabel()).toBe("Booking management");
     expect(continueToPaymentLabel()).toBe("Continue to payment");
+    expect(continueToExtrasLabel()).toBe("Continue to extras");
     expect(guestDetailsLabel()).toBe("Guest details");
     expect(pricingSourceLabel()).toBe("Pricing source");
     expect(partnerPricingSourceCopy()).toBe(

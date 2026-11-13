@@ -4,8 +4,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import type { AppDispatch, RootState } from "../../../store";
 import { flightMultiCityPath, flightResultsPath, flightStepPath, flightsLandingPath } from "../../shared/bookingFlowRoutes";
-import { continueToPaymentLabel } from "../../shared/booking/bookingFlowLabels";
-import { FLIGHT_FEATURES } from "../bookingSteps";
+import { continueToExtrasLabel, continueToPaymentLabel } from "../../shared/booking/bookingFlowLabels";
+import { hasExtrasStep } from "../bookingSteps";
 import { criteriaToQuery } from "../search/criteriaUrl";
 import { checkFlightPrice, selectFlightOffer, setFlightTravelers } from "../slice";
 import { COUNTRIES } from "../travellers/countries";
@@ -138,7 +138,7 @@ export const useTravellersPage = () => {
       return;
     }
     dispatch(setFlightTravelers(toInputs(form)));
-    navigate(flightStepPath(FLIGHT_FEATURES.extras ? "flightExtras" : "flightReviewAndPay", token));
+    navigate(flightStepPath(hasExtrasStep(result.bagOptions) ? "flightExtras" : "flightReviewAndPay", token));
   };
 
   return {
@@ -157,7 +157,7 @@ export const useTravellersPage = () => {
     shortenNames,
     resultsPath,
     farePath,
-    continueLabel: FLIGHT_FEATURES.extras ? "Continue to extras" : continueToPaymentLabel(),
+    continueLabel: hasExtrasStep(result?.bagOptions) ? continueToExtrasLabel() : continueToPaymentLabel(),
     submit,
     seeOtherFlights: () => navigate(resultsPath),
     retry: () => token && dispatch(checkFlightPrice({ offerToken: token, currency, includeBags: true })),
