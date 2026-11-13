@@ -13,6 +13,7 @@ import type { ResultFilters, SortKey } from "../search";
 import type { HotelsPageResult, HotelSummary, SearchState } from "../types";
 import "../hotels.css";
 import "../results.css";
+import { useCheckPrice } from "../useCheckPrice";
 
 const PAGE_SIZE = 20;
 
@@ -61,6 +62,7 @@ function applyFilters(hotels: HotelSummary[], f: ResultFilters): HotelSummary[] 
 }
 
 export default function HotelResultsPage() {
+  const checkPrice = useCheckPrice();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const search = useMemo(() => parseSearch(params), [params]);
@@ -147,7 +149,7 @@ export default function HotelResultsPage() {
                   <p className="tmh-sub">{stayLine(search)}</p>
                 </div>
                 {data?.place?.results_url && (
-                  <a href={data.place.results_url} className="tmh-btn tmh-btn-ghost">
+                  <a {...checkPrice(data.place.results_url)} className="tmh-btn tmh-btn-ghost">
                     See live prices for all hotels
                   </a>
                 )}

@@ -13,11 +13,23 @@ export const bookingFlowRoutes = {
   transferPaymentSuccess: "/transfers/payment-success",
   transferPaymentFailure: "/transfers/payment-failure",
   transferDownload: "/car-paid/download",
-  flightDeparture: "/flight/departure",
-  flightReturn: "/flight/return",
-  flightReview: "/flight/review",
-  flightPaymentSuccess: "/flights/payment-success",
-  flightPaymentCancelled: "/flights/payment-cancelled",
+  // Flights landing page (search + sections), reached from the top nav like /hotels
+  flightsLanding: "/flights",
+  flightResults: "/flights/results",
+  // Multi-city search and its results on one page (mock: MultiCity)
+  flightMultiCity: "/flights/multi-city",
+  flightFare: "/flights/fare",
+  flightTravellers: "/flights/travellers",
+  flightExtras: "/flights/extras",
+  flightReviewAndPay: "/flights/review",
+  // Flutterwave redirects back here, so the path must not change
+  flightPaymentReturn: "/flights/payment-return",
+  flightBookingStatus: "/flights/bookings/:bookingId/status",
+  flightBookingManage: "/flights/bookings/:bookingId",
+  // Support chat, linked from booking failures
+  supportChat: "/chat-with-us",
+  // My bookings (all products), linked back from Manage
+  myBookings: "/bookings",
 } as const;
 
 type QueryValue = string | number | boolean | null | undefined;
@@ -40,6 +52,32 @@ export const stayResultsPath = (params: Record<string, QueryValue>) =>
 
 export const transferResultsPath = (params: Record<string, QueryValue>) =>
   withQuery(bookingFlowRoutes.transferResults, params);
+
+// Flights page with the search form prefilled (Popular routes, Browse by class, campaigns)
+export const flightsLandingPath = (prefill: { from?: string; to?: string; cabin?: string } = {}) =>
+  withQuery(bookingFlowRoutes.flightsLanding, prefill);
+
+export const flightMultiCityPath = (params: Record<string, QueryValue> = {}) =>
+  withQuery(bookingFlowRoutes.flightMultiCity, params);
+
+export const flightResultsPath = (params: Record<string, QueryValue>) =>
+  withQuery(bookingFlowRoutes.flightResults, params);
+
+// Offer tokens are opaque and may contain any character, so they travel as a query value
+export const flightStepPath = (
+  step: "flightFare" | "flightTravellers" | "flightExtras" | "flightReviewAndPay",
+  offerToken: string
+) => withQuery(bookingFlowRoutes[step], { offer: offerToken });
+
+const withBookingId = (pattern: string, bookingId: string) =>
+  pattern.replace(":bookingId", encodeURIComponent(bookingId));
+
+export const flightBookingStatusPath = (bookingId: string) =>
+  withBookingId(bookingFlowRoutes.flightBookingStatus, bookingId);
+
+/** `cancel` opens the cancellation section straight away (from My bookings → Cancel). */
+export const flightBookingManagePath = (bookingId: string, options: { cancel?: boolean } = {}) =>
+  withQuery(withBookingId(bookingFlowRoutes.flightBookingManage, bookingId), { cancel: options.cancel ? 1 : undefined });
 
 // The download pages read the booking back from the `data` query param
 export const stayDownloadPath = (booking: unknown) =>

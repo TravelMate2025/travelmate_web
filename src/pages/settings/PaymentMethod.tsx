@@ -9,6 +9,7 @@ import Breadcrumbs from "../../components/Breadcrumbs";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import PaymentMethods from "../PaymentMethods";
 import LogoutButton from "../../features/account/components/LogoutButton";
+import { showAccountLink } from "../../config/features";
 
 export function PaymentMethodSettingsPage() {
   const location = useLocation();
@@ -88,7 +89,7 @@ export function PaymentMethodSettingsPage() {
         {/* LEFT SIDE MENU */}
         <div className="hidden md:block w-[350px]">
           <div className="border border-gray-300 rounded-xl w-[290px] m-auto">
-            {options.map((item, index) => {
+            {options.filter(showAccountLink).map((item, index) => {
               const isActive = location.pathname === item.link;
 
               if(item.title == "Log Out"){

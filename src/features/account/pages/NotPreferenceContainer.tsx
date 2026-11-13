@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import NotPreferencePresenter from "./NotPreferencePresenter";
-import api from "../../../api/services/api";
+import { createNotificationPreferences, fetchNotificationPreferences, updateNotificationPreferences } from "../api/settings";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface NotificationPreferences {
   enabled_types: string[];
@@ -50,9 +49,7 @@ function NotPreferenceContainer() {
     setError("");
 
     try {
-      const res = await api.get<NotificationPreferenceItem | { message?: string; data?: NotificationPreferenceItem }>(
-        `${API_BASE_URL}/notification-prefrence/`
-      );
+      const res = await fetchNotificationPreferences<NotificationPreferenceItem | { message?: string; data?: NotificationPreferenceItem }>();
 
       const pref = "data" in res.data ? res.data.data : res.data;
 
@@ -78,13 +75,10 @@ function NotPreferenceContainer() {
       let res;
       if (preferences?.id) {
         // Updating existing preference
-        res = await api.put(
-          `${API_BASE_URL}/notification-prefrence/${preferences.id}/`,
-          updatedPrefs
-        );
+        res = await updateNotificationPreferences(preferences.id, updatedPrefs);
       } else {
         // Creating new preference if none exist
-        res = await api.post(`${API_BASE_URL}/notification-prefrence/`, updatedPrefs);
+        res = await createNotificationPreferences(updatedPrefs);
       }
 
       // Normalizing response

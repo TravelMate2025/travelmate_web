@@ -24,13 +24,15 @@ import {
   fetchAllBookings,
 } from "../features/stays/api";
 import { useSelector } from "react-redux";
+import { flightsApi } from "../features/flights/api";
+import { toBookingRow } from "../features/flights/booking/manage";
+import type { StatusBadge } from "../features/flights/booking/manage";
 import { RootState } from "../store";
 
 type BookingsResponse = {
   data?: {
     stays?: unknown[];
     transfers?: unknown[];
-    flights?: unknown[];
   };
 };
 
@@ -82,7 +84,17 @@ export interface NormalizedBooking {
   imageUrl?: string;
   originalData: Record<string, unknown>;
   session_id: string;
+  /** Flights: where the row opens (Manage), its status badge, and Cancel (Manage with cancel open). */
+  detailsPath?: string;
+  badge?: StatusBadge;
+  cancelPath?: string | null;
 }
+
+const byDateDesc = (a: NormalizedBooking, b: NormalizedBooking) => {
+  const da = a.date ? new Date(a.date).getTime() : 0;
+  const db = b.date ? new Date(b.date).getTime() : 0;
+  return db - da;
+};
 
 const Bookings = () => {
   const [searchParams] = useSearchParams();
@@ -153,41 +165,7 @@ const Bookings = () => {
       } as NormalizedBooking;
     });
 
-    const flightsArr = Array.isArray(obj.flights as unknown)
-      ? (obj.flights as unknown[])
-      : [];
-    const flights = flightsArr.map((f) => {
-      const fRec = f as Record<string, unknown>;
-      let dep = "";
-      let arr = "";
-      const itinerary = fRec['flight_itinerary'] as unknown;
-      if (Array.isArray(itinerary) && itinerary.length > 0) {
-        const first = itinerary[0] as Record<string, unknown>;
-        const summary = first['summary'] as Record<string, unknown> | undefined;
-        dep = String(summary?.['departure_datetime'] ?? "");
-        arr = String(summary?.['arrival_datetime'] ?? "");
-      }
-      return {
-        id: String(fRec['booking_reference']),
-        type: "flight",
-        reference: String(fRec['booking_reference']),
-        status: String((fRec['booking_status'] as string) || "").toLowerCase(),
-        name: String(fRec['flight_booking_type'] || ""),
-        date: dep,
-        date_to: arr,
-        amount: Number(fRec['total_amount'] as number || 0),
-        currency: String(fRec['currency'] || ""),
-        imageUrl: getImageUrlFromRecord(fRec),
-        originalData: fRec as Record<string, unknown>,
-        session_id: String(fRec['payment_session_id'] || ""),
-      } as NormalizedBooking;
-    });
-
-    return [...stays, ...transfers, ...flights].sort((a, b) => {
-      const da = a.date ? new Date(a.date).getTime() : 0;
-      const db = b.date ? new Date(b.date).getTime() : 0;
-      return db - da;
-    });
+    return [...stays, ...transfers];
   };
 
   // --- Effects ---
@@ -199,10 +177,15 @@ const Bookings = () => {
       try {
         setLoading(true);
 
-        const res = (await fetchAllBookings()) as BookingsResponse;
-        if (res?.data) {
-          setBookings(mergeBookings(res.data));
-        }
+        // Flights come from their own API (v2); one failing doesn't hide the other
+        const [others, flights] = await Promise.allSettled([fetchAllBookings() as Promise<BookingsResponse>, flightsApi.listBookings()]);
+        const flightRows: NormalizedBooking[] =
+          flights.status === "fulfilled"
+            ? flights.value.map((f) => ({ ...toBookingRow(f), type: "flight", originalData: {}, session_id: "" }) as NormalizedBooking)
+            : [];
+        if (others.status === "rejected") console.error("Failed to fetch bookings:", others.reason);
+        const otherRows = others.status === "fulfilled" && others.value?.data ? mergeBookings(others.value.data) : [];
+        setBookings([...otherRows, ...flightRows].sort(byDateDesc));
       } catch (error) {
         console.error("Failed to fetch bookings:", error);
       } finally {

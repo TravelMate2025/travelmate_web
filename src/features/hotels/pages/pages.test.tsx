@@ -1,4 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { configureStore } from "@reduxjs/toolkit";
+import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { HotelDetails, HotelSummary, HotelsPageResult } from "../types";
@@ -60,19 +62,28 @@ function Where() {
   return <output data-testid="where">{pathname + search}</output>;
 }
 
+// Check price needs an account: signed in unless a test says otherwise
+let signedIn = true;
+const storeFor = () => configureStore({ reducer: { auth: () => ({ accessToken: signedIn ? "token" : null }) } });
+
 const renderAt = (url: string) =>
   render(
-    <MemoryRouter initialEntries={[url]}>
-      <Routes>
-        <Route path="/hotels" element={<HotelsPage />} />
-        <Route path="/hotels/results" element={<HotelResultsPage />} />
-        <Route path="/hotels/:hotelId" element={<HotelDetailsPage />} />
-      </Routes>
-      <Where />
-    </MemoryRouter>,
+    <Provider store={storeFor()}>
+      <MemoryRouter initialEntries={[url]}>
+        <Routes>
+          <Route path="/hotels" element={<HotelsPage />} />
+          <Route path="/hotels/results" element={<HotelResultsPage />} />
+          <Route path="/hotels/:hotelId" element={<HotelDetailsPage />} />
+          <Route path="/create-account" element={<p>sign-up page</p>} />
+        </Routes>
+        <Where />
+      </MemoryRouter>
+    </Provider>,
   );
 
 beforeEach(() => {
+  signedIn = true;
+  window.sessionStorage.clear();
   window.scrollTo = vi.fn();
   api.suggestPlaces.mockResolvedValue([]);
   api.searchHotels.mockResolvedValue(page([]));
@@ -243,5 +254,30 @@ describe("landing page", () => {
     fireEvent.click(screen.getByRole("button", { name: "Search" }));
     expect(await screen.findByText("Type a city, region or hotel first.")).toBeTruthy();
     expect(screen.getByTestId("where").textContent).toBe("/hotels");
+  });
+});
+
+describe("Check price asks for an account first", () => {
+  it("signed out: results and hotel links lead to sign-up, then back to the same page", async () => {
+    signedIn = false;
+    api.searchAllHotels.mockResolvedValue(page([hotel("11", "Iberostar Lisboa")], { total: 1 }));
+    renderAt(`/hotels/results?${SEARCH}`);
+    expect(await screen.findByText("Iberostar Lisboa")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "See live prices for all hotels" }).getAttribute("href")).toBe("/create-account");
+    const check = screen.getByRole("link", { name: "Check price" });
+    expect(check.getAttribute("href")).toBe("/create-account");
+    fireEvent.click(check);
+    expect(await screen.findByText("sign-up page")).toBeTruthy();
+    expect(screen.getByTestId("where").textContent).toBe("/create-account");
+    // Remembered for after sign-in (also after signing up with an email code)
+    expect(JSON.parse(window.sessionStorage.getItem("tm.auth.returnPath") ?? "{}").path).toBe(`/hotels/results?${SEARCH}`);
+  });
+
+  it("signed out on a hotel page: every Check price goes to sign-up", async () => {
+    signedIn = false;
+    api.getHotel.mockResolvedValue({ ...hotel("11", "Iberostar Lisboa") });
+    renderAt(`/hotels/11?${SEARCH}`);
+    expect(await screen.findByRole("heading", { name: "Iberostar Lisboa" })).toBeTruthy();
+    screen.getAllByRole("link", { name: "Check price" }).forEach((a) => expect(a.getAttribute("href")).toBe("/create-account"));
   });
 });
