@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { flightBookingSteps } from "./bookingSteps";
-import { browserCountry, currencyForCountry, formatMoney } from "./currency";
+import { asSoldCurrency, browserCountry, currencyForCountry, formatMoney, pickCurrency } from "./currency";
 import priceCheckFixture from "./mocks/fixtures/priceCheck.json";
 import reducer, { checkFlightPrice, initialFlightsState, searchFlights, selectFlightOffer, setFlightCurrency } from "./slice";
 import type { FlightSearchCriteria, PriceCheckResult } from "./types";
@@ -11,6 +11,15 @@ describe("currency", () => {
     expect(currencyForCountry("gb")).toBe("GBP");
     expect(currencyForCountry("US")).toBe("USD");
     expect(currencyForCountry(null)).toBe("USD");
+  });
+
+  it("uses the choice, then the profile's saved currency, then the country", () => {
+    expect(pickCurrency("GBP", "NGN", "NG")).toBe("GBP");
+    expect(pickCurrency(null, "gbp", "NG")).toBe("GBP");
+    expect(pickCurrency(null, "", "NG")).toBe("NGN");
+    expect(pickCurrency(null, "EUR", "US")).toBe("USD");
+    expect(asSoldCurrency(" ngn ")).toBe("NGN");
+    expect(asSoldCurrency(null)).toBeNull();
   });
 
   it("reads the country from browser languages", () => {

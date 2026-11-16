@@ -8,6 +8,18 @@ export const currencyForCountry = (countryCode: string | null | undefined): Curr
   return "USD";
 };
 
+const SOLD: readonly CurrencyCode[] = ["USD", "NGN", "GBP"];
+
+/** A currency we sell, from any casing; null otherwise (blank, "EUR"). */
+export const asSoldCurrency = (value: string | null | undefined): CurrencyCode | null => {
+  const code = (value ?? "").trim().toUpperCase() as CurrencyCode;
+  return SOLD.includes(code) ? code : null;
+};
+
+/** Decision F-7: chosen now → saved on the profile → the country's default. */
+export const pickCurrency = (chosen: CurrencyCode | null, saved: string | null | undefined, country: string | null | undefined): CurrencyCode =>
+  chosen ?? asSoldCurrency(saved) ?? currencyForCountry(country);
+
 /** Best guess at the visitor's country from the browser languages (en-NG -> NG). */
 export const browserCountry = (languages: readonly string[] = typeof navigator === "undefined" ? [] : navigator.languages) => {
   for (const tag of languages) {
