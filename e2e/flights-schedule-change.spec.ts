@@ -45,6 +45,9 @@ test("alerts on Manage and in My bookings when the airline re-times a flight", a
   await bookAndPay(page, "schedule-change");
   await page.clock.fastForward(11_000);
   await expect(page.getByRole("heading", { name: "You’re all set" })).toBeVisible();
+  // The status page's trip already shows the airline's new landing time (was 18:05)
+  const trip = page.getByRole("region", { name: "Trip" });
+  await expect(trip).toContainText("16:10 LGW → 20:05");
   await page.getByRole("link", { name: "Manage booking" }).click();
 
   const alert = page.getByRole("alert").filter({ hasText: "Schedule change" });

@@ -2,6 +2,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import { format } from "date-fns";
 import { bagsText } from "../../booking/bags";
+import { segmentTimes } from "../../booking/manage";
 import { formatMoney } from "../../currency";
 import type { ProgressStep } from "../../booking/bookingStatus";
 import { dayDifference, layoversOf, localDate, timeOf } from "../../results/offerFacts";
@@ -106,15 +107,18 @@ export const TripCard = ({ booking }: { booking: FlightBooking }) => (
       {booking.offer.itineraries.map((it, index) => {
         const first = it.segments[0];
         const last = it.segments[it.segments.length - 1];
-        const plus = dayDifference(first.from.atLocal, last.to.atLocal);
+        // The airline's new times when it re-timed a flight
+        const { departLocal } = segmentTimes(booking, first);
+        const { arriveLocal } = segmentTimes(booking, last);
+        const plus = dayDifference(departLocal, arriveLocal);
         const via = layoversOf(it).map((l) => l.city);
         return (
           <div key={index}>
             <div className={`${HINT} font-bold uppercase`}>
-              {directionLabel(booking.offer.itineraries.length, index)} · {format(localDate(first.from.atLocal), "EEE d MMM")}
+              {directionLabel(booking.offer.itineraries.length, index)} · {format(localDate(departLocal), "EEE d MMM")}
             </div>
             <div className="font-extrabold text-[#181818]">
-              {timeOf(first.from.atLocal)} {first.from.iata} → {timeOf(last.to.atLocal)}
+              {timeOf(departLocal)} {first.from.iata} → {timeOf(arriveLocal)}
               {plus > 0 ? `+${plus}` : ""} {last.to.iata}
             </div>
             <div className={HINT}>

@@ -213,4 +213,22 @@ describe("schedule changes", () => {
     expect(statusBadge(changed)).toEqual({ text: "Ticketed · schedule changed", tone: "amber" });
     expect(scheduleAlerts(booking({ status: "TICKETED" }))).toEqual([]);
   });
+
+  it("puts the new times in the calendar file", () => {
+    const back = offer.itineraries[1];
+    const at557 = back.segments[back.segments.length - 1];
+    const newDeparture = at557.from.atLocal.replace(/T\d\d:\d\d/, "T23:40");
+    const newArrival = at557.to.atLocal.replace(/T\d\d:\d\d/, "T03:35");
+    const changed = booking({
+      status: "TICKETED",
+      scheduleChanges: [
+        { segmentId: at557.id, detectedAt: "2026-11-20T08:00:00Z", previousDepartureLocal: at557.from.atLocal, newDepartureLocal: newDeparture, newArrivalLocal: newArrival },
+      ],
+    });
+    const ics = (local: string) => local.replace(/[-:]/g, "").slice(0, 15);
+    const calendar = bookingCalendar(changed, new Date("2026-11-20T10:00:00Z"));
+    expect(calendar).toContain(`DTSTART:${ics(newDeparture)}`);
+    expect(calendar).toContain(`DTEND:${ics(newArrival)}`);
+    expect(calendar).not.toContain(`DTSTART:${ics(at557.from.atLocal)}`);
+  });
 });
