@@ -4,7 +4,8 @@ import { useSearchParams } from "react-router-dom";
 import type { AppDispatch, RootState } from "../../../store";
 import { criteriaFromQuery } from "../search/criteriaUrl";
 import { routeTitle } from "../search/recentSearches";
-import { searchFlights } from "../slice";
+import { asSoldCurrency } from "../currency";
+import { searchFlights, setFlightCurrency } from "../slice";
 import type { CurrencyCode, FlightSearchCriteria } from "../types";
 import { useFlightCurrency } from "./useFlightCurrency";
 import { usePlaceNames } from "./usePlaces";
@@ -19,6 +20,16 @@ export const useFlightResults = () => {
   const { currency, setCurrency } = useFlightCurrency();
   const search = useSelector((state: RootState) => state.flights.search);
   const lastCriteria = useSelector((state: RootState) => state.flights.criteria);
+
+  // A link with ?currency= (shared, bookmarked) sets this session's currency,
+  // so the fare step and payment keep the currency the results were priced in.
+  // Not saved on the profile: the visitor didn't choose it here.
+  const linkCurrency = asSoldCurrency(params.get("currency"));
+  useEffect(() => {
+    if (linkCurrency && linkCurrency !== currency) dispatch(setFlightCurrency(linkCurrency));
+    // Only when the link changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkCurrency]);
 
   const query = params.toString();
   // `query` is the stable string form of `params`
