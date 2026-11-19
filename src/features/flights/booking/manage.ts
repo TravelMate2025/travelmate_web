@@ -266,3 +266,15 @@ export const segmentTimes = (booking: FlightBooking, segment: Segment) => {
   const change = [...booking.scheduleChanges].reverse().find((c) => c.segmentId === segment.id);
   return { departLocal: change?.newDepartureLocal ?? segment.from.atLocal, arriveLocal: change?.newArrivalLocal ?? segment.to.atLocal };
 };
+
+/**
+ * The refund card's amount. While the airline hasn't confirmed and there's no
+ * estimate (a refundable fare's penalty isn't known until it answers), the
+ * server sends 0.00: show "To be confirmed" rather than a refund of nothing.
+ */
+export const refundAmountText = (booking: FlightBooking) => {
+  const refund = booking.refund;
+  if (!refund) return null;
+  if (refund.airlineConfirmed === false && Number(refund.amount.amount) === 0) return "To be confirmed";
+  return formatMoney(refund.amount.amount, refund.amount.currency);
+};

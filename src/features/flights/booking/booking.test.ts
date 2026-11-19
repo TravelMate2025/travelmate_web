@@ -4,7 +4,7 @@ import type { FlightBooking, FlightOffer } from "../types";
 import { bookingCalendar } from "./calendar";
 import { bookingSteps, refundSteps, shouldPoll, statusView } from "./bookingStatus";
 import { itineraryLines } from "./itineraryPdf";
-import { canCancel, cancelCopy, scheduleAlerts, fareLines, routeName, statusBadge, toBookingRow, travellersText, tripDates } from "./manage";
+import { canCancel, cancelCopy, scheduleAlerts, fareLines, refundAmountText, routeName, statusBadge, toBookingRow, travellersText, tripDates } from "./manage";
 
 const offer = (searchesFixture as unknown as Record<string, { offers: FlightOffer[] }>).return_los_lon.offers[0];
 const booking = (patch: Partial<FlightBooking> = {}): FlightBooking => ({
@@ -110,6 +110,17 @@ describe("my bookings and manage", () => {
     expect(canCancel(booking())).toBe(true);
     expect(canCancel(booking({ status: "TICKETED" }))).toBe(true);
     expect(canCancel(booking({ status: "CANCELLED" }))).toBe(false);
+  });
+
+  it("shows a refund the airline hasn't priced yet as to be confirmed", () => {
+    const refund = (amount: string, airlineConfirmed: boolean | null) => ({
+      status: "PENDING" as const, amount: { amount, currency: "NGN" as const }, airlineConfirmed, startedAt: "", completedAt: null,
+    });
+    const requested = (amount: string, confirmed: boolean | null) => booking({ status: "CANCELLATION_REQUESTED", refund: refund(amount, confirmed) });
+    expect(refundAmountText(requested("0.00", false))).toBe("To be confirmed");
+    expect(refundAmountText(requested("45000.00", false))).toMatch(/45,000/);
+    expect(refundAmountText(requested("0.00", true))).toMatch(/0/); // confirmed: nothing comes back
+    expect(refundAmountText(booking())).toBeNull();
   });
 
   it("files bookings under the shared My bookings tabs", () => {
