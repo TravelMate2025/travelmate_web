@@ -184,13 +184,21 @@ describe("cancelling after the ticket is issued", () => {
     const airline = cancelCopy({ kind: "AIRLINE_REFUND", paid: usd("787.70"), deduction: usd("182.00"), refund: usd("605.70"), requiresAirlineConfirmation: true });
     expect(airline.lines).toEqual([
       { label: "You paid", value: "$787.70" },
-      { label: "Not refundable (fare)", value: "$182.00" },
+      { label: "Not refundable (fare and payment fee)", value: "$182.00" },
     ]);
     expect([airline.refundLabel, airline.refundValue, airline.cta]).toEqual(["Estimated refund (taxes)", "$605.70", "Request cancellation"]);
 
     const refundable = cancelCopy({ kind: "AIRLINE_REFUND", paid: usd("945.20"), deduction: null, refund: null, requiresAirlineConfirmation: true });
-    expect(refundable.lines[1]).toEqual({ label: "Airline fee", value: "To be confirmed" });
+    expect(refundable.lines[1]).toEqual({ label: "Airline and payment fees", value: "To be confirmed" });
     expect(refundable.refundValue).toBe("To be confirmed");
+  });
+
+  it("shows the payment processing fee customers bear, and no longer promises a full refund", () => {
+    const withFee = cancelCopy({ kind: "FULL_REFUND", paid: usd("382.10"), deduction: usd("15.61"), refund: usd("366.49"), requiresAirlineConfirmation: false });
+    expect(withFee.lines[1]).toEqual({ label: "Payment processing fee (non-refundable)", value: "$15.61" });
+    expect([withFee.refundValue, withFee.cta]).toEqual(["$366.49", "Cancel and get refund"]);
+    expect(withFee.intro).toMatch(/less the payment processing fee/);
+    expect(withFee.steps[1]).toBe("We refund $366.49 to your original payment method.");
   });
 
   it("follows the airline's confirmation, then the refund", () => {

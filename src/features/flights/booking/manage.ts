@@ -190,12 +190,20 @@ export const cancelCopy = (preview: CancellationPreview): CancelCopy => {
   const paid = { label: "You paid", value: money(preview.paid) };
   if (preview.kind === "FULL_REFUND" || preview.kind === "VOID") {
     const back = money(preview.refund ?? preview.paid);
+    // Customers bear the payment processing fee: it's the only deduction here
+    const fee = preview.deduction && Number(preview.deduction.amount) > 0 ? preview.deduction : null;
+    const refundText = fee ? "a refund of what you paid, less the payment processing fee" : "a full refund";
     return {
       intro:
         preview.kind === "VOID"
-          ? "Your ticket was issued recently, so the airline still lets us void it. Cancel now for a full refund."
-          : "Your ticket hasn’t been issued yet, so you can cancel now for a full refund.",
-      lines: [paid, { label: "Cancellation fee", value: money(preview.deduction ?? { amount: "0", currency: preview.paid.currency }) }],
+          ? `Your ticket was issued recently, so the airline still lets us void it. Cancel now for ${refundText}.`
+          : `Your ticket hasn’t been issued yet, so you can cancel now for ${refundText}.`,
+      lines: [
+        paid,
+        fee
+          ? { label: "Payment processing fee (non-refundable)", value: money(fee) }
+          : { label: "Cancellation fee", value: money({ amount: "0", currency: preview.paid.currency }) },
+      ],
       refundLabel: "You get back",
       refundValue: back,
       steps: preview.kind === "VOID" ? [
@@ -207,21 +215,21 @@ export const cancelCopy = (preview: CancellationPreview): CancelCopy => {
         `We refund ${back} to your original payment method.`,
         "Refunds usually reach you within a few working days.",
       ],
-      cta: "Cancel and get full refund",
+      cta: fee ? "Cancel and get refund" : "Cancel and get full refund",
     };
   }
   const nonRefundable = preview.deduction !== null;
   return {
     intro: nonRefundable
       ? "Your ticket is issued and this fare is not refundable. Some taxes may still be refunded. We check the exact amount with the airline before refunding."
-      : "Your ticket is issued. The airline confirms the exact refund, after any fee, before we refund you.",
-    lines: [paid, { label: nonRefundable ? "Not refundable (fare)" : "Airline fee", value: money(preview.deduction) }],
+      : "Your ticket is issued. The airline confirms the exact refund, after any fee, before we refund you. The payment processing fee isn’t refundable.",
+    lines: [paid, { label: nonRefundable ? "Not refundable (fare and payment fee)" : "Airline and payment fees", value: money(preview.deduction) }],
     refundLabel: nonRefundable ? "Estimated refund (taxes)" : "Estimated refund",
     refundValue: money(preview.refund),
     steps: [
       "We send your cancellation to the airline.",
       "The airline confirms the refundable amount. This can take several days.",
-      "We refund the confirmed amount to your original payment method and email you.",
+      "We refund the confirmed amount, less the payment processing fee, to your original payment method and email you.",
     ],
     cta: "Request cancellation",
   };
