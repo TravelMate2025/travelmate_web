@@ -221,6 +221,7 @@ Exit: **R1 UI complete.** The whole journey works in mock mode and is ready for 
 #### W8: Fare families (R2)
 Done with W3 (13 Nov 2026), as the mock's Fares screen shows them.
 - [x] Fare screen shows the airline's fare options from `upsell` (e.g. Eco Essential, Classic, Flex), with what is included, the price difference, and the selection carried into the booking.
+- [x] Live against the backend (F7, 19 Nov 2026, development): Lagos → London one-way in NGN, Royal Air Maroc showed Eco Essential ₦516,210.41, Eco Classic +₦35,549.45, Eco Flex, Business Classic and Business Flex. Choosing Eco Classic priced its own offer with the airline (₦551,759.86, no change) and the hold kept it (TMFJ284UBG, PNR 836TJA, review shows 2 checked bags). No web code change was needed. On return trips the backend only offers families that are the same in both directions.
 
 #### W9: Paid extra bags (R2)
 Done 13 Nov 2026, as the mock's Extras screen shows it (its "Seat selection" card is R3 and left out). Page: `FlightExtrasPage` at `bookingFlowRoutes.flightExtras` (signed in).
