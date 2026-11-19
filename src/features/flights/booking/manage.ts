@@ -17,6 +17,7 @@ export interface StatusBadge {
 /** Mock: "Booked · ticket being issued" (blue), "Ticketed" (green). */
 export const statusBadge = (booking: FlightBooking): StatusBadge => {
   const refunded = booking.refund?.status === "COMPLETED";
+  const delayed = booking.refund?.status === "FAILED";
   switch (booking.status) {
     case "HELD":
       return booking.payment?.status === "PENDING" ? { text: "Confirming payment", tone: "blue" } : { text: "Waiting for payment", tone: "amber" };
@@ -29,11 +30,13 @@ export const statusBadge = (booking: FlightBooking): StatusBadge => {
       return { text: "Seats released", tone: "grey" };
     case "FAILED":
       if (booking.failure?.stage !== "AFTER_PAYMENT") return { text: "Not booked", tone: "red" };
+      if (delayed) return { text: "Not booked · refund delayed", tone: "red" };
       return refunded ? { text: "Not booked · refunded", tone: "grey" } : { text: "Not booked · refund in progress", tone: "red" };
     case "CANCELLATION_REQUESTED":
       return { text: "Cancellation requested", tone: "amber" };
     case "CANCELLED":
       if (!booking.refund) return { text: "Cancelled", tone: "grey" };
+      if (delayed) return { text: "Cancelled · refund delayed", tone: "amber" };
       return refunded ? { text: "Cancelled · refunded", tone: "grey" } : { text: "Cancelled · refund in progress", tone: "grey" };
   }
 };

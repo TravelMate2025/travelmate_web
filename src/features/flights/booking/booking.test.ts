@@ -112,6 +112,14 @@ describe("my bookings and manage", () => {
     expect(canCancel(booking({ status: "CANCELLED" }))).toBe(false);
   });
 
+  it("says a refused refund is delayed, not in progress", () => {
+    const failed = booking({ status: "CANCELLED", refund: { status: "FAILED", amount: { amount: "382.10", currency: "USD" }, airlineConfirmed: null, startedAt: "", completedAt: null } });
+    expect(statusBadge(failed)).toEqual({ text: "Cancelled · refund delayed", tone: "amber" });
+    expect(refundSteps(failed).map((s) => [s.title, s.state])).toEqual([
+      ["Refund started", "done"], ["Refund delayed", "now"], ["Refund completed", "next"],
+    ]);
+  });
+
   it("shows a refund the airline hasn't priced yet as to be confirmed", () => {
     const refund = (amount: string, airlineConfirmed: boolean | null) => ({
       status: "PENDING" as const, amount: { amount, currency: "NGN" as const }, airlineConfirmed, startedAt: "", completedAt: null,
