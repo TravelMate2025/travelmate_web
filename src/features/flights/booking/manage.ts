@@ -198,8 +198,12 @@ export const cancelCopy = (preview: CancellationPreview): CancelCopy => {
       lines: [paid, { label: "Cancellation fee", value: money(preview.deduction ?? { amount: "0", currency: preview.paid.currency }) }],
       refundLabel: "You get back",
       refundValue: back,
-      steps: [
-        preview.kind === "VOID" ? "We void your ticket with the airline straight away." : "We cancel your seats with the airline straight away.",
+      steps: preview.kind === "VOID" ? [
+        "We ask the airline to void your ticket today.",
+        `Once it’s voided, we refund ${back} to your original payment method.`,
+        "Refunds usually reach you within a few working days.",
+      ] : [
+        "We cancel your seats with the airline straight away.",
         `We refund ${back} to your original payment method.`,
         "Refunds usually reach you within a few working days.",
       ],
@@ -280,4 +284,12 @@ export const refundAmountText = (booking: FlightBooking) => {
   if (!refund) return null;
   if (refund.airlineConfirmed === false && Number(refund.amount.amount) === 0) return "To be confirmed";
   return formatMoney(refund.amount.amount, refund.amount.currency);
+};
+
+/** The refund card's heading: an estimate only while the airline may give back less than was paid (a void returns it all). */
+export const refundHeading = (booking: FlightBooking) => {
+  const refund = booking.refund;
+  if (booking.status === "FAILED") return "Full refund";
+  const all = refund && booking.payment && Number(refund.amount.amount) === Number(booking.payment.amount.amount);
+  return refund?.airlineConfirmed === false && !all ? "Estimated refund" : "Your refund";
 };

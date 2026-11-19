@@ -4,7 +4,7 @@ import type { FlightBooking, FlightOffer } from "../types";
 import { bookingCalendar } from "./calendar";
 import { bookingSteps, refundSteps, shouldPoll, statusView } from "./bookingStatus";
 import { itineraryLines } from "./itineraryPdf";
-import { canCancel, cancelCopy, scheduleAlerts, fareLines, refundAmountText, routeName, statusBadge, toBookingRow, travellersText, tripDates } from "./manage";
+import { canCancel, cancelCopy, scheduleAlerts, fareLines, refundAmountText, refundHeading, routeName, statusBadge, toBookingRow, travellersText, tripDates } from "./manage";
 
 const offer = (searchesFixture as unknown as Record<string, { offers: FlightOffer[] }>).return_los_lon.offers[0];
 const booking = (patch: Partial<FlightBooking> = {}): FlightBooking => ({
@@ -112,6 +112,12 @@ describe("my bookings and manage", () => {
     expect(canCancel(booking({ status: "CANCELLED" }))).toBe(false);
   });
 
+  it("calls a void's full refund the customer's refund, an airline refund an estimate", () => {
+    const pending = (amount: string) => booking({ status: "CANCELLATION_REQUESTED", refund: { status: "PENDING", amount: { amount, currency: "USD" }, airlineConfirmed: false, startedAt: "", completedAt: null } });
+    expect(refundHeading(pending("787.70"))).toBe("Your refund"); // void: everything paid comes back
+    expect(refundHeading(pending("120.00"))).toBe("Estimated refund");
+  });
+
   it("says a refused refund is delayed, not in progress", () => {
     const failed = booking({ status: "CANCELLED", refund: { status: "FAILED", amount: { amount: "382.10", currency: "USD" }, airlineConfirmed: null, startedAt: "", completedAt: null } });
     expect(statusBadge(failed)).toEqual({ text: "Cancelled · refund delayed", tone: "amber" });
@@ -172,7 +178,7 @@ describe("cancelling after the ticket is issued", () => {
 
     const voided = cancelCopy({ kind: "VOID", paid: usd("787.70"), deduction: usd("0.00"), refund: usd("787.70"), requiresAirlineConfirmation: false });
     expect(voided.intro).toMatch(/void it/);
-    expect(voided.steps[0]).toBe("We void your ticket with the airline straight away.");
+    expect(voided.steps[0]).toBe("We ask the airline to void your ticket today.");
 
     // The recorded Eco Essential fare: base $182.00 kept, taxes $605.70 may come back
     const airline = cancelCopy({ kind: "AIRLINE_REFUND", paid: usd("787.70"), deduction: usd("182.00"), refund: usd("605.70"), requiresAirlineConfirmation: true });
