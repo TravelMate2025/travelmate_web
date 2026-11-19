@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { bookingFlowRoutes } from "../../../shared/bookingFlowRoutes";
 import { bagsText } from "../../booking/bags";
 import { refundSteps } from "../../booking/bookingStatus";
-import { cancelCopy, changedSegmentIds, fareLines, refundAmountText, segmentTimes, type ScheduleAlert } from "../../booking/manage";
+import { cancelCopy, changedSegmentIds, fareLines, refundAmountText, refundHeading, segmentTimes, type ScheduleAlert } from "../../booking/manage";
 import type { FlightsState } from "../../slice";
 import { dayDifference, localDate, timeOf } from "../../results/offerFacts";
 import { cabinLabel } from "../../search/searchDraft";
@@ -219,7 +219,7 @@ export const RefundCard = ({ booking }: { booking: FlightBooking }) => {
     <section aria-label="Refund" className={CARD}>
       <div className="flex flex-wrap justify-between gap-3">
         <h2 className={TITLE}>
-          {booking.status === "FAILED" ? "Full refund" : booking.refund.airlineConfirmed === false ? "Estimated refund" : "Your refund"}
+          {refundHeading(booking)}
         </h2>
         <strong className="text-[1.1875rem]">{refundAmountText(booking)}</strong>
       </div>

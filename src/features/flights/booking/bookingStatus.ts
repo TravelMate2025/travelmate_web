@@ -90,11 +90,14 @@ export const refundSteps = (booking: FlightBooking): ProgressStep[] => {
   const refund = booking.refund;
   const status = refund?.status ?? "PENDING";
   const completed = status === "COMPLETED";
-  const processing: ProgressStep = {
-    title: "Processing with Flutterwave",
-    detail: "Back to your original payment method.",
-    state: completed ? "done" : status === "PROCESSING" ? "now" : "next",
-  };
+  // Flutterwave refused it (our side, e.g. our balance): staff send it again
+  const processing: ProgressStep = status === "FAILED"
+    ? { title: "Refund delayed", detail: "Our team is sorting it out and will email you. You don’t need to do anything.", state: "now" }
+    : {
+        title: "Processing with Flutterwave",
+        detail: "Back to your original payment method.",
+        state: completed ? "done" : status === "PROCESSING" ? "now" : "next",
+      };
   const done: ProgressStep = {
     title: "Refund completed",
     detail: completed ? "The money is on its way back to you." : "Usually within a few working days, depending on your bank.",

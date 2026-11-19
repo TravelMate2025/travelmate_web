@@ -231,6 +231,7 @@ Done 13 Nov 2026, as the mock's Extras screen shows it (its "Seat selection" car
 Done 13 Nov 2026, as the mock's Manage "After ticket issued" shows it.
 - [x] Manage → cancel when ticketed: refund estimate from `cancellation-preview` (non-refundable fare vs refundable taxes), request, then status until the airline confirms and the refund completes. Recorded Eco Essential: $182.00 fare kept, $605.70 taxes estimated back. Manage keeps checking every 5 s until the refund completes; My bookings' Cancel also works for ticketed bookings. New contract field `refund.airlineConfirmed`.
 - [x] Void within the airline's void window, shown as a full refund when available. Fake scenario `?mock=void-window`.
+- [x] Live against the backend (F8, 19 Nov 2026, development): before ticketing TMFHCAEG5H (USD) and TMFG9QR958 (NGN) cancelled with a full refund; ticketed today TMF9UYMCHS previewed as a void and became "Cancellation requested" until staff confirmed it. Changes from the check (this branch): a refund Flutterwave refused shows "refund delayed", an unpriced refund "To be confirmed" (#34), and the void wording says the airline voids the ticket before we refund.
 
 #### W11: Schedule change alerts (R2)
 Done 13 Nov 2026, as the mock's Manage alert shows it. Fake scenario `?mock=schedule-change`.
