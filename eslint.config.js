@@ -10,6 +10,11 @@ export default [
     ignores: ['dist'],
   },
   {
+    // Build and test config runs in Node (process, __dirname), not the browser
+    files: ['vite.config.ts', 'vitest.config.ts', 'playwright.config.ts'],
+    languageOptions: { globals: { ...globals.node } },
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       parser: tsParser,
