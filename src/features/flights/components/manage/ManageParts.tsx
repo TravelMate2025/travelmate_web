@@ -4,8 +4,7 @@ import { format } from "date-fns";
 import { bookingFlowRoutes } from "../../../shared/bookingFlowRoutes";
 import { bagsText } from "../../booking/bags";
 import { refundSteps } from "../../booking/bookingStatus";
-import { cancelCopy, changedSegmentIds, fareLines, segmentTimes, type ScheduleAlert } from "../../booking/manage";
-import { formatMoney } from "../../currency";
+import { cancelCopy, changedSegmentIds, fareLines, refundAmountText, refundHeading, segmentTimes, type ScheduleAlert } from "../../booking/manage";
 import type { FlightsState } from "../../slice";
 import { dayDifference, localDate, timeOf } from "../../results/offerFacts";
 import { cabinLabel } from "../../search/searchDraft";
@@ -216,14 +215,13 @@ export const RefundCard = ({ booking }: { booking: FlightBooking }) => {
       </section>
     );
   }
-  const { amount } = booking.refund;
   return (
     <section aria-label="Refund" className={CARD}>
       <div className="flex flex-wrap justify-between gap-3">
         <h2 className={TITLE}>
-          {booking.status === "FAILED" ? "Full refund" : booking.refund.airlineConfirmed === false ? "Estimated refund" : "Your refund"}
+          {refundHeading(booking)}
         </h2>
-        <strong className="text-[1.1875rem]">{formatMoney(amount.amount, amount.currency)}</strong>
+        <strong className="text-[1.1875rem]">{refundAmountText(booking)}</strong>
       </div>
       <ProgressList steps={refundSteps(booking)} label="Refund progress" compact />
     </section>

@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { ClickAwayListener, Drawer, Paper, Popper, useMediaQuery } from "@mui/material";
 import { DateRange, type RangeKeyDict } from "react-date-range";
 import { addDays, differenceInCalendarDays, format, startOfToday } from "date-fns";
@@ -10,6 +10,8 @@ export type StayDates = { checkIn: Date | null; checkOut: Date | null };
 type Props = {
   value: StayDates;
   onChange: (dates: StayDates) => void;
+  /** Each time this number goes up (and the stay is not complete yet) the calendar opens by itself. */
+  openSignal?: number;
 };
 
 const show = (date: Date | null) => (date ? format(date, "EEE, d MMM yyyy") : "Add date");
@@ -19,10 +21,18 @@ const show = (date: Date | null) => (date ? format(date, "EEE, d MMM yyyy") : "A
  * calendar, so a guest picks the whole stay in one place (two clicks). The
  * dates update as they click; "Done" just closes it.
  */
-export function DateRangeFields({ value, onChange }: Props) {
+export function DateRangeFields({ value, onChange, openSignal = 0 }: Props) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const checkInRef = useRef<HTMLButtonElement>(null);
   const isPhone = useMediaQuery("(max-width:640px)");
   const open = Boolean(anchor);
+
+  // Asked for by the search card: once a place is chosen, ask for the dates.
+  useEffect(() => {
+    if (openSignal > 0 && !(value.checkIn && value.checkOut)) setAnchor(checkInRef.current);
+    // only a new signal opens it, never a change of the dates themselves
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openSignal]);
 
   const today = startOfToday();
   const start = value.checkIn ?? today;
@@ -94,6 +104,7 @@ export function DateRangeFields({ value, onChange }: Props) {
   return (
     <>
       <button
+        ref={checkInRef}
         type="button"
         className="tmh-field tmh-field-btn"
         aria-haspopup="dialog"

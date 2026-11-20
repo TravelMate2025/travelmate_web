@@ -221,6 +221,7 @@ Exit: **R1 UI complete.** The whole journey works in mock mode and is ready for 
 #### W8: Fare families (R2)
 Done with W3 (13 Nov 2026), as the mock's Fares screen shows them.
 - [x] Fare screen shows the airline's fare options from `upsell` (e.g. Eco Essential, Classic, Flex), with what is included, the price difference, and the selection carried into the booking.
+- [x] Live against the backend (F7, 19 Nov 2026, development): Lagos → London one-way in NGN, Royal Air Maroc showed Eco Essential ₦516,210.41, Eco Classic +₦35,549.45, Eco Flex, Business Classic and Business Flex. Choosing Eco Classic priced its own offer with the airline (₦551,759.86, no change) and the hold kept it (TMFJ284UBG, PNR 836TJA, review shows 2 checked bags). No web code change was needed. On return trips the backend only offers families that are the same in both directions.
 
 #### W9: Paid extra bags (R2)
 Done 13 Nov 2026, as the mock's Extras screen shows it (its "Seat selection" card is R3 and left out). Page: `FlightExtrasPage` at `bookingFlowRoutes.flightExtras` (signed in).
@@ -230,11 +231,13 @@ Done 13 Nov 2026, as the mock's Extras screen shows it (its "Seat selection" car
 Done 13 Nov 2026, as the mock's Manage "After ticket issued" shows it.
 - [x] Manage → cancel when ticketed: refund estimate from `cancellation-preview` (non-refundable fare vs refundable taxes), request, then status until the airline confirms and the refund completes. Recorded Eco Essential: $182.00 fare kept, $605.70 taxes estimated back. Manage keeps checking every 5 s until the refund completes; My bookings' Cancel also works for ticketed bookings. New contract field `refund.airlineConfirmed`.
 - [x] Void within the airline's void window, shown as a full refund when available. Fake scenario `?mock=void-window`.
+- [x] Live against the backend (F8, 19 Nov 2026, development): before ticketing TMFHCAEG5H (USD) and TMFG9QR958 (NGN) cancelled with a full refund; ticketed today TMF9UYMCHS previewed as a void and became "Cancellation requested" until staff confirmed it. Changes from the check (this branch): a refund Flutterwave refused shows "refund delayed", an unpriced refund "To be confirmed" (#34), and the void wording says the airline voids the ticket before we refund.
 
 #### W11: Schedule change alerts (R2)
 Done 13 Nov 2026, as the mock's Manage alert shows it. Fake scenario `?mock=schedule-change`.
 - [x] Alert on the booking list and manage page when the airline changes a flight: what changed, and contact or alternative options. Manage: one alert per change (new departure and landing, the old time, "contact us about alternatives"; Contact support sits in the itinerary card); the itinerary and PDF show the new times and mark the flight "time changed". My bookings: "Ticketed · schedule changed" badge.
 - [x] Notification through the existing notification provider. Nothing to build on the web: `WsMessageType.SCHEDULE_CHANGE` exists and the notification list opens `link`; the backend sends `link: "/flights/bookings/{id}"` (noted in flights_plan.md F10).
+- [x] Fixed 16 Nov 2026: the booking status page's trip and Add to calendar (.ics) now use the new times too (before, only Manage, the itinerary and the PDF did). Same fix on mobile.
 
 Exit: **R2 UI complete.**
 

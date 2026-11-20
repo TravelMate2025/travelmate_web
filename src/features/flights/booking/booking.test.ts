@@ -4,7 +4,7 @@ import type { FlightBooking, FlightOffer } from "../types";
 import { bookingCalendar } from "./calendar";
 import { bookingSteps, refundSteps, shouldPoll, statusView } from "./bookingStatus";
 import { itineraryLines } from "./itineraryPdf";
-import { canCancel, cancelCopy, scheduleAlerts, fareLines, routeName, statusBadge, toBookingRow, travellersText, tripDates } from "./manage";
+import { canCancel, cancelCopy, scheduleAlerts, fareLines, refundAmountText, refundHeading, routeName, statusBadge, toBookingRow, travellersText, tripDates } from "./manage";
 
 const offer = (searchesFixture as unknown as Record<string, { offers: FlightOffer[] }>).return_los_lon.offers[0];
 const booking = (patch: Partial<FlightBooking> = {}): FlightBooking => ({
@@ -112,6 +112,31 @@ describe("my bookings and manage", () => {
     expect(canCancel(booking({ status: "CANCELLED" }))).toBe(false);
   });
 
+  it("calls a void's full refund the customer's refund, an airline refund an estimate", () => {
+    const pending = (amount: string) => booking({ status: "CANCELLATION_REQUESTED", refund: { status: "PENDING", amount: { amount, currency: "USD" }, airlineConfirmed: false, startedAt: "", completedAt: null } });
+    expect(refundHeading(pending("787.70"))).toBe("Your refund"); // void: everything paid comes back
+    expect(refundHeading(pending("120.00"))).toBe("Estimated refund");
+  });
+
+  it("says a refused refund is delayed, not in progress", () => {
+    const failed = booking({ status: "CANCELLED", refund: { status: "FAILED", amount: { amount: "382.10", currency: "USD" }, airlineConfirmed: null, startedAt: "", completedAt: null } });
+    expect(statusBadge(failed)).toEqual({ text: "Cancelled · refund delayed", tone: "amber" });
+    expect(refundSteps(failed).map((s) => [s.title, s.state])).toEqual([
+      ["Refund started", "done"], ["Refund delayed", "now"], ["Refund completed", "next"],
+    ]);
+  });
+
+  it("shows a refund the airline hasn't priced yet as to be confirmed", () => {
+    const refund = (amount: string, airlineConfirmed: boolean | null) => ({
+      status: "PENDING" as const, amount: { amount, currency: "NGN" as const }, airlineConfirmed, startedAt: "", completedAt: null,
+    });
+    const requested = (amount: string, confirmed: boolean | null) => booking({ status: "CANCELLATION_REQUESTED", refund: refund(amount, confirmed) });
+    expect(refundAmountText(requested("0.00", false))).toBe("To be confirmed");
+    expect(refundAmountText(requested("45000.00", false))).toMatch(/45,000/);
+    expect(refundAmountText(requested("0.00", true))).toMatch(/0/); // confirmed: nothing comes back
+    expect(refundAmountText(booking())).toBeNull();
+  });
+
   it("files bookings under the shared My bookings tabs", () => {
     const now = Date.parse("2026-11-13T12:00:00Z");
     const row = toBookingRow(booking(), now);
@@ -153,19 +178,27 @@ describe("cancelling after the ticket is issued", () => {
 
     const voided = cancelCopy({ kind: "VOID", paid: usd("787.70"), deduction: usd("0.00"), refund: usd("787.70"), requiresAirlineConfirmation: false });
     expect(voided.intro).toMatch(/void it/);
-    expect(voided.steps[0]).toBe("We void your ticket with the airline straight away.");
+    expect(voided.steps[0]).toBe("We ask the airline to void your ticket today.");
 
     // The recorded Eco Essential fare: base $182.00 kept, taxes $605.70 may come back
     const airline = cancelCopy({ kind: "AIRLINE_REFUND", paid: usd("787.70"), deduction: usd("182.00"), refund: usd("605.70"), requiresAirlineConfirmation: true });
     expect(airline.lines).toEqual([
       { label: "You paid", value: "$787.70" },
-      { label: "Not refundable (fare)", value: "$182.00" },
+      { label: "Not refundable (fare and payment fee)", value: "$182.00" },
     ]);
     expect([airline.refundLabel, airline.refundValue, airline.cta]).toEqual(["Estimated refund (taxes)", "$605.70", "Request cancellation"]);
 
     const refundable = cancelCopy({ kind: "AIRLINE_REFUND", paid: usd("945.20"), deduction: null, refund: null, requiresAirlineConfirmation: true });
-    expect(refundable.lines[1]).toEqual({ label: "Airline fee", value: "To be confirmed" });
+    expect(refundable.lines[1]).toEqual({ label: "Airline and payment fees", value: "To be confirmed" });
     expect(refundable.refundValue).toBe("To be confirmed");
+  });
+
+  it("shows the payment processing fee customers bear, and no longer promises a full refund", () => {
+    const withFee = cancelCopy({ kind: "FULL_REFUND", paid: usd("382.10"), deduction: usd("15.61"), refund: usd("366.49"), requiresAirlineConfirmation: false });
+    expect(withFee.lines[1]).toEqual({ label: "Payment processing fee (non-refundable)", value: "$15.61" });
+    expect([withFee.refundValue, withFee.cta]).toEqual(["$366.49", "Cancel and get refund"]);
+    expect(withFee.intro).toMatch(/less the payment processing fee/);
+    expect(withFee.steps[1]).toBe("We refund $366.49 to your original payment method.");
   });
 
   it("follows the airline's confirmation, then the refund", () => {
@@ -212,5 +245,23 @@ describe("schedule changes", () => {
     expect(alert.text).toMatch(/Your seat is still confirmed\. If the new time doesn't work, contact us about alternatives\.$/);
     expect(statusBadge(changed)).toEqual({ text: "Ticketed · schedule changed", tone: "amber" });
     expect(scheduleAlerts(booking({ status: "TICKETED" }))).toEqual([]);
+  });
+
+  it("puts the new times in the calendar file", () => {
+    const back = offer.itineraries[1];
+    const at557 = back.segments[back.segments.length - 1];
+    const newDeparture = at557.from.atLocal.replace(/T\d\d:\d\d/, "T23:40");
+    const newArrival = at557.to.atLocal.replace(/T\d\d:\d\d/, "T03:35");
+    const changed = booking({
+      status: "TICKETED",
+      scheduleChanges: [
+        { segmentId: at557.id, detectedAt: "2026-11-20T08:00:00Z", previousDepartureLocal: at557.from.atLocal, newDepartureLocal: newDeparture, newArrivalLocal: newArrival },
+      ],
+    });
+    const ics = (local: string) => local.replace(/[-:]/g, "").slice(0, 15);
+    const calendar = bookingCalendar(changed, new Date("2026-11-20T10:00:00Z"));
+    expect(calendar).toContain(`DTSTART:${ics(newDeparture)}`);
+    expect(calendar).toContain(`DTEND:${ics(newArrival)}`);
+    expect(calendar).not.toContain(`DTSTART:${ics(at557.from.atLocal)}`);
   });
 });

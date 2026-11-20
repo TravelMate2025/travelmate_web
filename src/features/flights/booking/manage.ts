@@ -17,6 +17,7 @@ export interface StatusBadge {
 /** Mock: "Booked · ticket being issued" (blue), "Ticketed" (green). */
 export const statusBadge = (booking: FlightBooking): StatusBadge => {
   const refunded = booking.refund?.status === "COMPLETED";
+  const delayed = booking.refund?.status === "FAILED";
   switch (booking.status) {
     case "HELD":
       return booking.payment?.status === "PENDING" ? { text: "Confirming payment", tone: "blue" } : { text: "Waiting for payment", tone: "amber" };
@@ -29,11 +30,13 @@ export const statusBadge = (booking: FlightBooking): StatusBadge => {
       return { text: "Seats released", tone: "grey" };
     case "FAILED":
       if (booking.failure?.stage !== "AFTER_PAYMENT") return { text: "Not booked", tone: "red" };
+      if (delayed) return { text: "Not booked · refund delayed", tone: "red" };
       return refunded ? { text: "Not booked · refunded", tone: "grey" } : { text: "Not booked · refund in progress", tone: "red" };
     case "CANCELLATION_REQUESTED":
       return { text: "Cancellation requested", tone: "amber" };
     case "CANCELLED":
       if (!booking.refund) return { text: "Cancelled", tone: "grey" };
+      if (delayed) return { text: "Cancelled · refund delayed", tone: "amber" };
       return refunded ? { text: "Cancelled · refunded", tone: "grey" } : { text: "Cancelled · refund in progress", tone: "grey" };
   }
 };
@@ -187,34 +190,46 @@ export const cancelCopy = (preview: CancellationPreview): CancelCopy => {
   const paid = { label: "You paid", value: money(preview.paid) };
   if (preview.kind === "FULL_REFUND" || preview.kind === "VOID") {
     const back = money(preview.refund ?? preview.paid);
+    // Customers bear the payment processing fee: it's the only deduction here
+    const fee = preview.deduction && Number(preview.deduction.amount) > 0 ? preview.deduction : null;
+    const refundText = fee ? "a refund of what you paid, less the payment processing fee" : "a full refund";
     return {
       intro:
         preview.kind === "VOID"
-          ? "Your ticket was issued recently, so the airline still lets us void it. Cancel now for a full refund."
-          : "Your ticket hasn’t been issued yet, so you can cancel now for a full refund.",
-      lines: [paid, { label: "Cancellation fee", value: money(preview.deduction ?? { amount: "0", currency: preview.paid.currency }) }],
+          ? `Your ticket was issued recently, so the airline still lets us void it. Cancel now for ${refundText}.`
+          : `Your ticket hasn’t been issued yet, so you can cancel now for ${refundText}.`,
+      lines: [
+        paid,
+        fee
+          ? { label: "Payment processing fee (non-refundable)", value: money(fee) }
+          : { label: "Cancellation fee", value: money({ amount: "0", currency: preview.paid.currency }) },
+      ],
       refundLabel: "You get back",
       refundValue: back,
-      steps: [
-        preview.kind === "VOID" ? "We void your ticket with the airline straight away." : "We cancel your seats with the airline straight away.",
+      steps: preview.kind === "VOID" ? [
+        "We ask the airline to void your ticket today.",
+        `Once it’s voided, we refund ${back} to your original payment method.`,
+        "Refunds usually reach you within a few working days.",
+      ] : [
+        "We cancel your seats with the airline straight away.",
         `We refund ${back} to your original payment method.`,
         "Refunds usually reach you within a few working days.",
       ],
-      cta: "Cancel and get full refund",
+      cta: fee ? "Cancel and get refund" : "Cancel and get full refund",
     };
   }
   const nonRefundable = preview.deduction !== null;
   return {
     intro: nonRefundable
       ? "Your ticket is issued and this fare is not refundable. Some taxes may still be refunded. We check the exact amount with the airline before refunding."
-      : "Your ticket is issued. The airline confirms the exact refund, after any fee, before we refund you.",
-    lines: [paid, { label: nonRefundable ? "Not refundable (fare)" : "Airline fee", value: money(preview.deduction) }],
+      : "Your ticket is issued. The airline confirms the exact refund, after any fee, before we refund you. The payment processing fee isn’t refundable.",
+    lines: [paid, { label: nonRefundable ? "Not refundable (fare and payment fee)" : "Airline and payment fees", value: money(preview.deduction) }],
     refundLabel: nonRefundable ? "Estimated refund (taxes)" : "Estimated refund",
     refundValue: money(preview.refund),
     steps: [
       "We send your cancellation to the airline.",
       "The airline confirms the refundable amount. This can take several days.",
-      "We refund the confirmed amount to your original payment method and email you.",
+      "We refund the confirmed amount, less the payment processing fee, to your original payment method and email you.",
     ],
     cta: "Request cancellation",
   };
@@ -265,4 +280,24 @@ export const changedSegmentIds = (booking: FlightBooking) => new Set(booking.sch
 export const segmentTimes = (booking: FlightBooking, segment: Segment) => {
   const change = [...booking.scheduleChanges].reverse().find((c) => c.segmentId === segment.id);
   return { departLocal: change?.newDepartureLocal ?? segment.from.atLocal, arriveLocal: change?.newArrivalLocal ?? segment.to.atLocal };
+};
+
+/**
+ * The refund card's amount. While the airline hasn't confirmed and there's no
+ * estimate (a refundable fare's penalty isn't known until it answers), the
+ * server sends 0.00: show "To be confirmed" rather than a refund of nothing.
+ */
+export const refundAmountText = (booking: FlightBooking) => {
+  const refund = booking.refund;
+  if (!refund) return null;
+  if (refund.airlineConfirmed === false && Number(refund.amount.amount) === 0) return "To be confirmed";
+  return formatMoney(refund.amount.amount, refund.amount.currency);
+};
+
+/** The refund card's heading: an estimate only while the airline may give back less than was paid (a void returns it all). */
+export const refundHeading = (booking: FlightBooking) => {
+  const refund = booking.refund;
+  if (booking.status === "FAILED") return "Full refund";
+  const all = refund && booking.payment && Number(refund.amount.amount) === Number(booking.payment.amount.amount);
+  return refund?.airlineConfirmed === false && !all ? "Estimated refund" : "Your refund";
 };

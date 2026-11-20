@@ -72,9 +72,9 @@ export const reviews = [
 ];
 
 export const guides = [
-  { kicker: "Islands", title: "Ten quiet Greek islands, ranked by ferry time", read: "8 min read", image: img("guide-greek"), alt: "Blue dome church over the Aegean" },
-  { kicker: "Season", title: "Where it’s still warm in November", read: "5 min read", image: img("guide-november"), alt: "Tropical beach from above" },
-  { kicker: "City", title: "48 hours in Lisbon, one viewpoint at a time", read: "6 min read", image: img("guide-lisbon"), alt: "Lisbon bridge at sunset" },
+  { kicker: "Islands", title: "Ten quiet Greek islands, ranked by ferry time", read: "8 min read", image: img("guide-greek"), alt: "Blue dome church over the Aegean", place: { name: "Greece", lat: 39.07, lng: 21.82 } },
+  { kicker: "Season", title: "Where it’s still warm in November", read: "5 min read", image: img("guide-november"), alt: "Tropical beach from above", place: { name: "Tenerife", lat: 28.2916, lng: -16.6291 } },
+  { kicker: "City", title: "48 hours in Lisbon, one viewpoint at a time", read: "6 min read", image: img("guide-lisbon"), alt: "Lisbon bridge at sunset", place: { name: "Lisbon", lat: 38.72509, lng: -9.1498 } },
 ];
 
 export const trending = [

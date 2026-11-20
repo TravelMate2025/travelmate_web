@@ -248,7 +248,7 @@ export default function HotelsPage() {
           </h2>
           <div className="tmh-grid3">
             {guides.map((g) => (
-              <button key={g.title} type="button" className="tmh-guide">
+              <button key={g.title} type="button" className="tmh-guide" onClick={() => focusSearch(g.place)}>
                 <span className="tmh-thumb">
                   <img className="tmh-cover" src={g.image} alt={g.alt} loading="lazy" />
                 </span>

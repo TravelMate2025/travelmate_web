@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode, type Ref } from "react";
+import { addDays, startOfToday } from "date-fns";
 import { suggestPlaces } from "../api/hotelsApi";
 import { DateRangeFields, type StayDates } from "./DateRangeFields";
 import { GuestsField } from "./GuestsField";
@@ -6,6 +7,9 @@ import { fromIsoDate, hasPlace, toIsoDate } from "../search";
 import type { GuestCounts } from "../guests";
 import type { PlaceSuggestion, SearchState } from "../types";
 import { HOTELS_SEARCH_ID } from "../routes";
+
+/** Dates left empty: the stay starts this many days from today and lasts one night. */
+const DEFAULT_STAY_DAYS_AHEAD = 30;
 
 type Props = {
   /** What the card starts with (the landing page starts empty; the results page starts with the current search). */
@@ -30,6 +34,8 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const [problem, setProblem] = useState("");
+  // goes up each time the guest should be asked for the dates (place chosen, or Search pressed without dates)
+  const [askDates, setAskDates] = useState(0);
   const [dates, setDates] = useState<StayDates>({
     checkIn: fromIsoDate(initial.checkIn),
     checkOut: fromIsoDate(initial.checkOut),
@@ -48,6 +54,7 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
     setSuggestions([]);
     setOpen(false);
     setProblem("");
+    setAskDates((n) => n + 1);
   }, [fillPlace]);
 
   // suggestions while typing (waits a moment, cancels the previous request)
@@ -78,6 +85,8 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
     setSuggestions([]);
     setOpen(false);
     setProblem("");
+    // wait a moment so the click that chose the place is not counted as a click away from the calendar
+    window.setTimeout(() => setAskDates((n) => n + 1), 250);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -98,13 +107,18 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    // Dates still empty after being asked: one night, 30 days from today (20 Nov gives 20 Dec to 21 Dec).
+    const hasDates = dates.checkIn !== null && dates.checkOut !== null;
+    const checkIn = dates.checkIn && dates.checkOut ? dates.checkIn : addDays(startOfToday(), DEFAULT_STAY_DAYS_AHEAD);
+    const checkOut = dates.checkIn && dates.checkOut ? dates.checkOut : addDays(startOfToday(), DEFAULT_STAY_DAYS_AHEAD + 1);
+    if (!hasDates) setDates({ checkIn, checkOut });
     const search: SearchState = {
       q: picked ? "" : text.trim(),
       lat: picked ? picked.lat : null,
       lng: picked ? picked.lng : null,
       name: picked ? picked.name : "",
-      checkIn: dates.checkIn && dates.checkOut ? toIsoDate(dates.checkIn) : "",
-      checkOut: dates.checkIn && dates.checkOut ? toIsoDate(dates.checkOut) : "",
+      checkIn: toIsoDate(checkIn),
+      checkOut: toIsoDate(checkOut),
       adults: guests.adults,
       rooms: guests.rooms,
       childAges: guests.childAges,
@@ -167,7 +181,7 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
             </ul>
           )}
         </label>
-        <DateRangeFields value={dates} onChange={setDates} />
+        <DateRangeFields value={dates} onChange={setDates} openSignal={askDates} />
         <GuestsField value={guests} onChange={setGuests} />
         <button type="submit" className="tmh-go">
           Search

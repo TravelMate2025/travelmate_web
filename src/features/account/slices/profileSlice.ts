@@ -10,6 +10,8 @@ export interface UserProfile {
   address: string | null;
   mobile_number: string | null;
   profile_pics: string | null;
+  /** Currency chosen for prices (USD, NGN, GBP); blank = follow the country. */
+  preferred_currency?: string | null;
 }
 
 interface ProfileState {
