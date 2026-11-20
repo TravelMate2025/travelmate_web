@@ -30,6 +30,8 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const [problem, setProblem] = useState("");
+  // goes up each time the guest should be asked for the dates (place chosen, or Search pressed without dates)
+  const [askDates, setAskDates] = useState(0);
   const [dates, setDates] = useState<StayDates>({
     checkIn: fromIsoDate(initial.checkIn),
     checkOut: fromIsoDate(initial.checkOut),
@@ -48,6 +50,7 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
     setSuggestions([]);
     setOpen(false);
     setProblem("");
+    setAskDates((n) => n + 1);
   }, [fillPlace]);
 
   // suggestions while typing (waits a moment, cancels the previous request)
@@ -78,6 +81,8 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
     setSuggestions([]);
     setOpen(false);
     setProblem("");
+    // wait a moment so the click that chose the place is not counted as a click away from the calendar
+    window.setTimeout(() => setAskDates((n) => n + 1), 250);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -112,6 +117,11 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
     if (!hasPlace(search)) {
       setProblem("Type a city, region or hotel first.");
       inputRef.current?.focus();
+      return;
+    }
+    if (!(dates.checkIn && dates.checkOut)) {
+      setProblem("Pick your check-in and check-out dates.");
+      setAskDates((n) => n + 1);
       return;
     }
     setProblem("");
@@ -167,7 +177,7 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
             </ul>
           )}
         </label>
-        <DateRangeFields value={dates} onChange={setDates} />
+        <DateRangeFields value={dates} onChange={setDates} openSignal={askDates} />
         <GuestsField value={guests} onChange={setGuests} />
         <button type="submit" className="tmh-go">
           Search
