@@ -23,17 +23,22 @@ interface BagGroupCardProps {
   group: BagGroup;
   chosenIds: string[];
   onChoose: (id: string | null) => void;
+  /** The traveller already has this many extra bags on another flight: only that or none here. */
+  locked?: number | null;
 }
 
 /** Mock: one card per direction; options as radio tiles (min 200px, 110px tall). Arrow keys move the choice. */
-export const BagGroupCard = ({ group, chosenIds, onChoose }: BagGroupCardProps) => {
+export const BagGroupCard = ({ group, chosenIds, onChoose, locked = null }: BagGroupCardProps) => {
   const chosen = chosenIn(group, chosenIds);
   const tiles = useRef<(HTMLButtonElement | null)[]>([]);
+  const blocked = (index: number) => locked !== null && group.choices[index].quantity !== 0 && group.choices[index].quantity !== locked;
   const onKey = (e: KeyboardEvent, index: number) => {
     const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
     if (!step) return;
     e.preventDefault();
-    const next = (index + step + group.choices.length) % group.choices.length;
+    let next = index;
+    do next = (next + step + group.choices.length) % group.choices.length;
+    while (blocked(next) && next !== index);
     onChoose(group.choices[next].id);
     tiles.current[next]?.focus();
   };
@@ -45,10 +50,16 @@ export const BagGroupCard = ({ group, chosenIds, onChoose }: BagGroupCardProps) 
           {group.title}
         </h2>
         <div className={HINT}>{group.subtitle}</div>
+        {locked !== null && (
+          <div className={`${HINT} mt-1`}>
+            The airline needs the same number of extra bags each way: +{locked} or none on this flight.
+          </div>
+        )}
       </div>
       <div role="radiogroup" aria-label={`${group.title} extra bags`} className="grid grid-cols-[repeat(auto-fit,minmax(12.5rem,1fr))] gap-3">
         {group.choices.map((choice, index) => {
           const on = choice.id === chosen;
+          const off = blocked(index);
           return (
             <button
               key={choice.id ?? "none"}
@@ -59,9 +70,11 @@ export const BagGroupCard = ({ group, chosenIds, onChoose }: BagGroupCardProps) 
               role="radio"
               aria-checked={on}
               tabIndex={on ? 0 : -1}
+              disabled={off}
+              aria-disabled={off}
               onClick={() => onChoose(choice.id)}
               onKeyDown={(e) => onKey(e, index)}
-              className={`min-h-27.5 cursor-pointer rounded-[0.875rem] p-4 text-left text-[#181818] ${
+              className={`min-h-27.5 rounded-[0.875rem] p-4 text-left text-[#181818] ${off ? "cursor-not-allowed opacity-45" : "cursor-pointer"} ${
                 on ? "border-2 border-solid border-[#023E8A] bg-[#E8EEF7]" : "border border-solid border-[#CDCED1] bg-white"
               }`}
             >

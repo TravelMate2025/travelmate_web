@@ -45,29 +45,31 @@ test("adds bags per direction, and they carry through to payment and the booking
   const outbound = page.getByRole("radiogroup", { name: "Outbound · Tue 15 Dec extra bags" });
   const back = page.getByRole("radiogroup", { name: "Return · Mon 28 Dec extra bags" });
   await expect(outbound.getByRole("radio", { name: /No extra bag/ })).toHaveAttribute("aria-checked", "true");
-  await outbound.getByRole("radio", { name: /\+1 bag/ }).click();
-  // Keyboard: arrows move the choice within a direction
+  await outbound.getByRole("radio", { name: /\+2 bags/ }).click();
+  // The airline needs the same number of extra bags each way: +1 is off on the return
+  await expect(page.getByText("The airline needs the same number of extra bags each way: +2 or none on this flight.")).toBeVisible();
+  await expect(back.getByRole("radio", { name: /\+1 bag/ })).toBeDisabled();
+  // Keyboard: arrows move the choice within a direction, skipping what can't be chosen
   await back.getByRole("radio", { name: /No extra bag/ }).focus();
-  await page.keyboard.press("ArrowRight");
   await page.keyboard.press("ArrowRight");
   await expect(back.getByRole("radio", { name: /\+2 bags/ })).toHaveAttribute("aria-checked", "true");
 
   const summary = page.getByRole("complementary", { name: "Price summary" });
-  await expect(summary).toContainText("Extra bags$803.60");
-  await expect(summary).toContainText("Total$1,591.30");
+  await expect(summary).toContainText("Extra bags$1,123.60");
+  await expect(summary).toContainText("Total$1,911.30");
   await page.screenshot({ path: "test-results/flights-extras-1280.png", fullPage: true });
 
   await page.getByRole("button", { name: "Continue to payment" }).click();
   await expect(page).toHaveURL(/\/flights\/review\?offer=mock-return_los_lon-1$/);
   const pay = page.getByRole("complementary", { name: "Price summary" });
-  await expect(pay).toContainText("Extra bags · +1 bag outbound, +2 bags return$803.60");
-  await expect(pay).toContainText("Total$1,591.30");
+  await expect(pay).toContainText("Extra bags · +2 bags outbound, +2 bags return$1,123.60");
+  await expect(pay).toContainText("Total$1,911.30");
   await expect(page.getByRole("navigation", { name: "Booking steps" })).toContainText("4 Extras ✓");
 
   await page.getByLabel(/I've checked the traveller names/).check();
   await page.getByRole("button", { name: /Pay .* securely/ }).click();
   await expect(page).toHaveURL(/\/flights\/bookings\/mock-bk-[a-z0-9]+\/status$/);
-  await expect(page.getByRole("region", { name: "Trip" })).toContainText("Extra bags: +1 bag outbound, +2 bags return");
+  await expect(page.getByRole("region", { name: "Trip" })).toContainText("Extra bags: +2 bags outbound, +2 bags return");
 });
 
 test("fits a phone", async ({ page }) => {
