@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import priceCheckFixture from "../mocks/fixtures/priceCheck.json";
 import type { PriceCheckResult, TravelerInput } from "../types";
-import { bagGroups, bagsText, bagsTotal, chooseBag, chosenIn, includedBagsText } from "./bags";
+import { bagGroups, bagsText, bagsTotal, chooseBag, chosenIn, includedBagsText, lockedQuantity } from "./bags";
 
 // The real Royal Air Maroc bag catalogue (Flight Offers Price with bags, test host, 12 Nov 2026)
 const priced = priceCheckFixture as unknown as PriceCheckResult;
@@ -29,6 +29,20 @@ describe("extra bags", () => {
       "+2 bags | Two extra bags | $530.00",
     ]);
     expect(groups[1].choices.map((c) => c.price)).toEqual(["Free", "$235.20", "$593.60"]);
+  });
+
+  it("keeps the same number of extra bags each way for a traveller (airline rule)", () => {
+    // bag-3 / bag-4 = outbound +1 / +2; bag-1 / bag-2 = return +1 / +2
+    let chosen = chooseBag(groups[0], [], "bag-3", groups);
+    expect(lockedQuantity(groups[1], groups, chosen)).toBe(1); // return: +1 or none
+    chosen = chooseBag(groups[1], chosen, "bag-1", groups);
+    expect(chosen).toEqual(["bag-3", "bag-1"]);
+    // switching the outbound to +2 clears the return's +1 instead of failing at booking
+    chosen = chooseBag(groups[0], chosen, "bag-4", groups);
+    expect(chosen).toEqual(["bag-4"]);
+    expect(lockedQuantity(groups[1], groups, chosen)).toBe(2);
+    // one direction only is fine; clearing it frees the other
+    expect(lockedQuantity(groups[1], groups, chooseBag(groups[0], chosen, null, groups))).toBeNull();
   });
 
   it("keeps one choice per direction and totals them", () => {

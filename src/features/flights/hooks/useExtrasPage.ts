@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { AppDispatch, RootState } from "../../../store";
 import { flightMultiCityPath, flightResultsPath, flightStepPath, flightsLandingPath } from "../../shared/bookingFlowRoutes";
-import { bagGroups, bagsTotal, chooseBag, includedBagsText, type BagGroup } from "../booking/bags";
+import { bagGroups, bagsTotal, chooseBag, includedBagsText, lockedQuantity, type BagGroup } from "../booking/bags";
 import { hasExtrasStep } from "../bookingSteps";
 import { criteriaToQuery } from "../search/criteriaUrl";
 import { passengersSummary } from "../search/searchDraft";
@@ -53,7 +53,9 @@ export const useExtrasPage = () => {
     offer: result?.offer ?? null,
     groups,
     chosen,
-    choose: (group: BagGroup, id: string | null) => setChosen((ids) => chooseBag(group, ids, id)),
+    choose: (group: BagGroup, id: string | null) => setChosen((ids) => chooseBag(group, ids, id, groups)),
+    /** Same number of extra bags each way per traveller (airline rule), or null. */
+    locked: (group: BagGroup) => lockedQuantity(group, groups, chosen),
     included: result ? includedBagsText(result.offer) : null,
     currency,
     flightsPrice: result?.offer.price.amount ?? "0",

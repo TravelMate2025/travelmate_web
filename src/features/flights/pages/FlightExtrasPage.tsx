@@ -31,7 +31,7 @@ const FlightExtrasPage = () => {
               </div>
               {page.included && <IncludedBags brand={page.included.brand} text={page.included.text} />}
               {page.groups.map((group) => (
-                <BagGroupCard key={group.key} group={group} chosenIds={page.chosen} onChoose={(id) => page.choose(group, id)} />
+                <BagGroupCard key={group.key} group={group} chosenIds={page.chosen} onChoose={(id) => page.choose(group, id)} locked={page.locked(group)} />
               ))}
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <Link to={page.travellersPath} className="inline-flex min-h-11 items-center font-semibold text-[#023E8A]">

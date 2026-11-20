@@ -16,6 +16,8 @@ const TYPE: Record<TravelerType, string> = { ADULT: "Adult", CHILD: "Child", HEL
 export interface BagChoice {
   /** Null = no extra bag. */
   id: string | null;
+  /** Extra bags (0 for "No extra bag"). */
+  quantity: number;
   label: string;
   detail: string;
   price: string;
@@ -23,6 +25,9 @@ export interface BagChoice {
 
 export interface BagGroup {
   key: string;
+  itineraryIndex: number;
+  /** The travellers this group's bags are for ("1", or "1,2"). */
+  travelerKey: string;
   /** "Outbound · Tue 15 Dec" */
   title: string;
   /** "Lagos → Casablanca → London Stansted · Adult 1, Adaeze Okafor" */
@@ -57,13 +62,14 @@ export const bagGroups = (options: BagOption[], offer: FlightOffer, travelers: T
         .filter(Boolean)
         .join(" · ");
       const choices: BagChoice[] = [
-        { id: null, label: "No extra bag", detail: "Keep your included bag", price: "Free" },
+        { id: null, quantity: 0, label: "No extra bag", detail: "Keep your included bag", price: "Free" },
         ...[...group]
           .sort((a, b) => a.quantity - b.quantity)
           .map((o) => {
             const weight = o.weightKg ? ` ${o.weightKg} kg` : "";
             return {
               id: o.id,
+              quantity: o.quantity,
               label: `+${o.quantity} ${bagWords(o.quantity)}`,
               detail: `${NUMBER_WORDS[o.quantity] ?? o.quantity} extra${weight} ${bagWords(o.quantity)}`,
               price: formatMoney(o.price.amount, currency),
@@ -72,6 +78,8 @@ export const bagGroups = (options: BagOption[], offer: FlightOffer, travelers: T
       ];
       return {
         key,
+        itineraryIndex: index,
+        travelerKey: group[0].travelerIds.join(","),
         title: `${directionLabel(count, index)} · ${format(localDate(it.segments[0].from.atLocal), "EEE d MMM")}`,
         subtitle: [route.join(" → "), who].filter(Boolean).join(" · "),
         choices,
@@ -82,10 +90,34 @@ export const bagGroups = (options: BagOption[], offer: FlightOffer, travelers: T
 /** The chosen option id in a group, or null. */
 export const chosenIn = (group: BagGroup, chosenIds: string[]) => group.choices.find((c) => c.id && chosenIds.includes(c.id))?.id ?? null;
 
-/** Picks one option in a group (null clears it), keeping the other groups' choices. */
-export const chooseBag = (group: BagGroup, chosenIds: string[], id: string | null) => {
+/**
+ * The airline (Amadeus) can't book a different number of extra bags each way
+ * for the same traveller: one direction only, or the same number both ways.
+ * The quantity this group must match because of the traveller's other flights, or null.
+ */
+export const lockedQuantity = (group: BagGroup, groups: BagGroup[], chosenIds: string[]) => {
+  for (const other of groups) {
+    if (other.key === group.key || other.travelerKey !== group.travelerKey) continue;
+    const picked = other.choices.find((c) => c.id && chosenIds.includes(c.id));
+    if (picked) return picked.quantity;
+  }
+  return null;
+};
+
+/**
+ * Picks one option in a group (null clears it), keeping the other groups'
+ * choices, except the same traveller's choices on other flights that no
+ * longer match (they're cleared rather than left to fail at booking).
+ */
+export const chooseBag = (group: BagGroup, chosenIds: string[], id: string | null, groups: BagGroup[] = []) => {
   const inGroup = new Set(group.choices.map((c) => c.id).filter(Boolean));
-  return [...chosenIds.filter((x) => !inGroup.has(x)), ...(id ? [id] : [])];
+  const quantity = group.choices.find((c) => c.id === id)?.quantity ?? 0;
+  const clash = new Set(
+    groups
+      .filter((g) => g.key !== group.key && g.travelerKey === group.travelerKey && id)
+      .flatMap((g) => g.choices.filter((c) => c.id && c.quantity !== quantity).map((c) => c.id as string))
+  );
+  return [...chosenIds.filter((x) => !inGroup.has(x) && !clash.has(x)), ...(id ? [id] : [])];
 };
 
 export const bagsTotal = (options: BagOption[], chosenIds: string[], currency: CurrencyCode): Money => ({
