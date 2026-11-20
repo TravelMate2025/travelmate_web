@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode, type Ref } from "react";
+import { addDays, startOfToday } from "date-fns";
 import { suggestPlaces } from "../api/hotelsApi";
 import { DateRangeFields, type StayDates } from "./DateRangeFields";
 import { GuestsField } from "./GuestsField";
@@ -6,6 +7,9 @@ import { fromIsoDate, hasPlace, toIsoDate } from "../search";
 import type { GuestCounts } from "../guests";
 import type { PlaceSuggestion, SearchState } from "../types";
 import { HOTELS_SEARCH_ID } from "../routes";
+
+/** Dates left empty: the stay starts this many days from today and lasts one night. */
+const DEFAULT_STAY_DAYS_AHEAD = 30;
 
 type Props = {
   /** What the card starts with (the landing page starts empty; the results page starts with the current search). */
@@ -103,13 +107,18 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    // Dates still empty after being asked: one night, 30 days from today (20 Nov gives 20 Dec to 21 Dec).
+    const hasDates = dates.checkIn !== null && dates.checkOut !== null;
+    const checkIn = dates.checkIn && dates.checkOut ? dates.checkIn : addDays(startOfToday(), DEFAULT_STAY_DAYS_AHEAD);
+    const checkOut = dates.checkIn && dates.checkOut ? dates.checkOut : addDays(startOfToday(), DEFAULT_STAY_DAYS_AHEAD + 1);
+    if (!hasDates) setDates({ checkIn, checkOut });
     const search: SearchState = {
       q: picked ? "" : text.trim(),
       lat: picked ? picked.lat : null,
       lng: picked ? picked.lng : null,
       name: picked ? picked.name : "",
-      checkIn: dates.checkIn && dates.checkOut ? toIsoDate(dates.checkIn) : "",
-      checkOut: dates.checkIn && dates.checkOut ? toIsoDate(dates.checkOut) : "",
+      checkIn: toIsoDate(checkIn),
+      checkOut: toIsoDate(checkOut),
       adults: guests.adults,
       rooms: guests.rooms,
       childAges: guests.childAges,
@@ -117,11 +126,6 @@ export function SearchCard({ initial, onSearch, fillPlace, notice, tabs, formRef
     if (!hasPlace(search)) {
       setProblem("Type a city, region or hotel first.");
       inputRef.current?.focus();
-      return;
-    }
-    if (!(dates.checkIn && dates.checkOut)) {
-      setProblem("Pick your check-in and check-out dates.");
-      setAskDates((n) => n + 1);
       return;
     }
     setProblem("");
