@@ -2,9 +2,8 @@ import { useCallback, useEffect, useState } from "react"
 import UpdatePasswordPresenter from "./UpdatePasswordPresenter"
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
-import api from "../../../api/services/api";
+import { changePassword, requestPasswordChangeToken, resendAccountToken, validateAccountToken } from "../api/settings";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const getErrorMessage = (error: unknown, fallback: string) => {
     if (error && typeof error === "object" && "response" in error) {
@@ -36,10 +35,7 @@ function UpdatePasswordContainer() {
                 throw new Error("User email is not available.");
             }
 
-            const response = await api.post(
-                `${API_BASE_URL}/users/reset_password/`,
-                { email: user.email }
-            );
+            const response = await requestPasswordChangeToken(user.email);
 
             if (response.status >= 200 && response.status < 300) {
                 setHasReceivedOtp(true);
@@ -65,9 +61,7 @@ function UpdatePasswordContainer() {
                 return;
             }
 
-            await api.post(`${API_BASE_URL}/users/resend_reset_token/`, {
-                email: user.email,
-            });
+            await resendAccountToken(user.email);
         } catch (error) {
             console.error("Resend OTP error:", error);
         }
@@ -84,10 +78,7 @@ function UpdatePasswordContainer() {
                 return;
             }
 
-            const res = await api.post(
-                `${API_BASE_URL}/users/validate-reset-token/`,
-                { token: passwordToken, email: user.email }
-            );
+            const res = await validateAccountToken(user.email, passwordToken);
 
             if (res.status === 200) {
                 setIsOtpValid(true);
@@ -111,10 +102,7 @@ function UpdatePasswordContainer() {
                 return;
             }
 
-            const res = await api.post(
-                `${API_BASE_URL}/users/set_new_password/`,
-                { email: user.email, new_password: userNewPassword }
-            );
+            const res = await changePassword(user.email, userNewPassword);
 
             if (res.status !== 204) {
                 setError("Unexpected response from server.");

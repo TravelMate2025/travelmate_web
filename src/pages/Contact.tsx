@@ -3,6 +3,7 @@ import Navbar from "./homePage/Navbar";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { InfoPageHeader } from "../components/infoPages/InfoPageHeader";
 import { CompanyConnectCard } from "../components/infoPages/CompanyConnectCard";
+import { PRODUCTS_TEXT } from "../config/features";
 
 // Real public contact entry point. "Chat with Us" and "Raise a Ticket" both
 // require a signed-in account (createChat needs a real userId, /tickets is
@@ -17,7 +18,7 @@ export function ContactPage() {
   usePageMeta({
     title: "Contact Us | TravelMate",
     description:
-      "Get in touch with the TravelMate team about stays, flights, airport transfers, or partnering with us.",
+      `Get in touch with the TravelMate team about ${PRODUCTS_TEXT}, or partnering with us.`,
   });
 
   return (
@@ -26,7 +27,7 @@ export function ContactPage() {
       <InfoPageHeader
         eyebrow="Support"
         title="Contact Us"
-        subtitle="Get in touch with the TravelMate team about stays, flights, airport transfers, or partnering with us."
+        subtitle={`Get in touch with the TravelMate team about ${PRODUCTS_TEXT}, or partnering with us.`}
       />
       <section className="text-[#4E4F52] px-4 py-14">
         <div className="max-w-[680px] mx-auto text-[15.5px] leading-relaxed space-y-9">

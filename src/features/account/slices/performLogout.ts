@@ -1,5 +1,4 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { flightsApi } from "../../flights/api/flightApi";
 import { logoutUser } from "../api/auth";
 import { logout, type AuthState } from "./authSlice";
 
@@ -44,6 +43,5 @@ export const performLogout = createAsyncThunk<void, LogoutOptions | void, { stat
 
     // The root reducer resets every user-scoped slice on this action
     dispatch(logout());
-    dispatch(flightsApi.util.resetApiState());
   }
 );

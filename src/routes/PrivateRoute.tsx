@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
-import { toReturnPath, type ReturnPathState } from "./returnPath";
+import { rememberReturnPath, toReturnPath, type ReturnPathState } from "./returnPath";
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -19,16 +19,18 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   // even when it runs a second time.
   const logoutReason = token ? null : localStorage.getItem("logout_reason");
 
+  const returnPath = toReturnPath(location);
   useEffect(() => {
     if (token) return;
+    rememberReturnPath(returnPath);
     if (logoutReason !== "logout" && logoutReason !== "account_deleted") {
       toast.error("You must be logged in to access that page.", { id: AUTH_REQUIRED_TOAST_ID });
     }
     localStorage.removeItem("logout_reason");
-  }, [token, logoutReason]);
+  }, [token, logoutReason, returnPath]);
 
   if (!token) {
-    const state: ReturnPathState = { from: toReturnPath(location) };
+    const state: ReturnPathState = { from: returnPath };
     return <Navigate to="/create-account" replace state={state} />;
   }
 

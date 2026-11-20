@@ -5,7 +5,17 @@ import { FaQuestion, FaRegEnvelope } from "react-icons/fa";
 import { FiChevronRight } from "react-icons/fi";
 import { MdOutlineMessage } from "react-icons/md";
 
-const FloatingChatButton = () => {
+interface FloatingChatButtonProps {
+  /** The page's search form: the button stays hidden while it's on screen, so it never covers a field. */
+  hideWhileVisibleId?: string;
+  /** Where the button sits; e.g. higher on pages with a fixed bottom bar. */
+  positionClassName?: string;
+}
+
+const FloatingChatButton = ({
+  hideWhileVisibleId = "transfers-search",
+  positionClassName = "bottom-10 right-4",
+}: FloatingChatButtonProps) => {
   const [open, setOpen] = useState(false);
   // Fixed-position button always sits at the same spot in the viewport,
   // so on mobile it parked on top of whichever field ended up at that
@@ -22,8 +32,8 @@ const FloatingChatButton = () => {
   const draggableRef = useRef<HTMLDivElement | null>(null); // 👈 Add this line
 
   useEffect(() => {
-    const target = document.getElementById("transfers-search");
-    if (!target) {
+    const target = document.getElementById(hideWhileVisibleId);
+    if (!target || typeof IntersectionObserver === "undefined") {
       setShowButton(true);
       return;
     }
@@ -33,7 +43,7 @@ const FloatingChatButton = () => {
     );
     observer.observe(target);
     return () => observer.disconnect();
-  }, []);
+  }, [hideWhileVisibleId]);
 
   const options = [
     {
@@ -112,7 +122,7 @@ const handleStop = (_e: DraggableEvent, data: DraggableData) => {
       >
         <div
           ref={draggableRef}
-          className={`fixed bottom-10 right-4 z-50 transition-opacity duration-300 ${
+          className={`fixed ${positionClassName} z-50 transition-opacity duration-300 ${
             showButton ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >

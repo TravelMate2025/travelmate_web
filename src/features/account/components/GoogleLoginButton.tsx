@@ -1,7 +1,7 @@
 import { useGoogleLogin } from "@react-oauth/google";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getReturnPath } from "../../../routes/returnPath";
+import { getReturnPath, takeReturnPath } from "../../../routes/returnPath";
 import { FaGoogle } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { socialGoogleLogin } from "../api/auth";
@@ -61,7 +61,7 @@ function GoogleLoginButtonActive() {
             })
           );
           localStorage.setItem("email", res.user?.email ?? googleEmail ?? "");
-          navigate(getReturnPath(location.state) ?? "/", { replace: true });
+          navigate(takeReturnPath(location.state) ?? "/", { replace: true });
         } else {
           toast.error("Unexpected response format. Please try again.");
           console.error("Unexpected Google login response:", res);

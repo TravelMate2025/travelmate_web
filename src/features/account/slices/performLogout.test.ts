@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { configureStore } from "@reduxjs/toolkit";
 import { rootReducer } from "../../../store";
-import { flightsApi } from "../../flights/api/flightApi";
+import { selectFlightOffer, setFlightCurrency, setFlightTravelers } from "../../flights/slice";
 import { loginSuccess } from "./authSlice";
 import { setUserProfile, type UserProfile } from "./profileSlice";
 import { setSearchParams } from "../../stays/slice";
@@ -14,7 +14,7 @@ vi.mock("../api/auth", () => ({ logoutUser: vi.fn() }));
 const makeSignedInStore = () => {
   const store = configureStore({
     reducer: rootReducer,
-    middleware: (getDefault) => getDefault({ serializableCheck: false }).concat(flightsApi.middleware),
+    middleware: (getDefault) => getDefault({ serializableCheck: false }),
   });
   store.dispatch(
     loginSuccess({
@@ -27,6 +27,26 @@ const makeSignedInStore = () => {
   store.dispatch(setUserProfile({ first_name: "Ada" } as UserProfile));
   store.dispatch(setSearchParams({ destination: "Lagos", adults: 2 }));
   store.dispatch(setPersonalDetails({ firstName: "Ada" } as Parameters<typeof setPersonalDetails>[0]));
+  store.dispatch(setFlightCurrency("NGN"));
+  store.dispatch(selectFlightOffer("offer-1"));
+  store.dispatch(
+    setFlightTravelers({
+      travelers: [
+        {
+          travelerId: "1",
+          type: "ADULT",
+          firstName: "Ada",
+          lastName: "Okafor",
+          gender: null,
+          dateOfBirth: "1990-01-01",
+          associatedAdultId: null,
+          passport: null,
+          frequentFlyer: null,
+        },
+      ],
+      contact: { email: "ada@example.com", phoneCountryCode: "+234", phoneNumber: "8012345678" },
+    })
+  );
   return store;
 };
 
@@ -48,6 +68,11 @@ describe("performLogout", () => {
     expect(state.profile.profile).toBeNull();
     expect(state.stays.searchParams).toEqual(rootReducer(undefined, { type: "init" }).stays.searchParams);
     expect(state.cars).toEqual(carsReducer(undefined, { type: "init" }));
+    // Flight booking data goes; the device-level currency choice stays
+    expect(state.flights.travelers).toEqual([]);
+    expect(state.flights.contact).toBeNull();
+    expect(state.flights.selectedOfferToken).toBeNull();
+    expect(state.flights.currency).toBe("NGN");
   });
 
   it("removes the user's browser data but keeps device-level data", async () => {

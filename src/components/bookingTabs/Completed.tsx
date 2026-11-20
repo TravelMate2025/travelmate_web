@@ -2,6 +2,7 @@ import hotelimage from "../../assets/images/City-image.png";
 import carImage from "../../assets/carImage.svg";
 import flightImage from "../../assets/airlogo.svg";
 import { NormalizedBooking } from "../../pages/Bookings";
+import { StatusBadge } from "../../features/flights/components/manage/StatusBadge";
 import EmptyState from "./EmptyState";
 import { useNavigate } from "react-router-dom";
 import {
@@ -59,8 +60,8 @@ const Completed = ({ bookings }: BookingsProps) => {
                   navigate(
                     `/bookings/transfers-details/?session_id=${encodeURIComponent(item.session_id)}&booking_reference=${encodeURIComponent(item.reference)}&booking_status=completed`,
                   );
-                } else {
-                  navigate(`/bookings/flight-details/?session_id=${item.session_id}`);
+                } else if (item.detailsPath) {
+                  navigate(item.detailsPath);
                 }
               }}
             >
@@ -75,6 +76,7 @@ const Completed = ({ bookings }: BookingsProps) => {
                 />
                 <div>
                   <h3 className="text-lg font-bold">{name}</h3>
+                  {item.badge && <StatusBadge badge={item.badge} size="sm" />}
                   <p className="text-[#4E4F52] text-sm">{dateStr}</p>
                   <p className="text-[#4E4F52] text-sm font-medium">
                     {formattedAmount}

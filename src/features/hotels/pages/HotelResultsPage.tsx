@@ -7,12 +7,14 @@ import { HotelCard, HotelCardSkeleton } from "../components/HotelCard";
 import { SearchCard } from "../components/SearchCard";
 import { HotelsApiError, searchAllHotels } from "../api/hotelsApi";
 import { outOfTen as scoreOutOfTen } from "../format";
-import { hotelsRoutes } from "../routes";
+import { hotelsRoutes, HOTELS_SEARCH_ID } from "../routes";
 import { NO_FILTERS, buildSearchParams, filterParams, hasPlace, parseFilters, parseSearch, stayLine } from "../search";
 import type { ResultFilters, SortKey } from "../search";
 import type { HotelsPageResult, HotelSummary, SearchState } from "../types";
 import "../hotels.css";
 import "../results.css";
+import { useCheckPrice } from "../useCheckPrice";
+import FloatingChatButton from "../../customer-management/components/FloatingChatButton";
 
 const PAGE_SIZE = 20;
 
@@ -61,6 +63,7 @@ function applyFilters(hotels: HotelSummary[], f: ResultFilters): HotelSummary[] 
 }
 
 export default function HotelResultsPage() {
+  const checkPrice = useCheckPrice();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const search = useMemo(() => parseSearch(params), [params]);
@@ -147,7 +150,7 @@ export default function HotelResultsPage() {
                   <p className="tmh-sub">{stayLine(search)}</p>
                 </div>
                 {data?.place?.results_url && (
-                  <a href={data.place.results_url} className="tmh-btn tmh-btn-ghost">
+                  <a {...checkPrice(data.place.results_url)} className="tmh-btn tmh-btn-ghost">
                     See live prices for all hotels
                   </a>
                 )}
@@ -373,6 +376,8 @@ export default function HotelResultsPage() {
           )}
         </main>
       </div>
+      {/* Help: FAQs, tickets, chat */}
+      <FloatingChatButton hideWhileVisibleId={HOTELS_SEARCH_ID} />
       <Footer />
     </>
   );

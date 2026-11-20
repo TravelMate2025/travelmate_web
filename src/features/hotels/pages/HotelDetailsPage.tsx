@@ -12,11 +12,13 @@ import { buildSearchParams, parseSearch, stayLine } from "../search";
 import type { HotelDetails } from "../types";
 import "../hotels.css";
 import "../results.css";
-import { refreshBookLink, withVisitor } from "../visitor";
+import { useCheckPrice } from "../useCheckPrice";
+import FloatingChatButton from "../../customer-management/components/FloatingChatButton";
 
 const KEY_FACILITIES = 8;
 
 export default function HotelDetailsPage() {
+  const checkPrice = useCheckPrice();
   const { hotelId = "" } = useParams();
   const [params] = useSearchParams();
   const search = useMemo(() => parseSearch(params), [params]);
@@ -187,7 +189,7 @@ export default function HotelDetailsPage() {
                   )}
                   <section className="tmh-cta-strip">
                     <p>Want to see the price for your dates?</p>
-                    <a href={withVisitor(hotel.book_url)} onClick={refreshBookLink(hotel.book_url)} className="tmh-btn tmh-btn-solid">
+                    <a {...checkPrice(hotel.book_url)} className="tmh-btn tmh-btn-solid">
                       Check price
                     </a>
                   </section>
@@ -227,7 +229,7 @@ export default function HotelDetailsPage() {
                 <aside className="tmh-book" aria-label="Check price">
                   <h2 className="tmh-h4">Your stay</h2>
                   <p className="tmh-book-line">{stayLine(search)}</p>
-                  <a href={withVisitor(hotel.book_url)} onClick={refreshBookLink(hotel.book_url)} className="tmh-btn tmh-btn-solid tmh-btn-wide">
+                  <a {...checkPrice(hotel.book_url)} className="tmh-btn tmh-btn-solid tmh-btn-wide">
                     Check price
                   </a>
                   <p className="tmh-fineprint">Live prices, rooms and booking are on TravelMate’s secure booking page. Taxes and fees are shown before you pay.</p>
@@ -235,7 +237,7 @@ export default function HotelDetailsPage() {
               </div>
 
               <div className="tmh-sticky-cta">
-                <a href={withVisitor(hotel.book_url)} onClick={refreshBookLink(hotel.book_url)} className="tmh-btn tmh-btn-solid tmh-btn-wide">
+                <a {...checkPrice(hotel.book_url)} className="tmh-btn tmh-btn-solid tmh-btn-wide">
                   Check price
                 </a>
               </div>
@@ -256,6 +258,8 @@ export default function HotelDetailsPage() {
           )}
         </main>
       </div>
+      {/* Help: FAQs, tickets, chat; above the phone Check price bar */}
+      <FloatingChatButton positionClassName="bottom-10 right-4 max-[860px]:bottom-24" />
       <Footer />
     </>
   );

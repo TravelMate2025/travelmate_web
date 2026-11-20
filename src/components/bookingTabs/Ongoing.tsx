@@ -5,6 +5,7 @@ import carImage from "../../assets/carImage.svg";
 import flightImage from "../../assets/airlogo.svg";
 import EmptyState from "./EmptyState";
 import { NormalizedBooking } from "../../pages/Bookings";
+import { StatusBadge } from "../../features/flights/components/manage/StatusBadge";
 import {
   formatBookingAmount,
   getBookingAmount,
@@ -27,8 +28,8 @@ const Ongoing = ({ bookings, onCancel, cancelingId }: BookingsProps) => {
       (item.type === "stay"
         ? hotelimage
         : item.type === "transfer"
-        ? carImage
-        : flightImage);
+          ? carImage
+          : flightImage);
 
     const name =
       getBookingName(item, "") ||
@@ -47,9 +48,9 @@ const Ongoing = ({ bookings, onCancel, cancelingId }: BookingsProps) => {
     <div>
       {bookings.length === 0 ? (
         <EmptyState
-        title="No confirmed bookings yet"
-        content="You haven't made any confirmed bookings yet. When you do, they will appear here."
-      />
+          title="No confirmed bookings yet"
+          content="You haven't made any confirmed bookings yet. When you do, they will appear here."
+        />
       ) : (
         bookings.map((item) => {
           const { image, name, dateStr, formattedAmount } = getDetails(item);
@@ -67,8 +68,8 @@ const Ongoing = ({ bookings, onCancel, cancelingId }: BookingsProps) => {
                   navigate(
                     `/bookings/transfers-details/?session_id=${encodeURIComponent(item.session_id)}&booking_reference=${encodeURIComponent(item.reference)}`,
                   );
-                } else {
-                  navigate(`/bookings/flight-details/?session_id=${item.session_id}`);
+                } else if (item.detailsPath) {
+                  navigate(item.detailsPath);
                 }
               }}
             >
@@ -83,26 +84,33 @@ const Ongoing = ({ bookings, onCancel, cancelingId }: BookingsProps) => {
                 />
                 <div>
                   <h3 className="text-lg font-bold line-clamp-1">{name}</h3>
+                  {item.badge && <StatusBadge badge={item.badge} size="sm" />}
                   <p className="text-[#4E4F52] text-sm">{dateStr}</p>
-                    <p className="text-[#4E4F52] text-sm font-medium">
-                      {formattedAmount}
-                    </p>
+                  <p className="text-[#4E4F52] text-sm font-medium">
+                    {formattedAmount}
+                  </p>
                 </div>
               </div>
 
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCancel?.(item.reference);
-                }}
-                disabled={cancelingId === item.reference}
-                className="flex justify-end items-center cursor-pointer gap-1 group"
-              >
-                <X className="size-4 text-[#D72638] group-hover:text-[#ea6d79]" />
-                <p className="text-[#D72638] group-hover:text-[#ea6d79] text-sm">
-                  {cancelingId === item.reference ? "Cancelling..." : "Cancel"}
-                </p>
-              </button>
+              {(item.type !== "flight" || item.cancelPath) && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Flights: the refund preview and confirmation live on Manage
+                    if (item.cancelPath) navigate(item.cancelPath);
+                    else onCancel?.(item.reference);
+                  }}
+                  disabled={cancelingId === item.reference}
+                  className="flex justify-end items-center cursor-pointer gap-1 group"
+                >
+                  <X className="size-4 text-[#D72638] group-hover:text-[#ea6d79]" />
+                  <p className="text-[#D72638] group-hover:text-[#ea6d79] text-sm">
+                    {cancelingId === item.reference
+                      ? "Cancelling..."
+                      : "Cancel"}
+                  </p>
+                </button>
+              )}
             </div>
           );
         })

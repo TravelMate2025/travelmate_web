@@ -5,7 +5,7 @@ import Navbar from "../../../pages/homePage/Navbar";
 import Footer from "../../../components/2Footer";
 import { SearchCard } from "../components/SearchCard";
 import { searchHotels } from "../api/hotelsApi";
-import { hotelsRoutes } from "../routes";
+import { hotelsRoutes, HOTELS_SEARCH_ID } from "../routes";
 import { outOfTen } from "../format";
 import { DEFAULT_SEARCH, buildSearchParams } from "../search";
 import {
@@ -22,7 +22,8 @@ import {
 import type { HotelSummary, SearchState } from "../types";
 import "../hotels.css";
 import "../results.css";
-import { refreshBookLink, withVisitor } from "../visitor";
+import { useCheckPrice } from "../useCheckPrice";
+import FloatingChatButton from "../../customer-management/components/FloatingChatButton";
 
 type Filter = (typeof destinationFilters)[number];
 
@@ -32,6 +33,7 @@ type Spot = { name: string; lat: number; lng: number };
 const FEATURED: Spot = { name: "Lisbon", lat: 38.72509, lng: -9.1498 };
 
 export default function HotelsPage() {
+  const checkPrice = useCheckPrice();
   usePageMeta({
     title: "Hotels, Villas & Resorts | TravelMate",
     description:
@@ -179,7 +181,7 @@ export default function HotelsPage() {
                       {h.review && <span className="tmh-score">{outOfTen(h.review.score)}</span>}
                     </div>
                     <span className="tmh-stay-place">{[h.city, h.country].filter(Boolean).join(", ")}</span>
-                    <a className="tmh-stay-link" href={withVisitor(h.book_url)} onClick={refreshBookLink(h.book_url)}>
+                    <a className="tmh-stay-link" {...checkPrice(h.book_url)}>
                       Check price →
                     </a>
                   </div>
@@ -246,7 +248,7 @@ export default function HotelsPage() {
           </h2>
           <div className="tmh-grid3">
             {guides.map((g) => (
-              <button key={g.title} type="button" className="tmh-guide">
+              <button key={g.title} type="button" className="tmh-guide" onClick={() => focusSearch(g.place)}>
                 <span className="tmh-thumb">
                   <img className="tmh-cover" src={g.image} alt={g.alt} loading="lazy" />
                 </span>
@@ -261,6 +263,8 @@ export default function HotelsPage() {
 
         <div className="tmh-end" />
       </div>
+      {/* Help: FAQs, tickets, chat */}
+      <FloatingChatButton hideWhileVisibleId={HOTELS_SEARCH_ID} />
       <Footer />
     </>
   );

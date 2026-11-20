@@ -1,0 +1,254 @@
+[
+ {
+  "code": "LON",
+  "type": "CITY",
+  "name": "London (all airports)",
+  "city": "London",
+  "cityCode": "LON",
+  "country": "United Kingdom",
+  "countryCode": "GB"
+ },
+ {
+  "code": "ABV",
+  "type": "AIRPORT",
+  "name": "Nnamdi Azikiwe International",
+  "city": "Abuja",
+  "cityCode": "ABV",
+  "country": "Nigeria",
+  "countryCode": "NG"
+ },
+ {
+  "code": "ACC",
+  "type": "AIRPORT",
+  "name": "Kotoka International",
+  "city": "Accra",
+  "cityCode": "ACC",
+  "country": "Ghana",
+  "countryCode": "GH"
+ },
+ {
+  "code": "ADD",
+  "type": "AIRPORT",
+  "name": "Addis Ababa Bole International",
+  "city": "Addis Ababa",
+  "cityCode": "ADD",
+  "country": "Ethiopia",
+  "countryCode": "ET"
+ },
+ {
+  "code": "ALG",
+  "type": "AIRPORT",
+  "name": "Houari Boumediene",
+  "city": "Algiers",
+  "cityCode": "ALG",
+  "country": "Algeria",
+  "countryCode": "DZ"
+ },
+ {
+  "code": "AMS",
+  "type": "AIRPORT",
+  "name": "Schiphol",
+  "city": "Amsterdam",
+  "cityCode": "AMS",
+  "country": "Netherlands",
+  "countryCode": "NL"
+ },
+ {
+  "code": "BRU",
+  "type": "AIRPORT",
+  "name": "Brussels",
+  "city": "Brussels",
+  "cityCode": "BRU",
+  "country": "Belgium",
+  "countryCode": "BE"
+ },
+ {
+  "code": "CAI",
+  "type": "AIRPORT",
+  "name": "Cairo International",
+  "city": "Cairo",
+  "cityCode": "CAI",
+  "country": "Egypt",
+  "countryCode": "EG"
+ },
+ {
+  "code": "CMN",
+  "type": "AIRPORT",
+  "name": "Mohammed V International",
+  "city": "Casablanca",
+  "cityCode": "CAS",
+  "country": "Morocco",
+  "countryCode": "MA"
+ },
+ {
+  "code": "DOH",
+  "type": "AIRPORT",
+  "name": "Hamad International",
+  "city": "Doha",
+  "cityCode": "DOH",
+  "country": "Qatar",
+  "countryCode": "QA"
+ },
+ {
+  "code": "DUS",
+  "type": "AIRPORT",
+  "name": "Düsseldorf",
+  "city": "Düsseldorf",
+  "cityCode": "DUS",
+  "country": "Germany",
+  "countryCode": "DE"
+ },
+ {
+  "code": "DXB",
+  "type": "AIRPORT",
+  "name": "Dubai International",
+  "city": "Dubai",
+  "cityCode": "DXB",
+  "country": "United Arab Emirates",
+  "countryCode": "AE"
+ },
+ {
+  "code": "EBB",
+  "type": "AIRPORT",
+  "name": "Entebbe International",
+  "city": "Entebbe",
+  "cityCode": "EBB",
+  "country": "Uganda",
+  "countryCode": "UG"
+ },
+ {
+  "code": "ENU",
+  "type": "AIRPORT",
+  "name": "Akanu Ibiam International",
+  "city": "Enugu",
+  "cityCode": "ENU",
+  "country": "Nigeria",
+  "countryCode": "NG"
+ },
+ {
+  "code": "FRA",
+  "type": "AIRPORT",
+  "name": "Frankfurt",
+  "city": "Frankfurt",
+  "cityCode": "FRA",
+  "country": "Germany",
+  "countryCode": "DE"
+ },
+ {
+  "code": "IST",
+  "type": "AIRPORT",
+  "name": "Istanbul",
+  "city": "Istanbul",
+  "cityCode": "IST",
+  "country": "Turkey",
+  "countryCode": "TR"
+ },
+ {
+  "code": "JFK",
+  "type": "AIRPORT",
+  "name": "John F. Kennedy International",
+  "city": "New York",
+  "cityCode": "NYC",
+  "country": "United States",
+  "countryCode": "US"
+ },
+ {
+  "code": "KAN",
+  "type": "AIRPORT",
+  "name": "Mallam Aminu Kano International",
+  "city": "Kano",
+  "cityCode": "KAN",
+  "country": "Nigeria",
+  "countryCode": "NG"
+ },
+ {
+  "code": "KGL",
+  "type": "AIRPORT",
+  "name": "Kigali International",
+  "city": "Kigali",
+  "cityCode": "KGL",
+  "country": "Rwanda",
+  "countryCode": "RW"
+ },
+ {
+  "code": "LCY",
+  "type": "AIRPORT",
+  "name": "London City",
+  "city": "London",
+  "cityCode": "LON",
+  "country": "United Kingdom",
+  "countryCode": "GB"
+ },
+ {
+  "code": "LGW",
+  "type": "AIRPORT",
+  "name": "Gatwick",
+  "city": "London",
+  "cityCode": "LON",
+  "country": "United Kingdom",
+  "countryCode": "GB"
+ },
+ {
+  "code": "LHR",
+  "type": "AIRPORT",
+  "name": "Heathrow",
+  "city": "London",
+  "cityCode": "LON",
+  "country": "United Kingdom",
+  "countryCode": "GB"
+ },
+ {
+  "code": "LOS",
+  "type": "AIRPORT",
+  "name": "Murtala Muhammed International",
+  "city": "Lagos",
+  "cityCode": "LOS",
+  "country": "Nigeria",
+  "countryCode": "NG"
+ },
+ {
+  "code": "MAN",
+  "type": "AIRPORT",
+  "name": "Manchester",
+  "city": "Manchester",
+  "cityCode": "MAN",
+  "country": "United Kingdom",
+  "countryCode": "GB"
+ },
+ {
+  "code": "NBO",
+  "type": "AIRPORT",
+  "name": "Jomo Kenyatta International",
+  "city": "Nairobi",
+  "cityCode": "NBO",
+  "country": "Kenya",
+  "countryCode": "KE"
+ },
+ {
+  "code": "PHC",
+  "type": "AIRPORT",
+  "name": "Port Harcourt International",
+  "city": "Port Harcourt",
+  "cityCode": "PHC",
+  "country": "Nigeria",
+  "countryCode": "NG"
+ },
+ {
+  "code": "STN",
+  "type": "AIRPORT",
+  "name": "Stansted",
+  "city": "London",
+  "cityCode": "LON",
+  "country": "United Kingdom",
+  "countryCode": "GB"
+ },
+ {
+  "code": "ZRH",
+  "type": "AIRPORT",
+  "name": "Zurich",
+  "city": "Zurich",
+  "cityCode": "ZRH",
+  "country": "Switzerland",
+  "countryCode": "CH"
+ }
+]

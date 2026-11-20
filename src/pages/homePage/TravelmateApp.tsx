@@ -7,9 +7,12 @@ import playstore from "../../assets/playstore.svg";
 import googleplay from "../../assets/googleplay.svg";
 import scan from "../../assets/scan.svg";
 import { useMediaQuery } from "react-responsive";
+import { FEATURES } from "../../config/features";
 
 const TravelmateApp = () => {
     const isMobile = useMediaQuery({ maxWidth: 768 });
+  // Hidden until the app is in the stores (VITE_FEATURE_APP_PROMO)
+  if (!FEATURES.appPromo) return null;
   return (
 
     <div className="w-[90%] mx-auto">

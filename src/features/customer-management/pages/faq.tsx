@@ -7,6 +7,7 @@ import Footer from "../../../components/2Footer";
 import { useNavigate } from "react-router-dom";
 import { IoChevronBack } from "react-icons/io5";
 import { usePageMeta } from "../../../hooks/usePageMeta";
+import { PRODUCTS_TEXT, isFaqCategoryOn } from "../../../config/features";
 
 type FaqItem = {
   id: number;
@@ -21,13 +22,13 @@ type FaqCategory = {
   short_name?: string;
 };
 
-const preferredOrder = ["Stays", "Flights", "Car Rentals", "Account"];
+const preferredOrder = ["Hotels", "Stays", "Flights", "Car Rentals", "Account"];
 
 const FaqPage = () => {
   usePageMeta({
     title: "FAQs | TravelMate",
     description:
-      "Answers to common questions about booking stays, flights, and airport transfers on TravelMate.",
+      `Answers to common questions about booking ${PRODUCTS_TEXT} on TravelMate.`,
   });
 
   const [categories, setCategories] = useState<FaqCategory[]>([]);
@@ -42,7 +43,8 @@ const FaqPage = () => {
     setError(null); // clear previous error
     try {
       const data = await getFaqCategories();
-      const transformed = (data || []).map((cat: unknown) => {
+      // Only categories for products that are on (config/features.ts)
+      const transformed = (data || []).filter((cat: unknown) => isFaqCategoryOn((cat as Partial<FaqCategory>).name_display ?? "")).map((cat: unknown) => {
         const c = cat as Partial<FaqCategory>;
         return {
           ...c,

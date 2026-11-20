@@ -11,6 +11,7 @@ export const guestDetailsLabel = () => "Guest details";
 export const bookingConfirmationLabel = () => "Booking confirmation";
 export const bookingManagementLabel = () => "Booking management";
 export const continueToPaymentLabel = () => "Continue to payment";
+export const continueToExtrasLabel = () => "Continue to extras";
 export const paymentProviderLabel = () => "Secure payment";
 export const paymentRedirectCopy = () => "You'll be redirected to complete your secure payment";
 export const transferReviewLabel = () => "Transfer review";
@@ -19,6 +20,26 @@ export const stayResultsLabel = () => "Stay results";
 export const stayDetailsLabel = () => "Stay details";
 export const pricingSourceLabel = () => "Pricing source";
 export const partnerPricingSourceCopy = () => "Loaded from the partner pricing endpoint before checkout.";
+
+export type FlightStepKey = "flight" | "fare" | "travellers" | "extras" | "pay";
+
+export const flightStepLabel = (step: FlightStepKey) =>
+  ({ flight: "Flight", fare: "Fare", travellers: "Travellers", extras: "Extras", pay: "Pay" })[step];
+
+export const flightStepTitle = (step: FlightStepKey) =>
+  ({
+    flight: "Choose your flight",
+    fare: "Choose your fare",
+    travellers: "Who's travelling?",
+    extras: "Extras",
+    pay: "Review and pay",
+  })[step];
+
+export const flightSearchLabel = () => "Search flights";
+export const flightDoneLabel = () => "Done";
+export const flightSearchShortLabel = () => "Search";
+export const flightAddLegLabel = (max: number) => `Add another flight (up to ${max})`;
+export const flightResultsLabel = () => "Flight results";
 
 export const stayTypeDisplayLabel = (accommodationType?: string | null) => {
   const normalized = accommodationType?.toLowerCase().trim() ?? "";

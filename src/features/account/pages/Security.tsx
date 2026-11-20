@@ -12,6 +12,7 @@ import { useState } from "react";
 import { performLogout } from "../slices/performLogout";
 import { useAppDispatch } from "../../../hooks/redux";
 import { PiSignOutFill } from "react-icons/pi";
+import { showAccountLink } from "../../../config/features";
 
 function Security() {
     const dispatch = useAppDispatch();
@@ -106,7 +107,7 @@ function Security() {
         <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-4">
             {/* LEFT SIDE – hide on small screens */}
             <div className="hidden md:block border border-gray-300 rounded-xl h-auto w-[290px] m-auto">
-            {options.map((item, index) => {
+            {options.filter(showAccountLink).map((item, index) => {
                 const isLogout = item.title === "Log Out";
 
                 const content = (

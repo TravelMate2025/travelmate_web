@@ -1,527 +1,398 @@
-// types/flights.ts
+// Flights v2 data contract, shared by the fake data layer and the real
+// travelmate_backend API (/api/v2/flights/*). Mirrors flights_plan.md §C2/§C9;
+// when this file changes, update the plan so the backend follows it.
+//
+// Money is always a decimal string in the selling currency the server chose.
+// The UI never converts currencies or sends prices back: bookings use offerToken.
 
-export type TripType = "ONE_WAY" | "ROUND_TRIP" | "MULTI_CITY";
+export type CurrencyCode = "USD" | "NGN" | "GBP";
+export const SELLING_CURRENCIES: readonly CurrencyCode[] = ["USD", "NGN", "GBP"];
 
-// ---------- Request Types ----------
-export interface OneWayFlightRequest {
-  tripType: "ONE_WAY";
-  origin: string;
-  destination: string;
-  departure_date: string;
-  adults: number;
-  children: number;
-  infants: number;
-  travel_class: string;
-  non_stop: boolean;
-  currency: string;
+export interface Money {
+  amount: string;
+  currency: CurrencyCode;
 }
 
-export interface RoundTripFlightRequest {
-  tripType: "ROUND_TRIP";
-  origin: string;
-  destination: string;
-  departure_date: string;
-  return_date: string;
-  adults: number;
-  children: number;
-  infants: number;
-  travel_class: string;
-  non_stop: boolean;
-  currency: string;
-}
+export type CabinClass = "ECONOMY" | "PREMIUM_ECONOMY" | "BUSINESS" | "FIRST";
+export type TravelerType = "ADULT" | "CHILD" | "HELD_INFANT" | "SEATED_INFANT";
+export type TripType = "RETURN" | "ONE_WAY" | "MULTI_CITY";
 
-export interface MultiCitySegment {
-  origin: string;
-  destination: string;
-  departure_date: string;
-}
+// ---------------------------------------------------------------- places
 
-export interface MultiCityFlightRequest {
-  tripType: "MULTI_CITY";
-  segments: MultiCitySegment[];
-  adults: number;
-  children: number;
-  infants: number;
-  travel_class: string;
-  currency: string;
-}
-
-// Union type for all requests
-export type FlightSearchRequest =
-  | OneWayFlightRequest
-  | RoundTripFlightRequest
-  | MultiCityFlightRequest;
-
-// ---------- Response Types ----------
-export interface FlightData {
-  id: string;
-  source: string;
-  instantTicketingRequired: boolean;
-  nonHomogeneous: boolean;
-  oneWay: boolean;
-  lastTicketingDate: string;
-  numberOfBookableSeats: number;
-  itineraries: string;
-  price: string;
-  pricingOptions: string;
-  validatingAirlineCodes: string[];
-  travelerPricings: string;
-}
-
-export interface FlightSearchResponse {
-  data: FlightOffer[];
-  dictionaries: string;
-  meta: string;
-}
-
-
-
-
-export interface FlightOffer {
-  type: string;
-  id: string;
-  source: string;
-  instantTicketingRequired: boolean;
-  nonHomogeneous: boolean;
-  oneWay: boolean;
-  isUpsellOffer: boolean;
-  lastTicketingDate: string; // YYYY-MM-DD
-  lastTicketingDateTime: string; // ISO string
-  numberOfBookableSeats: number;
-  itineraries: Itinerary[];
-  price: Price;
-  pricingOptions: PricingOptions;
-  validatingAirlineCodes: string[];
-  travelerPricings: TravelerPricing[];
-}
-export interface Airport {
-  id: string | null;
-  name: string;
-  iataCode: string | null;
-  cityName: string;
-  countryCode: string;
-  countryName: string | null;
-  geoCode: GeoCode;
-  displayName: string;
+export interface Place {
+  /** IATA code: an airport (LHR) or a city with several airports (LON). */
+  code: string;
   type: "AIRPORT" | "CITY";
-  priority: number;
+  name: string;
+  city: string;
+  cityCode: string;
+  country: string;
+  countryCode: string;
 }
 
-export interface GeoCode {
-  latitude: number;
-  longitude: number;
+/** Staff-configured per country (dashboard, later); priceFrom is the server's cached cheapest fare. */
+export interface PopularRoute {
+  origin: Place;
+  destination: Place;
+  /** Null when there's no recent fare to show. */
+  priceFrom: Money | null;
 }
-export interface Itinerary {
-  duration: string; // ISO 8601 duration, e.g. "PT4H15M"
-  segments: Segment[];
+
+/** "From" fares per cabin on one route, from the server's latest search. */
+export interface ClassFares {
+  origin: Place;
+  destination: Place;
+  fares: { cabin: CabinClass; priceFrom: Money | null }[];
+}
+
+/** Promo card content, set by staff in the dashboard. Null when none is running. */
+export interface Campaign {
+  label: string;
+  headline: string;
+  body: string;
+  ctaLabel: string;
+  /** Prefills the search form when set. */
+  route: { origin: string; destination: string } | null;
+}
+
+// ---------------------------------------------------------------- search
+
+export type FlexibleDays = 0 | 1 | 2 | 3;
+
+export interface SearchLeg {
+  origin: string;
+  destination: string;
+  /** Local departure date, YYYY-MM-DD. */
+  date: string;
+  /** Also search this many days either side (Amadeus dateWindow, up to 3). */
+  flexibleDays: FlexibleDays;
+}
+
+export interface PassengerCounts {
+  adults: number;
+  children: number;
+  /** Under 2, on an adult's lap. At most one per adult. */
+  heldInfants: number;
+  /** Under 2, in their own seat. */
+  seatedInfants: number;
+}
+
+export interface FlightSearchCriteria {
+  tripType: TripType;
+  /** RETURN: 2 legs (out, back). ONE_WAY: 1. MULTI_CITY: 2 to 6. */
+  legs: SearchLeg[];
+  passengers: PassengerCounts;
+  cabin: CabinClass;
+  nonStop: boolean;
+  /** Also search airports near origin and destination (Amadeus origin/destination radius). */
+  includeNearbyAirports: boolean;
+  currency: CurrencyCode;
+}
+
+// ---------------------------------------------------------------- offers
+
+export interface SegmentEndpoint {
+  iata: string;
+  terminal: string | null;
+  /** Local time at that airport, no offset: 2026-12-15T19:05:00. */
+  atLocal: string;
+  city: string;
+  airportName: string;
+}
+
+export interface Carrier {
+  code: string;
+  name: string;
 }
 
 export interface Segment {
-  departure: AirportEvent;
-  arrival: AirportEvent;
-  carrierCode: string;
-  number: string;
-  aircraft: Aircraft;
-  operating: OperatingCarrier;
-  duration: string;
   id: string;
-  numberOfStops: number;
-  blacklistedInEU: boolean;
-  airline: Airline;
+  from: SegmentEndpoint;
+  to: SegmentEndpoint;
+  marketing: Carrier & { number: string };
+  /** Null when the marketing carrier operates the flight. */
+  operating: Carrier | null;
+  aircraft: string | null;
+  durationMinutes: number;
+  cabin: CabinClass;
+  /** Airline fare family label, e.g. "Eco Essential". */
+  brandedFare: string | null;
+  /** Technical stops (the plane lands but you stay on board). */
+  stops: number;
 }
 
-export interface AirportEvent {
-  iataCode: string;
-  at: string; // ISO datetime
-  terminal?: string;
-}
-
-export interface Aircraft {
-  code: string;
-}
-
-export interface OperatingCarrier {
-  carrierCode: string;
-  airline: Airline;
-}
-
-export interface Airline {
-  code: string;
-  name: string;
-}
-
-export interface Price {
-  currency: string;
-  total: string;
-  base: string;
-  fees: Fee[];
-  grandTotal: string;
-  totalWithFee: number;
-}
-
-export interface Fee {
-  amount: string;
-  type: string;
-}
-
-export interface PricingOptions {
-  fareType: string[];
-  includedCheckedBagsOnly: boolean;
-}
-
-export interface TravelerPricing {
-  travelerId: string;
-  fareOption: string;
-  travelerType: string;
-  price: TravelerPrice;
-  fareDetailsBySegment: FareDetails[];
-}
-
-export interface TravelerPrice {
-  currency: string;
-  total: string;
-  base: string;
-}
-
-export interface FareDetails {
-  segmentId: string;
-  cabin: string;
-  fareBasis: string;
-  brandedFare: string;
-  brandedFareLabel: string;
-  class: string;
-  includedCheckedBags: BagAllowance;
-  includedCabinBags: BagAllowance;
-  amenities: Amenity[];
+export interface Itinerary {
+  durationMinutes: number;
+  segments: Segment[];
 }
 
 export interface BagAllowance {
-  quantity: number;
+  quantity: number | null;
+  weightKg: number | null;
 }
+
+export interface BaggageAllowance {
+  checked: BagAllowance | null;
+  cabin: BagAllowance | null;
+}
+
+export interface FareConditions {
+  refundable: boolean;
+  changeable: boolean;
+  /** Highest change fee the airline charges, before any fare difference. */
+  changePenalty: Money | null;
+}
+
+export type AmenityKind = "MEAL" | "SEAT" | "BAGGAGE" | "SERVICE" | "MILES" | "CHANGES" | "OTHER";
 
 export interface Amenity {
+  kind: AmenityKind;
   description: string;
-  isChargeable: boolean;
-  amenityType: string;
-  amenityProvider: AmenityProvider;
+  /** false = included in the fare, true = available for a fee. */
+  chargeable: boolean;
 }
 
-export interface AmenityProvider {
-  name: string;
-}
-
-
-export interface UpsellFlightOfferResponse {
-  data: FlightUpsellOfferResponse[];
-  dictionaries: string; // If later it becomes an object, adjust here
-  meta: string; // Same as above
-}
-
-export interface UpsellFlightOffer {
-  id: string;
-  source: string;
-  instantTicketingRequired: boolean;
-  nonHomogeneous: boolean;
-  oneWay: boolean;
-  lastTicketingDate: string; // ISO date string
-  numberOfBookableSeats: number;
-  itineraries: string; // Might be object[] in real API (check later)
-  price: string; // Usually an object, but schema shows string
-  pricingOptions: string; // Same note as above
-  validatingAirlineCodes: string[];
-  travelerPricings: string; // Usually array of objects in real API
-}
-
-
-// src/redux/types/booking.ts
-
-export type BookingType = "ONE_WAY" | "ROUND_TRIP" | "MULTI_CITY";
-
-export interface Passenger {
-  title: string;              // e.g. "MR", "MRS", "MS"
-  first_name: string;
-  last_name: string;
-  email: string;
-  date_of_birth: string;      // ISO format "YYYY-MM-DD"
-  gender: "M" | "F";          // restrict gender values
-  passport_number: string;
-  passport_expiry: string;    // ISO format "YYYY-MM-DD"
-  nationality: string;        // ISO country code (e.g. "US")
-  phone: string;              // E.164 format recommended
-  address_line1: string;
-  city: string;
-  country: string;            // ISO country code
-  postal_code: string;
-}
-
-export interface BookingRequest {
-  flight_offer_ids: string[];
-  upsell_offer_id?: string;   // optional, in case user didn’t select upsell
-  passengers: Passenger[];
-  booking_type: BookingType;
-  adults: number;
-  children: number
-  infants:number
-}
-
-export type BookingResponse = {
-  id: number;
-  booking: Booking;
-  booking_reference: string;
-  booking_type: "ROUND_TRIP" | "ONE_WAY" | string;
-  currency: string;
-  service_fee: string;
-  base_flight_cost: string;
-  admin_notes: string | null;
-  cancelled_by: string | null;
-  cancellation_date: string | null;
-  cancellation_reason: string | null;
-  flights: Flight[];
-  passenger_bookings: PassengerBooking[];
-  payment_details: PaymentDetails;
-  amadeus_status: "FAILED" | "SUCCESS" | string;
-  amadeus_reference: string;
-};
-
-type PassengerBooking = {
-  id: number;
-  passenger: Passenger;
-  ticket_number: string | null;
-  seat_number: string | null;
-};
-
-
-
-type PaymentDetails = {
-  id: number;
+export interface TravelerPrice {
+  type: TravelerType;
+  count: number;
+  /** Price for one traveller of this type. */
   amount: string;
-  currency: string;
-  payment_method: string;
-  transaction_id: string;
-  payment_status: "PAID" | "REFUNDED" | string;
-  payment_date: string;
-  additional_details: StripeCheckoutSession;
-};
-
-type StripeCheckoutSession = {
-  id: string;
-  url: string | null;
-  mode: string;
-  locale: string | null;
-  object: string;
-  status: string;
-  consent: unknown;
-  created: number;
-  invoice: string | null;
-  ui_mode: string;
-  currency: string;
-  customer: string | null;
-  livemode: boolean;
-  metadata: {
-    booking_id: string;
-    base_flight_cost: string;
-    flight_booking_id: string;
-    service_fee_percentage: string;
-  };
-  discounts: unknown[];
-  refund_id: string;
-  cancel_url: string;
-  expires_at: number;
-  custom_text: Record<string, unknown>;
-  permissions: unknown;
-  refund_date: string;
-  submit_type: string | null;
-  success_url: string;
-  amount_total: number;
-  payment_link: string | null;
-  setup_intent: string | null;
-  subscription: string | null;
-  automatic_tax: {
-    status: string | null;
-    enabled: boolean;
-    provider: string | null;
-    liability: string | null;
-  };
-  client_secret: string | null;
-  custom_fields: unknown[];
-  refund_status: "succeeded" | "failed" | "pending" | string;
-  shipping_cost: unknown;
-  total_details: {
-    amount_tax: number;
-    amount_discount: number;
-    amount_shipping: number;
-  };
-  customer_email: string | null;
-  origin_context: string | null;
-  payment_intent: string;
-  payment_status: string;
-  recovered_from: string | null;
-  wallet_options: unknown;
-  amount_subtotal: number;
-  adaptive_pricing: {
-    enabled: boolean;
-  };
-  after_expiration: unknown;
-  customer_details: {
-    name: string;
-    email: string;
-    phone: string | null;
-    address: {
-      city: string | null;
-      line1: string | null;
-      line2: string | null;
-      state: string | null;
-      country: string;
-      postal_code: string | null;
-    };
-    tax_ids: unknown[];
-    tax_exempt: string;
-    business_name: string | null;
-    individual_name: string | null;
-  };
-  invoice_creation: {
-    enabled: boolean;
-    invoice_data: {
-      footer: string | null;
-      issuer: string | null;
-      metadata: Record<string, unknown>;
-      description: string | null;
-      custom_fields: string | null;
-      account_tax_ids: string | null;
-      rendering_options: unknown;
-    };
-  };
-  shipping_details: unknown;
-  shipping_options: unknown[];
-  branding_settings: {
-    icon: string | null;
-    logo: string | null;
-    font_family: string;
-    border_style: string;
-    button_color: string;
-    display_name: string;
-    background_color: string;
-  };
-  customer_creation: string;
-  consent_collection: unknown;
-  client_reference_id: string | null;
-  currency_conversion: unknown;
-  payment_method_types: string[];
-  allow_promotion_codes: unknown;
-  collected_information: unknown;
-  payment_method_options: {
-    card: {
-      request_three_d_secure: string;
-    };
-  };
-  phone_number_collection: {
-    enabled: boolean;
-  };
-  payment_method_collection: string;
-  billing_address_collection: string | null;
-  shipping_address_collection: string | null;
-  saved_payment_method_options: unknown;
-  payment_method_configuration_details: unknown;
-};
-
-type Flight = {
-  id: number;
-  flight_number: string;
-  airline_code: string;
-  airline_name: string;
-  operating_airline: string;
-  departure_airport: string;
-  departure_terminal: string;
-  departure_city: string;
-  departure_datetime: string;
-  arrival_airport: string;
-  arrival_terminal: string;
-  arrival_city: string;
-  arrival_datetime: string;
-  aircraft_code: string;
-  aircraft_name: string;
-  segment_id: string;
-  number_of_stops: number;
-  duration: string;
-  cabin_class: string;
-  fare_basis: string;
-  fare_class: string;
-  fare_brand: string;
-  fare_brand_label: string;
-  included_checked_bags: number;
-  itinerary_index: number;
-  blacklisted_in_eu: boolean;
-  instant_ticketing_required: boolean;
-  created_at: string;
-  updated_at: string;
-};
-export type Booking = {
-  id: string;
-  user: number;
-  status: "Failed" | "Confirmed" | string;
-  total_price: string;
-  created_at: string;
-  updated_at: string;
-};
-
-// export interface BookingResponse {
-//   id: string;                 // booking ID
-//   status: "CONFIRMED" | "PENDING" | "FAILED";
-//   flight_offer_ids: string[];
-//   upsell_offer_id?: string;
-//   passengers: Passenger[];
-//   booking_type: BookingType;
-//   created_at: string;         // ISO date
-//   updated_at?: string;        // ISO date
-// }
-
-
-export interface UpSellPrice {
-  currency: string;
-  total: string;
-  base?: string;
-  grandTotal?: string;
-  upsellDifference?: string;
-  fees?: Array<{
-    amount: string;
-    type: string;
-  }>;
-  taxes?: Array<{
-    amount: string;
-    code: string;
-  }>;
-}
-export interface FlightUpsellOfferResponse {
-  type: string;
-  id: string;
-  originalFlightOfferId: string;
-  price: UpSellPrice;
-  cabin: string;
-  fareAttributes: FareAttributes;
-  amadeus_details: AmadeusDetails;
 }
 
-interface FareAttributes {
-  refundable: boolean;
-  changePenalties: boolean;
+export interface OfferPrice extends Money {
+  perTraveler: TravelerPrice[];
+  breakdown: { base: string; taxesAndFees: string };
 }
 
-interface AmadeusDetails {
-  type: string;
-  id: string;
-  source: string;
-  instantTicketingRequired: boolean;
-  paymentCardRequired: boolean;
-  lastTicketingDate: string;
+export interface FlightOffer {
+  /** Opaque. The only thing the UI sends back to price or book this offer. */
+  offerToken: string;
+  source: "GDS" | "NDC" | "LTC" | "EAC";
+  validatingAirline: Carrier & { logoUrl: string | null };
   itineraries: Itinerary[];
-  price: Price;
-  pricingOptions: {
-    fareType: string[];
-    includedCheckedBagsOnly: boolean;
-    refundableFare: boolean;
-    noRestrictionFare: boolean;
-    noPenaltyFare: boolean;
+  baggage: BaggageAllowance;
+  fareConditions: FareConditions;
+  amenities: Amenity[];
+  seatsLeft: number | null;
+  price: OfferPrice;
+  /** Book (and ticket) by this date or the fare is lost. */
+  lastTicketingAt: string | null;
+  flags: {
+    upsellAvailable: boolean;
+    paymentCardRequired: boolean;
+    instantTicketingRequired: boolean;
   };
-  validatingAirlineCodes: string[];
-  travelerPricings: TravelerPricing[];
+  /** After this the offer can't be priced; search again. ISO with offset. */
+  expiresAt: string;
+}
+
+export interface FlightSearchResult {
+  searchId: string;
+  criteria: FlightSearchCriteria;
+  offers: FlightOffer[];
+  expiresAt: string;
+}
+
+// ---------------------------------------------------------------- price check
+
+export interface PriceChange {
+  previous: Money;
+  current: Money;
+  direction: "UP" | "DOWN";
+}
+
+export interface TravelerRequirements {
+  travelerId: string;
+  type: TravelerType;
+  genderRequired: boolean;
+  dateOfBirthRequired: boolean;
+  passportRequired: boolean;
+  residenceRequired: boolean;
+}
+
+export interface BookingRequirements {
+  emailRequired: boolean;
+  mobileRequired: boolean;
+  travelers: TravelerRequirements[];
+}
+
+export interface BagOption {
+  id: string;
+  /** Index into offer.itineraries this bag applies to. */
+  itineraryIndex: number;
+  /** Extra bags on top of the included allowance. */
+  quantity: number;
+  weightKg: number | null;
+  price: Money;
+  travelerIds: string[];
+}
+
+export interface FareRuleText {
+  category: "CHANGES" | "REFUNDS" | "OTHER";
+  title: string;
+  text: string;
+}
+
+export interface PriceCheckResult {
+  offer: FlightOffer;
+  priceChange: PriceChange | null;
+  requirements: BookingRequirements;
+  /** Empty when the airline sells no extra bags for this offer. */
+  bagOptions: BagOption[];
+  fareRules: FareRuleText[];
+}
+
+// ---------------------------------------------------------------- fare families (R2)
+
+export interface FareOption {
+  offerToken: string;
+  brandName: string;
+  price: Money;
+  /** Difference from the offer the user picked, e.g. "26.30". */
+  priceDifference: string;
+  baggage: BaggageAllowance;
+  fareConditions: FareConditions;
+  amenities: Amenity[];
+}
+
+// ---------------------------------------------------------------- booking
+
+/** Amadeus also accepts UNDISCLOSED ("Prefer not to say"). */
+export type Gender = "FEMALE" | "MALE" | "UNDISCLOSED";
+
+export interface TravelerInput {
+  travelerId: string;
+  type: TravelerType;
+  firstName: string;
+  lastName: string;
+  gender: Gender | null;
+  dateOfBirth: string | null;
+  /** For HELD_INFANT: the adult whose lap they travel on. */
+  associatedAdultId: string | null;
+  /** issuingCountry / nationality: ISO 3166-1 alpha-2. */
+  passport: { number: string; expiryDate: string; issuingCountry: string; nationality: string | null } | null;
+  frequentFlyer: { airlineCode: string; number: string } | null;
+}
+
+export interface ContactInput {
+  email: string;
+  phoneCountryCode: string;
+  phoneNumber: string;
+}
+
+export interface CreateBookingInput {
+  offerToken: string;
+  travelers: TravelerInput[];
+  contact: ContactInput;
+  /** BagOption ids from the price check (R2). */
+  bagOptionIds: string[];
+  currency: CurrencyCode;
+}
+
+export type FlightBookingStatus =
+  | "HELD" // PNR created, waiting for payment
+  | "HOLD_EXPIRED" // not paid in time, PNR released, nothing charged
+  | "PAID" // payment received, handing to the consolidator
+  | "TICKETING" // with the consolidator
+  | "TICKETED"
+  | "FAILED" // could not book or ticket; see failure
+  | "CANCELLATION_REQUESTED"
+  | "CANCELLED";
+
+export interface TravelerSummary {
+  travelerId: string;
+  type: TravelerType;
+  firstName: string;
+  lastName: string;
+  ticketNumber: string | null;
+}
+
+export type RefundStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+
+export interface RefundInfo {
+  status: RefundStatus;
+  /** An estimate until the airline confirms it (see airlineConfirmed). */
+  amount: Money;
+  /**
+   * Cancelling a ticket outside the void window: the airline (via the
+   * consolidator) confirms the refundable amount first. false = waiting,
+   * true = confirmed, null = no airline step (full refund, void, failed booking).
+   */
+  airlineConfirmed: boolean | null;
+  startedAt: string;
+  completedAt: string | null;
+}
+
+export interface ScheduleChange {
+  segmentId: string;
+  detectedAt: string;
+  previousDepartureLocal: string;
+  newDepartureLocal: string;
+  newArrivalLocal: string;
+}
+
+/** What the customer pays in one selling currency, fixed when the seats are held. */
+export interface PayableAmount {
+  currency: CurrencyCode;
+  flights: string;
+  bags: string;
+  total: string;
+}
+
+export interface FlightBooking {
+  id: string;
+  /** TravelMate booking reference shown to customers and support. */
+  reference: string;
+  /** Airline/GDS record locator. Null until the hold succeeds. */
+  pnr: string | null;
+  status: FlightBookingStatus;
+  offer: FlightOffer;
+  travelers: TravelerSummary[];
+  contact: ContactInput;
+  bags: BagOption[];
+  total: Money;
+  /** The same total in each selling currency (mock: "Pay in" USD / NGN / GBP). */
+  payable: PayableAmount[];
+  /** The hold re-priced the offer and it changed since the price check. */
+  priceChange: PriceChange | null;
+  /** HELD only: pay before this or the seats are released. */
+  holdExpiresAt: string | null;
+  payment: { status: "PENDING" | "PAID" | "FAILED"; paidAt: string | null; amount: Money } | null;
+  failure: { stage: "BEFORE_PAYMENT" | "AFTER_PAYMENT"; reason: string } | null;
+  refund: RefundInfo | null;
+  scheduleChanges: ScheduleChange[];
+  createdAt: string;
+}
+
+export interface CheckoutSession {
+  /** Flutterwave hosted checkout. */
+  checkoutUrl: string;
+}
+
+export interface CancellationPreview {
+  kind: "FULL_REFUND" | "VOID" | "AIRLINE_REFUND";
+  paid: Money;
+  deduction: Money | null;
+  /** Estimate until the airline confirms (AIRLINE_REFUND). */
+  refund: Money | null;
+  requiresAirlineConfirmation: boolean;
+}
+
+// ---------------------------------------------------------------- errors
+
+export type FlightErrorCode =
+  | "SEARCH_EXPIRED"
+  | "OFFER_EXPIRED"
+  | "OFFER_UNAVAILABLE" // sold out at this price
+  | "HOLD_EXPIRED"
+  | "VALIDATION"
+  | "AUTH_REQUIRED"
+  | "NOT_FOUND"
+  | "NETWORK"
+  | "UNKNOWN";
+
+export interface FlightApiErrorBody {
+  code: FlightErrorCode;
+  message: string;
+  fields?: Record<string, string>;
 }

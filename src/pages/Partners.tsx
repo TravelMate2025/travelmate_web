@@ -5,13 +5,15 @@ import {
   FaCar,
   FaPlane,
   FaHandshake,
+  FaHotel,
 } from "react-icons/fa";
 import Footer from "../components/2Footer";
 import Navbar from "./homePage/Navbar";
 import { InfoProvider, type Partner } from "../features/account/api/info";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { HOTELS_ONLY } from "../config/features";
 
-const integrationSteps = [
+const ALL_INTEGRATION_STEPS = [
   {
     title: "Connect your inventory",
     body: "Share your stays, flights, or vehicle inventory through our partner API — no need to integrate with each TravelMate app separately.",
@@ -30,7 +32,7 @@ const integrationSteps = [
   },
 ];
 
-const verticals = [
+const ALL_VERTICALS = [
   {
     icon: FaBed,
     name: "Stays",
@@ -54,7 +56,7 @@ const verticals = [
   },
 ];
 
-const credibilityItems = [
+const ALL_CREDIBILITY_ITEMS = [
   {
     title: "Normalized API adapter layer",
     body: "Send us your data in your own shape; our backend handles mapping it consistently for every client.",
@@ -81,6 +83,49 @@ const credibilityItems = [
   },
 ];
 
+// Hotels-only production (config/features.ts): only claims that are true while
+// hotels are the one live product. Development keeps the full page above.
+const HOTELS_ONLY_VERTICALS = [
+  {
+    icon: FaHotel,
+    name: "Hotels",
+    status: "Live",
+    live: true,
+    body: "Hotels, villas and resorts worldwide are live today, booked through our hotel booking partner.",
+  },
+  {
+    icon: FaBed,
+    name: "Stays",
+    status: "Coming soon",
+    live: false,
+    body: "Stay booking is built on TravelMate's own checkout; we're onboarding verified stay partners ahead of launch.",
+  },
+  {
+    icon: FaCar,
+    name: "Airport Transfers",
+    status: "Coming soon",
+    live: false,
+    body: "Transfer booking is built; we're onboarding vehicle and transfer partners ahead of launch.",
+  },
+  ALL_VERTICALS[2],
+];
+
+const HOTELS_ONLY_INTEGRATION_STEPS = ALL_INTEGRATION_STEPS.map((step) =>
+  step.title === "Travelers book & pay"
+    ? { ...step, body: "As each vertical launches, bookings, payment and confirmations run through TravelMate's own checkout." }
+    : step
+);
+
+const HOTELS_ONLY_CREDIBILITY_ITEMS = ALL_CREDIBILITY_ITEMS.filter((item) => item.title !== "Favorites & reviews built in").map((item) =>
+  item.title === "Secure payment handoff"
+    ? { ...item, body: "Checkout runs through TravelMate's own payment integration — no separate payment setup needed." }
+    : item
+);
+
+const integrationSteps = HOTELS_ONLY ? HOTELS_ONLY_INTEGRATION_STEPS : ALL_INTEGRATION_STEPS;
+const verticals = HOTELS_ONLY ? HOTELS_ONLY_VERTICALS : ALL_VERTICALS;
+const credibilityItems = HOTELS_ONLY ? HOTELS_ONLY_CREDIBILITY_ITEMS : ALL_CREDIBILITY_ITEMS;
+
 // Category slugs/labels mirror the backend's real CATEGORY_CHOICES
 // (core/applications/policy/models.py PartnerCategory) -- structural, not
 // business content, so hardcoding the label here doesn't risk drifting
@@ -95,7 +140,9 @@ export function PartnersPage() {
   usePageMeta({
     title: "Partners & Suppliers | TravelMate",
     description:
-      "Integrate your stays, flights, or car rental inventory with TravelMate — one backend integration, every TravelMate app.",
+      HOTELS_ONLY
+        ? "Partner with TravelMate: integrate your hotel, stay, flight or car rental inventory once, for every TravelMate app."
+        : "Integrate your stays, flights, or car rental inventory with TravelMate — one backend integration, every TravelMate app.",
   });
 
   // Indexed to match `partnerCategories` -- each entry is that category's
@@ -199,7 +246,7 @@ export function PartnersPage() {
               We'd rather tell you exactly what's live today than overstate it.
             </p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className={`grid grid-cols-1 gap-5 ${verticals.length === 4 ? "md:grid-cols-2 lg:grid-cols-4" : "lg:grid-cols-3"}`}>
             {verticals.map(({ icon: Icon, name, status, live, body }) => (
               <div key={name} className="border border-[#D7DBE0] rounded-[16px] p-6">
                 <div className="flex items-center justify-between mb-3.5">

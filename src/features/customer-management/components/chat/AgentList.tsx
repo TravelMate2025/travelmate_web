@@ -2,18 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../store";
 import { Chat } from "../../types/chat";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { fetchChatAgents, type ChatAgent } from "../../api/chat";
 
 interface CircleAvatarProps {
   text: string;
   size?: number;
 }
 
-interface Agent {
-  id: number;
-  displayName: string;
-}
+type Agent = ChatAgent;
 
 interface AgentListProps {
   activeChat: Chat | null;
@@ -53,27 +49,7 @@ const AgentList: React.FC<AgentListProps> = ({ activeChat }) => {
     const fetchAvailableAgents = async () => {
       try {
         if (!accessToken) throw new Error("Access token not found");
-
-        const response = await fetch(`${API_BASE_URL}/chat/admins`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        
-        const contentType = response.headers.get("content-type");
-        if (!response.ok || !contentType?.includes("application/json")) {
-          throw new Error("Invalid response from server");
-        }
-
-        const data = await response.json();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const extractedAgents = data.results.map((agent: any) => ({
-          id: agent.id,
-          displayName: agent.first_name?.trim() || agent.email?.split("@")[0] || "A",
-        }));
-
-        setAgents(extractedAgents);
+        setAgents(await fetchChatAgents());
       } catch (err) {
         setError("Failed to fetch agents");
         console.error("Error fetching agents:", err);

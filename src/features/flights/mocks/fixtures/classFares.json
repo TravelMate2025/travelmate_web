@@ -1,0 +1,1 @@
+{"route": "LOS-LON", "date": "2026-12-15", "recordedAt": "2026-11-12", "cabins": {"ECONOMY": {"count": 20, "cheapest": "386.10", "airline": "AT"}, "PREMIUM_ECONOMY": {"count": 14, "cheapest": "1921.80", "airline": "LH"}, "BUSINESS": {"count": 20, "cheapest": "1102.80", "airline": "WB"}, "FIRST": {"count": 6, "cheapest": "6806.00", "airline": "EK"}}}

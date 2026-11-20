@@ -1,5 +1,5 @@
 import { useEffect, useState, type SyntheticEvent } from "react";
-import { useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { usePageMeta } from "../hooks/usePageMeta";
 import Navbar from "./homePage/Navbar";
 import WelcomePage from "./homePage/WelcomePage";
@@ -15,8 +15,8 @@ import RecentlyViewed from "./homePage/RecentlyViewed";
 import NearbyStays from "./homePage/NearbyStays";
 import FavoritesChip from "./homePage/FavoritesChip";
 import TransfersHomeContent from "./homePage/transfers/TransfersHomeContent";
-import FlightsHomeContent from "./homePage/flights/FlightsHomeContent";
 import Footer from "../components/2Footer";
+import { bookingFlowRoutes } from "../features/shared/bookingFlowRoutes";
 
 import FloatingChatButton from '../features/customer-management/components/FloatingChatButton';
 
@@ -24,7 +24,6 @@ const tabFromSearch = (search: string): string | null => {
   const params = new URLSearchParams(search);
   const tab = params.get("tab");
   if (tab === "transfers") return "3";
-  if (tab === "flights") return "2";
   if (tab === "stays") return "1";
   return null;
 };
@@ -32,7 +31,8 @@ const tabFromSearch = (search: string): string | null => {
 export default function Home() {
   const location = useLocation();
   const [activeVertical, setActiveVertical] = useState<string>(
-    () => tabFromSearch(location.search) ?? localStorage.getItem("selectedTab") ?? "1"
+    // "2" was the Flights tab before flights moved to /flights
+    () => tabFromSearch(location.search) ?? (localStorage.getItem("selectedTab") === "3" ? "3" : "1")
   );
 
   useEffect(() => {
@@ -46,7 +46,6 @@ export default function Home() {
   };
 
   const isTransfers = activeVertical === "3";
-  const isFlights = activeVertical === "2";
 
   usePageMeta(
     isTransfers
@@ -55,18 +54,17 @@ export default function Home() {
           description:
             "Book reliable airport transfers with TravelMate — verified drivers, transparent pricing, and free cancellation on most rides.",
         }
-      : isFlights
-        ? {
-            title: "Flights | TravelMate",
-            description:
-              "Search and book flights with TravelMate — real fares, no hidden fees, all in the same account as your stays and transfers.",
-          }
-        : {
-            title: "TravelMate — Book Stays, Flights & Airport Transfers in One Place",
-            description:
-              "TravelMate is a travel booking platform for stays, flights, and airport transfers — one account, real prices, secure checkout.",
-          }
+      : {
+          title: "TravelMate — Book Stays, Flights & Airport Transfers in One Place",
+          description:
+            "TravelMate is a travel booking platform for stays, flights, and airport transfers — one account, real prices, secure checkout.",
+        }
   );
+
+  // Old links to the home Flights tab
+  if (new URLSearchParams(location.search).get("tab") === "flights") {
+    return <Navigate to={bookingFlowRoutes.flightsLanding} replace />;
+  }
 
   return (
     <div>
@@ -76,8 +74,6 @@ export default function Home() {
       <FavoritesChip />
       {isTransfers ? (
         <TransfersHomeContent />
-      ) : isFlights ? (
-        <FlightsHomeContent />
       ) : (
         <>
           <RecentlyViewed />

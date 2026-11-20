@@ -1,3 +1,11 @@
 
 
 @import "tailwindcss";
+
+/* Display and body faces shared by the Hotels and Flights landing pages.
+   The font files load from each page's own stylesheet (hotels.css, flights.css). */
+@theme {
+  --font-display: "Archivo", sans-serif;
+  --font-onest: "Onest", system-ui, sans-serif;
+  --font-label: "JetBrains Mono", monospace;
+}

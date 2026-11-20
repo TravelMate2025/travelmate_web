@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import UpdateEmailPresenter from "./UpdateEmailPresenter";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store";
-import api from "../../../api/services/api";
+import { changeEmail, requestEmailChangeToken, resendAccountToken, validateAccountToken } from "../api/settings";
 import axios from "axios";
 import { updateUserEmail } from "../slices/authSlice";
 import { useNavigate } from "react-router-dom";
@@ -59,9 +59,7 @@ function UpdateEmailContainer() {
         throw new Error("User email is not available.");
       }
 
-      const response = await api.post("/users/reset_email/", {
-        email: safeUser.email,
-      });
+      const response = await requestEmailChangeToken(safeUser.email);
 
       if (response.status >= 200 && response.status < 300) {
         setHasReceivedOtp(true);
@@ -86,9 +84,7 @@ function UpdateEmailContainer() {
         throw new Error("User email is not available.");
       }
 
-      await api.post("/users/resend_reset_token/", {
-        email: safeUser.email,
-      });
+      await resendAccountToken(safeUser.email);
     } catch (error: unknown) {
       console.error("Resend OTP error:", String(error));
     }
@@ -103,10 +99,7 @@ function UpdateEmailContainer() {
         throw new Error("User email is not available.");
       }
 
-      const res = await api.post("/users/validate-reset-token/", {
-        token: emailToken,
-        email: safeUser.email,
-      });
+      const res = await validateAccountToken(safeUser.email, emailToken);
 
       if (res.status === 200) {
         setIsOtpValid(true);
@@ -133,10 +126,7 @@ function UpdateEmailContainer() {
         throw new Error("Please enter your current password.");
       }
 
-      const res = await api.post("/users/set_email/", {
-        new_email: userNewEmail.trim(),
-        current_password: currentPassword,
-      });
+      const res = await changeEmail(userNewEmail.trim(), currentPassword);
 
       if (res.status >= 200 && res.status < 300) {
         dispatch(updateUserEmail(userNewEmail.trim()));
