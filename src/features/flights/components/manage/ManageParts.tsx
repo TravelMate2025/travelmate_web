@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { bookingFlowRoutes } from "../../../shared/bookingFlowRoutes";
 import { bagsText } from "../../booking/bags";
 import { refundSteps } from "../../booking/bookingStatus";
-import { cancelCopy, changedSegmentIds, fareLines, refundAmountText, refundHeading, segmentTimes, type ScheduleAlert } from "../../booking/manage";
+import { cancelCopy, fareLines, refundAmountText, refundHeading, segmentState, segmentTimes, type ScheduleAlert } from "../../booking/manage";
 import type { FlightsState } from "../../slice";
 import { dayDifference, localDate, timeOf } from "../../results/offerFacts";
 import { cabinLabel } from "../../search/searchDraft";
@@ -21,12 +21,6 @@ const ACTION =
 
 const directionLabel = (count: number, index: number) => (count === 2 ? (index === 0 ? "Outbound" : "Return") : count === 1 ? "Outbound" : `Flight ${index + 1}`);
 
-const segmentState = (booking: FlightBooking, segmentIds: string[]) =>
-  ["CANCELLED", "CANCELLATION_REQUESTED", "HOLD_EXPIRED", "FAILED"].includes(booking.status)
-    ? "cancelled"
-    : segmentIds.some((id) => changedSegmentIds(booking).has(id))
-      ? "time changed"
-      : "confirmed";
 
 /** Mock (Manage): orange alert, 14px corners, warning icon, "Schedule change on your return". */
 export const ScheduleChangeAlert = ({ alert }: { alert: ScheduleAlert }) => (

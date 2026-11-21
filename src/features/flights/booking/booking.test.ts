@@ -4,7 +4,7 @@ import type { FlightBooking, FlightOffer } from "../types";
 import { bookingCalendar } from "./calendar";
 import { bookingSteps, refundSteps, shouldPoll, statusView } from "./bookingStatus";
 import { itineraryLines } from "./itineraryPdf";
-import { canCancel, cancelCopy, scheduleAlerts, fareLines, refundAmountText, refundHeading, routeName, statusBadge, toBookingRow, travellersText, tripDates } from "./manage";
+import { canCancel, cancelCopy, scheduleAlerts, fareLines, refundAmountText, refundHeading, routeName, segmentState, statusBadge, toBookingRow, travellersText, tripDates } from "./manage";
 
 const offer = (searchesFixture as unknown as Record<string, { offers: FlightOffer[] }>).return_los_lon.offers[0];
 const booking = (patch: Partial<FlightBooking> = {}): FlightBooking => ({
@@ -116,6 +116,13 @@ describe("my bookings and manage", () => {
     const pending = (amount: string) => booking({ status: "CANCELLATION_REQUESTED", refund: { status: "PENDING", amount: { amount, currency: "USD" }, airlineConfirmed: false, startedAt: "", completedAt: null } });
     expect(refundHeading(pending("787.70"))).toBe("Your refund"); // void: everything paid comes back
     expect(refundHeading(pending("120.00"))).toBe("Estimated refund");
+  });
+
+  it("keeps the flights booked while the airline hasn't confirmed a cancellation", () => {
+    const ids = offer.itineraries[0].segments.map((s) => s.id);
+    expect(segmentState(booking({ status: "CANCELLATION_REQUESTED" }), ids)).toBe("cancellation requested");
+    expect(segmentState(booking({ status: "CANCELLED" }), ids)).toBe("cancelled");
+    expect(segmentState(booking({ status: "TICKETED" }), ids)).toBe("confirmed");
   });
 
   it("says a refused refund is delayed, not in progress", () => {
