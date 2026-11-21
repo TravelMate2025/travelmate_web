@@ -276,6 +276,18 @@ export const scheduleAlerts = (booking: FlightBooking): ScheduleAlert[] => {
 /** Segment ids the airline has re-timed (the itinerary marks them). */
 export const changedSegmentIds = (booking: FlightBooking) => new Set(booking.scheduleChanges.map((c) => c.segmentId));
 
+/** Itinerary card: each direction's state. */
+// A ticketed booking's cancellation waits for the airline (void or refund): the flights
+// stay booked until staff confirm it, so they aren't "cancelled" yet
+export const segmentState = (booking: FlightBooking, segmentIds: string[]) =>
+  booking.status === "CANCELLATION_REQUESTED"
+    ? "cancellation requested"
+    : ["CANCELLED", "HOLD_EXPIRED", "FAILED"].includes(booking.status)
+      ? "cancelled"
+      : segmentIds.some((id) => changedSegmentIds(booking).has(id))
+        ? "time changed"
+        : "confirmed";
+
 /** A segment's departure and arrival with any schedule change applied. */
 export const segmentTimes = (booking: FlightBooking, segment: Segment) => {
   const change = [...booking.scheduleChanges].reverse().find((c) => c.segmentId === segment.id);
