@@ -13,6 +13,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { NotificationProvider } from "./features/account/components/notifications/NotificationProvider";
 import ScrollToTop from "./ScrollToTop";
 import { muiTheme } from "./theme/muiTheme";
+import { listenForNewRelease } from "./newRelease";
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 if (!googleClientId) {
@@ -21,6 +22,8 @@ if (!googleClientId) {
 }
 
 injectStore(store);
+// An open page after a new release: reload into it instead of "Something went wrong"
+listenForNewRelease();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
