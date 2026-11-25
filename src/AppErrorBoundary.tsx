@@ -1,4 +1,5 @@
 import { Component, type ReactNode, type ErrorInfo } from "react";
+import { isStaleCodeError, reloadOnceForNewRelease } from "./newRelease";
 
 interface Props {
   children: ReactNode;
@@ -23,6 +24,8 @@ class AppErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
+    // A page opened before a new release asked for code that no longer exists: load the new release
+    if (isStaleCodeError(error) && reloadOnceForNewRelease()) return;
     console.error("App error boundary caught:", error, info);
     this.setState({ componentStack: info.componentStack ?? undefined });
   }
