@@ -185,6 +185,7 @@ export const TravellerCard = ({
           <Field id={id("ppc")} label="Issuing country" required={passportRequired} error={err("passportCountry")}>
             <select
               id={id("ppc")}
+              autoComplete="off"
               value={t.passportCountry}
               onChange={(e) => onChange({ passportCountry: e.target.value })}
               className={INPUT}

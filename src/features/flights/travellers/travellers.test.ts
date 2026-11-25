@@ -81,6 +81,25 @@ describe("traveller form", () => {
     expect(ageOn("2014-12-16", "2026-12-15")).toBe(11);
   });
 
+  it("an optional passport is checked only once a number or expiry is typed", () => {
+    const form = filled();
+    // a country on its own (e.g. filled by the browser's autofill) doesn't start the passport
+    form.travellers[0].passportCountry = "NG";
+    let errors = validateTravellers(form, requirements, dates);
+    expect(errors["t1.passportNumber"]).toBeUndefined();
+    expect(errors["t1.passportExpiry"]).toBeUndefined();
+    // a typed number does: then all three are needed
+    form.travellers[0].passportNumber = "A1234567";
+    errors = validateTravellers(form, requirements, dates);
+    expect(errors["t1.passportExpiry"]).toBe("Enter the expiry date");
+    // when the airline requires a passport, an empty one is reported
+    const required = { ...requirements, travelers: requirements.travelers.map((r) => ({ ...r, passportRequired: true })) };
+    const empty = filled();
+    errors = validateTravellers(empty, required, dates);
+    expect(errors["t1.passportNumber"]).toBe("Enter the passport number (letters and numbers)");
+    expect(errors["t1.passportCountry"]).toBe("Choose the issuing country");
+  });
+
   it("allows only one infant per adult lap", () => {
     const form = filled();
     form.travellers.push({ ...emptyTraveller("5", "HELD_INFANT"), firstName: "Obi", lastName: "Okafor", dateOfBirth: "2026-02-01", associatedAdultId: "1" });
