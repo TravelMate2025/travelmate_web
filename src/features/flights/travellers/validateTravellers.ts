@@ -112,7 +112,10 @@ export const validateTravellers = (form: TravellerForm, requirements: BookingReq
       set(key("dateOfBirth"), checkAge(t, dates));
     }
 
-    const anyPassport = Boolean(t.passportNumber.trim() || t.passportExpiry || t.passportCountry);
+    // Optional passport counts as started once a number or an expiry date is typed. The issuing
+    // country alone doesn't: browsers autofill country lists (with the contact details) into the
+    // folded passport section, and a passport without a number isn't sent anyway (toInputs).
+    const anyPassport = Boolean(t.passportNumber.trim() || t.passportExpiry);
     if (req?.passportRequired || anyPassport) {
       if (!/^[A-Za-z0-9]{5,20}$/.test(t.passportNumber.trim())) set(key("passportNumber"), "Enter the passport number (letters and numbers)");
       if (!t.passportCountry) set(key("passportCountry"), "Choose the issuing country");
