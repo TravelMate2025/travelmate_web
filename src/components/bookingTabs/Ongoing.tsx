@@ -48,8 +48,8 @@ const Ongoing = ({ bookings, onCancel, cancelingId }: BookingsProps) => {
     <div>
       {bookings.length === 0 ? (
         <EmptyState
-          title="No confirmed bookings yet"
-          content="You haven't made any confirmed bookings yet. When you do, they will appear here."
+          title="No ongoing bookings yet"
+          content="You have no ongoing bookings. When you book, your upcoming trips will appear here."
         />
       ) : (
         bookings.map((item) => {
