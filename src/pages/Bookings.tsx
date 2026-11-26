@@ -111,7 +111,8 @@ const Bookings = () => {
   const currentTab = searchParams.get("tab") || "pending";
   const breadcrumbs = [{ name: "Home", link: "/" }, { name: "Bookings" }];
   const bookingTabs = [
-    { name: "Confirmed", value: "pending" },
+    // "Ongoing", the same name as the mobile app: paid and upcoming bookings
+    { name: "Ongoing", value: "pending" },
     { name: "Completed", value: "completed" },
     { name: "Cancelled", value: "cancelled" },
     { name: "Payment failed", value: "failed" },
