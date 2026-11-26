@@ -3,8 +3,9 @@
 The flight UI is built before the backend (features.md, "Flights UI rebuild"). With
 `VITE_FLIGHTS_API_MODE=mock` in `.env.local`, `features/flights/api` serves the data
 below instead of calling `travelmate_backend`. Components don't know which one they use.
-The mode is fixed at build time: a live build contains no mock code or data at all, and a
-mock build loads it as a separate chunk on first use.
+**Only the local dev server** (the automated browser tests, `playwright.config.ts`) can use it.
+Every build (`npm run build`, Vercel testing and live) always calls the backend and contains no
+mock code or data at all, whatever `VITE_FLIGHTS_API_MODE` says.
 
 ## What the data is
 
