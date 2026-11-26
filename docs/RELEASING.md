@@ -32,7 +32,7 @@ Unfinished products ship switched off, so `development` can always be promoted. 
 | `VITE_FEATURE_TRANSFERS` | not set (off) | `on` |
 | `VITE_FEATURE_FLIGHTS` | not set (off) | `on` |
 | `VITE_FEATURE_APP_PROMO` | not set (off) | `on` |
-| `VITE_FLIGHTS_API_MODE` | not set (live) | `mock` until the flights backend is ready |
+| `VITE_FLIGHTS_API_MODE` | never set | never set: builds always use the backend. Only the local automated browser tests use sample data. |
 | `VITE_FLIGHTS_EXTRAS` | not set (off) | `on` |
 
 A build with no product settings is the hotels-only site. Launching a product later is setting its switch to `on` for Production in Vercel and redeploying; no code change.

@@ -4,10 +4,14 @@ import { liveFlightsApi } from "./liveFlightsApi";
 export type { FlightsApi } from "./contract";
 export { FlightApiError } from "./errors";
 
-// VITE_FLIGHTS_API_MODE=mock serves recorded Amadeus test data (see
-// features/flights/mocks/README.md); anything else calls travelmate_backend.
-// The mode is fixed at build time, so a live build drops the mock entirely.
-export const flightsApiMode: "mock" | "live" = import.meta.env.VITE_FLIGHTS_API_MODE === "mock" ? "mock" : "live";
+// Every built site (Vercel: testing and live) calls travelmate_backend. Sample
+// data (recorded Amadeus test responses, features/flights/mocks) is only for the
+// local dev server the automated browser tests start (playwright.config.ts sets
+// VITE_FLIGHTS_API_MODE=mock); a build ignores the setting and drops the mock.
+// 26 Nov 2026: the testing site ran on sample data for days, so real bookings
+// never showed there.
+export const flightsApiMode: "mock" | "live" =
+  import.meta.env.DEV && import.meta.env.VITE_FLIGHTS_API_MODE === "mock" ? "mock" : "live";
 
 let implementation: Promise<FlightsApi> | null = null;
 const resolve = () =>
