@@ -123,6 +123,16 @@ export const fromIsoDate = (s: string): Date | null => {
   return new Date(y, m - 1, d);
 };
 
+/** Dates left empty: the stay starts this many days from today and lasts one night. */
+export const DEFAULT_STAY_DAYS_AHEAD = 30;
+
+/** The default stay (one night, 30 days from today) as YYYY-MM-DD, for places opened without the search box. */
+export const defaultStayDates = (today: Date = new Date()): { checkIn: string; checkOut: string } => {
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() + DEFAULT_STAY_DAYS_AHEAD);
+  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 1);
+  return { checkIn: toIsoDate(start), checkOut: toIsoDate(end) };
+};
+
 export const nightsBetween = (checkIn: string, checkOut: string) => {
   const a = fromIsoDate(checkIn);
   const b = fromIsoDate(checkOut);

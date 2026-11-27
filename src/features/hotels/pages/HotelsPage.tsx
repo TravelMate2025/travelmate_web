@@ -7,7 +7,7 @@ import { SearchCard } from "../components/SearchCard";
 import { searchHotels } from "../api/hotelsApi";
 import { hotelsRoutes, HOTELS_SEARCH_ID } from "../routes";
 import { outOfTen } from "../format";
-import { DEFAULT_SEARCH, buildSearchParams } from "../search";
+import { DEFAULT_SEARCH, buildSearchParams, defaultStayDates } from "../search";
 import {
   HERO_IMAGE,
   destinationFilters,
@@ -68,9 +68,9 @@ export default function HotelsPage() {
 
   const goToResults = (search: SearchState) => navigate(`${hotelsRoutes.results}?${buildSearchParams(search).toString()}`);
 
-  /** A card for a place: open its results straight away (no dates yet: the guest picks them on the next page). */
+  /** A card for a place: open its results straight away, with the default stay (one night, 30 days from today) so the dates are never empty; the guest can change them on the next page. */
   const openPlace = (spot: Spot) =>
-    goToResults({ ...DEFAULT_SEARCH, lat: spot.lat, lng: spot.lng, name: spot.name });
+    goToResults({ ...DEFAULT_SEARCH, ...defaultStayDates(), lat: spot.lat, lng: spot.lng, name: spot.name });
 
   /** A chip or link that is not a place: take the guest to the search box. */
   const focusSearch = (spot?: Spot) => {

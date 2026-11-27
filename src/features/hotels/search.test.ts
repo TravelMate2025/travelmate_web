@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SEARCH, buildSearchParams, fromIsoDate, hasPlace, nightsBetween, parseSearch, stayLine, toIsoDate } from "./search";
+import { DEFAULT_SEARCH, buildSearchParams, defaultStayDates, fromIsoDate, hasPlace, nightsBetween, parseSearch, stayLine, toIsoDate } from "./search";
 
 describe("hotel search in the page address", () => {
   it("round-trips a full search", () => {
@@ -53,5 +53,15 @@ describe("hotel search in the page address", () => {
   it("describes the stay", () => {
     expect(stayLine({ ...DEFAULT_SEARCH, checkIn: "2027-03-05", checkOut: "2027-03-08", childAges: [5] })).toBe("5 Mar – 8 Mar · 3 nights · 2 adults, 1 child, 1 room");
     expect(stayLine(DEFAULT_SEARCH)).toBe("Add your dates for live prices · 2 adults, 1 room");
+  });
+});
+
+describe("default stay for places opened without the search box", () => {
+  it("is one night starting 30 days from today", () => {
+    expect(defaultStayDates(new Date(2026, 10, 20))).toEqual({ checkIn: "2026-12-20", checkOut: "2026-12-21" });
+  });
+
+  it("rolls over month and year ends", () => {
+    expect(defaultStayDates(new Date(2026, 11, 1))).toEqual({ checkIn: "2026-12-31", checkOut: "2027-01-01" });
   });
 });

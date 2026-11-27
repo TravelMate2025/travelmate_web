@@ -3,13 +3,11 @@ import { addDays, startOfToday } from "date-fns";
 import { suggestPlaces } from "../api/hotelsApi";
 import { DateRangeFields, type StayDates } from "./DateRangeFields";
 import { GuestsField } from "./GuestsField";
-import { fromIsoDate, hasPlace, toIsoDate } from "../search";
+import { DEFAULT_STAY_DAYS_AHEAD, fromIsoDate, hasPlace, toIsoDate } from "../search";
 import type { GuestCounts } from "../guests";
 import type { PlaceSuggestion, SearchState } from "../types";
 import { HOTELS_SEARCH_ID } from "../routes";
 
-/** Dates left empty: the stay starts this many days from today and lasts one night. */
-const DEFAULT_STAY_DAYS_AHEAD = 30;
 
 type Props = {
   /** What the card starts with (the landing page starts empty; the results page starts with the current search). */
